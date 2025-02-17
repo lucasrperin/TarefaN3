@@ -1,4 +1,4 @@
-/* Reset básico de margens e padding */
+/* Reset básico */
 * {
     margin: 0;
     padding: 0;
@@ -7,72 +7,33 @@
 
 /* Corpo da página */
 body {
-    font-family: Arial, sans-serif;
     background-color: #f4f4f9;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    margin: 0;
 }
 
-/* Título */
-h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #333;
-}
-
-/* Formulário */
-form {
+/* Container do login */
+.login-container {
     background-color: white;
     padding: 30px;
-    border-radius: 8px;
+    border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 300px;
-}
-
-/* Labels e inputs */
-label {
-    display: block;
-    font-size: 14px;
-    margin-bottom: 6px;
-    color: #555;
-}
-
-input {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
+    max-width: 350px;
 }
 
-input:focus {
-    border-color: #0066cc;
-    outline: none;
+/* Melhorias no formulário */
+.form-label {
+    font-weight: bold;
 }
 
-/* Botão */
-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #0066cc;
-    color: white;
-    border: none;
-    border-radius: 4px;
+.form-control {
+    border-radius: 6px;
+}
+
+.btn {
+    border-radius: 6px;
     font-size: 16px;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #004d99;
-}
-
-/* Mensagem de erro */
-p {
-    text-align: center;
-    font-size: 14px;
-    margin-top: 10px;
 }
