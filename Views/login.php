@@ -1,12 +1,11 @@
 <?php
 session_start();
-require '../config/Database.php';
+require '../config/Database.php'; // Ajuste conforme sua estrutura
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $senha = $_POST['senha'];
 
-    // Buscar usuário no banco de dados
     $sql = "SELECT * FROM TB_USUARIO WHERE Email = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $email);
@@ -15,12 +14,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($resultado->num_rows > 0) {
         $usuario = $resultado->fetch_assoc();
-        
-        // Verifica a senha
-        if ($senha === $usuario['Senha']) {
+
+        // Comparação direta da senha (sem hash, pois foi gravada como texto simples)
+        if ($senha == $usuario['Senha']) {
             $_SESSION['usuario_id'] = $usuario['Id'];
             $_SESSION['usuario_nome'] = $usuario['Nome'];
-            header("Location: ../home.php"); // Redireciona para o painel
+            
+            // Redirecionamento para home.php
+            header("Location: ../home.php");
             exit();
         } else {
             $erro = "Senha incorreta!";
@@ -35,20 +36,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Login</title>
-    <link rel="stylesheet" href="Public/login.css">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Arquivo CSS personalizado -->
+    <link rel="stylesheet" href="../public/login.css">
 </head>
 <body>
-    <h2>Login</h2>
-    <?php if (isset($erro)) echo "<p style='color:red;'>$erro</p>"; ?>
-    <form method="POST" action="">
-        <label>Email:</label>
-        <input type="email" name="email" required><br>
-        
-        <label>Senha:</label>
-        <input type="password" name="senha" required><br>
-        
-        <button type="submit">Entrar</button>
-    </form>
+
+    <div class="login-container text-center">
+        <h2 class="mb-4">Login</h2>
+
+        <?php if (isset($erro)) echo "<div class='alert alert-danger'>$erro</div>"; ?>
+
+        <form method="POST" action="">
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Senha</label>
+                <input type="password" name="senha" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Entrar</button>
+        </form>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
