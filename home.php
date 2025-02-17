@@ -1,6 +1,16 @@
 <?php
 require 'config/database.php'; 
 
+session_start();
+
+// Verifica se o usuário está logado, se não, redireciona para o login
+if (!isset($_SESSION['usuario_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// Código para mostrar o conteúdo da página
+
 $sql = "SELECT * FROM TB_ANALISES";
 $result = $conn->query($sql);
 ?>
@@ -11,6 +21,7 @@ $result = $conn->query($sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
         <h1>TAREFAS N3</h1>
         <link rel="stylesheet" href = ./css/home.css>
+        <h2>Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</h2>
     </header>
     <body>
         <table id="example"  style="width:100%">
@@ -50,32 +61,14 @@ $result = $conn->query($sql);
                 $conn->close();
                 ?>
             </tbody>
-        </table>         
+        </table>    
+        
+    
+    
+    
      <body>
 
     <footer> 
-
-    </footer>
-    
-session_start();
-
-// Verifica se o usuário está logado, se não, redireciona para o login
-if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php");
-    exit();
-}
-
-// Código para mostrar o conteúdo da página
-?>
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <title>Home</title>
-</head>
-<body>
-    <h2>Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</h2>
-    <p>Conteúdo protegido da página Home.</p>
     <a href="Views/login.php">Sair</a>
-</body>
+    </footer>
 </html>
