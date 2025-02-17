@@ -11,18 +11,39 @@ if (!isset($_SESSION['usuario_id'])) {
 
 // Código para mostrar o conteúdo da página
 
-$sql = "SELECT * FROM TB_ANALISES";
+$sql = "SELECT 
+            tas.Descricao as Descricao,
+            sit.Descricao as Situacao,
+            tba.Descricao as Analista,
+            sis.Descricao as Sistema,
+            sta.Descricao as Status,
+            tas.Hora_ini,
+            tas.Hora_fim,
+            tas.Total_hora
+        FROM TB_ANALISES tas
+            left join tb_situacao sit
+                on sit.Id = tas.idSituacao
+            left join tb_analista tba
+                on tba.Id = tas.idAnalista
+            left join tb_sistema sis
+                on sis.Id = tas.idSistema
+            left join tb_status sta
+                on sta.Id = tas.idStatus
+            left join tb_usuario usu
+                on usu.Id = tas.idUsuario
+        order by tas.Id desc";
 $result = $conn->query($sql);
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-        <h1>TAREFAS N3</h1>
-        <link rel="stylesheet" href = ./css/home.css>
-        <h2>Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</h2>
-    </header>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href = ../public/home.css> 
+            <h1>TAREFAS N3</h1> 
+            <h2>Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</h2>
+    </head>
     <body>
         <table id="example"  style="width:100%">
             <thead>
@@ -45,11 +66,10 @@ $result = $conn->query($sql);
                     {
                         echo "<tr>";
                         echo "<td>". $row["Descricao"]. "</td>";
-                        echo "<td>". $row["idSituacao"]. "</td>";
-                        echo "<td>". $row["idAnalista"]. "</td>";
-                        echo "<td>". $row["idSistema"]. "</td>";
-                        echo "<td>". $row["idStatus"]. "</td>";
-                        echo "<td>". $row["idUsuario"]. "</td>";
+                        echo "<td>". $row["Situacao"]. "</td>";
+                        echo "<td>". $row["Analista"]. "</td>";
+                        echo "<td>". $row["Sistema"]. "</td>";
+                        echo "<td>". $row["Status"]. "</td>";
                         echo "<td>". $row["Hora_ini"]. "</td>";
                         echo "<td>". $row["Hora_fim"]. "</td>";
                         echo "<td>". $row["Total_hora"]. "</td>";
@@ -62,13 +82,10 @@ $result = $conn->query($sql);
                 ?>
             </tbody>
         </table>    
-        
-    
-    
     
      <body>
 
     <footer> 
-    <a href="Views/login.php">Sair</a>
+        <a href="Views/login.php">Sair</a>
     </footer>
 </html>
