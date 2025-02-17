@@ -1,0 +1,55 @@
+CREATE SCHEMA TarefaN3;
+
+USE TarefaN3;
+
+CREATE TABLE TB_SITUACAO 
+( 
+ Id INT PRIMARY KEY auto_increment,  
+ Descricao INT UNIQUE NOT NULL
+); 
+
+CREATE TABLE TB_ANALISTA 
+( 
+ Id INT PRIMARY KEY auto_increment,  
+ Descricao varchar(50) UNIQUE NOT NULL
+); 
+
+CREATE TABLE TB_SISTEMA 
+( 
+ Descricao varchar(50) UNIQUE NOT NULL,  
+ Id INT PRIMARY KEY auto_increment
+); 
+
+CREATE TABLE TB_STATUS 
+( 
+ Descricao varchar(50) UNIQUE NOT NULL,  
+ Id INT PRIMARY KEY auto_increment
+); 
+
+CREATE TABLE TB_ANALISES 
+( 
+ Id INT PRIMARY KEY auto_increment,  
+ Descricao varchar(50) UNIQUE NOT NULL,  
+ idSituacao INT,  
+ idAnalista INT,  
+ idSistema INT,  
+ idStatus INT,
+ idUsuario int,
+ Hora_ini DATETIME,  
+ Hora_fim DATETIME,  
+ Total_hora TIME  
+); 
+
+CREATE TABLE TB_USUARIO
+( 
+ Id INT PRIMARY KEY ,
+ Nome varchar(50) NOT NULL,
+ Email varchar(50) NOT NULL,
+ Senha varchar(255) NOT NULL
+); 
+
+ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idSituacao) REFERENCES TB_SITUACAO (Id);
+ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idAnalista) REFERENCES TB_ANALISTA (Id);
+ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idSistema) REFERENCES TB_SISTEMA (Id);
+ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idStatus) REFERENCES TB_STATUS (Id);
+ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idUsuario) REFERENCES TB_USUARIO (Id);
