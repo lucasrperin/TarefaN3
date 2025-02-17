@@ -1,0 +1,16 @@
+<html> 
+    <header> 
+        <h1> TETA</h1>
+        <link rel="stylesheet" href = ./css/home.css>
+    </header>
+
+        <section> 
+
+
+        </section>
+
+    <footer> 
+
+    </footer>
+    
+</html>
