@@ -11,11 +11,31 @@ if (!isset($_SESSION['usuario_id'])) {
 
 // Código para mostrar o conteúdo da página
 
-$sql = "SELECT * FROM TB_ANALISES";
+$sql = "SELECT 
+            tas.Descricao as Descricao,
+            sit.Descricao as Situacao,
+            tba.Descricao as Analista,
+            sis.Descricao as Sistema,
+            sta.Descricao as Status,
+            tas.Hora_ini,
+            tas.Hora_fim,
+            tas.Total_hora
+        FROM TB_ANALISES tas
+            left join tb_situacao sit
+                on sit.Id = tas.idSituacao
+            left join tb_analista tba
+                on tba.Id = tas.idAnalista
+            left join tb_sistema sis
+                on sis.Id = tas.idSistema
+            left join tb_status sta
+                on sta.Id = tas.idStatus
+            left join tb_usuario usu
+                on usu.Id = tas.idUsuario
+        order by tas.Id desc";
 $result = $conn->query($sql);
 ?>
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR">   
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -60,10 +80,10 @@ $result = $conn->query($sql);
                         while($row = $result->fetch_assoc()) {
                             echo "<tr>";
                             echo "<td>". $row["Descricao"]. "</td>";
-                            echo "<td>". $row["idSituacao"]. "</td>";
-                            echo "<td>". $row["idAnalista"]. "</td>";
-                            echo "<td>". $row["idSistema"]. "</td>";
-                            echo "<td>". $row["idStatus"]. "</td>";
+                            echo "<td>". $row["Situacao"]. "</td>";
+                            echo "<td>". $row["Analista"]. "</td>";
+                            echo "<td>". $row["Sistema"]. "</td>";
+                            echo "<td>". $row["Status"]. "</td>";
                             echo "<td>". $row["Hora_ini"]. "</td>";
                             echo "<td>". $row["Hora_fim"]. "</td>";
                             echo "<td>". $row["Total_hora"]. "</td>";
