@@ -110,7 +110,7 @@ if ($result === false) {
                              echo "<td>". $row["Total_hora"]. "</td>";?>
                             <th>
                                 <a class="btn-edit" href="Views/login.php"><i class="fa-sharp fa-solid fa-pen"></i></a>
-                                <a class="btn-remove" onclick="removerElemento(event.target)"><i class="fa-solid fa-trash"></i></a>
+                                <a class="btn-remove"><i class="fa-solid fa-trash"></i></a>
                             </th>
                             <?php echo "</tr>"; 
                         }
@@ -217,9 +217,3 @@ if ($result === false) {
 
 </body>
 </html>
-
-<script>
-function removerElemento(elementoClicado) {
-  elementoClicado.closest("tr").remove();
-}
-</script>
