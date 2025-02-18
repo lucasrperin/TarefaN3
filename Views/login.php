@@ -21,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['usuario_nome'] = $usuario['Nome'];
             
             // Redirecionamento para home.php
-            header("Location: ../home.php");
+            header("Location: ../index.php");
             exit();
         } else {
             $erro = "Senha incorreta!";

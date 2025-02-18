@@ -17,7 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     
     if ($stmt->execute()) {
-        header("Location: ../home.php?success=1");
+        header("Location: ../index.php?success=1");
         exit();
     } else {
         echo "Erro ao cadastrar: " . $stmt->error;
