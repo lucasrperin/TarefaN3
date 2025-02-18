@@ -43,6 +43,9 @@ $result = $conn->query($sql);
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Ícones personalizados -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
     <!-- Arquivo CSS personalizado -->
     <link rel="stylesheet" href="Public/home.css">
@@ -72,22 +75,26 @@ $result = $conn->query($sql);
                         <th>Hora Início</th>
                         <th>Hora Fim</th>
                         <th>Total Horas</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php
-                    if ($result->num_rows > 0) {
+                    <?php if ($result->num_rows > 0) {
                         while($row = $result->fetch_assoc()) {
-                            echo "<tr>";
-                            echo "<td>". $row["Descricao"]. "</td>";
-                            echo "<td>". $row["Situacao"]. "</td>";
-                            echo "<td>". $row["Analista"]. "</td>";
-                            echo "<td>". $row["Sistema"]. "</td>";
-                            echo "<td>". $row["Status"]. "</td>";
-                            echo "<td>". $row["Hora_ini"]. "</td>";
-                            echo "<td>". $row["Hora_fim"]. "</td>";
-                            echo "<td>". $row["Total_hora"]. "</td>";
-                            echo "</tr>";
+                             echo "<tr>";
+                             echo "<td>". $row["Descricao"]. "</td>";
+                             echo "<td>". $row["Situacao"]. "</td>";
+                             echo "<td>". $row["Analista"]. "</td>";
+                             echo "<td>". $row["Sistema"]. "</td>";
+                             echo "<td>". $row["Status"]. "</td>";
+                             echo "<td>". $row["Hora_ini"]. "</td>";
+                             echo "<td>". $row["Hora_fim"]. "</td>";
+                             echo "<td>". $row["Total_hora"]. "</td>";?>
+                            <th>
+                                <a href="Views/login.php"><i class="fa-sharp fa-solid fa-pen"></i></a>
+                                <a href="Views/login.php"><i class="fa-solid fa-trash"></i></a>
+                            </th>
+                            <?php echo "</tr>"; 
                         }
                     } else {
                         echo "<tr><td colspan='8' class='text-center'>Nenhum dado encontrado</td></tr>";

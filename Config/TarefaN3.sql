@@ -29,7 +29,7 @@ CREATE TABLE TB_STATUS
 CREATE TABLE TB_ANALISES 
 ( 
  Id INT PRIMARY KEY auto_increment,  
- Descricao varchar(50) UNIQUE NOT NULL,  
+ Descricao varchar(100) NOT NULL,  
  idSituacao INT,  
  idAnalista INT,  
  idSistema INT,  
