@@ -1,5 +1,5 @@
 <?php
-require 'config/database.php'; 
+require 'Config/database.php'; 
 
 session_start();
 
@@ -20,15 +20,15 @@ $sql = "SELECT
             tas.Hora_fim,
             tas.Total_hora
         FROM TB_ANALISES tas
-            LEFT JOIN tb_situacao sit
+            LEFT JOIN TB_SITUACAO sit
                 ON sit.Id = tas.idSituacao
-            LEFT JOIN tb_analista tba
+            LEFT JOIN TB_ANALISTA tba
                 ON tba.Id = tas.idAnalista
-            LEFT JOIN tb_sistema sis
+            LEFT JOIN TB_SISTEMA sis
                 ON sis.Id = tas.idSistema
-            LEFT JOIN tb_status sta
+            LEFT JOIN TB_STATUS sta
                 ON sta.Id = tas.idStatus
-            LEFT JOIN tb_usuario usu
+            LEFT JOIN TB_USUARIO usu
                 ON usu.Id = tas.idUsuario
         ORDER BY tas.Id DESC";
 
@@ -73,13 +73,23 @@ if ($result === false) {
     <?php endif; ?>
 
     <!-- Botão para abrir o modal de cadastro -->
-    <div class="text-center mb-3">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">Cadastrar</button>
+   
+<div class="container mt-4">
+    <div class="row align-items-center">
+        <div class="col-4"></div> 
+        <div class="col-4 text-center">
+            <h2 class="mb-0">Lista de Análises</h2>
+        </div>
+        <div class="col-4 text-end">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">Cadastrar</button>
+        </div>
     </div>
+</div>
+
 
      <!-- Exibição da Lista de Análises -->
      <div class="container mt-4">
-        <h2 class="text-center mb-4">Lista de Análises</h2>
+    
 
         <div class="table-responsive">
             <table class="table table-bordered table-hover">
@@ -216,6 +226,20 @@ if ($result === false) {
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript para esconder a mensagem de sucesso após 5 segundos -->
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(function () {
+            let alertSuccess = document.querySelector(".alert-success");
+            if (alertSuccess) {
+                alertSuccess.style.transition = "opacity 0.5s";
+                alertSuccess.style.opacity = "0";
+                setTimeout(() => alertSuccess.remove(), 500); // Remove do DOM após a animação
+            }
+        }, 5000);
+    });
+</script>
 
 </body>
 </html>
