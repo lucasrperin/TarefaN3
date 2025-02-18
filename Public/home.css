@@ -11,9 +11,31 @@ h1 {
 
 .table th {
     text-align: center;
+    vertical-align: middle;
 }
 
 .table td {
     text-align: center;
     vertical-align: middle;
+}
+
+/* Botão de editar (azul) */
+tbody a.btn-edit {
+    color: #0d6efd; /* Azul Bootstrap */
+    margin-right: 8px;
+}
+
+tbody a.btn-edit:hover {
+    color: #0a58ca; /* Azul mais escuro */
+    transform: scale(1.2);
+}
+
+/* Botão de remover (vermelho) */
+tbody a.btn-remove {
+    color: #dc3545; /* Vermelho Bootstrap */
+}
+
+tbody a.btn-remove:hover {
+    color: #b02a37; /* Vermelho mais escuro */
+    transform: scale(1.2);
 }

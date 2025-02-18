@@ -85,14 +85,14 @@ if ($result === false) {
             <table class="table table-bordered table-hover">
                 <thead class="table-dark">
                     <tr>
-                        <th>Descrição</th>
-                        <th>Situação</th>
-                        <th>Analista</th>
+                        <th style="width:30%">Descrição</th>
+                        <th style="width:11%">Situação</th>
+                        <th style="width:10%">Analista</th>
                         <th>Sistema</th>
                         <th>Status</th>
-                        <th>Hora Início</th>
-                        <th>Hora Fim</th>
-                        <th>Total Horas</th>
+                        <th style="width:15%">Hora Início</th>
+                        <th style="width:15%">Hora Fim</th>
+                        <th style="width:10%">Total Horas</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -109,8 +109,8 @@ if ($result === false) {
                              echo "<td>". $row["Hora_fim"]. "</td>";
                              echo "<td>". $row["Total_hora"]. "</td>";?>
                             <th>
-                                <a href="Views/login.php"><i class="fa-sharp fa-solid fa-pen"></i></a>
-                                <a href="Views/login.php"><i class="fa-solid fa-trash"></i></a>
+                                <a class="btn-edit" href="Views/login.php"><i class="fa-sharp fa-solid fa-pen"></i></a>
+                                <a class="btn-remove" href="Views/login.php"><i class="fa-solid fa-trash"></i></a>
                             </th>
                             <?php echo "</tr>"; 
                         }
@@ -136,7 +136,7 @@ if ($result === false) {
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="descricao" class="form-label">Descrição</label>
-                                <input type="text" class="form-control" id="descricao" name="descricao" required>
+                                <input type="text" class="form-control" id="descricao" name="descricao" maxlength=50 required>
                             </div>
                             <div class="col-md-6">
                                 <label for="situacao" class="form-label">Situação</label>
