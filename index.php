@@ -10,7 +10,8 @@ if (!isset($_SESSION['usuario_id'])) {
 }
 
 // Código para mostrar o conteúdo da página
-$sql = "SELECT 
+$sql = "SELECT
+            tas.Id as Codigo,
             tas.Descricao as Descricao,
             sit.Descricao as Situacao,
             tba.Descricao as Analista,
@@ -110,6 +111,7 @@ if ($result === false) {
                     <?php if ($result->num_rows > 0) {
                         while($row = $result->fetch_assoc()) {
                              echo "<tr>";
+                             $row["Codigo"];
                              echo "<td>". $row["Descricao"]. "</td>";
                              echo "<td>". $row["Situacao"]. "</td>";
                              echo "<td>". $row["Analista"]. "</td>";
@@ -117,10 +119,11 @@ if ($result === false) {
                              echo "<td>". $row["Status"]. "</td>";
                              echo "<td>". $row["Hora_ini"]. "</td>";
                              echo "<td>". $row["Hora_fim"]. "</td>";
-                             echo "<td>". $row["Total_hora"]. "</td>";?>
+                             echo "<td>". $row["Total_hora"]. "</td>";
+                             echo "<td> <a class=\"btn-remove\" href=\"Views/deletar_analise.php?Id=$row[Codigo]\" onclick=\"return confirm('Confirma a exclusão do Registro?')\"><i class=\"fa-solid fa-trash\"></i></a></td>";
+                              ?>
                             <th>
-                                <a class="btn-edit" href="Views/login.php"><i class="fa-sharp fa-solid fa-pen"></i></a>
-                                <a class="btn-remove"><i class="fa-solid fa-trash"></i></a>
+                                <a class="btn-edit" ><i class="fa-sharp fa-solid fa-pen"></i></a>
                             </th>
                             <?php echo "</tr>"; 
                         }
