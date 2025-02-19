@@ -40,6 +40,8 @@ $result = $conn->query($sql);
 if ($result === false) {
     die("Erro na consulta SQL: " . $conn->error); // Caso haja erro na consulta
 }
+
+
 ?>
 
 <!DOCTYPE html>
