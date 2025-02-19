@@ -34,16 +34,17 @@ $sql = "SELECT
         ORDER BY tas.Id DESC";
 
 $result = $conn->query($sql);
+$result1 = $conn->query($sql);
 
 // Verificar se a consulta retornou resultados
-if ($result === false) {
+if ($result1 === false) {
     die("Erro na consulta SQL: " . $conn->error);
 }
 
 // Armazenar os registros em um array para possibilitar o cálculo dos totalizadores
 $rows = array();
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
+if ($result1->num_rows > 0) {
+    while ($row = $result1->fetch_assoc()) {
         $rows[] = $row;
     }
 } else {
@@ -180,7 +181,6 @@ $mediaDiariaHoras = ($numeroDias > 0) ? ($totalHoras / $numeroDias) : 0;
         </div>
     </div>
     <!-- Exibição da Lista de Análises -->
-<<<<<<< HEAD
 <div class="container mt-4">
     <div class="table-responsive">
         <table class="table table-bordered table-hover">
@@ -226,56 +226,8 @@ $mediaDiariaHoras = ($numeroDias > 0) ? ($totalHoras / $numeroDias) : 0;
                              . $row['Codigo'] .")\"><i class='fa-sharp fa-solid fa-trash'></i></a> ";
                         echo "</td>";
                         echo "</tr>";
-=======
-    <div class="container mt-4">
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th style="width:30%">Descrição</th>
-                        <th style="width:11%">Situação</th>
-                        <th style="width:10%">Analista</th>
-                        <th>Sistema</th>
-                        <th>Status</th>
-                        <th style="width:15%">Hora Início</th>
-                        <th style="width:15%">Hora Fim</th>
-                        <th style="width:10%">Total Horas</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    if (count($rows) > 0) {
-                        foreach ($rows as $row) {
-                            echo "<tr>";
-                            echo "<td>" . $row["Descricao"] . "</td>";
-                            echo "<td>" . $row["Situacao"] . "</td>";
-                            echo "<td>" . $row["Analista"] . "</td>";
-                            echo "<td>" . $row["Sistema"] . "</td>";
-                            echo "<td>" . $row["Status"] . "</td>";
-                            echo "<td>" . $row["Hora_ini"] . "</td>";
-                            echo "<td>" . $row["Hora_fim"] . "</td>";
-                            echo "<td>" . $row["Total_hora"] . "</td>";
-                            echo "<td>";
-                            // Botão de edição: passa os IDs para preencher o modal de edição
-                            echo "<a href='javascript:void(0)' class='btn-edit' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick=\"editarAnalise(" 
-                                 . $row['Codigo'] . ", '" 
-                                 . addslashes($row['Descricao']) . "', '" 
-                                 . $row['idSituacao'] . "', '" 
-                                 . $row['idAnalista'] . "', '" 
-                                 . $row['idSistema'] . "', '" 
-                                 . $row['idStatus'] . "', '" 
-                                 . $row['Hora_ini'] . "', '" 
-                                 . $row['Hora_fim'] . "')\"><i class='fa-sharp fa-solid fa-pen'></i></a> ";
-                            // Botão de exclusão com confirmação
-                            echo "<a class='btn-remove' href='Views/deletar_analise.php?codigo=" . $row['Codigo'] . "' onclick=\"return confirm('Confirma a exclusão do Registro?')\"><i class='fa-solid fa-trash'></i></a>";
-                            echo "</td>";
-                            echo "</tr>";
-                        }
-                    } else {
-                        echo "<tr><td colspan='9' class='text-center'>Nenhum dado encontrado</td></tr>";
->>>>>>> 450d676418ee17a653e3a37fb2957159b67c3b96
                     }
+                }
                     ?>
                 </tbody>
             </table>
@@ -462,14 +414,13 @@ $mediaDiariaHoras = ($numeroDias > 0) ? ($totalHoras / $numeroDias) : 0;
             </div>
         </div>
     </div>
-<<<<<<< HEAD
 
 <!-- Modal de Edição -->
 <div class="modal fade" id="modalExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalEdicaoLabel">Confirma a Exclusão da Análise?</h5>
+                    <h5 class="modal-title" id="modalExclusaoLabel">Confirma a Exclusão da Análise?</h5>
                 </div>
                 <div class="modal-body">
                     <form action="Views/deletar_analise.php" method="POST">
@@ -478,24 +429,6 @@ $mediaDiariaHoras = ($numeroDias > 0) ? ($totalHoras / $numeroDias) : 0;
                         <div class="text-end">
                             <button type="submit" class="btn btn-success">Sim</button>
                             <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close">Não</button>
-=======
- 
-    <!-- Modal de Exclusão (opcional, se necessário) -->
-    <div class="modal fade" id="modalExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalExclusaoLabel">Excluir Análise</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form action="Views/deletar_analise.php" method="POST">
-                        <!-- Campo oculto para armazenar o ID da análise a ser excluída -->
-                        <input type="hidden" id="id_excluir" name="id_excluir">
-                        <p>Tem certeza que deseja excluir esta análise?</p>
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-danger">Excluir</button>
->>>>>>> 450d676418ee17a653e3a37fb2957159b67c3b96
                         </div>
                     </form>
                 </div>
@@ -533,38 +466,7 @@ $mediaDiariaHoras = ($numeroDias > 0) ? ($totalHoras / $numeroDias) : 0;
             document.getElementById("id_excluir").value = id;
         }
     </script>
-<<<<<<< HEAD
 
-    <!-- Script JS -->
-    <script>
-      // 3) A função recebe os IDs (idSituacao, idAnalista, etc.) e não as descrições
-      function editarAnalise(id, descricao, idSituacao, idAnalista, idSistema, idStatus, hora_ini, hora_fim) {
-        // Preenche o campo oculto de ID
-        document.getElementById("id_editar").value = id;
-
-        // Preenche a descrição
-        document.getElementById("descricao_editar").value = descricao;
-        
-        // Atribui os IDs diretamente aos selects do modal
-        document.getElementById("situacao_editar").value = idSituacao; 
-        document.getElementById("analista_editar").value = idAnalista;
-        document.getElementById("sistema_editar").value = idSistema;
-        document.getElementById("status_editar").value = idStatus;
-        
-        // Preenche as datas/horas
-        document.getElementById("hora_ini_editar").value = hora_ini;
-        document.getElementById("hora_fim_editar").value = hora_fim;
-      }
-
-      function excluirAnalise(id) {
-        // Preenche o campo oculto de ID
-        document.getElementById("id_excluir").value = id;
-      }
-    </script>
-
-=======
- 
->>>>>>> 450d676418ee17a653e3a37fb2957159b67c3b96
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
