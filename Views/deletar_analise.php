@@ -7,13 +7,10 @@ $codigo = $_GET['codigo'];
 $delete = $conn->prepare("delete from TB_ANALISES WHERE id = ?");
 $delete->bind_param("i", $codigo);
 
-if ($delete->execute()) {
-    echo "<div class=\"alert alert-success\" role=\"alert\">
-            Análise excluida com sucesso!
-        </div>";
-    header("Refresh: 2; URL=../index.php");
+if ($conn->query($delete) === TRUE) {
+    header("Location: ../index.php?success=3"); // Redireciona com mensagem de sucesso
 } else {
-    echo "<h1>Erro</h1>";
+    echo "Erro: " . $delete . "<br>" . $conn->error;
 }
 
 ?>
