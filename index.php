@@ -9,13 +9,14 @@ if (!isset($_SESSION['usuario_id'])) {
     exit();
 }
 
-// -- 1) Query Principal com os IDs necessários:
-$sql = "SELECT 
-            tas.Descricao AS Descricao,
-            sit.Descricao AS Situacao,
-            tba.Descricao AS Analista,
-            sis.Descricao AS Sistema,
-            sta.Descricao AS Status,
+// Código para mostrar o conteúdo da página
+$sql = "SELECT
+            tas.Id as Codigo,
+            tas.Descricao as Descricao,
+            sit.Descricao as Situacao,
+            tba.Descricao as Analista,
+            sis.Descricao as Sistema,
+            sta.Descricao as Status,
             tas.Hora_ini,
             tas.Hora_fim,
             tas.Total_hora,
@@ -86,55 +87,60 @@ if ($result === false) {
     </div>
 
     <!-- Exibição da Lista de Análises -->
-    <div class="container mt-4">
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th style="width:30%">Descrição</th>
-                        <th style="width:11%">Situação</th>
-                        <th style="width:10%">Analista</th>
-                        <th>Sistema</th>
-                        <th>Status</th>
-                        <th style="width:15%">Hora Início</th>
-                        <th style="width:15%">Hora Fim</th>
-                        <th style="width:10%">Total Horas</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    if ($result->num_rows > 0) {
-                        while($row = $result->fetch_assoc()) {
-                            echo "<tr>";
-                            echo "<td>". $row["Descricao"]. "</td>";
-                            echo "<td>". $row["Situacao"]. "</td>";
-                            echo "<td>". $row["Analista"]. "</td>";
-                            echo "<td>". $row["Sistema"]. "</td>";
-                            echo "<td>". $row["Status"]. "</td>";
-                            echo "<td>". $row["Hora_ini"]. "</td>";
-                            echo "<td>". $row["Hora_fim"]. "</td>";
-                            echo "<td>". $row["Total_hora"]. "</td>";
-                            ?>
-                            <th>
-                                <!-- 2) Passamos os IDs (idSituacao, idAnalista, etc.) no lugar das descrições -->
-                                <a href="javascript:void(0)" class="btn-edit" data-bs-toggle="modal" data-bs-target="#modalEdicao" onclick="editarAnalise(<?php echo $row['Id']; ?>, '<?php echo addslashes($row['Descricao']); ?>', '<?php echo $row['idSituacao']; ?>', '<?php echo $row['idAnalista']; ?>', '<?php echo $row['idSistema']; ?>', '<?php echo $row['idStatus']; ?>', '<?php echo $row['Hora_ini']; ?>', '<?php echo $row['Hora_fim']; ?>')"><i class="fa-sharp fa-solid fa-pen"></i></a>
-
-                                <a class="btn-remove" href="Views/login.php">
-                                   <i class="fa-solid fa-trash"></i>
-                                </a>
-                            </th>
-                            <?php 
-                            echo "</tr>"; 
-                        }
-                    } else {
-                        echo "<tr><td colspan='9' class='text-center'>Nenhum dado encontrado</td></tr>";
+<div class="container mt-4">
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width:30%">Descrição</th>
+                    <th style="width:11%">Situação</th>
+                    <th style="width:10%">Analista</th>
+                    <th>Sistema</th>
+                    <th>Status</th>
+                    <th style="width:15%">Hora Início</th>
+                    <th style="width:15%">Hora Fim</th>
+                    <th style="width:10%">Total Horas</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php 
+                if ($result->num_rows > 0) {
+                    while($row = $result->fetch_assoc()) {
+                        echo "<tr>";
+                        echo "<td>" . $row["Descricao"] . "</td>";
+                        echo "<td>" . $row["Situacao"] . "</td>";
+                        echo "<td>" . $row["Analista"] . "</td>";
+                        echo "<td>" . $row["Sistema"] . "</td>";
+                        echo "<td>" . $row["Status"] . "</td>";
+                        echo "<td>" . $row["Hora_ini"] . "</td>";
+                        echo "<td>" . $row["Hora_fim"] . "</td>";
+                        echo "<td>" . $row["Total_hora"] . "</td>";
+                        echo "<td>";
+                        // Botão de edição: passa os IDs (idSituacao, idAnalista, etc.) em vez das descrições
+                        echo "<a href='javascript:void(0)' class='btn-edit' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick=\"editarAnalise(" 
+                             . $row['Id'] . ", '" 
+                             . addslashes($row['Descricao']) . "', '" 
+                             . $row['idSituacao'] . "', '" 
+                             . $row['idAnalista'] . "', '" 
+                             . $row['idSistema'] . "', '" 
+                             . $row['idStatus'] . "', '" 
+                             . $row['Hora_ini'] . "', '" 
+                             . $row['Hora_fim'] . "')\"><i class='fa-sharp fa-solid fa-pen'></i></a> ";
+                        // Botão de exclusão com confirmação
+                        echo "<a class='btn-remove' href='Views/deletar_analise.php?Id=" . $row['Id'] . "' onclick=\"return confirm('Confirma a exclusão do Registro?')\"><i class='fa-solid fa-trash'></i></a>";
+                        echo "</td>";
+                        echo "</tr>";
                     }
-                    ?>
-                </tbody>
-            </table>
-        </div>
+                } else {
+                    echo "<tr><td colspan='9' class='text-center'>Nenhum dado encontrado</td></tr>";
+                }
+                ?>
+            </tbody>
+        </table>
     </div>
+</div>
+
 
     <!-- Modal de Cadastro -->
     <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
