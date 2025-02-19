@@ -136,12 +136,6 @@ $mediaDiariaHoras = ($numeroDias > 0) ? ($totalHoras / $numeroDias) : 0;
                 </div>
                 <div class="card-body">
                     <table class="table table-hover table-striped">
-                        <thead>
-                            <tr>
-                                <th scope="col">Totalizadores</th>
-                                <th scope="col">Valor</th>
-                            </tr>
-                        </thead>
                         <tbody>
                             <tr>
                                 <td><strong>Fichas Criadas:</strong></td>
