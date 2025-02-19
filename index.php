@@ -1,15 +1,15 @@
 <?php
 require 'Config/database.php';
- 
+
 session_start();
- 
-// Verifica se o usuário está logado, se não, redireciona para o login
+
+// Verifica se o usuário está logado; se não, redireciona para o login
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: login.php");
     exit();
 }
- 
-// Código para mostrar o conteúdo da página
+
+// Consulta principal (incluindo os IDs para edição)
 $sql = "SELECT
             tas.Id as Codigo,
             tas.Descricao as Descricao,
@@ -32,22 +32,64 @@ $sql = "SELECT
             LEFT JOIN TB_STATUS sta ON sta.Id = tas.idStatus
             LEFT JOIN TB_USUARIO usu ON usu.Id = tas.idUsuario
         ORDER BY tas.Id DESC";
- 
+
 $result = $conn->query($sql);
- 
+
 // Verificar se a consulta retornou resultados
 if ($result === false) {
-    die("Erro na consulta SQL: " . $conn->error); // Caso haja erro na consulta
+    die("Erro na consulta SQL: " . $conn->error);
 }
+
+// Armazenar os registros em um array para possibilitar o cálculo dos totalizadores
+$rows = array();
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $rows[] = $row;
+    }
+} else {
+    $rows = array();
+}
+
+// Cálculo dos totalizadores
+$totalFichas = 0; // Total de fichas criadas
+$totalAnaliseN3 = 0;          // Quantidade de "Análises N3" (baseado no campo Situacao)
+$totalAuxilio = 0;            // Total de Auxílio Suporte/Vendas (ajuste a condição conforme necessário)
+$totalHoras = 0;              // Soma do campo Total_hora
+$uniqueDates = array();       // Para calcular a média diária de horas
+
+foreach ($rows as $row) {
+    // Contar quantidade de "Análises N3"
+    if (trim($row['Situacao']) == "Análises N3") {
+        $totalAnaliseN3++;
+    }
+    
+    // Contabilizar Auxílio Suporte/Vendas (ajuste o valor conforme necessário)
+    if (trim($row['Situacao']) == "Auxilio Suporte/Vendas") {
+        $totalAuxilio++;
+    }
+    // Contar quantidade de "Fichas criadas"
+    if (trim($row['Situacao']) == "Ficha Criada") {
+        $totalFichas++;
+    }
+    
+    // Somar o Total_hora (certifique-se de que é numérico)
+    $totalHoras += floatval($row["Total_hora"]);
+    
+    // Extrair a data (dia) de Hora_ini para cálculo da média diária
+    $date = date("Y-m-d", strtotime($row["Hora_ini"]));
+    $uniqueDates[$date] = true;
+}
+$numeroDias = count($uniqueDates);
+$mediaDiariaHoras = ($numeroDias > 0) ? ($totalHoras / $numeroDias) : 0;
 ?>
- 
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tarefas N3</title>
- 
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
    
@@ -80,7 +122,52 @@ if ($result === false) {
             Análise excluída com sucesso!
         </div>
     <?php endif; ?>
+ 
+   
+ 
+   <!-- Totalizadores exibidos acima da lista -->
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-5 mx-auto">
+            <div class="card shadow-lg">
+                <div class="card-header text-white bg-primary">
+                    <h4 class="mb-0">Resumo dos Totalizadores</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">Totalizadores</th>
+                                <th scope="col">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Fichas Criadas:</strong></td>
+                                <td><?php echo $totalFichas; ?></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Análises N3:</strong></td>
+                                <td><?php echo $totalAnaliseN3; ?></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Auxílio Suporte/Vendas:</strong></td>
+                                <td><?php echo $totalAuxilio; ?></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Média Horas:</strong></td>
+                                <td><?php echo number_format($mediaDiariaHoras, 2, ',', '.'); ?></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
+
+        <!-- Tituto Lista de Análises e Botão Cadastrar analise -->
     <div class="container mt-4">
         <div class="row align-items-center">
             <div class="col-4"></div> 
@@ -92,8 +179,8 @@ if ($result === false) {
             </div>
         </div>
     </div>
-
     <!-- Exibição da Lista de Análises -->
+<<<<<<< HEAD
 <div class="container mt-4">
     <div class="table-responsive">
         <table class="table table-bordered table-hover">
@@ -139,17 +226,62 @@ if ($result === false) {
                              . $row['Codigo'] .")\"><i class='fa-sharp fa-solid fa-trash'></i></a> ";
                         echo "</td>";
                         echo "</tr>";
+=======
+    <div class="container mt-4">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width:30%">Descrição</th>
+                        <th style="width:11%">Situação</th>
+                        <th style="width:10%">Analista</th>
+                        <th>Sistema</th>
+                        <th>Status</th>
+                        <th style="width:15%">Hora Início</th>
+                        <th style="width:15%">Hora Fim</th>
+                        <th style="width:10%">Total Horas</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php 
+                    if (count($rows) > 0) {
+                        foreach ($rows as $row) {
+                            echo "<tr>";
+                            echo "<td>" . $row["Descricao"] . "</td>";
+                            echo "<td>" . $row["Situacao"] . "</td>";
+                            echo "<td>" . $row["Analista"] . "</td>";
+                            echo "<td>" . $row["Sistema"] . "</td>";
+                            echo "<td>" . $row["Status"] . "</td>";
+                            echo "<td>" . $row["Hora_ini"] . "</td>";
+                            echo "<td>" . $row["Hora_fim"] . "</td>";
+                            echo "<td>" . $row["Total_hora"] . "</td>";
+                            echo "<td>";
+                            // Botão de edição: passa os IDs para preencher o modal de edição
+                            echo "<a href='javascript:void(0)' class='btn-edit' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick=\"editarAnalise(" 
+                                 . $row['Codigo'] . ", '" 
+                                 . addslashes($row['Descricao']) . "', '" 
+                                 . $row['idSituacao'] . "', '" 
+                                 . $row['idAnalista'] . "', '" 
+                                 . $row['idSistema'] . "', '" 
+                                 . $row['idStatus'] . "', '" 
+                                 . $row['Hora_ini'] . "', '" 
+                                 . $row['Hora_fim'] . "')\"><i class='fa-sharp fa-solid fa-pen'></i></a> ";
+                            // Botão de exclusão com confirmação
+                            echo "<a class='btn-remove' href='Views/deletar_analise.php?codigo=" . $row['Codigo'] . "' onclick=\"return confirm('Confirma a exclusão do Registro?')\"><i class='fa-solid fa-trash'></i></a>";
+                            echo "</td>";
+                            echo "</tr>";
+                        }
+                    } else {
+                        echo "<tr><td colspan='9' class='text-center'>Nenhum dado encontrado</td></tr>";
+>>>>>>> 450d676418ee17a653e3a37fb2957159b67c3b96
                     }
-                } else {
-                    echo "<tr><td colspan='9' class='text-center'>Nenhum dado encontrado</td></tr>";
-                }
-                ?>
-            </tbody>
-        </table>
+                    ?>
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
-
-
+ 
     <!-- Modal de Cadastro -->
     <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -170,7 +302,6 @@ if ($result === false) {
                                 <select class="form-select" id="situacao" name="situacao" required>
                                     <option value="">Selecione</option>
                                     <?php
-                                    // Reconsulta a tabela TB_SITUACAO para o combo
                                     $querySituacao = "SELECT Id, Descricao FROM TB_SITUACAO";
                                     $resultSituacao = $conn->query($querySituacao);
                                     while ($rowS = $resultSituacao->fetch_assoc()) {
@@ -239,7 +370,7 @@ if ($result === false) {
             </div>
         </div>
     </div>
-
+ 
     <!-- Modal de Edição -->
     <div class="modal fade" id="modalEdicao" tabindex="-1" aria-labelledby="modalEdicaoLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -252,7 +383,7 @@ if ($result === false) {
                     <form action="Views/editar_analise.php" method="POST">
                         <!-- Campo oculto para armazenar o ID da análise -->
                         <input type="hidden" id="id_editar" name="id_editar">
-
+ 
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="descricao_editar" class="form-label">Descrição</label>
@@ -263,7 +394,6 @@ if ($result === false) {
                                 <select class="form-select" id="situacao_editar" name="situacao_editar" required>
                                     <option value="">Selecione</option>
                                     <?php
-                                    // Reconsulta TB_SITUACAO para preencher o combo do modal
                                     $querySituacao2 = "SELECT Id, Descricao FROM TB_SITUACAO";
                                     $resultSituacao2 = $conn->query($querySituacao2);
                                     while ($rowS2 = $resultSituacao2->fetch_assoc()) {
@@ -332,6 +462,7 @@ if ($result === false) {
             </div>
         </div>
     </div>
+<<<<<<< HEAD
 
 <!-- Modal de Edição -->
 <div class="modal fade" id="modalExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">
@@ -347,25 +478,62 @@ if ($result === false) {
                         <div class="text-end">
                             <button type="submit" class="btn btn-success">Sim</button>
                             <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close">Não</button>
+=======
+ 
+    <!-- Modal de Exclusão (opcional, se necessário) -->
+    <div class="modal fade" id="modalExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalExclusaoLabel">Excluir Análise</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="Views/deletar_analise.php" method="POST">
+                        <!-- Campo oculto para armazenar o ID da análise a ser excluída -->
+                        <input type="hidden" id="id_excluir" name="id_excluir">
+                        <p>Tem certeza que deseja excluir esta análise?</p>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-danger">Excluir</button>
+>>>>>>> 450d676418ee17a653e3a37fb2957159b67c3b96
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-
+ 
     <script>
+        // Exibe e remove automaticamente as mensagens de sucesso após 2 segundos
         document.addEventListener("DOMContentLoaded", function () {
             setTimeout(function () {
                 let alertSuccess = document.querySelector(".alert-success");
                 if (alertSuccess) {
                     alertSuccess.style.transition = "opacity 0.5s";
                     alertSuccess.style.opacity = "0";
-                    setTimeout(() => alertSuccess.remove(), 500); // Remove do DOM após a animação
+                    setTimeout(() => alertSuccess.remove(), 500);
                 }
             }, 2000);
         });
+ 
+        // Função para preencher o modal de edição
+        function editarAnalise(id, descricao, idSituacao, idAnalista, idSistema, idStatus, hora_ini, hora_fim) {
+            document.getElementById("id_editar").value = id;
+            document.getElementById("descricao_editar").value = descricao;
+            document.getElementById("situacao_editar").value = idSituacao;
+            document.getElementById("analista_editar").value = idAnalista;
+            document.getElementById("sistema_editar").value = idSistema;
+            document.getElementById("status_editar").value = idStatus;
+            document.getElementById("hora_ini_editar").value = hora_ini;
+            document.getElementById("hora_fim_editar").value = hora_fim;
+        }
+ 
+        // Função para preencher o modal de exclusão (caso seja utilizado)
+        function excluirAnalise(id) {
+            document.getElementById("id_excluir").value = id;
+        }
     </script>
+<<<<<<< HEAD
 
     <!-- Script JS -->
     <script>
@@ -394,8 +562,10 @@ if ($result === false) {
       }
     </script>
 
+=======
+ 
+>>>>>>> 450d676418ee17a653e3a37fb2957159b67c3b96
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
- 
