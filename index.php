@@ -1,14 +1,14 @@
 <?php
-require 'Config/database.php'; 
-
+require 'Config/database.php';
+ 
 session_start();
-
+ 
 // Verifica se o usuário está logado, se não, redireciona para o login
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: login.php");
     exit();
 }
-
+ 
 // Código para mostrar o conteúdo da página
 $sql = "SELECT
             tas.Id as Codigo,
@@ -20,7 +20,6 @@ $sql = "SELECT
             tas.Hora_ini,
             tas.Hora_fim,
             tas.Total_hora,
-            tas.Id AS Id,
             -- Adicionamos abaixo os IDs das tabelas relacionadas:
             tas.idSituacao AS idSituacao,
             tas.idAnalista AS idAnalista,
@@ -33,9 +32,9 @@ $sql = "SELECT
             LEFT JOIN TB_STATUS sta ON sta.Id = tas.idStatus
             LEFT JOIN TB_USUARIO usu ON usu.Id = tas.idUsuario
         ORDER BY tas.Id DESC";
-
+ 
 $result = $conn->query($sql);
-
+ 
 // Verificar se a consulta retornou resultados
 if ($result === false) {
     die("Erro na consulta SQL: " . $conn->error); // Caso haja erro na consulta
@@ -43,25 +42,25 @@ if ($result === false) {
 
 
 ?>
-
+ 
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tarefas N3</title>
-
+ 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+   
     <!-- Ícones personalizados -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
+ 
     <!-- Arquivo CSS personalizado -->
     <link rel="stylesheet" href="Public/index.css">
 </head>
 <body class="bg-light">
-
+ 
     <nav class="navbar navbar-dark bg-dark">
         <div class="container">
             <span class="navbar-brand mb-0 h1">Tarefas N3</span>
@@ -69,10 +68,18 @@ if ($result === false) {
             <a href="Views/logout.php" class="btn btn-danger">Sair</a>
         </div>
     </nav>
-
-    <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
+ 
+    <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?> 
         <div class="alert alert-success" role="alert">
             Análise cadastrada com sucesso!
+        </div>
+    <?php elseif (isset($_GET['success']) && $_GET['success'] == 2): ?> 
+        <div class="alert alert-success" role="alert">
+            Análise editada com sucesso!
+        </div>
+    <?php elseif (isset($_GET['success']) && $_GET['success'] == 3): ?> 
+        <div class="alert alert-success" role="alert">
+            Análise excluída com sucesso!
         </div>
     <?php endif; ?>
 
@@ -121,7 +128,7 @@ if ($result === false) {
                         echo "<td>";
                         // Botão de edição: passa os IDs (idSituacao, idAnalista, etc.) em vez das descrições
                         echo "<a href='javascript:void(0)' class='btn-edit' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick=\"editarAnalise(" 
-                             . $row['Id'] . ", '" 
+                             . $row['Codigo'] . ", '" 
                              . addslashes($row['Descricao']) . "', '" 
                              . $row['idSituacao'] . "', '" 
                              . $row['idAnalista'] . "', '" 
@@ -130,7 +137,7 @@ if ($result === false) {
                              . $row['Hora_ini'] . "', '" 
                              . $row['Hora_fim'] . "')\"><i class='fa-sharp fa-solid fa-pen'></i></a> ";
                         // Botão de exclusão com confirmação
-                        echo "<a class='btn-remove' href='Views/deletar_analise.php?Id=" . $row['Id'] . "' onclick=\"return confirm('Confirma a exclusão do Registro?')\"><i class='fa-solid fa-trash'></i></a>";
+                        echo "<a class='btn-remove' href='Views/deletar_analise.php?codigo=" . $row['Codigo'] . "' onclick=\"return confirm('Confirma a exclusão do Registro?')\"><i class='fa-solid fa-trash'></i></a>";
                         echo "</td>";
                         echo "</tr>";
                     }
@@ -327,6 +334,61 @@ if ($result === false) {
         </div>
     </div>
 
+<!-- Modal de Exclusão -->
+<div class="modal fade" id="modalExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEdicaoLabel">Editar Análise</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="Views/deletar_analise.php" method="POST">
+                        <!-- Campo oculto para armazenar o ID da análise -->
+                        <input type="hidden" id="id_editar" name="id_editar">
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="descricao_editar" class="form-label">Descrição</label>
+                                <input type="text" class="form-control" id="descricao_editar" name="descricao_editar" maxlength="50" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="situacao_editar" class="form-label">Situação</label>
+                                <select class="form-select" id="situacao_editar" name="situacao_editar" required>
+                                    <option value="">Selecione</option>
+                                    <?php
+                                    // Reconsulta TB_SITUACAO para preencher o combo do modal
+                                    $querySituacao2 = "SELECT Id, Descricao FROM TB_SITUACAO";
+                                    $resultSituacao2 = $conn->query($querySituacao2);
+                                    while ($rowS2 = $resultSituacao2->fetch_assoc()) {
+                                        echo "<option value='" . $rowS2['Id'] . "'>" . $rowS2['Descricao'] . "</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-success">Salvar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(function () {
+                let alertSuccess = document.querySelector(".alert-success");
+                if (alertSuccess) {
+                    alertSuccess.style.transition = "opacity 0.5s";
+                    alertSuccess.style.opacity = "0";
+                    setTimeout(() => alertSuccess.remove(), 500); // Remove do DOM após a animação
+                }
+            }, 2000);
+        });
+    </script>
+
     <!-- Script JS -->
     <script>
       // 3) A função recebe os IDs (idSituacao, idAnalista, etc.) e não as descrições
@@ -347,9 +409,15 @@ if ($result === false) {
         document.getElementById("hora_ini_editar").value = hora_ini;
         document.getElementById("hora_fim_editar").value = hora_fim;
       }
+      
+      function excluirAnalise(id) {
+        // Preenche o campo oculto de ID
+        document.getElementById("id_excluir").value = id;
+      }
     </script>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+ 
