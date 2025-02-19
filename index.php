@@ -20,7 +20,7 @@ $sql = "SELECT
             tas.Hora_ini,
             tas.Hora_fim,
             tas.Total_hora,
-            -- Adicionamos abaixo os IDs das tabelas relacionadas:
+            -- IDs para edição
             tas.idSituacao AS idSituacao,
             tas.idAnalista AS idAnalista,
             tas.idSistema AS idSistema,
@@ -53,10 +53,10 @@ if ($result1->num_rows > 0) {
 
 // Cálculo dos totalizadores
 $totalFichas = 0; // Total de fichas criadas
-$totalAnaliseN3 = 0;          // Quantidade de "Análises N3" (baseado no campo Situacao)
-$totalAuxilio = 0;            // Total de Auxílio Suporte/Vendas (ajuste a condição conforme necessário)
-$totalHoras = 0;              // Soma do campo Total_hora
-$uniqueDates = array();       // Para calcular a média diária de horas
+$totalAnaliseN3 = 0; // Quantidade de "Análises N3" (baseado no campo Situacao)
+$totalAuxilio = 0; // Total de Auxílio Suporte/Vendas
+$totalHoras = 0; // Soma do campo Total_hora
+$uniqueDates = array(); // Para calcular a média diária de horas
 
 foreach ($rows as $row) {
     // Contar quantidade de "Análises N3"
@@ -64,11 +64,11 @@ foreach ($rows as $row) {
         $totalAnaliseN3++;
     }
     
-    // Contabilizar Auxílio Suporte/Vendas (ajuste o valor conforme necessário)
+    // Contabilizar Auxílio Suporte/Vendas
     if (trim($row['Situacao']) == "Auxilio Suporte/Vendas") {
         $totalAuxilio++;
     }
-    // Contar quantidade de "Fichas criadas"
+    // Contar quantidade de "Fichas Criadas"
     if (trim($row['Situacao']) == "Ficha Criada") {
         $totalFichas++;
     }
@@ -82,8 +82,26 @@ foreach ($rows as $row) {
 }
 $numeroDias = count($uniqueDates);
 $mediaDiariaHoras = ($numeroDias > 0) ? ($totalHoras / $numeroDias) : 0;
-?>
 
+// Processamento dos dados para o gráfico de barras
+$fichasPorMes = array_fill(1, 12, 0);
+$analisesN3PorMes = array_fill(1, 12, 0);
+$currentYear = date("Y");
+
+foreach ($rows as $row) {
+    $dataHora = strtotime($row["Hora_ini"]);
+    $year = date("Y", $dataHora);
+    if ($year == $currentYear) {
+        $month = intval(date("n", $dataHora)); // 1 a 12
+        if (trim($row['Situacao']) == "Ficha Criada") {
+            $fichasPorMes[$month]++;
+        }
+        if (trim($row['Situacao']) == "Análises N3") {
+            $analisesN3PorMes[$month]++;
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -124,45 +142,55 @@ $mediaDiariaHoras = ($numeroDias > 0) ? ($totalHoras / $numeroDias) : 0;
         </div>
     <?php endif; ?>
  
-   
- 
-   <!-- Totalizadores exibidos acima da lista -->
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-5 mx-auto">
-            <div class="card shadow-lg">
-                <div class="card-header text-white bg-primary">
-                    <h4 class="mb-0">Resumo dos Totalizadores</h4>
+    <!-- Resumo dos Totalizadores e Gráfico Mensal -->
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Totalizadores -->
+            <div class="col-md-5">
+                <div class="card shadow-lg">
+                    <div class="card-header text-white bg-primary">
+                        <h4 class="mb-0">Resumo dos Totalizadores</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-hover table-striped">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Fichas Criadas:</strong></td>
+                                    <td><?php echo $totalFichas; ?></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Análises N3:</strong></td>
+                                    <td><?php echo $totalAnaliseN3; ?></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Auxílio Suporte/Vendas:</strong></td>
+                                    <td><?php echo $totalAuxilio; ?></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Média Horas:</strong></td>
+                                    <td><?php echo number_format($mediaDiariaHoras, 2, ',', '.'); ?></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <table class="table table-hover table-striped">
-                        <tbody>
-                            <tr>
-                                <td><strong>Fichas Criadas:</strong></td>
-                                <td><?php echo $totalFichas; ?></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Análises N3:</strong></td>
-                                <td><?php echo $totalAnaliseN3; ?></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Auxílio Suporte/Vendas:</strong></td>
-                                <td><?php echo $totalAuxilio; ?></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Média Horas:</strong></td>
-                                <td><?php echo number_format($mediaDiariaHoras, 2, ',', '.'); ?></td>
-                            </tr>
-                        </tbody>
-                    </table>
+            </div>
+
+            <!-- Gráfico Mensal -->
+            <div class="col-md-5">
+                <div class="card shadow-lg">
+                    <div class="card-header text-white bg-info">
+                        <h4 class="mb-0">Gráfico Mensal</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="chartMensal" width="400" height="175"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-
-        <!-- Tituto Lista de Análises e Botão Cadastrar analise -->
+    <!-- Título Lista de Análises e Botão Cadastrar análise -->
     <div class="container mt-4">
         <div class="row align-items-center">
             <div class="col-4"></div> 
@@ -174,84 +202,137 @@ $mediaDiariaHoras = ($numeroDias > 0) ? ($totalHoras / $numeroDias) : 0;
             </div>
         </div>
     </div>
+
     <!-- Exibição da Lista de Análises -->
-<div class="container mt-4">
-    <div class="table-responsive">
-        <table id="tabelaAnalises" class="table table-bordered table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th style="width:30%">Descrição</th>
-                    <th style="width:11%">Situação</th>
-                    <th style="width:10%">Analista</th>
-                    <th>Sistema</th>
-                    <th>Status</th>
-                    <th style="width:15%">Hora Início</th>
-                    <th style="width:15%">Hora Fim</th>
-                    <th style="width:10%">Total Horas</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php 
-                if ($result->num_rows > 0) {
-                    while($row = $result->fetch_assoc()) {
-                        echo "<tr>";
-                        echo "<td>" . $row["Descricao"] . "</td>";
-                        echo "<td>" . $row["Situacao"] . "</td>";
-                        echo "<td>" . $row["Analista"] . "</td>";
-                        echo "<td>" . $row["Sistema"] . "</td>";
-                        echo "<td>" . $row["Status"] . "</td>";
-                        echo "<td>" . $row["Hora_ini"] . "</td>";
-                        echo "<td>" . $row["Hora_fim"] . "</td>";
-                        echo "<td>" . $row["Total_hora"] . "</td>";
-                        echo "<td>";
-                        // Botão de edição: passa os IDs (idSituacao, idAnalista, etc.) em vez das descrições
-                        echo "<a href='javascript:void(0)' class='btn-edit' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick=\"editarAnalise(" 
-                             . $row['Codigo'] . ", '" 
-                             . addslashes($row['Descricao']) . "', '" 
-                             . $row['idSituacao'] . "', '" 
-                             . $row['idAnalista'] . "', '" 
-                             . $row['idSistema'] . "', '" 
-                             . $row['idStatus'] . "', '" 
-                             . $row['Hora_ini'] . "', '" 
-                             . $row['Hora_fim'] . "')\"><i class='fa-sharp fa-solid fa-pen'></i></a> ";
-                        // Botão de exclusão com confirmação
-                        echo "<a href='javascript:void(0)' class='btn-remove' data-bs-toggle='modal' data-bs-target='#modalExclusao' onclick=\"excluirAnalise(" 
-                             . $row['Codigo'] .")\"><i class='fa-sharp fa-solid fa-trash'></i></a> ";
-                        echo "</td>";
-                        echo "</tr>";
+    <div class="container mt-4">
+        <div class="table-responsive">
+            <table id="tabelaAnalises" class="table table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width:30%">Descrição</th>
+                        <th style="width:11%">Situação</th>
+                        <th style="width:10%">Analista</th>
+                        <th>Sistema</th>
+                        <th>Status</th>
+                        <th style="width:15%">Hora Início</th>
+                        <th style="width:15%">Hora Fim</th>
+                        <th style="width:10%">Total Horas</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php 
+                    if ($result->num_rows > 0) {
+                        while($row = $result->fetch_assoc()) {
+                            echo "<tr>";
+                            echo "<td>" . $row["Descricao"] . "</td>";
+                            echo "<td>" . $row["Situacao"] . "</td>";
+                            echo "<td>" . $row["Analista"] . "</td>";
+                            echo "<td>" . $row["Sistema"] . "</td>";
+                            echo "<td>" . $row["Status"] . "</td>";
+                            echo "<td>" . $row["Hora_ini"] . "</td>";
+                            echo "<td>" . $row["Hora_fim"] . "</td>";
+                            echo "<td>" . $row["Total_hora"] . "</td>";
+                            echo "<td>";
+                            // Botão de edição: passando os IDs para edição
+                            echo "<a href='javascript:void(0)' class='btn-edit' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick=\"editarAnalise(" 
+                                 . $row['Codigo'] . ", '" 
+                                 . addslashes($row['Descricao']) . "', '" 
+                                 . $row['idSituacao'] . "', '" 
+                                 . $row['idAnalista'] . "', '" 
+                                 . $row['idSistema'] . "', '" 
+                                 . $row['idStatus'] . "', '" 
+                                 . $row['Hora_ini'] . "', '" 
+                                 . $row['Hora_fim'] . "')\"><i class='fa-sharp fa-solid fa-pen'></i></a> ";
+                            // Botão de exclusão com confirmação
+                            echo "<a href='javascript:void(0)' class='btn-remove' data-bs-toggle='modal' data-bs-target='#modalExclusao' onclick=\"excluirAnalise(" 
+                                 . $row['Codigo'] .")\"><i class='fa-sharp fa-solid fa-trash'></i></a> ";
+                            echo "</td>";
+                            echo "</tr>";
+                        }
                     }
-                }
                     ?>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- Ajusta as cores dos status -->
-
+    <!-- Script para ajustar as cores dos status via JavaScript -->
     <script>
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll("#tabelaAnalises tbody tr").forEach(row => {
-        let statusCell = row.cells[4]; // 5ª coluna (índice 4)
-        let status = statusCell.textContent.trim();
-
-        switch (status) {
-            case "Aguardando":
-                statusCell.style.backgroundColor = "#D8BFD8"; // Roxo claro
-                break;
-            case "Desenvolvimento":
-                statusCell.style.backgroundColor = "#FFD700"; // Amarelo
-                break;
-            case "Resolvido":
-                statusCell.style.backgroundColor = "#28a745"; // Verde
-                statusCell.style.color = "white"; // Texto branco para melhor visibilidade
-                break;
-        }
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("#tabelaAnalises tbody tr").forEach(row => {
+            let statusCell = row.cells[4]; // 5ª coluna (índice 4)
+            let status = statusCell.textContent.trim();
+            switch (status) {
+                case "Aguardando":
+                    statusCell.style.backgroundColor = "#D8BFD8"; // Roxo claro
+                    break;
+                case "Desenvolvimento":
+                    statusCell.style.backgroundColor = "#FFD700"; // Amarelo
+                    break;
+                case "Resolvido":
+                    statusCell.style.backgroundColor = "#28a745"; // Verde
+                    statusCell.style.color = "white"; // Texto branco para melhor visibilidade
+                    break;
+            }
+        });
     });
-});
-</script>
+    </script>
 
+    <!-- Adiciona a biblioteca Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Script para configurar o gráfico de barras -->
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Dados gerados pelo PHP
+        const fichasPorMes = <?php echo json_encode(array_values($fichasPorMes)); ?>;
+        const analisesN3PorMes = <?php echo json_encode(array_values($analisesN3PorMes)); ?>;
+        
+        // Labels dos meses (abreviados)
+        const labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+        const data = {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Fichas Criadas',
+                    data: fichasPorMes,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)', // Azul
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Análises N3',
+                    data: analisesN3PorMes,
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)', // Vermelho
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ]
+        };
+
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        };
+
+        // Cria o gráfico na canvas com id "chartMensal"
+        new Chart(
+            document.getElementById('chartMensal'),
+            config
+        );
+    });
+    </script>
  
     <!-- Modal de Cadastro -->
     <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
@@ -434,8 +515,8 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
     </div>
 
-<!-- Modal de Edição -->
-<div class="modal fade" id="modalExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">
+    <!-- Modal de Exclusão -->
+    <div class="modal fade" id="modalExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -455,6 +536,7 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
     </div>
  
+    <!-- Scripts adicionais -->
     <script>
         // Exibe e remove automaticamente as mensagens de sucesso após 2 segundos
         document.addEventListener("DOMContentLoaded", function () {
@@ -480,12 +562,12 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("hora_fim_editar").value = hora_fim;
         }
  
-        // Função para preencher o modal de exclusão (caso seja utilizado)
+        // Função para preencher o modal de exclusão
         function excluirAnalise(id) {
             document.getElementById("id_excluir").value = id;
         }
     </script>
-
+ 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
