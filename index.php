@@ -177,7 +177,7 @@ $mediaDiariaHoras = ($numeroDias > 0) ? ($totalHoras / $numeroDias) : 0;
     <!-- Exibição da Lista de Análises -->
 <div class="container mt-4">
     <div class="table-responsive">
-        <table class="table table-bordered table-hover">
+        <table id="tabelaAnalises" class="table table-bordered table-hover">
             <thead class="table-dark">
                 <tr>
                     <th style="width:30%">Descrição</th>
@@ -227,6 +227,31 @@ $mediaDiariaHoras = ($numeroDias > 0) ? ($totalHoras / $numeroDias) : 0;
             </table>
         </div>
     </div>
+
+    <!-- Ajusta as cores dos status -->
+
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll("#tabelaAnalises tbody tr").forEach(row => {
+        let statusCell = row.cells[4]; // 5ª coluna (índice 4)
+        let status = statusCell.textContent.trim();
+
+        switch (status) {
+            case "Aguardando":
+                statusCell.style.backgroundColor = "#D8BFD8"; // Roxo claro
+                break;
+            case "Desenvolvimento":
+                statusCell.style.backgroundColor = "#FFD700"; // Amarelo
+                break;
+            case "Resolvido":
+                statusCell.style.backgroundColor = "#28a745"; // Verde
+                statusCell.style.color = "white"; // Texto branco para melhor visibilidade
+                break;
+        }
+    });
+});
+</script>
+
  
     <!-- Modal de Cadastro -->
     <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
