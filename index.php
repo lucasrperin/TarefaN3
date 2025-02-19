@@ -120,7 +120,7 @@ if ($result === false) {
                              echo "<td>". $row["Hora_ini"]. "</td>";
                              echo "<td>". $row["Hora_fim"]. "</td>";
                              echo "<td>". $row["Total_hora"]. "</td>";
-                             echo "<td> <a class=\"btn-remove\" href=\"Views/deletar_analise.php?Id=$row[Codigo]\" onclick=\"return confirm('Confirma a exclusão do Registro?')\"><i class=\"fa-solid fa-trash\"></i></a></td>";
+                             echo "<td> <a class=\"btn-remove\" href=\"Views/deletar_analise.php?codigo=$row[Codigo]\" onclick=\"return confirm('Confirma a exclusão do Registro?')\"><i class=\"fa-solid fa-trash\"></i></a></td>";
                               ?>
                             <th>
                                 <a class="btn-edit" ><i class="fa-sharp fa-solid fa-pen"></i></a>
