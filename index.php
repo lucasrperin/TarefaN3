@@ -17,8 +17,8 @@ $sql = "SELECT
             tba.Descricao as Analista,
             sis.Descricao as Sistema,
             sta.Descricao as Status,
-            DATE_FORMAT(tas.Hora_ini, '%d/%m/%Y %H:%i:%s') as Hora_ini,
-            DATE_FORMAT(tas.Hora_fim, '%d/%m/%Y %H:%i:%s') as Hora_fim,
+            tas.Hora_ini,
+            tas.Hora_fim,
             tas.Total_hora,
             -- Adicionamos abaixo os IDs das tabelas relacionadas:
             tas.idSituacao AS idSituacao,
