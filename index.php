@@ -135,7 +135,8 @@ if ($result === false) {
                              . $row['Hora_ini'] . "', '" 
                              . $row['Hora_fim'] . "')\"><i class='fa-sharp fa-solid fa-pen'></i></a> ";
                         // Botão de exclusão com confirmação
-                        echo "<a class='btn-remove' href='Views/deletar_analise.php?codigo=" . $row['Codigo'] . "' onclick=\"return confirm('Confirma a exclusão do Registro?')\"><i class='fa-solid fa-trash'></i></a>";
+                        echo "<a href='javascript:void(0)' class='btn-remove' data-bs-toggle='modal' data-bs-target='#modalExclusao' onclick=\"excluirAnalise(" 
+                             . $row['Codigo'] .")\"><i class='fa-sharp fa-solid fa-trash'></i></a> ";
                         echo "</td>";
                         echo "</tr>";
                     }
@@ -332,41 +333,20 @@ if ($result === false) {
         </div>
     </div>
 
-<!-- Modal de Exclusão -->
+<!-- Modal de Edição -->
 <div class="modal fade" id="modalExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalEdicaoLabel">Editar Análise</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="modalEdicaoLabel">Confirma a Exclusão da Análise?</h5>
                 </div>
                 <div class="modal-body">
                     <form action="Views/deletar_analise.php" method="POST">
                         <!-- Campo oculto para armazenar o ID da análise -->
-                        <input type="hidden" id="id_editar" name="id_editar">
-
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="descricao_editar" class="form-label">Descrição</label>
-                                <input type="text" class="form-control" id="descricao_editar" name="descricao_editar" maxlength="50" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="situacao_editar" class="form-label">Situação</label>
-                                <select class="form-select" id="situacao_editar" name="situacao_editar" required>
-                                    <option value="">Selecione</option>
-                                    <?php
-                                    // Reconsulta TB_SITUACAO para preencher o combo do modal
-                                    $querySituacao2 = "SELECT Id, Descricao FROM TB_SITUACAO";
-                                    $resultSituacao2 = $conn->query($querySituacao2);
-                                    while ($rowS2 = $resultSituacao2->fetch_assoc()) {
-                                        echo "<option value='" . $rowS2['Id'] . "'>" . $rowS2['Descricao'] . "</option>";
-                                    }
-                                    ?>
-                                </select>
-                            </div>
-                        </div>
+                        <input type="hidden" id="id_excluir" name="id_excluir">
                         <div class="text-end">
-                            <button type="submit" class="btn btn-success">Salvar</button>
+                            <button type="submit" class="btn btn-success">Sim</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close">Não</button>
                         </div>
                     </form>
                 </div>
@@ -407,7 +387,7 @@ if ($result === false) {
         document.getElementById("hora_ini_editar").value = hora_ini;
         document.getElementById("hora_fim_editar").value = hora_fim;
       }
-      
+
       function excluirAnalise(id) {
         // Preenche o campo oculto de ID
         document.getElementById("id_excluir").value = id;
