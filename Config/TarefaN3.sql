@@ -37,7 +37,9 @@ CREATE TABLE TB_ANALISES
  idUsuario int,
  Hora_ini DATETIME,  
  Hora_fim DATETIME,  
- Total_hora TIME  
+ Total_hora TIME,
+ chkFicha TINYINT(1) DEFAULT 0,
+ numeroFicha INT DEFAULT NULL,
 ); 
 
 CREATE TABLE TB_USUARIO
@@ -84,7 +86,7 @@ INSERT INTO TB_STATUS (Descricao) VALUES ('Desenvolvimento');
 INSERT INTO TB_STATUS (Descricao) VALUES ('Aguardando');
 
 -- Inserindo Tipos de Situação
-INSERT INTO TB_SITUACAO (Descricao) VALUES ('Análises N3');
+INSERT INTO TB_SITUACAO (Descricao) VALUES ('Análise N3');
 INSERT INTO TB_SITUACAO (Descricao) VALUES ('Auxilio Suporte/Vendas');
 INSERT INTO TB_SITUACAO (Descricao) VALUES ('Ficha Criada');
 
