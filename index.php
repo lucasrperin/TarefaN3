@@ -1,5 +1,5 @@
 <?php
-require 'Config/database.php';
+require 'Config/Database.php';
 
 session_start();
 
