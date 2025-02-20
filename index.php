@@ -53,14 +53,14 @@ if ($result1->num_rows > 0) {
 
 // Cálculo dos totalizadores
 $totalFichas = 0; // Total de fichas criadas
-$totalAnaliseN3 = 0; // Quantidade de "Análises N3" (baseado no campo Situacao)
+$totalAnaliseN3 = 0; // Quantidade de "Análise N3" (baseado no campo Situacao)
 $totalAuxilio = 0; // Total de Auxílio Suporte/Vendas
 $totalHoras = 0; // Soma do campo Total_hora
 $uniqueDates = array(); // Para calcular a média diária de horas
 
 foreach ($rows as $row) {
-    // Contar quantidade de "Análises N3"
-    if (trim($row['Situacao']) == "Análises N3") {
+    // Contar quantidade de "Análise N3"
+    if (trim($row['Situacao']) == "Análise N3") {
         $totalAnaliseN3++;
     }
     
@@ -81,7 +81,7 @@ foreach ($rows as $row) {
     $uniqueDates[$date] = true;
 }
 $numeroDias = count($uniqueDates);
-$mediaDiariaHoras = ($numeroDias > 0) ? ($totalHoras / $numeroDias) : 0;
+$mediaDiariaHoras = ($totalAnaliseN3 > 0) ? ($totalHoras / $totalAnaliseN3) : 0;
 
 // Processamento dos dados para o gráfico de barras
 $fichasPorMes = array_fill(1, 12, 0);
@@ -96,7 +96,7 @@ foreach ($rows as $row) {
         if (trim($row['Situacao']) == "Ficha Criada") {
             $fichasPorMes[$month]++;
         }
-        if (trim($row['Situacao']) == "Análises N3") {
+        if (trim($row['Situacao']) == "Análise N3") {
             $analisesN3PorMes[$month]++;
         }
     }
@@ -159,7 +159,7 @@ foreach ($rows as $row) {
                                     <td><?php echo $totalFichas; ?></td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Análises N3:</strong></td>
+                                    <td><strong>Análise N3:</strong></td>
                                     <td><?php echo $totalAnaliseN3; ?></td>
                                 </tr>
                                 <tr>
@@ -168,7 +168,7 @@ foreach ($rows as $row) {
                                 </tr>
                                 <tr>
                                     <td><strong>Média Horas:</strong></td>
-                                    <td><?php echo number_format($mediaDiariaHoras, 2, ',', '.'); ?></td>
+                                    <td><?php echo number_format($mediaDiariaHoras, 2, ':', ':'); ?></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -302,7 +302,7 @@ foreach ($rows as $row) {
                     borderWidth: 1
                 },
                 {
-                    label: 'Análises N3',
+                    label: 'Análise N3',
                     data: analisesN3PorMes,
                     backgroundColor: 'rgba(255, 99, 132, 0.5)', // Vermelho
                     borderColor: 'rgba(255, 99, 132, 1)',
@@ -351,7 +351,7 @@ foreach ($rows as $row) {
                             </div>
                             <div class="col-md-6">
                                 <label for="situacao" class="form-label">Situação</label>
-                                <select class="form-select" id="situacao" name="situacao" required>
+                                <select class="form-select" id="situacao" name="situacao" required onchange="verificarSituacao()">
                                     <option value="">Selecione</option>
                                     <?php
                                     $querySituacao = "SELECT Id, Descricao FROM TB_SITUACAO";
@@ -361,8 +361,59 @@ foreach ($rows as $row) {
                                     }
                                     ?>
                                 </select>
+                                 <!-- Checkbox e campo de Número da Ficha (inicialmente ocultos) -->
+                                <div class="row mb-3 mt-3" id="fichaContainer" style="display: none;">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="chkFicha" name="chkFicha" onchange="verificarFicha()">
+                                            <label class="form-check-label" for="chkFicha">Ficha</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3" id="numeroFichaContainer" style="display: none;">
+                                    <div class="col-md-15">
+                                        <label for="numeroFicha" class="form-label">Número da Ficha</label>
+                                        <input type="number" class="form-control" id="numeroFicha" name="numeroFicha" pattern="\d+">
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                        <!-- JavaScript para controlar a exibição dos campos -->
+                        <script>
+                        function verificarSituacao() {
+                            var situacao = document.getElementById("situacao");
+                            var fichaContainer = document.getElementById("fichaContainer");
+
+                            // Pega o texto da opção selecionada
+                            var situacaoSelecionada = situacao.options[situacao.selectedIndex].text.trim();
+
+                            // Verifica se a opção selecionada é "Análise N3"
+                            if (situacaoSelecionada === "Análise N3") {
+                                fichaContainer.style.display = "block";
+                            } else {
+                                fichaContainer.style.display = "none";
+                                document.getElementById("numeroFichaContainer").style.display = "none";
+                                document.getElementById("chkFicha").checked = false;
+                            }
+                        }
+
+                        function verificarFicha() {
+                            var chkFicha = document.getElementById("chkFicha").checked;
+                            var numeroFichaContainer = document.getElementById("numeroFichaContainer");
+                            var numeroFichaInput = document.getElementById("numeroFicha");
+
+                            if (chkFicha) {
+                                numeroFichaContainer.style.display = "block";
+                                numeroFichaInput.setAttribute("required", "true"); // Adiciona required quando visível
+                            } else {
+                                numeroFichaContainer.style.display = "none";
+                                numeroFichaInput.removeAttribute("required"); // Remove required quando oculto
+                                numeroFichaInput.value = ""; // Limpa o valor do campo
+                            }
+                        }
+                        </script>
+
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="analista" class="form-label">Analista</label>
@@ -570,5 +621,7 @@ foreach ($rows as $row) {
  
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    
 </body>
 </html>

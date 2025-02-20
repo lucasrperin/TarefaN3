@@ -1,5 +1,5 @@
 <?php
-require '../Config/Database.php'; 
+require '../Config/Database.php';
 session_start();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -12,17 +12,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $hora_fim = $_POST['hora_fim'];
     $idUsuario = $_SESSION['usuario_id'];
 
-    $stmt = $conn->prepare("INSERT INTO TB_ANALISES (Descricao, idSituacao, idAnalista, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora) VALUES (?, ?, ?, ?, ?, ?, ?, ?, TIMEDIFF(?, ?))");
-    $stmt->bind_param("siiiiissss", $descricao, $situacao, $analista, $sistema, $status, $idUsuario, $hora_ini, $hora_fim, $hora_fim, $hora_ini);
+    // Verifica se a ficha foi marcada e se o número da ficha foi informado
+    $chkFicha = isset($_POST['chkFicha']) ? 1 : 0;
+    $numeroFicha = $chkFicha && !empty($_POST['numeroFicha']) ? $_POST['numeroFicha'] : null;
 
     
+
+    // Primeiro INSERT (sempre executado)
+    $stmt = $conn->prepare("INSERT INTO TB_ANALISES 
+        (Descricao, idSituacao, idAnalista, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, TIMEDIFF(?, ?), ?, ?)");
+    $stmt->bind_param("siiiiissssis", $descricao, $situacao, $analista, $sistema, $status, $idUsuario, $hora_ini, $hora_fim, $hora_fim, $hora_ini, $chkFicha, $numeroFicha);
+    
     if ($stmt->execute()) {
+        // Se a ficha foi marcada e o número foi informado, insere o segundo registro
+        if ($chkFicha && $numeroFicha) {
+            $descricaoFicha = "Ficha criada " . $numeroFicha;
+            $situacaoFicha = 3; // Situação Ficha criada fixa
+            $statusFicha = 2; // Status DESENVOLVIMENTO fixa
+            $totalHora = "0000-00-00 00:00:00";
+
+            $stmtFicha = $conn->prepare("INSERT INTO TB_ANALISES 
+                (Descricao, idSituacao, idAnalista, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmtFicha->bind_param("siiiiisss", $descricaoFicha, $situacaoFicha, $analista, $sistema, $statusFicha, $idUsuario, $hora_ini, $hora_fim, $totalHora);
+            $stmtFicha->execute();
+            $stmtFicha->close();
+        }
+
         header("Location: ../index.php?success=1");
         exit();
     } else {
         echo "Erro ao cadastrar: " . $stmt->error;
     }
-    
+
     $stmt->close();
     $conn->close();
 }
