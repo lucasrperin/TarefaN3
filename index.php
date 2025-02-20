@@ -1,5 +1,5 @@
 <?php
-require 'Config/database.php';
+require 'Config/Database.php';
 
 session_start();
 
@@ -9,7 +9,11 @@ if (!isset($_SESSION['usuario_id'])) {
     exit();
 }
 
-// Consulta principal (incluindo os IDs para edição)
+// Captura os parâmetros do filtro, se enviados
+$data_inicio = isset($_GET['data_inicio']) ? $_GET['data_inicio'] : '';
+$data_fim    = isset($_GET['data_fim']) ? $_GET['data_fim'] : '';
+
+// Monta a query base
 $sql = "SELECT
             tas.Id as Codigo,
             tas.Descricao as Descricao,
@@ -20,7 +24,6 @@ $sql = "SELECT
             tas.Hora_ini,
             tas.Hora_fim,
             tas.Total_hora,
-            -- IDs para edição
             tas.idSituacao AS idSituacao,
             tas.idAnalista AS idAnalista,
             tas.idSistema AS idSistema,
@@ -30,8 +33,14 @@ $sql = "SELECT
             LEFT JOIN TB_ANALISTA tba ON tba.Id = tas.idAnalista
             LEFT JOIN TB_SISTEMA sis ON sis.Id = tas.idSistema
             LEFT JOIN TB_STATUS sta ON sta.Id = tas.idStatus
-            LEFT JOIN TB_USUARIO usu ON usu.Id = tas.idUsuario
-        ORDER BY tas.Id DESC";
+            LEFT JOIN TB_USUARIO usu ON usu.Id = tas.idUsuario";
+
+// Se as datas estiverem definidas, adiciona a cláusula WHERE para filtrar pelo período
+if (!empty($data_inicio) && !empty($data_fim)) {
+    $sql .= " WHERE DATE(tas.Hora_ini) BETWEEN '$data_inicio' AND '$data_fim'";
+}
+
+$sql .= " ORDER BY tas.Id DESC";
 
 $result = $conn->query($sql);
 $result1 = $conn->query($sql);
@@ -128,25 +137,11 @@ foreach ($rows as $row) {
         </div>
     </nav>
  
-    <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?> 
-        <div class="alert alert-success" role="alert">
-            Análise cadastrada com sucesso!
-        </div>
-    <?php elseif (isset($_GET['success']) && $_GET['success'] == 2): ?> 
-        <div class="alert alert-success" role="alert">
-            Análise editada com sucesso!
-        </div>
-    <?php elseif (isset($_GET['success']) && $_GET['success'] == 3): ?> 
-        <div class="alert alert-success" role="alert">
-            Análise excluída com sucesso!
-        </div>
-    <?php endif; ?>
- 
-    <!-- Resumo dos Totalizadores e Gráfico Mensal -->
+    <!-- Linha com Resumo dos Totalizadores, Gráfico Mensal e Filtro de Período -->
     <div class="container mt-4">
         <div class="row">
             <!-- Totalizadores -->
-            <div class="col-md-5">
+            <div class="col-md-4">
                 <div class="card shadow-lg">
                     <div class="card-header text-white bg-primary">
                         <h4 class="mb-0">Resumo dos Totalizadores</h4>
@@ -187,9 +182,46 @@ foreach ($rows as $row) {
                     </div>
                 </div>
             </div>
+
+            <!-- Filtro de Período -->
+            <div class="col-md-3">
+                <div class="card shadow-lg">
+                    <div class="card-header text-white bg-secondary">
+                        <h4 class="mb-0">Filtro de Período</h4>
+                    </div>
+                    <div class="card-body">
+                
+                        <form method="GET" action="">
+                            <div class="mb-2">
+                                <label for="data_inicio" class="form-label">Data Início:</label>
+                                <input type="date" class="form-control" name="data_inicio" id="data_inicio" value="<?php echo htmlspecialchars($data_inicio); ?>">
+                            </div>
+                            <div class="mb-2">
+                                <label for="data_fim" class="form-label">Data Fim:</label>
+                                <input type="date" class="form-control" name="data_fim" id="data_fim" value="<?php echo htmlspecialchars($data_fim); ?>">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm w-100">Filtrar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
+ 
+    <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?> 
+        <div class="alert alert-success" role="alert">
+            Análise cadastrada com sucesso!
+        </div>
+    <?php elseif (isset($_GET['success']) && $_GET['success'] == 2): ?> 
+        <div class="alert alert-success" role="alert">
+            Análise editada com sucesso!
+        </div>
+    <?php elseif (isset($_GET['success']) && $_GET['success'] == 3): ?> 
+        <div class="alert alert-success" role="alert">
+            Análise excluída com sucesso!
+        </div>
+    <?php endif; ?>
+ 
     <!-- Título Lista de Análises e Botão Cadastrar análise -->
     <div class="container mt-4">
         <div class="row align-items-center">
@@ -361,7 +393,7 @@ foreach ($rows as $row) {
                                     }
                                     ?>
                                 </select>
-                                 <!-- Checkbox e campo de Número da Ficha (inicialmente ocultos) -->
+                                <!-- Checkbox e campo de Número da Ficha (inicialmente ocultos) -->
                                 <div class="row mb-3 mt-3" id="fichaContainer" style="display: none;">
                                     <div class="col-md-4">
                                         <div class="form-check">
@@ -621,7 +653,6 @@ foreach ($rows as $row) {
  
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     
 </body>
 </html>

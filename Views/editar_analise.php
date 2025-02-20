@@ -1,5 +1,5 @@
 <?php
-require '../Config/database.php';
+require '../Config/Database.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Pega os dados do formulário
