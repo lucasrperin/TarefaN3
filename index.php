@@ -91,6 +91,8 @@ foreach ($rows as $row) {
 }
 $numeroDias = count($uniqueDates);
 $mediaDiariaHoras = ($totalAnaliseN3 > 0) ? ($totalHoras / $totalAnaliseN3) : 0;
+$horas = floor($mediaDiariaHoras); // Pega a parte inteira das horas
+$minutos = round(($mediaDiariaHoras - $horas) * 60); // Calcula os minutos corretamente
 
 // Processamento dos dados para o gráfico de barras
 $fichasPorMes = array_fill(1, 12, 0);
@@ -163,7 +165,7 @@ foreach ($rows as $row) {
                                 </tr>
                                 <tr>
                                     <td><strong>Média Horas:</strong></td>
-                                    <td><?php echo number_format($mediaDiariaHoras, 2, ':', ':'); ?></td>
+                                    <td><?php echo sprintf("%02d:%02d", $horas, $minutos); ?></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -178,7 +180,7 @@ foreach ($rows as $row) {
                         <h4 class="mb-0">Gráfico Mensal</h4>
                     </div>
                     <div class="card-body">
-                        <canvas id="chartMensal" width="400" height="175"></canvas>
+                        <canvas id="chartMensal" width="18%" height="7%"></canvas>
                     </div>
                 </div>
             </div>
@@ -209,15 +211,15 @@ foreach ($rows as $row) {
     </div>
  
     <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?> 
-        <div class="alert alert-success" role="alert">
+        <div class="alert alert-success w-50%" role="alert">
             Análise cadastrada com sucesso!
         </div>
     <?php elseif (isset($_GET['success']) && $_GET['success'] == 2): ?> 
-        <div class="alert alert-success" role="alert">
+        <div class="alert alert-success w-50%" role="alert">
             Análise editada com sucesso!
         </div>
     <?php elseif (isset($_GET['success']) && $_GET['success'] == 3): ?> 
-        <div class="alert alert-success" role="alert">
+        <div class="alert alert-success w-50%" role="alert">
             Análise excluída com sucesso!
         </div>
     <?php endif; ?>
@@ -383,7 +385,7 @@ foreach ($rows as $row) {
                             </div>
                             <div class="col-md-6">
                                 <label for="situacao" class="form-label">Situação</label>
-                                <select class="form-select" id="situacao" name="situacao" required onchange="verificarSituacao()">
+                                <select class="form-select" id="situacao" name="situacao" required onchange="verificarSituacao(); verificarSituacao2();">
                                     <option value="">Selecione</option>
                                     <?php
                                     $querySituacao = "SELECT Id, Descricao FROM TB_SITUACAO";
@@ -397,7 +399,7 @@ foreach ($rows as $row) {
                                 <div class="row mb-3 mt-3" id="fichaContainer" style="display: none;">
                                     <div class="col-md-4">
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="chkFicha" name="chkFicha" onchange="verificarFicha()">
+                                            <input class="form-check-input" type="checkbox" id="chkFicha" name="chkFicha" onchange="verificarFicha() ">
                                             <label class="form-check-label" for="chkFicha">Ficha</label>
                                         </div>
                                     </div>
@@ -407,6 +409,23 @@ foreach ($rows as $row) {
                                     <div class="col-md-15">
                                         <label for="numeroFicha" class="form-label">Número da Ficha</label>
                                         <input type="number" class="form-control" id="numeroFicha" name="numeroFicha" pattern="\d+">
+                                    </div>
+                                </div>
+
+                                <!-- Checkbox e campo de Número do multiplicador (inicialmente ocultos) -->
+                                <div class="row mb-3 mt-3" id="multiplicaContainer" style="display: none;">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="chkMultiplica" name="chkMultiplica" onchange="verificarMultiplica()">
+                                            <label class="form-check-label" for="chkMultiplica">Replicar</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3" id="numeroMultiContainer" style="display: none;">
+                                    <div class="col-md-15">
+                                        <label for="numeroMulti" class="form-label">Quantidade para Replicar</label>
+                                        <input type="number" class="form-control" id="numeroMulti" name="numeroMulti" pattern="\d+">
                                     </div>
                                 </div>
                             </div>
@@ -442,6 +461,39 @@ foreach ($rows as $row) {
                                 numeroFichaContainer.style.display = "none";
                                 numeroFichaInput.removeAttribute("required"); // Remove required quando oculto
                                 numeroFichaInput.value = ""; // Limpa o valor do campo
+                            }
+                        }
+
+                        function verificarSituacao2() {
+                            var situacao = document.getElementById("situacao");
+                            var fichaContainer = document.getElementById("multiplicaContainer");
+
+                            // Pega o texto da opção selecionada
+                            var situacaoSelecionada = situacao.options[situacao.selectedIndex].text.trim();
+
+                            // Verifica se a opção selecionada é "Análise N3"
+                            if (situacaoSelecionada === "Auxilio Suporte/Vendas") {
+                                multiplicaContainer.style.display = "block";
+                            } else {
+                                multiplicaContainer.style.display = "none";
+                                document.getElementById("numeroMultiplicaContainer").style.display = "none";
+                                document.getElementById("chkMultiplica").checked = false;
+                            }
+                        }
+
+                        function verificarMultiplica() {
+                            var chkMultiplica = document.getElementById("chkMultiplica").checked;
+                            var numeroMultiContainer = document.getElementById("numeroMultiContainer");
+                            var numeroMulti = document.getElementById("numeroMulti");
+
+                            if (chkMultiplica) {
+                                numeroMultiContainer.style.display = "block";
+                                numeroMulti.setAttribute("required", "true"); // Adiciona required quando visível
+
+                            } else {
+                                numeroMultiContainer.style.display = "none";
+                                numeroMulti.removeAttribute("required"); // Remove required quando oculto
+                                numeroMulti.value = ""; // Limpa o valor do campo
                             }
                         }
                         </script>
@@ -630,7 +682,7 @@ foreach ($rows as $row) {
                     alertSuccess.style.opacity = "0";
                     setTimeout(() => alertSuccess.remove(), 500);
                 }
-            }, 2000);
+            }, 2500);
         });
  
         // Função para preencher o modal de edição

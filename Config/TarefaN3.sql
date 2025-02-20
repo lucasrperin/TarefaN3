@@ -39,7 +39,9 @@ CREATE TABLE TB_ANALISES
  Hora_fim DATETIME,  
  Total_hora TIME,
  chkFicha TINYINT(1) DEFAULT 0,
- numeroFicha INT DEFAULT NULL
+ numeroFicha INT DEFAULT NULL,
+ chkMultiplica TINYINT(1) DEFAULT 0,
+ numeroMulti int DEFAULT NULL
 ); 
 
 CREATE TABLE TB_USUARIO
@@ -57,8 +59,9 @@ ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idStatus) REFERENCES TB_STATUS (Id);
 ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idUsuario) REFERENCES TB_USUARIO (Id);
 
 -- Inserindo Usuário N3
-INSERT INTO TB_USUARIO (Nome, Email, Senha) VALUES ('Lucas P', 'lucas.perin@zucchetti.com', 1234);
-INSERT INTO TB_USUARIO (Nome, Email, Senha) VALUES ('Guilherme F', 'guilherme.ferri@zucchetti.com', 1234);
+INSERT INTO TB_USUARIO (Nome, Email, Senha) VALUES ('Lucas Perin', 'lucas.perin@zucchetti.com', 1234);
+INSERT INTO TB_USUARIO (Nome, Email, Senha) VALUES ('Guilherme Ferri', 'guilherme.ferri@zucchetti.com', 1234);
+INSERT INTO TB_USUARIO (Nome, Email, Senha) VALUES ('Gabriel Battistella', 'gabriel.battistella@zucchetti.com', 1234);
 
 -- Inserindo Analistas N3
 INSERT INTO TB_ANALISTA (Descricao) VALUES ('Lucas P');
@@ -71,7 +74,7 @@ INSERT INTO TB_SISTEMA (Descricao) VALUES ('NFS-e');
 INSERT INTO TB_SISTEMA (Descricao) VALUES ('DAV');
 INSERT INTO TB_SISTEMA (Descricao) VALUES ('ZWeb');
 INSERT INTO TB_SISTEMA (Descricao) VALUES ('SmallSoft');
-INSERT INTO TB_SISTEMA (Descricao) VALUES ('Clipp Fácil');
+INSERT INTO TB_SISTEMA (Descricao) VALUES ('Clipp Facil');
 INSERT INTO TB_SISTEMA (Descricao) VALUES ('ECF');
 INSERT INTO TB_SISTEMA (Descricao) VALUES ('NFC-e');
 INSERT INTO TB_SISTEMA (Descricao) VALUES ('Clipp Cheff');
@@ -86,7 +89,7 @@ INSERT INTO TB_STATUS (Descricao) VALUES ('Desenvolvimento');
 INSERT INTO TB_STATUS (Descricao) VALUES ('Aguardando');
 
 -- Inserindo Tipos de Situação
-INSERT INTO TB_SITUACAO (Descricao) VALUES ('Análise N3');
+INSERT INTO TB_SITUACAO (Descricao) VALUES ('Analise N3');
 INSERT INTO TB_SITUACAO (Descricao) VALUES ('Auxilio Suporte/Vendas');
 INSERT INTO TB_SITUACAO (Descricao) VALUES ('Ficha Criada');
 
