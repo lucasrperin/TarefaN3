@@ -48,8 +48,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
 
     <div class="login-container text-center">
-        <h2 class="mb-4">Login</h2>
-
+        <!-- Logo -->
+        <img src="../Public/Image/Screenshot_1.png" alt="Logo"  style="max-width: 200px;">
+        
+    
+        
         <?php if (isset($erro)) echo "<div class='alert alert-danger'>$erro</div>"; ?>
 
         <form method="POST" action="">

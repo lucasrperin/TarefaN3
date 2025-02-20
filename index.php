@@ -126,6 +126,7 @@ foreach ($rows as $row) {
  
     <!-- Arquivo CSS personalizado -->
     <link rel="stylesheet" href="Public/index.css">
+    
 </head>
 <body class="bg-light">
  
