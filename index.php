@@ -82,17 +82,39 @@ foreach ($rows as $row) {
         $totalFichas++;
     }
     
-    // Somar o Total_hora (certifique-se de que é numérico)
-    $totalHoras += floatval($row["Total_hora"]);
-    
     // Extrair a data (dia) de Hora_ini para cálculo da média diária
     $date = date("Y-m-d", strtotime($row["Hora_ini"]));
     $uniqueDates[$date] = true;
 }
 $numeroDias = count($uniqueDates);
-$mediaDiariaHoras = ($totalAnaliseN3 > 0) ? ($totalHoras / $totalAnaliseN3) : 0;
-$horas = floor($mediaDiariaHoras); // Pega a parte inteira das horas
-$minutos = round(($mediaDiariaHoras - $horas) * 60); // Calcula os minutos corretamente
+// Certifique-se de que total de horas é tratado corretamente
+$totalHoras = 0; 
+$uniqueDates = array();
+
+foreach ($rows as $row) {
+    if (!empty($row["Total_hora"])) {
+        // Converter HH:MM:SS para segundos
+        list($h, $m, $s) = explode(":", $row["Total_hora"]);
+        $totalHoras += ($h * 3600) + ($m * 60) + $s;
+    }
+
+    // Extrai a data para cálculo da média diária
+    $date = date("Y-m-d", strtotime($row["Hora_ini"]));
+    $uniqueDates[$date] = true;
+}
+
+// Calculando a média corretamente
+if ($totalAnaliseN3 > 0) {
+    $mediaSegundos = round($totalHoras / $totalAnaliseN3);
+
+    // Converter segundos para HH:MM:SS
+    $horas = floor($mediaSegundos / 3600);
+    $minutos = floor(($mediaSegundos % 3600) / 60);
+    $segundos = $mediaSegundos % 60;
+} else {
+    $horas = $minutos = $segundos = 0; 
+}
+
 
 // Processamento dos dados para o gráfico de barras
 $fichasPorMes = array_fill(1, 12, 0);
@@ -166,7 +188,7 @@ foreach ($rows as $row) {
                                 </tr>
                                 <tr>
                                     <td><strong>Média Horas:</strong></td>
-                                    <td><?php echo sprintf("%02d:%02d", $horas, $minutos); ?></td>
+                                    <td><?php echo sprintf("%02d:%02d:%02d", $horas, $minutos, $segundos); ?></td>
                                 </tr>
                             </tbody>
                         </table>
