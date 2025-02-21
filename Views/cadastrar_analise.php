@@ -62,7 +62,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     }
 
-    for ($i = 2; $i < $numeroMulti; $i++) {
+    for ($i = 1; $i < $numeroMulti; $i++) {
         if (!$stmtAuxilio->execute()) {
             echo "Erro ao cadastrar: " . $stmtAuxilio->error;
             exit();
