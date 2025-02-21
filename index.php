@@ -237,15 +237,15 @@ foreach ($rows as $row) {
     </div>
  
     <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?> 
-        <div class="alert alert-success w-50%" role="alert">
+        <div class="alert alert-success mt-4" role="alert" style="width: 16%; margin: 0 auto;">
             Análise cadastrada com sucesso!
         </div>
     <?php elseif (isset($_GET['success']) && $_GET['success'] == 2): ?> 
-        <div class="alert alert-success w-50%" role="alert">
+        <div class="alert alert-success mt-4" role="alert" style="width: 16%; margin: 0 auto; ">
             Análise editada com sucesso!
         </div>
     <?php elseif (isset($_GET['success']) && $_GET['success'] == 3): ?> 
-        <div class="alert alert-success w-50%" role="alert">
+        <div class="alert alert-success mt-4" role="alert" style="width: 16%; margin: 0 auto;">
             Análise excluída com sucesso!
         </div>
     <?php endif; ?>
