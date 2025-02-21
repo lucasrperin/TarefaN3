@@ -38,7 +38,7 @@ $sql = "SELECT
 // Se as datas estiverem definidas, adiciona a cláusula WHERE para filtrar pelo período
 if (!empty($data_inicio) && !empty($data_fim)) {
     $sql .= " WHERE DATE(tas.Hora_ini) BETWEEN '$data_inicio' AND '$data_fim'";
-}
+} 
 
 $sql .= " ORDER BY tas.Id DESC";
 
@@ -225,7 +225,10 @@ foreach ($rows as $row) {
                                 <label for="data_fim" class="form-label">Data Fim:</label>
                                 <input type="date" class="form-control" name="data_fim" id="data_fim" value="<?php echo htmlspecialchars($data_fim); ?>">
                             </div>
-                            <button type="submit" class="btn btn-primary btn-sm w-100">Filtrar</button>
+                            <div class="d-flex justify-content-center gap-2">
+                                <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+                                <a href="index.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
+                            </div>
                         </form>
                     </div>
                 </div>
