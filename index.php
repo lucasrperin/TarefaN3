@@ -13,7 +13,7 @@ if (!isset($_SESSION['usuario_id'])) {
 $data_inicio = isset($_GET['data_inicio']) ? $_GET['data_inicio'] : '';
 $data_fim    = isset($_GET['data_fim']) ? $_GET['data_fim'] : '';
 
-// Monta a query base
+// Monta a query base, SEC_TO_TIME converte em segundos para o cálculo da média
 $sql = "SELECT
             tas.Id as Codigo,
             tas.Descricao as Descricao,
@@ -23,7 +23,7 @@ $sql = "SELECT
             sta.Descricao as Status,
             tas.Hora_ini,
             tas.Hora_fim,
-            tas.Total_hora,
+            SEC_TO_TIME(TIME_TO_SEC(tas.Total_hora)) AS Total_hora, 
             tas.idSituacao AS idSituacao,
             tas.idAnalista AS idAnalista,
             tas.idSistema AS idSistema,
@@ -385,8 +385,8 @@ foreach ($rows as $row) {
                 {
                     label: 'Cliente Parado',
                     data: clienteParadoPorMes,
-                    backgroundColor: 'rgb(245, 14, 14)', // Vermelho
-                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgb(248, 11, 11)', // Vermelho
+                    borderColor: 'rgb(243, 137, 160)',
                     borderWidth: 1
                 }
             ]
