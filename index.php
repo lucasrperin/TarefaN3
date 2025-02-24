@@ -27,7 +27,8 @@ $sql = "SELECT
             tas.idSituacao AS idSituacao,
             tas.idAnalista AS idAnalista,
             tas.idSistema AS idSistema,
-            tas.idStatus AS idStatus
+            tas.idStatus AS idStatus,
+            tas.chkParado as Parado
         FROM TB_ANALISES tas
             LEFT JOIN TB_SITUACAO sit ON sit.Id = tas.idSituacao
             LEFT JOIN TB_ANALISTA tba ON tba.Id = tas.idAnalista
@@ -62,17 +63,17 @@ if ($result1->num_rows > 0) {
 
 // Cálculo dos totalizadores
 $totalFichas = 0; // Total de fichas criadas
-$totalAnaliseN3 = 0; // Quantidade de "Análise N3" (baseado no campo Situacao)
+$totalAnaliseN3 = 0; // Quantidade de "Analise N3" (baseado no campo Situacao)
 $totalAuxilio = 0; // Total de Auxílio Suporte/Vendas
+$totalParado = 0; // Total de Cliente Parado
 $totalHoras = 0; // Soma do campo Total_hora
 $uniqueDates = array(); // Para calcular a média diária de horas
 
 foreach ($rows as $row) {
-    // Contar quantidade de "Análise N3"
-    if (trim($row['Situacao']) == "Análise N3") {
+    // Contar quantidade de "Analise N3"
+    if (trim($row['Situacao']) == "Analise N3") {
         $totalAnaliseN3++;
     }
-    
     // Contabilizar Auxílio Suporte/Vendas
     if (trim($row['Situacao']) == "Auxilio Suporte/Vendas") {
         $totalAuxilio++;
@@ -80,6 +81,10 @@ foreach ($rows as $row) {
     // Contar quantidade de "Fichas Criadas"
     if (trim($row['Situacao']) == "Ficha Criada") {
         $totalFichas++;
+    }
+    // Contar quantidade de "Cliente Parado"
+    if (trim($row['Parado']) == "S") {
+        $totalParado++;
     }
     
     // Extrair a data (dia) de Hora_ini para cálculo da média diária
@@ -119,6 +124,7 @@ if ($totalAnaliseN3 > 0) {
 // Processamento dos dados para o gráfico de barras
 $fichasPorMes = array_fill(1, 12, 0);
 $analisesN3PorMes = array_fill(1, 12, 0);
+$clienteParadoPorMes = array_fill(1, 12, 0);
 $currentYear = date("Y");
 
 foreach ($rows as $row) {
@@ -129,8 +135,11 @@ foreach ($rows as $row) {
         if (trim($row['Situacao']) == "Ficha Criada") {
             $fichasPorMes[$month]++;
         }
-        if (trim($row['Situacao']) == "Análise N3") {
+        if (trim($row['Situacao']) == "Analise N3") {
             $analisesN3PorMes[$month]++;
+        }
+        if (trim($row['Parado']) == "S") {
+            $clienteParadoPorMes[$month]++;
         }
     }
 }
@@ -179,12 +188,16 @@ foreach ($rows as $row) {
                                     <td><?php echo $totalFichas; ?></td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Análise N3:</strong></td>
+                                    <td><strong>Analise N3:</strong></td>
                                     <td><?php echo $totalAnaliseN3; ?></td>
                                 </tr>
                                 <tr>
                                     <td><strong>Auxílio Suporte/Vendas:</strong></td>
                                     <td><?php echo $totalAuxilio; ?></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Cliente Parado</strong></td>
+                                    <td><?php echo $totalParado; ?></td>
                                 </tr>
                                 <tr>
                                     <td><strong>Média Horas:</strong></td>
@@ -237,7 +250,7 @@ foreach ($rows as $row) {
     </div>
  
     <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?> 
-        <div class="alert alert-success mt-4" role="alert" style="width: 16%; margin: 0 auto;">
+        <div class="alert alert-success mt-4" role="alert" style="width: 17%; margin: 0 auto;">
             Análise cadastrada com sucesso!
         </div>
     <?php elseif (isset($_GET['success']) && $_GET['success'] == 2): ?> 
@@ -347,6 +360,7 @@ foreach ($rows as $row) {
         // Dados gerados pelo PHP
         const fichasPorMes = <?php echo json_encode(array_values($fichasPorMes)); ?>;
         const analisesN3PorMes = <?php echo json_encode(array_values($analisesN3PorMes)); ?>;
+        const clienteParadoPorMes = <?php echo json_encode(array_values($clienteParadoPorMes)); ?>;
         
         // Labels dos meses (abreviados)
         const labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
@@ -362,9 +376,16 @@ foreach ($rows as $row) {
                     borderWidth: 1
                 },
                 {
-                    label: 'Análise N3',
+                    label: 'Analise N3',
                     data: analisesN3PorMes,
                     backgroundColor: 'rgba(255, 99, 132, 0.5)', // Vermelho
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Cliente Parado',
+                    data: clienteParadoPorMes,
+                    backgroundColor: 'rgb(245, 14, 14)', // Vermelho
                     borderColor: 'rgba(255, 99, 132, 1)',
                     borderWidth: 1
                 }
@@ -422,11 +443,13 @@ foreach ($rows as $row) {
                                     ?>
                                 </select>
                                 <!-- Checkbox e campo de Número da Ficha (inicialmente ocultos) -->
-                                <div class="row mb-3 mt-3" id="fichaContainer" style="display: none;">
-                                    <div class="col-md-4">
-                                        <div class="form-check">
+                                <div class="row mt-3" id="fichaContainer" style="display: none;">
+                                    <div class="row mb-3 mt-3">
+                                        <div class="form-check d-flex justify-content-center ms-1">
                                             <input class="form-check-input" type="checkbox" id="chkFicha" name="chkFicha" onchange="verificarFicha() ">
-                                            <label class="form-check-label" for="chkFicha">Ficha</label>
+                                            <label class="form-check-label me-5" for="chkFicha">Ficha</label>
+                                            <input class="form-check-input" type="checkbox" id="chkParado" name="chkParado">
+                                            <label class="form-check-label" for="chkParado">Cliente Parado</label>
                                         </div>
                                     </div>
                                 </div>
@@ -454,8 +477,18 @@ foreach ($rows as $row) {
                                         <input type="number" class="form-control" id="numeroMulti" name="numeroMulti" pattern="\d+">
                                     </div>
                                 </div>
+
+                                <div class="row mb-3 mt-3" id="clienteParado" style="display: none;">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="chkParado" name="chkParado">
+                                            <label class="form-check-label" for="chkParado">Cliente Parado</label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
                         <!-- JavaScript para controlar a exibição dos campos -->
                         <script>
                         function verificarSituacao() {
@@ -465,13 +498,14 @@ foreach ($rows as $row) {
                             // Pega o texto da opção selecionada
                             var situacaoSelecionada = situacao.options[situacao.selectedIndex].text.trim();
 
-                            // Verifica se a opção selecionada é "Análise N3"
-                            if (situacaoSelecionada === "Análise N3") {
+                            // Verifica se a opção selecionada é "Analise N3"
+                            if (situacaoSelecionada === "Analise N3") {
                                 fichaContainer.style.display = "block";
                             } else {
                                 fichaContainer.style.display = "none";
                                 document.getElementById("numeroFichaContainer").style.display = "none";
                                 document.getElementById("chkFicha").checked = false;
+            
                             }
                         }
 
@@ -497,7 +531,7 @@ foreach ($rows as $row) {
                             // Pega o texto da opção selecionada
                             var situacaoSelecionada = situacao.options[situacao.selectedIndex].text.trim();
 
-                            // Verifica se a opção selecionada é "Análise N3"
+                            // Verifica se a opção selecionada é "Analise N3"
                             if (situacaoSelecionada === "Auxilio Suporte/Vendas") {
                                 multiplicaContainer.style.display = "block";
                             } else {
@@ -522,6 +556,7 @@ foreach ($rows as $row) {
                                 numeroMulti.value = ""; // Limpa o valor do campo
                             }
                         }
+
                         </script>
 
                         <div class="row mb-3">

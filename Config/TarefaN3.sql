@@ -38,10 +38,11 @@ CREATE TABLE TB_ANALISES
  Hora_ini DATETIME,  
  Hora_fim DATETIME,  
  Total_hora TIME,
- chkFicha TINYINT(1) DEFAULT 0,
+ chkFicha char(1),
  numeroFicha INT DEFAULT NULL,
- chkMultiplica TINYINT(1) DEFAULT 0,
- numeroMulti int DEFAULT NULL
+ chkMultiplica char(1),
+ numeroMulti int DEFAULT NULL,
+ chkParado char(1)
 ); 
 
 CREATE TABLE TB_USUARIO
