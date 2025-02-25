@@ -171,83 +171,83 @@ foreach ($rows as $row) {
         </div>
     </nav>
  
-    <!-- Linha com Resumo dos Totalizadores, Gráfico Mensal e Filtro de Período -->
-    <div class="container mt-4">
-        <div class="row">
-            <!-- Totalizadores -->
-            <div class="col-md-4">
-                <div class="card shadow-lg">
-                    <div class="card-header text-white bg-primary">
-                        <h4 class="mb-0">Resumo dos Totalizadores</h4>
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-hover table-striped">
-                            <tbody>
-                                <tr>
-                                    <td><strong>Fichas Criadas:</strong></td>
-                                    <td><?php echo $totalFichas; ?></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Analise N3:</strong></td>
-                                    <td><?php echo $totalAnaliseN3; ?></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Auxílio Suporte/Vendas:</strong></td>
-                                    <td><?php echo $totalAuxilio; ?></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Cliente Parado</strong></td>
-                                    <td><?php echo $totalParado; ?></td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Média Horas:</strong></td>
-                                    <td><?php echo sprintf("%02d:%02d:%02d", $horas, $minutos, $segundos); ?></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+   <!-- Linha com Resumo dos Totalizadores, Gráfico Mensal e Filtro de Período -->
+<div class="container mt-4">
+    <div class="row" id="dashboardCards">
+        <!-- Totalizadores -->
+        <div class="col-md-4">
+            <div class="card shadow-lg">
+                <div class="card-header text-white bg-primary">
+                    <h4 class="mb-0">Resumo dos Totalizadores</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover table-striped">
+                        <tbody>
+                            <tr>
+                                <td><strong>Fichas Criadas:</strong></td>
+                                <td><?php echo $totalFichas; ?></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Analise N3:</strong></td>
+                                <td><?php echo $totalAnaliseN3; ?></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Auxílio Suporte/Vendas:</strong></td>
+                                <td><?php echo $totalAuxilio; ?></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Cliente Parado</strong></td>
+                                <td><?php echo $totalParado; ?></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Média Horas:</strong></td>
+                                <td><?php echo sprintf("%02d:%02d:%02d", $horas, $minutos, $segundos); ?></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        </div>
 
-            <!-- Gráfico Mensal -->
-            <div class="col-md-5">
-                <div class="card shadow-lg">
-                    <div class="card-header text-white bg-info">
-                        <h4 class="mb-0">Gráfico Mensal</h4>
-                    </div>
-                    <div class="card-body">
-                        <canvas id="chartMensal" width="18%" height="7%"></canvas>
-                    </div>
+        <!-- Gráfico Mensal -->
+        <div class="col-md-5">
+            <div class="card shadow-lg">
+                <div class="card-header text-white bg-info">
+                    <h4 class="mb-0">Gráfico Mensal</h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartMensal" width="18%" height="10%"></canvas>
                 </div>
             </div>
+        </div>
 
-            <!-- Filtro de Período -->
-            <div class="col-md-3">
-                <div class="card shadow-lg">
-                    <div class="card-header text-white bg-secondary">
-                        <h4 class="mb-0">Filtro de Período</h4>
-                    </div>
-                    <div class="card-body">
-                
-                        <form method="GET" action="">
-                            <div class="mb-2">
-                                <label for="data_inicio" class="form-label">Data Início:</label>
-                                <input type="date" class="form-control" name="data_inicio" id="data_inicio" value="<?php echo htmlspecialchars($data_inicio); ?>">
-                            </div>
-                            <div class="mb-2">
-                                <label for="data_fim" class="form-label">Data Fim:</label>
-                                <input type="date" class="form-control" name="data_fim" id="data_fim" value="<?php echo htmlspecialchars($data_fim); ?>">
-                            </div>
-                            <div class="d-flex justify-content-center gap-2">
-                                <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-                                <a href="index.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
-                            </div>
-                        </form>
-                    </div>
+        <!-- Filtro de Período -->
+        <div class="col-md-3" >
+            <div class="card shadow-lg">
+                <div class="card-header text-white bg-secondary">
+                    <h4 class="mb-0">Filtro de Período</h4>
+                </div>
+                <div class="card-body" >
+                    <form method="GET" action="">
+                        <div class="mb-2">
+                            <label for="data_inicio" class="form-label">Data Início:</label>
+                            <input type="date" class="form-control" name="data_inicio" id="data_inicio" value="<?php echo htmlspecialchars($data_inicio); ?>">
+                        </div>
+                        <div class="mb-2">
+                            <label for="data_fim" class="form-label">Data Fim:</label>
+                            <input type="date" class="form-control" name="data_fim" id="data_fim" value="<?php echo htmlspecialchars($data_fim); ?>">
+                        </div>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+                            <a href="index.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
  
     <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?> 
         <div class="alert alert-success mt-4" role="alert" style="width: 17%; margin: 0 auto;">
