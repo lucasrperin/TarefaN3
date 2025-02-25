@@ -229,15 +229,15 @@ foreach ($rows as $row) {
                 </div>
                 <div class="card-body" >
                     <form method="GET" action="">
-                        <div class="mb-2">
-                            <label for="data_inicio" class="form-label">Data Início:</label>
+                        <div class="mb-3">
+                            <label for="data_inicio" class="form-label mt-2" >Data Início:</label>
                             <input type="date" class="form-control" name="data_inicio" id="data_inicio" value="<?php echo htmlspecialchars($data_inicio); ?>">
                         </div>
-                        <div class="mb-2">
+                        <div class="mb-4">
                             <label for="data_fim" class="form-label">Data Fim:</label>
                             <input type="date" class="form-control" name="data_fim" id="data_fim" value="<?php echo htmlspecialchars($data_fim); ?>">
                         </div>
-                        <div class="d-flex justify-content-center gap-2">
+                        <div class="d-flex justify-content-center gap-2 mt-2">
                             <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
                             <a href="index.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
                         </div>
