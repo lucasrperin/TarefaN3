@@ -180,7 +180,7 @@ foreach ($rows as $row) {
                 <div class="card-header text-white bg-primary">
                     <h4 class="mb-0">Resumo dos Totalizadores</h4>
                 </div>
-                <div class="card-body mt-4">
+                <div class="card-body">
                     <table class="table table-hover table-striped">
                         <tbody>
                             <tr>
@@ -237,7 +237,7 @@ foreach ($rows as $row) {
                             <label for="data_fim" class="form-label">Data Fim:</label>
                             <input type="date" class="form-control" name="data_fim" id="data_fim" value="<?php echo htmlspecialchars($data_fim); ?>">
                         </div>
-                        <div class="d-flex justify-content-center gap-2">
+                        <div class="d-flex justify-content-center gap-2 mt-2">
                             <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
                             <a href="index.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
                         </div>
@@ -448,7 +448,7 @@ foreach ($rows as $row) {
                                         <div class="form-check d-flex justify-content-center ms-1">
                                             <input class="form-check-input" type="checkbox" id="chkFicha" name="chkFicha" onchange="verificarFicha() ">
                                             <label class="form-check-label me-5" for="chkFicha">Ficha</label>
-                                            <input class="form-check-input" type="checkbox" id="chkParado" name="chkParado" onchange="marcaParado()">
+                                            <input class="form-check-input" type="checkbox" id="chkParado" name="chkParado">
                                             <label class="form-check-label" for="chkParado">Cliente Parado</label>
                                         </div>
                                     </div>
@@ -475,6 +475,15 @@ foreach ($rows as $row) {
                                     <div class="col-md-15">
                                         <label for="numeroMulti" class="form-label">Quantidade para Replicar</label>
                                         <input type="number" class="form-control" id="numeroMulti" name="numeroMulti" pattern="\d+">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3 mt-3" id="clienteParado" style="display: none;">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="chkParado" name="chkParado">
+                                            <label class="form-check-label" for="chkParado">Cliente Parado</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -545,17 +554,6 @@ foreach ($rows as $row) {
                                 numeroMultiContainer.style.display = "none";
                                 numeroMulti.removeAttribute("required"); // Remove required quando oculto
                                 numeroMulti.value = ""; // Limpa o valor do campo
-                            }
-                        }
-
-                        function marcaParado() {
-                            var chkParado = document.getElementById("chkParado").checked;
-                            var chkFicha = document.getElementById("chkFicha");
-
-                            if (chkParado) {
-                                chkFicha.setAttribute("required", "true"); // Adiciona required quando marcado o Parado
-                            } else {
-                                chkFicha.removeAttribute("required"); // Remove required quando não marcado o Parado
                             }
                         }
 
