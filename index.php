@@ -166,15 +166,13 @@ foreach ($rows as $row) {
 <body class="bg-light">
 
 <!-- Container do Toast no canto superior direito -->
-<div class="toast-container">
-    <div id="toastSucesso" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+<div class="toast-container ">
+    <div id="toastSucesso" class="toast" >
         <div class="d-flex">
             <div class="toast-body">
-                <i class="fa-solid fa-check-circle me-2"></i> 
-                <span id="toastMensagem"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                <i class="fa-solid fa-check-circle"></i> 
+                <span id="toastMensagem"></span>     
             </div>
-            
         </div>
     </div>
 </div>
@@ -201,7 +199,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (mensagem) {
             document.getElementById("toastMensagem").textContent = mensagem;
             var toastEl = document.getElementById("toastSucesso");
-            var toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            var toast = new bootstrap.Toast(toastEl, { delay: 2200 });
             toast.show();
         }
     }
