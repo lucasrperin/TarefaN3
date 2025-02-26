@@ -62,35 +62,49 @@ tbody a.btn-remove:hover {
     top: 0;
     right: 0;
     z-index: 1050; /* Garantir que o toast esteja acima de outros elementos */
-    max-width: 200px;
     padding: 10px;
-
+    display: flex; /* Para evitar que o toast tente expandir */
+    flex-direction: column; /* Para que os toasts fiquem empilhados, se houver mais de um */
+    align-items: flex-end; /* Garante que os toasts fiquem alinhados à direita */
 }
 
 .toast {
-    display: none; /* Inicialmente oculto */
+    width: fit-content !important;
+    display: none;
     opacity: 0;
     transition: opacity 0.5s ease;
+    background-color: #28a745;
+    color: white;
+    width: auto; /* Faz o toast ocupar apenas o espaço necessário */
+    max-width: 30px; /* Limite para não ficar muito grande */
 }
 
 .toast.show {
-    display: block;
+    display: flex;
     opacity: 1;
     background-color: #28a745;
     color: white;
 }
 
 .toast-body {
-    padding: 50px;
+    display: flex;
+    align-items: center;
+    padding: 10px 15px; /* Reduz o espaçamento interno */
     font-size: 16px;
+    white-space: nowrap; /* Impede que o texto quebre em múltiplas linhas */
+    flex-grow: 1; /* Garante que o conteúdo ocupe só o espaço necessário */
 }
 
-.toast-body i{
+.toast-body i {
     margin-right: 10px;
+    font-size: 25px;
+    flex-shrink: 0; /* Evita que o ícone encolha */
 }
 
-
-
+#toastMensagem {
+    display: inline; /* Garante que o texto não ocupe espaço extra */
+    flex-grow: 0; /* Faz o texto ocupar apenas o espaço necessário */
+}
 
   /* Cores moderadas para os status */
   .pastel-aguardando {
@@ -116,17 +130,3 @@ tbody a.btn-remove:hover {
     overflow: hidden;
     font-family: 'Nunito';
   }
-
-
-.toast-container .toast .btn-close {
-    size: 2px;
-    padding: 5px; /* Espaçamento interno */
-    opacity: 1; /* Garantir que a opacidade seja visível */
-    transition: opacity 0.3s; /* Transição suave para opacidade */
-    color: white;
-}
-
-.toast-container .toast .btn-close:hover {
-    color: #b02a37; /* Vermelho mais escuro */
-    transform: scale(1.2);
-}

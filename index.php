@@ -23,6 +23,8 @@ $sql = "SELECT
             sta.Descricao as Status,
             tas.Hora_ini,
             tas.Hora_fim,
+            DATE_FORMAT(tas.Hora_ini, '%H:%i:%s') as Hora_ini2,
+            DATE_FORMAT(tas.Hora_fim, '%H:%i:%s') as Hora_fim2,
             SEC_TO_TIME(TIME_TO_SEC(tas.Total_hora)) AS Total_hora, 
             tas.idSituacao AS idSituacao,
             tas.idAnalista AS idAnalista,
@@ -168,14 +170,9 @@ foreach ($rows as $row) {
 
 <!-- Container do Toast no canto superior direito -->
 <div class="toast-container">
-    <div id="toastSucesso" class="toast" >
-        <div class="d-flex">
-            <div class="toast-body">
-                <i class="fa-solid fa-check-circle"></i> 
-                <span id="toastMensagem"></span>
-                
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    <div id="toastSucesso" class="toast">
+        <div class="toast-body">
+            <i class="fa-solid fa-check-circle"></i> <span id="toastMensagem"></span>
         </div>
     </div>
 </div>
@@ -338,8 +335,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 echo "<td>" . $row["Analista"] . "</td>";
                 echo "<td>" . $row["Sistema"] . "</td>";
                 echo "<td>" . $row["Status"] . "</td>";
-                echo "<td>" . $row["Hora_ini"] . "</td>";
-                echo "<td>" . $row["Hora_fim"] . "</td>";
+                echo "<td>" . $row["Hora_ini2"] . "</td>";
+                echo "<td>" . $row["Hora_fim2"] . "</td>";
                 echo "<td>" . $row["Total_hora"] . "</td>";
                 echo "<td class='text-center'>";
                 // Botão de edição: passando os IDs para edição
