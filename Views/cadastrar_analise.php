@@ -25,8 +25,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if ($chkMultiplica && $numeroMulti) {
         $totalHora = "0000-00-00 00:00:00";
-        $horaini_multi = (new DateTime())->format("Y-m-d H:i:s");
-        $horafim_multi = (new DateTime())->format("Y-m-d H:i:s");
+        $horaini_multi = (new DateTime())->format("Y-m-d H:i");
+        $horafim_multi = (new DateTime())->format("Y-m-d H:i");
 
         $stmtAuxilio = $conn->prepare("INSERT INTO TB_ANALISES 
             (Descricao, idSituacao, idAnalista, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora) 

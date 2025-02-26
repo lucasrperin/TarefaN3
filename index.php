@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (mensagem) {
             document.getElementById("toastMensagem").textContent = mensagem;
             var toastEl = document.getElementById("toastSucesso");
-            var toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            var toast = new bootstrap.Toast(toastEl, { delay: 2200 });
             toast.show();
         }
     }

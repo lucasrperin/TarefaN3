@@ -58,7 +58,7 @@ tbody a.btn-remove:hover {
 
 /* Estilo do Toast */
 .toast-container {
-    position: fixed;
+    position: fixed!important;
     top: 0;
     right: 0;
     z-index: 1050; /* Garantir que o toast esteja acima de outros elementos */
@@ -85,7 +85,7 @@ tbody a.btn-remove:hover {
     font-size: 16px;
 }
 
-.toast-body i, button{
+.toast-body i{
     margin-right: 10px;
 }
 
@@ -118,3 +118,15 @@ tbody a.btn-remove:hover {
   }
 
 
+.toast-container .toast .btn-close {
+    size: 2px;
+    padding: 5px; /* Espaçamento interno */
+    opacity: 1; /* Garantir que a opacidade seja visível */
+    transition: opacity 0.3s; /* Transição suave para opacidade */
+    color: white;
+}
+
+.toast-container .toast .btn-close:hover {
+    color: #b02a37; /* Vermelho mais escuro */
+    transform: scale(1.2);
+}
