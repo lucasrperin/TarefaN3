@@ -143,6 +143,7 @@ foreach ($rows as $row) {
         }
     }
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -150,6 +151,8 @@ foreach ($rows as $row) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tarefas N3</title>
+    <!-- Arquivo CSS personalizado -->
+    <link href="Public/index.css" rel="stylesheet">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -157,12 +160,56 @@ foreach ($rows as $row) {
     <!-- Ícones personalizados -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
  
-    <!-- Arquivo CSS personalizado -->
-    <link rel="stylesheet" href="Public/index.css">
+    
     
 </head>
 <body class="bg-light">
- 
+
+<!-- Container do Toast no canto superior direito -->
+<div class="toast-container">
+    <div id="toastSucesso" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fa-solid fa-check-circle me-2"></i> 
+                <span id="toastMensagem"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<script dref>
+document.addEventListener("DOMContentLoaded", function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get("success");
+
+    if (success) {
+        let mensagem = "";
+        switch (success) {
+            case "1":
+                mensagem = "Análise cadastrada com sucesso!";
+                break;
+            case "2":
+                mensagem = "Análise editada com sucesso!";
+                break;
+            case "3":
+                mensagem = "Análise excluída com sucesso!";
+                break;
+        }
+
+        if (mensagem) {
+            document.getElementById("toastMensagem").textContent = mensagem;
+            var toastEl = document.getElementById("toastSucesso");
+            var toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            toast.show();
+        }
+    }
+});
+
+</script>
+
+
     <nav class="navbar navbar-dark bg-dark">
         <div class="container">
             <span class="navbar-brand mb-0 h1">Tarefas N3</span>
@@ -248,21 +295,6 @@ foreach ($rows as $row) {
     </div>
 </div>
 
- 
-    <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?> 
-        <div class="alert alert-success mt-4" role="alert" style="width: 17%; margin: 0 auto;">
-            Análise cadastrada com sucesso!
-        </div>
-    <?php elseif (isset($_GET['success']) && $_GET['success'] == 2): ?> 
-        <div class="alert alert-success mt-4" role="alert" style="width: 16%; margin: 0 auto; ">
-            Análise editada com sucesso!
-        </div>
-    <?php elseif (isset($_GET['success']) && $_GET['success'] == 3): ?> 
-        <div class="alert alert-success mt-4" role="alert" style="width: 16%; margin: 0 auto;">
-            Análise excluída com sucesso!
-        </div>
-    <?php endif; ?>
- 
     <!-- Título Lista de Análises e Botão Cadastrar análise -->
     <div class="container mt-4">
         <div class="row align-items-center">
@@ -611,7 +643,7 @@ foreach ($rows as $row) {
                             </div>
                         </div>
                         <div class="text-end">
-                            <button type="submit" class="btn btn-success">Salvar</button>
+                            <button type="submit" class="btn btn-success" onclick="exibirToast()">Salvar</button>
                         </div>
                     </form>
                 </div>
