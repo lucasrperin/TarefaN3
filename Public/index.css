@@ -89,15 +89,32 @@ tbody a.btn-remove:hover {
     margin-right: 10px;
 }
 
-/* Customização de cores do Toast */
-.toast-success {
-    background-color: #28a745; /* Verde para sucesso */
-}
 
-.toast-error {
-    background-color: #dc3545; /* Vermelho para erro */
-}
 
-.toast-info {
-    background-color: #17a2b8; /* Azul para informações */
-}
+
+  /* Cores moderadas para os status */
+  .pastel-aguardando {
+    background-color: #eb95dca8 !important; /* SkyBlue */
+    color: #333 !important;
+  }
+  .pastel-desenvolvimento {
+    background-color: #fcf8057e !important; /* Soft Yellow/Orange */
+    color: #333 !important;
+  }
+  .pastel-resolvido {
+    background-color: #53fc53a6 !important; /* DarkSeaGreen */
+    color: #333 !important;
+  }
+  
+  /* Opcional: Ajuste na aparência da tabela para suavizar as bordas */
+  #tabelaAnalises {
+    border-collapse: separate;
+    border-spacing: 0 5px;
+  }
+  #tabelaAnalises tbody tr {
+    border-radius: 5px;
+    overflow: hidden;
+    font-family: 'Nunito';
+  }
+
+

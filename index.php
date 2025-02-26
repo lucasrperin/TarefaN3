@@ -160,21 +160,22 @@ foreach ($rows as $row) {
     <!-- Ícones personalizados -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
  
-    
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
     
 </head>
 <body class="bg-light">
 
 <!-- Container do Toast no canto superior direito -->
 <div class="toast-container">
-    <div id="toastSucesso" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div id="toastSucesso" class="toast" >
         <div class="d-flex">
             <div class="toast-body">
-                <i class="fa-solid fa-check-circle me-2"></i> 
+                <i class="fa-solid fa-check-circle"></i> 
                 <span id="toastMensagem"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                
             </div>
-            
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
     </div>
 </div>
@@ -227,7 +228,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <div class="card-header text-white bg-primary">
                     <h4 class="mb-0">Resumo dos Totalizadores</h4>
                 </div>
-                <div class="card-body">
+                <div class="card-body mt-4">
                     <table class="table table-hover table-striped">
                         <tbody>
                             <tr>
@@ -284,7 +285,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             <label for="data_fim" class="form-label">Data Fim:</label>
                             <input type="date" class="form-control" name="data_fim" id="data_fim" value="<?php echo htmlspecialchars($data_fim); ?>">
                         </div>
-                        <div class="d-flex justify-content-center gap-2 mt-2">
+                        <div class="d-flex justify-content-center gap-2">
                             <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
                             <a href="index.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
                         </div>
@@ -295,94 +296,99 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
 </div>
 
-    <!-- Título Lista de Análises e Botão Cadastrar análise -->
-    <div class="container mt-4">
-        <div class="row align-items-center">
-            <div class="col-4"></div> 
-            <div class="col-4 text-center">
-                <h2 class="mb-0">Lista de Análises</h2>
-            </div>
-            <div class="col-4 text-end">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">Cadastrar</button>
-            </div>
-        </div>
+  <!-- Título Lista de Análises e Botão Cadastrar análise -->
+<div class="container mt-4">
+  <div class="row align-items-center">
+    <div class="col-4"></div> 
+    <div class="col-4 text-center">
+      <h2 class="mb-0">Lista de Análises</h2>
     </div>
-
-    <!-- Exibição da Lista de Análises -->
-    <div class="container mt-4">
-        <div class="table-responsive">
-            <table id="tabelaAnalises" class="table table-bordered table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th style="width:30%">Descrição</th>
-                        <th style="width:11%">Situação</th>
-                        <th style="width:10%">Analista</th>
-                        <th>Sistema</th>
-                        <th>Status</th>
-                        <th style="width:15%">Hora Início</th>
-                        <th style="width:15%">Hora Fim</th>
-                        <th style="width:10%">Total Horas</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    if ($result->num_rows > 0) {
-                        while($row = $result->fetch_assoc()) {
-                            echo "<tr>";
-                            echo "<td>" . $row["Descricao"] . "</td>";
-                            echo "<td>" . $row["Situacao"] . "</td>";
-                            echo "<td>" . $row["Analista"] . "</td>";
-                            echo "<td>" . $row["Sistema"] . "</td>";
-                            echo "<td>" . $row["Status"] . "</td>";
-                            echo "<td>" . $row["Hora_ini"] . "</td>";
-                            echo "<td>" . $row["Hora_fim"] . "</td>";
-                            echo "<td>" . $row["Total_hora"] . "</td>";
-                            echo "<td>";
-                            // Botão de edição: passando os IDs para edição
-                            echo "<a href='javascript:void(0)' class='btn-edit' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick=\"editarAnalise(" 
-                                 . $row['Codigo'] . ", '" 
-                                 . addslashes($row['Descricao']) . "', '" 
-                                 . $row['idSituacao'] . "', '" 
-                                 . $row['idAnalista'] . "', '" 
-                                 . $row['idSistema'] . "', '" 
-                                 . $row['idStatus'] . "', '" 
-                                 . $row['Hora_ini'] . "', '" 
-                                 . $row['Hora_fim'] . "')\"><i class='fa-sharp fa-solid fa-pen'></i></a> ";
-                            // Botão de exclusão com confirmação
-                            echo "<a href='javascript:void(0)' class='btn-remove' data-bs-toggle='modal' data-bs-target='#modalExclusao' onclick=\"excluirAnalise(" 
-                                 . $row['Codigo'] .")\"><i class='fa-sharp fa-solid fa-trash'></i></a> ";
-                            echo "</td>";
-                            echo "</tr>";
-                        }
-                    }
-                    ?>
-                </tbody>
-            </table>
-        </div>
+    <div class="col-4 text-end">
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">Cadastrar</button>
     </div>
+  </div>
+</div>
 
-    <!-- Script para ajustar as cores dos status via JavaScript -->
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll("#tabelaAnalises tbody tr").forEach(row => {
-            let statusCell = row.cells[4]; // 5ª coluna (índice 4)
-            let status = statusCell.textContent.trim();
-            switch (status) {
-                case "Aguardando":
-                    statusCell.style.backgroundColor = "#D8BFD8"; // Roxo claro
-                    break;
-                case "Desenvolvimento":
-                    statusCell.style.backgroundColor = "#FFD700"; // Amarelo
-                    break;
-                case "Resolvido":
-                    statusCell.style.backgroundColor = "#28a745"; // Verde
-                    statusCell.style.color = "white"; // Texto branco para melhor visibilidade
-                    break;
+<!-- Exibição da Lista de Análises dentro de um Card -->
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table id="tabelaAnalises" class="table table-bordered table-striped table-hover align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th style="width:30%">Descrição</th>
+              <th style="width:11%">Situação</th>
+              <th style="width:10%">Analista</th>
+              <th>Sistema</th>
+              <th>Status</th>
+              <th style="width:15%">Hora Início</th>
+              <th style="width:15%">Hora Fim</th>
+              <th style="width:10%">Total Horas</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php 
+            if ($result->num_rows > 0) {
+              while($row = $result->fetch_assoc()) {
+                echo "<tr>";
+                echo "<td>" . $row["Descricao"] . "</td>";
+                echo "<td>" . $row["Situacao"] . "</td>";
+                echo "<td>" . $row["Analista"] . "</td>";
+                echo "<td>" . $row["Sistema"] . "</td>";
+                echo "<td>" . $row["Status"] . "</td>";
+                echo "<td>" . $row["Hora_ini"] . "</td>";
+                echo "<td>" . $row["Hora_fim"] . "</td>";
+                echo "<td>" . $row["Total_hora"] . "</td>";
+                echo "<td class='text-center'>";
+                // Botão de edição: passando os IDs para edição
+          
+                echo "<a href='javascript:void(0)' class='btn btn-outline-primary btn-sm' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick=\"editarAnalise(" 
+                     . $row['Codigo'] . ", '" 
+                     . addslashes($row['Descricao']) . "', '" 
+                     . $row['idSituacao'] . "', '" 
+                     . $row['idAnalista'] . "', '" 
+                     . $row['idSistema'] . "', '" 
+                     . $row['idStatus'] . "', '" 
+                     . $row['Hora_ini'] . "', '" 
+                     . $row['Hora_fim'] . "')\"><i class='fa-sharp fa-solid fa-pen'></i></a> ";
+                echo "<a href='javascript:void(0)' class='btn btn-outline-danger btn-sm' data-bs-toggle='modal' data-bs-target='#modalExclusao' onclick=\"excluirAnalise(" 
+                     . $row['Codigo'] .")\"><i class='fa-sharp fa-solid fa-trash'></i></a>";
+                echo "</td>";
+              }
             }
-        });
-    });
-    </script>
+            ?>
+          </tbody>
+        </table>
+      </div> <!-- /.table-responsive -->
+    </div> <!-- /.card-body -->
+  </div> <!-- /.card -->
+</div> <!-- /.container -->
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll("#tabelaAnalises tbody tr").forEach(row => {
+    let statusCell = row.cells[4]; // 5ª coluna (índice 4)
+    let status = statusCell.textContent.trim();
+    // Remove classes de cores anteriores, se houver
+    statusCell.classList.remove("pastel-aguardando", "pastel-desenvolvimento", "pastel-resolvido");
+    // Aplica as classes com as novas cores:
+    switch (status) {
+      case "Aguardando":
+        statusCell.classList.add("pastel-aguardando");
+        break;
+      case "Desenvolvimento":
+        statusCell.classList.add("pastel-desenvolvimento");
+        break;
+      case "Resolvido":
+        statusCell.classList.add("pastel-resolvido");
+        break;
+    }
+  });
+});
+</script>
 
     <!-- Adiciona a biblioteca Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -480,7 +486,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                         <div class="form-check d-flex justify-content-center ms-1">
                                             <input class="form-check-input" type="checkbox" id="chkFicha" name="chkFicha" onchange="verificarFicha() ">
                                             <label class="form-check-label me-5" for="chkFicha">Ficha</label>
-                                            <input class="form-check-input" type="checkbox" id="chkParado" name="chkParado">
+                                            <input class="form-check-input" type="checkbox" id="chkParado" name="chkParado" onchange="marcaParado()">
                                             <label class="form-check-label" for="chkParado">Cliente Parado</label>
                                         </div>
                                     </div>
@@ -507,15 +513,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <div class="col-md-15">
                                         <label for="numeroMulti" class="form-label">Quantidade para Replicar</label>
                                         <input type="number" class="form-control" id="numeroMulti" name="numeroMulti" pattern="\d+">
-                                    </div>
-                                </div>
-
-                                <div class="row mb-3 mt-3" id="clienteParado" style="display: none;">
-                                    <div class="col-md-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="chkParado" name="chkParado">
-                                            <label class="form-check-label" for="chkParado">Cliente Parado</label>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -586,6 +583,17 @@ document.addEventListener("DOMContentLoaded", function () {
                                 numeroMultiContainer.style.display = "none";
                                 numeroMulti.removeAttribute("required"); // Remove required quando oculto
                                 numeroMulti.value = ""; // Limpa o valor do campo
+                            }
+                        }
+
+                        function marcaParado() {
+                            var chkParado = document.getElementById("chkParado").checked;
+                            var chkFicha = document.getElementById("chkFicha");
+
+                            if (chkParado) {
+                                chkFicha.setAttribute("required", "true"); // Adiciona required quando marcado o Parado
+                            } else {
+                                chkFicha.removeAttribute("required"); // Remove required quando não marcado o Parado
                             }
                         }
 
