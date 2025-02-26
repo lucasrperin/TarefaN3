@@ -55,3 +55,49 @@ tbody a.btn-remove:hover {
 #dashboardCards .card-body {
     flex-grow: 1;
 }
+
+/* Estilo do Toast */
+.toast-container {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 1050; /* Garantir que o toast esteja acima de outros elementos */
+    max-width: 200px;
+    padding: 10px;
+
+}
+
+.toast {
+    display: none; /* Inicialmente oculto */
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.toast.show {
+    display: block;
+    opacity: 1;
+    background-color: #28a745;
+    color: white;
+}
+
+.toast-body {
+    padding: 50px;
+    font-size: 16px;
+}
+
+.toast-body i, button{
+    margin-right: 10px;
+}
+
+/* Customização de cores do Toast */
+.toast-success {
+    background-color: #28a745; /* Verde para sucesso */
+}
+
+.toast-error {
+    background-color: #dc3545; /* Vermelho para erro */
+}
+
+.toast-info {
+    background-color: #17a2b8; /* Azul para informações */
+}
