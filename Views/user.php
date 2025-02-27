@@ -9,10 +9,11 @@ require '../Config/Database.php';
 
 $usuario_id = $_SESSION['usuario_id'];
 
-// Consulta para obter análises
+// Consulta para obter análises (incluindo o campo Nota)
 $sql_analises = "SELECT
             tas.Id as Codigo,
             tas.Descricao as Descricao,
+            tas.Nota as Nota,
             tas.numeroFicha,
             DATE_FORMAT(tas.Hora_ini, '%d/%m %H:%i:%s') as Hora_ini
         FROM TB_ANALISES tas
@@ -66,19 +67,15 @@ foreach ($fichas_por_numero as $numeroFicha => $fichas) {
 <body>
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-  <div class="container d-flex align-items-center">
-    <a class="navbar-brand" href="#">Painel do Usuário</a>
-    <span class="text-white mx-auto">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
-    <a href="logout.php" class="btn btn-danger">Sair</a>
-  </div>
-</nav>
-
-
+    <div class="container d-flex align-items-center">
+      <a class="navbar-brand" href="#">Painel do Usuário</a>
+      <span class="text-white mx-auto">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
+      <a href="logout.php" class="btn btn-danger">Sair</a>
+    </div>
+  </nav>
 
   <!-- Conteúdo Principal -->
   <div class="container user-container mt-4">
-    
-
     <!-- Totalizadores em Cards -->
     <div class="row mb-4">
       <div class="col-md-6 mb-3">
@@ -123,6 +120,7 @@ foreach ($fichas_por_numero as $numeroFicha => $fichas) {
                       <th>Descrição</th>
                       <th>Nº da Ficha</th>
                       <th>Data</th>
+                      <th>Nota</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -131,6 +129,7 @@ foreach ($fichas_por_numero as $numeroFicha => $fichas) {
                         <td><?php echo $analise['Descricao']; ?></td>
                         <td><?php echo $analise['numeroFicha'] ?? '-'; ?></td>
                         <td><?php echo $analise['Hora_ini']; ?></td>
+                        <td><?php echo $analise['Nota']; ?></td>
                       </tr>
                     <?php endforeach; ?>
                   </tbody>
