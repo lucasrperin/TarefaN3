@@ -31,7 +31,8 @@ $sql = "SELECT
             usu.Nome AS NomeUsuario,
             tas.idSistema AS idSistema,
             tas.idStatus AS idStatus,
-            tas.chkParado as Parado
+            tas.chkParado as Parado,
+            tas.Nota as Nota
         FROM TB_ANALISES tas
             LEFT JOIN TB_SITUACAO sit ON sit.Id = tas.idSituacao
             LEFT JOIN TB_SISTEMA sis ON sis.Id = tas.idSistema
@@ -316,7 +317,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <tr>
               <th style="width:30%">Descrição</th>
               <th style="width:11%">Situação</th>
-              <th style="width:10%">Atendente</th>
+              <th style="width:10%">Analista</th>
               <th>Sistema</th>
               <th>Status</th>
               <th style="width:15%">Hora Início</th>
@@ -349,7 +350,8 @@ document.addEventListener("DOMContentLoaded", function () {
                      . $row['idSistema'] . "', '" 
                      . $row['idStatus'] . "', '" 
                      . $row['Hora_ini'] . "', '" 
-                     . $row['Hora_fim'] . "')\"><i class='fa-sharp fa-solid fa-pen'></i></a> ";
+                     . $row['Hora_fim'] . "', '"
+                     . $row['Nota'] . "')\"><i class='fa-sharp fa-solid fa-pen'></i></a> ";
                 echo "<a href='javascript:void(0)' class='btn btn-outline-danger btn-sm' data-bs-toggle='modal' data-bs-target='#modalExclusao' onclick=\"excluirAnalise(" 
                      . $row['Codigo'] .")\"><i class='fa-sharp fa-solid fa-trash'></i></a>";
                 echo "</td>";
@@ -557,9 +559,15 @@ document.addEventListener("DOMContentLoaded", function () {
                             // Pega o texto da opção selecionada
                             var situacaoSelecionada = situacao.options[situacao.selectedIndex].text.trim();
 
+                            var atendente = document.getElementById("atendente");
+                            var atenTitulo = document.getElementById("atenTitulo");
+
                             // Verifica se a opção selecionada é "Analise N3"
                             if (situacaoSelecionada === "Auxilio Suporte/Vendas") {
                                 multiplicaContainer.style.display = "block";
+                                atendente.style.display = "none";
+                                atendente.removeAttribute("required"); // Adiciona required quando visível
+                                atenTitulo.style.display = "none";
                             } else {
                                 multiplicaContainer.style.display = "none";
                                 document.getElementById("numeroMultiplicaContainer").style.display = "none";
@@ -571,11 +579,10 @@ document.addEventListener("DOMContentLoaded", function () {
                             var chkMultiplica = document.getElementById("chkMultiplica").checked;
                             var numeroMultiContainer = document.getElementById("numeroMultiContainer");
                             var numeroMulti = document.getElementById("numeroMulti");
-
+                            
                             if (chkMultiplica) {
                                 numeroMultiContainer.style.display = "block";
                                 numeroMulti.setAttribute("required", "true"); // Adiciona required quando visível
-
                             } else {
                                 numeroMultiContainer.style.display = "none";
                                 numeroMulti.removeAttribute("required"); // Remove required quando oculto
@@ -593,16 +600,26 @@ document.addEventListener("DOMContentLoaded", function () {
                                 chkFicha.removeAttribute("required"); // Remove required quando não marcado o Parado
                             }
                         }
-
                         </script>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="atendente" class="form-label">Atendente</label>
+                                <label for="nota" id="notaAnalise" class="form-label">Nota</label>
+                                <select class="form-select" id="nota" name="nota">
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="atendente" id="atenTitulo" class="form-label">Atendente</label>
                                 <select class="form-select" id="atendente" name="atendente" required>
                                     <option value="">Selecione</option>
                                     <?php
-                                    $queryAtendente = "SELECT Id, Nome FROM TB_USUARIO";
+                                    $queryAtendente = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo = 'User'";
                                     $resultAtendente = $conn->query($queryAtendente);
                                     while ($rowA = $resultAtendente->fetch_assoc()) {
                                         echo "<option value='" . $rowA['Id'] . "'>" . $rowA['Nome'] . "</option>";
@@ -610,7 +627,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     ?>
                                 </select>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6 mt-3">
                                 <label for="sistema" class="form-label">Sistema</label>
                                 <select class="form-select" id="sistema" name="sistema" required>
                                     <option value="">Selecione</option>
@@ -623,9 +640,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     ?>
                                 </select>
                             </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-6 mt-3">
                                 <label for="status" class="form-label">Status</label>
                                 <select class="form-select" id="status" name="status" required>
                                     <option value="">Selecione</option>
@@ -638,6 +653,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                     ?>
                                 </select>
                             </div>
+                        </div>
+                        <div class="row mb-3">
+                            
                             <div class="col-md-3">
                                 <label for="hora_ini" class="form-label">Hora Início</label>
                                 <input type="datetime-local" class="form-control" id="hora_ini" name="hora_ini" required>
@@ -690,6 +708,17 @@ document.addEventListener("DOMContentLoaded", function () {
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
+                                <label for="nota_editar" id="notaAnalise_editar" class="form-label">Nota</label>
+                                <select class="form-select" id="nota_editar" name="nota_editar">
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
                                 <label for="atendente_editar" class="form-label">Atendente</label>
                                 <select class="form-select" id="atendente_editar" name="atendente_editar" required>
                                     <option value="">Selecione</option>
@@ -702,7 +731,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     ?>
                                 </select>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6 mt-3">
                                 <label for="sistema_editar" class="form-label">Sistema</label>
                                 <select class="form-select" id="sistema_editar" name="sistema_editar" required>
                                     <option value="">Selecione</option>
@@ -715,9 +744,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     ?>
                                 </select>
                             </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-6 mt-3">
                                 <label for="status_editar" class="form-label">Status</label>
                                 <select class="form-select" id="status_editar" name="status_editar" required>
                                     <option value="">Selecione</option>
@@ -730,6 +757,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                     ?>
                                 </select>
                             </div>
+                        </div>
+                        <div class="row mb-3">
+                            
                             <div class="col-md-3">
                                 <label for="hora_ini_editar" class="form-label">Hora Início</label>
                                 <input type="datetime-local" class="form-control" id="hora_ini_editar" name="hora_ini_editar" required>
@@ -784,7 +814,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
  
         // Função para preencher o modal de edição
-        function editarAnalise(id, descricao, idSituacao, idAtendente, idSistema, idStatus, hora_ini, hora_fim) {
+        function editarAnalise(id, descricao, idSituacao, idAtendente, idSistema, idStatus, hora_ini, hora_fim, nota_editar) {
             document.getElementById("id_editar").value = id;
             document.getElementById("descricao_editar").value = descricao;
             document.getElementById("situacao_editar").value = idSituacao;
@@ -793,6 +823,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("status_editar").value = idStatus;
             document.getElementById("hora_ini_editar").value = hora_ini;
             document.getElementById("hora_fim_editar").value = hora_fim;
+            document.getElementById("nota_editar").value = nota_editar;
         }
  
         // Função para preencher o modal de exclusão

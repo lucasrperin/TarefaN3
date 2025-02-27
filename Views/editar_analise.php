@@ -11,6 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $status = $_POST['status_editar'];
     $hora_ini = $_POST['hora_ini_editar'];
     $hora_fim = $_POST['hora_fim_editar'];
+    $nota_editar = $_POST['nota_editar'];
 
     // Calcular o total de horas
     $sql = "UPDATE TB_ANALISES SET
@@ -21,7 +22,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             idStatus = '$status',
             Hora_ini = '$hora_ini',
             Hora_fim = '$hora_fim',
-            Total_hora = TIMEDIFF('$hora_fim', '$hora_ini') 
+            Total_hora = TIMEDIFF('$hora_fim', '$hora_ini'),
+            Nota = '$nota_editar' 
             WHERE Id = '$id'";
 
     if ($conn->query($sql) === TRUE) {

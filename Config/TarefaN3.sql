@@ -36,7 +36,8 @@ CREATE TABLE TB_ANALISES
  numeroFicha INT DEFAULT NULL,
  chkMultiplica char(1),
  numeroMulti int DEFAULT NULL,
- chkParado char(1)
+ chkParado char(1),
+ Nota tinyint
 ); 
 
 CREATE TABLE TB_USUARIO
@@ -55,10 +56,7 @@ INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Gabriel Battistella'
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Leandro Haefliger', 'leandro.haefliger@zucchetti.com', 1234, 'User');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Douglas da Silva', 'douglas.silva@zucchetti.com', 1234, 'Viewer');
 
-
-
 ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idSituacao) REFERENCES TB_SITUACAO (Id);
-ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idAtendente) REFERENCES TB_ATENDENTE (Id);
 ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idSistema) REFERENCES TB_SISTEMA (Id);
 ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idStatus) REFERENCES TB_STATUS (Id);
 ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idUsuario) REFERENCES TB_USUARIO (Id);
