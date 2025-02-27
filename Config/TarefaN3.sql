@@ -36,7 +36,8 @@ CREATE TABLE TB_ANALISES
  numeroFicha INT DEFAULT NULL,
  chkMultiplica char(1),
  numeroMulti int DEFAULT NULL,
- chkParado char(1)
+ chkParado char(1),
+ Nota tinyint
 ); 
 
 CREATE TABLE TB_USUARIO
