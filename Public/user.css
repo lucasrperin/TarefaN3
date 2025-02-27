@@ -1,0 +1,40 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Corpo da página */
+body {
+    background-color: #f4f4f9;
+    font-family: Arial, sans-serif;
+}
+
+/* Container da área do usuário */
+.user-container {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 1100px;
+    margin: 30px auto;
+}
+
+/* Cabeçalho */
+.user-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Tabelas */
+.table {
+    margin-top: 20px;
+}
+
+/* Botões */
+.btn {
+    border-radius: 6px;
+    font-size: 16px;
+}

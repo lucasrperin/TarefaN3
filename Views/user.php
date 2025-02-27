@@ -9,7 +9,7 @@ require '../Config/Database.php';
 
 $usuario_id = $_SESSION['usuario_id'];
 
-// Consulta para obter análises com ou sem fichas associadas
+// Consulta para obter análises
 $sql_analises = "SELECT
             tas.Id as Codigo,
             tas.Descricao as Descricao,
@@ -35,10 +35,17 @@ $stmt_fichas->bind_param("i", $usuario_id);
 $stmt_fichas->execute();
 $resultado_fichas = $stmt_fichas->get_result();
 
-// Organizar fichas associadas às análises
+// Organizar fichas associadas
 $fichas_por_numero = [];
 while ($ficha = $resultado_fichas->fetch_assoc()) {
     $fichas_por_numero[$ficha['numeroFicha']][] = $ficha;
+}
+
+// Totalizadores
+$totalAnalises = $resultado_analises->num_rows;
+$totalFichas = 0;
+foreach ($fichas_por_numero as $numeroFicha => $fichas) {
+    $totalFichas += count($fichas);
 }
 ?>
 
@@ -48,84 +55,105 @@ while ($ficha = $resultado_fichas->fetch_assoc()) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Minhas Análises e Fichas</title>
+  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- CSS personalizado para a área do usuário -->
+  <link rel="stylesheet" href="../Public/user.css">
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-      <a class="navbar-brand" href="#">Painel do Usuário</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarUser">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarUser">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="../index.php">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="logout.php">Sair</a></li>
-        </ul>
+  <div class="container user-container">
+    <!-- Cabeçalho -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Painel do Usuário</h2>
+      <a href="logout.php" class="btn btn-outline-danger">Sair</a>
+    </div>
+
+    <h3 class="user-header">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?></h3>
+    
+    <!-- Totalizadores -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="alert alert-primary text-center" role="alert">
+          Total de Análises: <strong><?php echo $totalAnalises; ?></strong>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="alert alert-info text-center" role="alert">
+          Total de Fichas: <strong><?php echo $totalFichas; ?></strong>
+        </div>
       </div>
     </div>
-  </nav>
-
-  <div class="container mt-5">
-    <h1 class="mb-4">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?></h1>
-
-    <!-- Seção de Análises -->
-    <div class="mb-5">
-      <h2>Análises</h2>
-      <?php if ($resultado_analises->num_rows > 0): ?>
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Descrição</th>
-              <th>Número da Ficha</th>
-              <th>Data de Criação</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php while ($analise = $resultado_analises->fetch_assoc()): ?>
+    
+    <div class="row">
+      <!-- Seção de Análises -->
+      <div class="col-md-6">
+        <h4 class="mb-3">Análises</h4>
+        <?php 
+        // Armazenar os dados de análises para iteração
+        $analises = [];
+        while ($row = $resultado_analises->fetch_assoc()) {
+            $analises[] = $row;
+        }
+        ?>
+        <?php if ($totalAnalises > 0): ?>
+          <table class="table table-striped">
+            <thead>
               <tr>
-                <td><?php echo $analise['Descricao']; ?></td>
-                <td><?php echo $analise['numeroFicha'] ?? '-'; ?></td>
-                <td><?php echo $analise['Hora_ini']; ?></td>
+                <th>Descrição</th>
+                <th>Número da Ficha</th>
+                <th>Data</th>
               </tr>
-            <?php endwhile; ?>
-          </tbody>
-        </table>
-      <?php else: ?>
-        <p class="text-muted">Você não possui análises cadastradas.</p>
-      <?php endif; ?>
-    </div>
-
-    <!-- Seção de Fichas -->
-    <div class="mb-5">
-      <h2>Fichas</h2>
-      <?php if (!empty($fichas_por_numero)): ?>
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th>Descrição</th>
-              <th>Número da Ficha</th>
-              <th>Data de Criação</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($fichas_por_numero as $numeroFicha => $fichas): ?>
-              <?php foreach ($fichas as $ficha): ?>
+            </thead>
+            <tbody>
+              <?php foreach ($analises as $analise): ?>
                 <tr>
-                  <td><?php echo $ficha['Descricao']; ?></td>
-                  <td><?php echo $ficha['numeroFicha']; ?></td>
-                  <td><?php echo $ficha['Hora_ini']; ?></td>
+                  <td><?php echo $analise['Descricao']; ?></td>
+                  <td><?php echo $analise['numeroFicha'] ?? '-'; ?></td>
+                  <td><?php echo $analise['Hora_ini']; ?></td>
                 </tr>
               <?php endforeach; ?>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
-      <?php else: ?>
-        <p class="text-muted">Você não possui fichas cadastradas.</p>
-      <?php endif; ?>
+            </tbody>
+          </table>
+        <?php else: ?>
+          <div class="alert alert-info">Nenhuma análise cadastrada.</div>
+        <?php endif; ?>
+      </div>
+      
+      <!-- Seção de Fichas -->
+      <div class="col-md-6">
+        <h4 class="mb-3">Fichas</h4>
+        <?php if ($totalFichas > 0): ?>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Número da Ficha</th>
+                <th>Data</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($fichas_por_numero as $numeroFicha => $fichas): ?>
+                <?php foreach ($fichas as $ficha): ?>
+                  <tr>
+                   
+                    <td><?php echo $ficha['numeroFicha']; ?></td>
+                    <td><?php echo $ficha['Hora_ini']; ?></td>
+                    <td>
+                      <a href="https://zmap.zpos.com.br/#/detailsIncidente/<?php echo $ficha['numeroFicha']; ?>" target="_blank" class="btn btn-sm btn-outline-primary">Acessar</a>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        <?php else: ?>
+          <div class="alert alert-info">Nenhuma ficha cadastrada.</div>
+        <?php endif; ?>
+      </div>
     </div>
   </div>
 
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
