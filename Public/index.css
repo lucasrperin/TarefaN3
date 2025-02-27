@@ -123,7 +123,7 @@ tbody a.btn-remove:hover {
   /* Opcional: Ajuste na aparência da tabela para suavizar as bordas */
   #tabelaAnalises {
     border-collapse: separate;
-    border-spacing: 0 5px;
+    border-spacing: 0 2px;
   }
   #tabelaAnalises tbody tr {
     border-radius: 5px;
