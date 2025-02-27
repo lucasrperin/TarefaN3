@@ -316,7 +316,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <tr>
               <th style="width:30%">Descrição</th>
               <th style="width:11%">Situação</th>
-              <th style="width:10%">Atendente</th>
+              <th style="width:10%">Analista</th>
               <th>Sistema</th>
               <th>Status</th>
               <th style="width:15%">Hora Início</th>
@@ -571,11 +571,16 @@ document.addEventListener("DOMContentLoaded", function () {
                             var chkMultiplica = document.getElementById("chkMultiplica").checked;
                             var numeroMultiContainer = document.getElementById("numeroMultiContainer");
                             var numeroMulti = document.getElementById("numeroMulti");
+                            var atendente = document.getElementById("atendente");
+                            var atenTitulo = document.getElementById("atenTitulo");
+
 
                             if (chkMultiplica) {
                                 numeroMultiContainer.style.display = "block";
                                 numeroMulti.setAttribute("required", "true"); // Adiciona required quando visível
-
+                                atendente.style.display = "none";
+                                atendente.removeAttribute("required"); // Adiciona required quando visível
+                                atenTitulo.style.display = "none";
                             } else {
                                 numeroMultiContainer.style.display = "none";
                                 numeroMulti.removeAttribute("required"); // Remove required quando oculto
@@ -598,11 +603,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="atendente" class="form-label">Atendente</label>
+                                <label for="atendente" id="atenTitulo" class="form-label">Atendente</label>
                                 <select class="form-select" id="atendente" name="atendente" required>
                                     <option value="">Selecione</option>
                                     <?php
-                                    $queryAtendente = "SELECT Id, Nome FROM TB_USUARIO";
+                                    $queryAtendente = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo = 'User'";
                                     $resultAtendente = $conn->query($queryAtendente);
                                     while ($rowA = $resultAtendente->fetch_assoc()) {
                                         echo "<option value='" . $rowA['Id'] . "'>" . $rowA['Nome'] . "</option>";

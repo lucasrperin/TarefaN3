@@ -31,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmtAuxilio = $conn->prepare("INSERT INTO TB_ANALISES 
             (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmtAuxilio->bind_param("siiiiisss", $descricao, $situacao, $atendente, $sistema, $status, $idUsuario, $horaini_multi, $horafim_multi, $totalHora);
+        $stmtAuxilio->bind_param("siiiiisss", $descricao, $situacao, $idUsuario, $sistema, $status, $idUsuario, $horaini_multi, $horafim_multi, $totalHora);
         $stmtAuxilio->execute();
         
     } elseif ($chkParado || $chkFicha) {
