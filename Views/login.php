@@ -19,9 +19,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($senha == $usuario['Senha']) {
             $_SESSION['usuario_id'] = $usuario['Id'];
             $_SESSION['usuario_nome'] = $usuario['Nome'];
-            
-            // Redirecionamento para home.php
-            header("Location: ../index.php");
+
+            // Verifica o cargo do usuário e redireciona conforme o cargo
+            if ($usuario['Cargo'] == 'Admin' || $usuario['Cargo'] == 'Viewer') {
+                header("Location: ../index.php");
+            } elseif ($usuario['Cargo'] == 'User') {
+                header("Location: ../user.php");
+            } else {
+                // Caso o cargo não seja reconhecido, redireciona para uma página padrão ou exibe uma mensagem
+                header("Location: ../index.php");
+            }
             exit();
         } else {
             $erro = "Senha incorreta!";
@@ -49,9 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <div class="login-container text-center">
         <!-- Logo -->
-        <img src="../Public/Image/Screenshot_1.png" alt="Logo"  style="max-width: 200px;">
-        
-    
+        <img src="../Public/Image/Screenshot_1.png" alt="Logo" style="max-width: 200px;">
         
         <?php if (isset($erro)) echo "<div class='alert alert-danger'>$erro</div>"; ?>
 

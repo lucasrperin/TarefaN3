@@ -5,7 +5,7 @@ session_start();
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $descricao = $_POST['descricao'];
     $situacao = $_POST['situacao'];
-    $analista = $_POST['analista'];
+    $atendente = $_POST['atendente'];
     $sistema = $_POST['sistema'];
     $status = $_POST['status'];
     $hora_ini = $_POST['hora_ini'];
@@ -29,17 +29,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $horafim_multi = (new DateTime())->format("Y-m-d H:i");
 
         $stmtAuxilio = $conn->prepare("INSERT INTO TB_ANALISES 
-            (Descricao, idSituacao, idAnalista, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora) 
+            (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmtAuxilio->bind_param("siiiiisss", $descricao, $situacao, $analista, $sistema, $status, $idUsuario, $horaini_multi, $horafim_multi, $totalHora);
+        $stmtAuxilio->bind_param("siiiiisss", $descricao, $situacao, $atendente, $sistema, $status, $idUsuario, $horaini_multi, $horafim_multi, $totalHora);
         $stmtAuxilio->execute();
         
     } elseif ($chkParado || $chkFicha) {
         // Primeiro INSERT (sempre executado quando chkParado ou chkFicha estiver marcado)
         $stmtParado = $conn->prepare("INSERT INTO TB_ANALISES 
-            (Descricao, idSituacao, idAnalista, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha) 
+            (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, TIMEDIFF(?, ?), ?, ?)");
-        $stmtParado->bind_param("siiiiissssss", $descricao, $situacao, $analista, $sistema, $status, $idUsuario, $hora_ini, $hora_fim, $hora_fim, $hora_ini, $chkFicha, $numeroFicha);
+        $stmtParado->bind_param("siiiiissssss", $descricao, $situacao, $atendente, $sistema, $status, $idUsuario, $hora_ini, $hora_fim, $hora_fim, $hora_ini, $chkFicha, $numeroFicha);
         
         if ($stmtParado->execute()) {
             // Se a ficha foi marcada e o número foi informado, insere o segundo registro (Ficha)
@@ -50,9 +50,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $totalHora = "0000-00-00 00:00:00";
     
                 $stmtFicha = $conn->prepare("INSERT INTO TB_ANALISES 
-                    (Descricao, idSituacao, idAnalista, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha, chkParado) 
+                    (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha, chkParado) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmtFicha->bind_param("siiiiissssss", $descricaoFicha, $situacaoFicha, $analista, $sistema, $statusFicha, $idUsuario, $hora_ini, $hora_fim, $totalHora, $chkFicha, $numeroFicha, $chkParado);
+                $stmtFicha->bind_param("siiiiissssss", $descricaoFicha, $situacaoFicha, $atendente, $sistema, $statusFicha, $idUsuario, $hora_ini, $hora_fim, $totalHora, $chkFicha, $numeroFicha, $chkParado);
                 $stmtFicha->execute();
                 $stmtFicha->close();
             }
@@ -63,9 +63,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         // Primeiro INSERT (se nenhum dos dois estiver marcado, entra aqui)
         $stmt = $conn->prepare("INSERT INTO TB_ANALISES 
-        (Descricao, idSituacao, idAnalista, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha) 
+        (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, TIMEDIFF(?, ?), ?, ?)");
-        $stmt->bind_param("siiiiissssss", $descricao, $situacao, $analista, $sistema, $status, $idUsuario, $hora_ini, $hora_fim, $hora_fim, $hora_ini, $chkFicha, $numeroFicha);
+        $stmt->bind_param("siiiiissssss", $descricao, $situacao, $atendente, $sistema, $status, $idUsuario, $hora_ini, $hora_fim, $hora_fim, $hora_ini, $chkFicha, $numeroFicha);
         
         if ($stmt->execute()) {
             // Se a ficha foi marcada e o número foi informado, insere o segundo registro
@@ -76,9 +76,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $totalHora = "0000-00-00 00:00:00";
     
                 $stmtFicha = $conn->prepare("INSERT INTO TB_ANALISES 
-                    (Descricao, idSituacao, idAnalista, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha) 
+                    (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmtFicha->bind_param("siiiiisssss", $descricaoFicha, $situacaoFicha, $analista, $sistema, $statusFicha, $idUsuario, $hora_ini, $hora_fim, $totalHora, $chkFicha, $numeroFicha);
+                $stmtFicha->bind_param("siiiiisssss", $descricaoFicha, $situacaoFicha, $atendente, $sistema, $statusFicha, $idUsuario, $hora_ini, $hora_fim, $totalHora, $chkFicha, $numeroFicha);
                 $stmtFicha->execute();
                 $stmtFicha->close();
             }

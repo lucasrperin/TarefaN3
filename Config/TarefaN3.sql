@@ -8,12 +8,6 @@ CREATE TABLE TB_SITUACAO
  Descricao varchar(50) UNIQUE NOT NULL
 ); 
 
-CREATE TABLE TB_ANALISTA 
-( 
- Id INT PRIMARY KEY auto_increment,  
- Descricao varchar(50) UNIQUE NOT NULL
-); 
-
 CREATE TABLE TB_SISTEMA 
 ( 
  Descricao varchar(50) UNIQUE NOT NULL,  
@@ -31,7 +25,7 @@ CREATE TABLE TB_ANALISES
  Id INT PRIMARY KEY auto_increment,  
  Descricao varchar(100) NOT NULL,  
  idSituacao INT,  
- idAnalista INT,  
+ idAtendente INT,  
  idSistema INT,  
  idStatus INT,
  idUsuario int,
@@ -50,23 +44,63 @@ CREATE TABLE TB_USUARIO
  Id INT PRIMARY KEY AUTO_INCREMENT,
  Nome varchar(50) NOT NULL,
  Email varchar(50) NOT NULL,
- Senha varchar(255) NOT NULL
+ Senha varchar(255) NOT NULL,
+ Cargo varchar(255) NOT NULL
 ); 
 
+CREATE TABLE TB_ATENDENTE 
+( 
+ Id INT PRIMARY KEY AUTO_INCREMENT,
+ Nome varchar(50) NOT NULL
+); 
+
+INSERT INTO TB_ATENDENTE (Nome) VALUES 
+('Mateus Balbinot'),
+('Ian Savoldi'),
+('Iago Pereira'),
+('Marcelo Mattos'),
+('Cauã Souza'),
+('Caio Oliveira'),
+('Antônio Ampeze'),
+('Lucas Rossatto'),
+('Eduardo Forcellini'),
+('Leandro Haefliger'),
+('Giselle Goetz'),
+('Wesley Zamarchi'),
+('Gabriel Debiasi'),
+('Gabriel Deggerone'),
+('Filipe Simioni'),
+('Victor Hugo Gross'),
+('Eduardo Miglioreto'),
+('Emanuele Vogt'),
+('Guilherme Stallbaum'),
+('Diandra Coser'),
+('Thiago Maran'),
+('Fabiano Martini');
+
+
+-- Inserindo Atendentes
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Lucas Perin', 'lucas.perin@zucchetti.com', 1234, 'Admin');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Guilherme Ferri', 'guilherme.ferri@zucchetti.com', 1234, 'Admin');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Gabriel Battistella', 'gabriel.battistella@zucchetti.com', 1234, 'Admin');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Leandro Haefliger', 'leandro.haefliger@zucchetti.com', 1234, 'User');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Douglas da Silva', 'douglas.silva@zucchetti.com', 1234, 'Viewer');
+
+
+
 ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idSituacao) REFERENCES TB_SITUACAO (Id);
-ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idAnalista) REFERENCES TB_ANALISTA (Id);
+ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idAtendente) REFERENCES TB_ATENDENTE (Id);
 ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idSistema) REFERENCES TB_SISTEMA (Id);
 ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idStatus) REFERENCES TB_STATUS (Id);
 ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idUsuario) REFERENCES TB_USUARIO (Id);
 
 -- Inserindo Usuário N3
-INSERT INTO TB_USUARIO (Nome, Email, Senha) VALUES ('Lucas Perin', 'lucas.perin@zucchetti.com', 1234);
-INSERT INTO TB_USUARIO (Nome, Email, Senha) VALUES ('Guilherme Ferri', 'guilherme.ferri@zucchetti.com', 1234);
-INSERT INTO TB_USUARIO (Nome, Email, Senha) VALUES ('Gabriel Battistella', 'gabriel.battistella@zucchetti.com', 1234);
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Lucas Perin', 'lucas.perin@zucchetti.com', 1234, 'Admin');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Guilherme Ferri', 'guilherme.ferri@zucchetti.com', 1234, 'Admin');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Gabriel Battistella', 'gabriel.battistella@zucchetti.com', 1234, 'Admin');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Leandro Haefliger', 'leandro.haefliger@zucchetti.com', 1234, 'User');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Douglas da Silva', 'douglas.silva@zucchetti.com', 1234, 'Viewer');
 
--- Inserindo Analistas N3
-INSERT INTO TB_ANALISTA (Descricao) VALUES ('Lucas P');
-INSERT INTO TB_ANALISTA (Descricao) VALUES ('Guilherme F');
 
 -- Inserindo Sistemas
 INSERT INTO TB_SISTEMA (Descricao) VALUES ('Clipp 360');

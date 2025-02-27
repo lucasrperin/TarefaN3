@@ -18,7 +18,7 @@ $sql = "SELECT
             tas.Id as Codigo,
             tas.Descricao as Descricao,
             sit.Descricao as Situacao,
-            tba.Descricao as Analista,
+            tba.Nome as Atendente,
             sis.Descricao as Sistema,
             sta.Descricao as Status,
             tas.Hora_ini,
@@ -27,13 +27,14 @@ $sql = "SELECT
             DATE_FORMAT(tas.Hora_fim, '%d/%m %H:%i:%s') as Hora_fim2,
             SEC_TO_TIME(TIME_TO_SEC(tas.Total_hora)) AS Total_hora, 
             tas.idSituacao AS idSituacao,
-            tas.idAnalista AS idAnalista,
+            tas.idAtendente AS idAtendente,
+            usu.Nome AS NomeUsuario,
             tas.idSistema AS idSistema,
             tas.idStatus AS idStatus,
             tas.chkParado as Parado
         FROM TB_ANALISES tas
             LEFT JOIN TB_SITUACAO sit ON sit.Id = tas.idSituacao
-            LEFT JOIN TB_ANALISTA tba ON tba.Id = tas.idAnalista
+            LEFT JOIN TB_ATENDENTE tba ON tba.Id = tas.idAtendente
             LEFT JOIN TB_SISTEMA sis ON sis.Id = tas.idSistema
             LEFT JOIN TB_STATUS sta ON sta.Id = tas.idStatus
             LEFT JOIN TB_USUARIO usu ON usu.Id = tas.idUsuario";
@@ -316,7 +317,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <tr>
               <th style="width:30%">Descrição</th>
               <th style="width:11%">Situação</th>
-              <th style="width:10%">Analista</th>
+              <th style="width:10%">Atendente</th>
               <th>Sistema</th>
               <th>Status</th>
               <th style="width:15%">Hora Início</th>
@@ -332,7 +333,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 echo "<tr>";
                 echo "<td>" . $row["Descricao"] . "</td>";
                 echo "<td>" . $row["Situacao"] . "</td>";
-                echo "<td>" . $row["Analista"] . "</td>";
+                echo "<td>" . $row["NomeUsuario"] . "</td>";
                 echo "<td>" . $row["Sistema"] . "</td>";
                 echo "<td>" . $row["Status"] . "</td>";
                 echo "<td>" . $row["Hora_ini2"] . "</td>";
@@ -345,7 +346,7 @@ document.addEventListener("DOMContentLoaded", function () {
                      . $row['Codigo'] . ", '" 
                      . addslashes($row['Descricao']) . "', '" 
                      . $row['idSituacao'] . "', '" 
-                     . $row['idAnalista'] . "', '" 
+                     . $row['idAtendente'] . "', '" 
                      . $row['idSistema'] . "', '" 
                      . $row['idStatus'] . "', '" 
                      . $row['Hora_ini'] . "', '" 
@@ -598,14 +599,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="analista" class="form-label">Analista</label>
-                                <select class="form-select" id="analista" name="analista" required>
+                                <label for="atendente" class="form-label">Atendente</label>
+                                <select class="form-select" id="atendente" name="atendente" required>
                                     <option value="">Selecione</option>
                                     <?php
-                                    $queryAnalista = "SELECT Id, Descricao FROM TB_ANALISTA";
-                                    $resultAnalista = $conn->query($queryAnalista);
-                                    while ($rowA = $resultAnalista->fetch_assoc()) {
-                                        echo "<option value='" . $rowA['Id'] . "'>" . $rowA['Descricao'] . "</option>";
+                                    $queryAtendente = "SELECT Id, Nome FROM TB_ATENDENTE";
+                                    $resultAtendente = $conn->query($queryAtendente);
+                                    while ($rowA = $resultAtendente->fetch_assoc()) {
+                                        echo "<option value='" . $rowA['Id'] . "'>" . $rowA['Nome'] . "</option>";
                                     }
                                     ?>
                                 </select>
@@ -690,14 +691,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         </div>
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="analista_editar" class="form-label">Analista</label>
-                                <select class="form-select" id="analista_editar" name="analista_editar" required>
+                                <label for="atendente_editar" class="form-label">Atendente</label>
+                                <select class="form-select" id="atendente_editar" name="atendente_editar" required>
                                     <option value="">Selecione</option>
                                     <?php
-                                    $queryAnalista2 = "SELECT Id, Descricao FROM TB_ANALISTA";
-                                    $resultAnalista2 = $conn->query($queryAnalista2);
-                                    while ($rowA2 = $resultAnalista2->fetch_assoc()) {
-                                        echo "<option value='" . $rowA2['Id'] . "'>" . $rowA2['Descricao'] . "</option>";
+                                    $queryAtendente2 = "SELECT Id, Nome FROM TB_ATENDENTE";
+                                    $resultAtendente2 = $conn->query($queryAtendente2);
+                                    while ($rowA2 = $resultAtendente2->fetch_assoc()) {
+                                        echo "<option value='" . $rowA2['Id'] . "'>" . $rowA2['Nome'] . "</option>";
                                     }
                                     ?>
                                 </select>
@@ -784,11 +785,11 @@ document.addEventListener("DOMContentLoaded", function () {
         });
  
         // Função para preencher o modal de edição
-        function editarAnalise(id, descricao, idSituacao, idAnalista, idSistema, idStatus, hora_ini, hora_fim) {
+        function editarAnalise(id, descricao, idSituacao, idAtendente, idSistema, idStatus, hora_ini, hora_fim) {
             document.getElementById("id_editar").value = id;
             document.getElementById("descricao_editar").value = descricao;
             document.getElementById("situacao_editar").value = idSituacao;
-            document.getElementById("analista_editar").value = idAnalista;
+            document.getElementById("atendente_editar").value = idAtendente;
             document.getElementById("sistema_editar").value = idSistema;
             document.getElementById("status_editar").value = idStatus;
             document.getElementById("hora_ini_editar").value = hora_ini;
