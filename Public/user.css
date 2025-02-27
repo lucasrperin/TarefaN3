@@ -13,7 +13,7 @@ body {
 
 /* Container da área do usuário */
 .user-container {
-    background-color: white;
+    background-color: #ffffff;
     padding: 30px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -26,6 +26,7 @@ body {
 .user-header {
     text-align: center;
     margin-bottom: 20px;
+    color: #3f51b5; /* Índigo */
 }
 
 /* Tabelas */
@@ -37,4 +38,26 @@ body {
 .btn {
     border-radius: 6px;
     font-size: 16px;
+}
+
+/* Navbar personalização */
+.navbar {
+    background-color: #3f51b5; /* Índigo */
+}
+.navbar .navbar-brand,
+.navbar .nav-link {
+    color: #ffffff !important;
+}
+.navbar .nav-link:hover {
+    color: #c5cae9 !important;
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.card-header {
+    font-weight: bold;
 }
