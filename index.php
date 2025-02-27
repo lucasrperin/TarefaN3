@@ -18,7 +18,7 @@ $sql = "SELECT
             tas.Id as Codigo,
             tas.Descricao as Descricao,
             sit.Descricao as Situacao,
-            tba.Nome as Atendente,
+            usu.Nome as Atendente,
             sis.Descricao as Sistema,
             sta.Descricao as Status,
             tas.Hora_ini,
@@ -34,7 +34,6 @@ $sql = "SELECT
             tas.chkParado as Parado
         FROM TB_ANALISES tas
             LEFT JOIN TB_SITUACAO sit ON sit.Id = tas.idSituacao
-            LEFT JOIN TB_ATENDENTE tba ON tba.Id = tas.idAtendente
             LEFT JOIN TB_SISTEMA sis ON sis.Id = tas.idSistema
             LEFT JOIN TB_STATUS sta ON sta.Id = tas.idStatus
             LEFT JOIN TB_USUARIO usu ON usu.Id = tas.idUsuario";
@@ -695,7 +694,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <select class="form-select" id="atendente_editar" name="atendente_editar" required>
                                     <option value="">Selecione</option>
                                     <?php
-                                    $queryAtendente2 = "SELECT Id, Nome FROM TB_ATENDENTE";
+                                    $queryAtendente2 = "SELECT Id, Nome FROM TB_USUARIO";
                                     $resultAtendente2 = $conn->query($queryAtendente2);
                                     while ($rowA2 = $resultAtendente2->fetch_assoc()) {
                                         echo "<option value='" . $rowA2['Id'] . "'>" . $rowA2['Nome'] . "</option>";
