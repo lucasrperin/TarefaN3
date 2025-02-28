@@ -114,59 +114,62 @@ if ($result_ranking) {
 
   <!-- Conteúdo Principal -->
   <div class="container user-container mt-4">
-    <!-- Totalizadores e Ranking -->
-    <div class="row mb-4">
-      <!-- Total de Análises -->
-      <div class="col-md-3 mb-3">
-        <div class="card text-center border-primary">
-          <div class="card-body">
-            <h5 class="card-title text-primary">Total de Análises</h5>
-            <p class="card-text display-6"><?php echo $totalAnalises; ?></p>
-          </div>
-        </div>
-      </div>
-      <!-- Total de Fichas -->
-      <div class="col-md-3 mb-3">
-        <div class="card text-center border-info">
-          <div class="card-body">
-            <h5 class="card-title text-info">Total de Fichas</h5>
-            <p class="card-text display-6"><?php echo $totalFichas; ?></p>
-          </div>
-        </div>
-      </div>
-      <!-- Média das Notas do Usuário Logado -->
-      <div class="col-md-3 mb-3">
-        <div class="card text-center border-secondary">
-          <div class="card-body">
-            <h5 class="card-title">Média das Notas</h5>
-            <p class="card-text display-6 <?php echo $classeMedia; ?>"><?php echo $mediaFormatada; ?></p>
-            <p class="<?php echo $classeMedia; ?>"><?php echo $textoMedia; ?></p>
-          </div>
-        </div>
-      </div>
-      <!-- Ranking dos Melhores Usuários -->
-      <div class="col-md-3 mb-3">
-        <div class="card text-center border-dark">
-          <div class="card-body">
-            <h5 class="card-title">Ranking</h5>
-            <?php if (count($ranking) > 0): ?>
-              <ul class="list-group">
-                <?php foreach ($ranking as $index => $rank): ?>
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <?php echo ($index + 1) . "º - " . $rank['usuario_nome']; ?>
-                    <span class="badge bg-primary rounded-pill">
-                      <?php echo number_format($rank['mediaNotas'], 2, ',', '.'); ?>
-                    </span>
-                  </li>
-                <?php endforeach; ?>
-              </ul>
-            <?php else: ?>
-              <p>Nenhum ranking disponível.</p>
-            <?php endif; ?>
-          </div>
-        </div>
+  <div class="row mb-4">
+  <!-- Linha com Total de Análises e Total de Fichas -->
+
+
+  <!-- Linha com Média de Notas e Ranking -->
+  <div class="col-lg-6 col-md-6 mb-3">
+    <div class="card text-center border-secondary">
+      <div class="card-body">
+        <h5 class="card-title">Média das Notas</h5>
+        <p class="card-text display-6 <?php echo $classeMedia; ?>"><?php echo $mediaFormatada; ?></p>
+        <p class="<?php echo $classeMedia; ?>"><?php echo $textoMedia; ?></p>
       </div>
     </div>
+  </div>
+
+  <div class="col-lg-5 col-md-6 mb-3">
+    <div class="card text-center border-dark">
+      <div class="card-body">
+        <h5 class="card-title">Ranking</h5>
+        <?php if (count($ranking) > 0): ?>
+          <ul class="list-group">
+            <?php foreach ($ranking as $index => $rank): ?>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <?php echo ($index + 1) . "º - " . $rank['usuario_nome']; ?>
+                <span class="badge bg-primary rounded-pill">
+                  <?php echo number_format($rank['mediaNotas'], 2, ',', '.'); ?>
+                </span>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        <?php else: ?>
+          <p>Nenhum ranking disponível.</p>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6 col-md-6 mb-3">
+    <div class="card text-center border-primary">
+      <div class="card-body">
+        <h5 class="card-title text-primary">Total de Análises</h5>
+        <p class="card-text display-6"><?php echo $totalAnalises; ?></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6 col-md-6 mb-3">
+    <div class="card text-center border-info">
+      <div class="card-body">
+        <h5 class="card-title text-info">Total de Fichas</h5>
+        <p class="card-text display-6"><?php echo $totalFichas; ?></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
     <!-- Seções de Análises e Fichas -->
     <div class="row">
