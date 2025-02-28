@@ -115,41 +115,52 @@ if ($result_ranking) {
   <!-- Conteúdo Principal -->
   <div class="container user-container mt-4">
   <div class="row mb-4">
-  <!-- Linha com Total de Análises e Total de Fichas -->
-
-
   <!-- Linha com Média de Notas e Ranking -->
   <div class="col-lg-6 col-md-6 mb-3">
     <div class="card text-center border-secondary">
       <div class="card-body">
         <h5 class="card-title">Média das Notas</h5>
-        <p class="card-text display-6 <?php echo $classeMedia; ?>"><?php echo $mediaFormatada; ?></p>
+        <p class="card-text display-6 mt-4 <?php echo $classeMedia; ?>"><?php echo $mediaFormatada; ?></p>
         <p class="<?php echo $classeMedia; ?>"><?php echo $textoMedia; ?></p>
       </div>
     </div>
   </div>
 
-  <div class="col-lg-5 col-md-6 mb-3">
-    <div class="card text-center border-dark">
-      <div class="card-body">
-        <h5 class="card-title">Ranking</h5>
-        <?php if (count($ranking) > 0): ?>
+<!-- Ranking dos Melhores Usuários -->
+<div class="col-lg-6 mb-3">
+  <div class="card text-center border-dark">
+    <div class="card-body">
+      <h5 class="card-title">Ranking</h5>
+      <?php if (count($ranking) > 0): ?>
+        <div class="ranking-scroll"> <!-- Scroll aqui -->
           <ul class="list-group">
             <?php foreach ($ranking as $index => $rank): ?>
               <li class="list-group-item d-flex justify-content-between align-items-center">
-                <?php echo ($index + 1) . "º - " . $rank['usuario_nome']; ?>
+                <?php
+                  if ($index == 0) {
+                      echo "🥇  " . $rank['usuario_nome'];
+                  } elseif ($index == 1) {
+                      echo "🥈  " . $rank['usuario_nome'];
+                  } elseif ($index == 2) {
+                      echo "🥉  " . $rank['usuario_nome'];
+                  } else {
+                      echo ($index + 1) . "º  " . $rank['usuario_nome'];
+                  }
+                ?>
                 <span class="badge bg-primary rounded-pill">
                   <?php echo number_format($rank['mediaNotas'], 2, ',', '.'); ?>
                 </span>
               </li>
             <?php endforeach; ?>
           </ul>
-        <?php else: ?>
-          <p>Nenhum ranking disponível.</p>
-        <?php endif; ?>
-      </div>
+        </div>
+      <?php else: ?>
+        <p>Nenhum ranking disponível.</p>
+      <?php endif; ?>
     </div>
   </div>
+</div>
+
   <div class="col-lg-6 col-md-6 mb-3">
     <div class="card text-center border-primary">
       <div class="card-body">
@@ -168,8 +179,6 @@ if ($result_ranking) {
     </div>
   </div>
 </div>
-
-
 
     <!-- Seções de Análises e Fichas -->
     <div class="row">
@@ -271,4 +280,3 @@ if ($result_ranking) {
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-    
