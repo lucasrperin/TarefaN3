@@ -1,0 +1,107 @@
+ul.list-unstyled {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+ul.list-unstyled li {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between; /* Alinha os elementos na mesma linha */
+    align-items: center; /* Alinha verticalmente os itens */
+}
+
+ul.list-unstyled li .position {
+    flex-basis: 10%; /* Controle de largura para a posição (medalha) */
+    font-weight: bold;
+}
+
+ul.list-unstyled li .name {
+    flex-basis: 50%; /* Largura para o nome do analista */
+    font-weight: normal;
+}
+
+ul.list-unstyled li .average {
+    flex-basis: 30%; /* Largura para a média */
+    font-weight: normal;
+}
+
+.custom-card .card-title {
+    display: flex;
+    justify-content: center;
+    size: 1rem;
+}
+
+.cards-container {
+    display: flex;
+    flex-wrap: wrap; /* Permite quebra para telas pequenas */
+    justify-content: space-between; /* Distribui os cards */
+    gap: 10px; /* Espaçamento entre os cards */
+}
+
+/* Estilo geral do card */
+.custom-card {
+    display: flex;
+    border: 1px solid #007bff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+/* Estilos específicos para os headers */
+.custom-card .header-blue {
+    background-color: #85b6eb; /* cor exclusiva para o header do card azul */
+    color: #000;
+    border-bottom: 1px solid #727272;
+}
+
+.custom-card .header-white {
+    background-color: #87f1e9; /* cor exclusiva para o header do card branco */
+    color: #000;
+    border-bottom: 1px solid #727272;
+}
+
+/* Área de scroll do ranking */
+.custom-card .ranking-body {
+    max-height: 110px;
+    overflow-y: auto;
+    padding: 1px 5px;
+}
+
+/* Estilo para a lista sem marcadores */
+.no-list-style {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.no-list-style li {
+    padding: 5px 0;
+}
+
+/* Estilo para a média exibida no ranking */
+.rank-media {
+    display: inline-flex;
+    background-color: #007bff;
+    color: white;
+    padding: 1px 10px;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 0.8em;
+    justify-items: flex-end;
+}
+
+.position-number {
+    margin-left: 5px;
+}
+
+.custom-card.ranking-card {
+    width: 100%; /* Para ocupar toda a largura da coluna */
+    max-width: 280px; /* Defina um valor máximo conforme necessário */
+}
+
+.custom-card.ranking-media {
+   
+    max-width: 250px; /* Defina um valor máximo conforme necessário */
+    padding: 0px;
+}
