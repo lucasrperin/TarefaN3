@@ -61,3 +61,24 @@ body {
 .card-header {
     font-weight: bold;
 }
+/* Cores para as notas com !important para maior prioridade */
+.nota-vermelha {
+    color: #dc3545 !important;
+    font-weight: bold;
+}
+.nota-laranja {
+    color: #fd7e14 !important;
+    font-weight: bold;
+}
+.nota-amarela {
+    color: #ffc107 !important;
+    font-weight: bold;
+}
+.nota-teal {
+    color: #20c997 !important;
+    font-weight: bold;
+}
+.nota-verde {
+    color: #28a745 !important;
+    font-weight: bold;
+}
