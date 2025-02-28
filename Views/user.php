@@ -9,44 +9,86 @@ require '../Config/Database.php';
 
 $usuario_id = $_SESSION['usuario_id'];
 
-// Consulta para obter análises (incluindo o campo Nota)
+// Consulta para obter análises (incluindo o campo Nota) do usuário logado
 $sql_analises = "SELECT
-            tas.Id as Codigo,
-            tas.Descricao as Descricao,
-            tas.Nota as Nota,
-            tas.numeroFicha,
-            DATE_FORMAT(tas.Hora_ini, '%d/%m %H:%i:%s') as Hora_ini
-        FROM TB_ANALISES tas
-        WHERE tas.idAtendente = ? AND idSituacao = 1";
+            a.Id,
+            a.Descricao,
+            a.Nota,
+            a.numeroFicha,
+            DATE_FORMAT(a.Hora_ini, '%d/%m %H:%i:%s') as Hora_ini
+        FROM TB_ANALISES a
+        WHERE a.idAtendente = ? AND a.idSituacao = 1";
 $stmt_analises = $conn->prepare($sql_analises);
 $stmt_analises->bind_param("i", $usuario_id);
 $stmt_analises->execute();
 $resultado_analises = $stmt_analises->get_result();
 
-// Consulta para obter fichas
+// Armazenar análises em um array
+$analises = [];
+while ($row = $resultado_analises->fetch_assoc()) {
+    $analises[] = $row;
+}
+$totalAnalises = count($analises);
+
+// Calcular a média das notas do usuário logado
+$somaNotas = 0;
+foreach ($analises as $analise) {
+    $somaNotas += $analise['Nota'];
+}
+$mediaValor = $totalAnalises > 0 ? $somaNotas / $totalAnalises : 0;
+$mediaFormatada = number_format($mediaValor, 2, ',', '.');
+
+// Definir a classe e o texto conforme a média do usuário logado
+if ($mediaValor >= 4.5) {
+    $classeMedia = 'nota-verde';
+    $textoMedia = 'Acima do Esperado';
+} elseif ($mediaValor <= 2.99) {
+    $classeMedia = 'nota-vermelha';
+    $textoMedia = 'Abaixo do Esperado';
+} else {
+    $classeMedia = 'nota-amarela';
+    $textoMedia = 'Dentro do Esperado';
+}
+
+// Consulta para obter fichas do usuário logado
 $sql_fichas = "SELECT
-            tas.Id as Codigo,
-            tas.Descricao as Descricao,
-            tas.numeroFicha,
-            DATE_FORMAT(tas.Hora_ini, '%d/%m %H:%i:%s') as Hora_ini
-        FROM TB_ANALISES tas
-        WHERE tas.idAtendente = ? AND idSituacao = 3";
+            a.Id,
+            a.Descricao,
+            a.numeroFicha,
+            DATE_FORMAT(a.Hora_ini, '%d/%m %H:%i:%s') as Hora_ini
+        FROM TB_ANALISES a
+        WHERE a.idAtendente = ? AND a.idSituacao = 3";
 $stmt_fichas = $conn->prepare($sql_fichas);
 $stmt_fichas->bind_param("i", $usuario_id);
 $stmt_fichas->execute();
 $resultado_fichas = $stmt_fichas->get_result();
 
-// Organizar fichas associadas
+// Organizar fichas por número
 $fichas_por_numero = [];
 while ($ficha = $resultado_fichas->fetch_assoc()) {
     $fichas_por_numero[$ficha['numeroFicha']][] = $ficha;
 }
 
-// Totalizadores
-$totalAnalises = $resultado_analises->num_rows;
+// Calcular total de fichas
 $totalFichas = 0;
 foreach ($fichas_por_numero as $numeroFicha => $fichas) {
     $totalFichas += count($fichas);
+}
+
+// Consulta para ranking: top 5 usuários com maior média de notas
+// A média é truncada para uma casa decimal: FLOOR(AVG(a.Nota)*10)/10
+$sql_ranking = "SELECT a.idAtendente, u.Nome as usuario_nome, FLOOR(AVG(a.Nota)*10)/10 as mediaNotas
+                FROM TB_ANALISES a
+                JOIN TB_USUARIO u ON a.idAtendente = u.Id
+                GROUP BY a.idAtendente, u.Nome
+                ORDER BY mediaNotas DESC
+                LIMIT 5";
+$result_ranking = $conn->query($sql_ranking);
+$ranking = [];
+if ($result_ranking) {
+    while ($row = $result_ranking->fetch_assoc()) {
+         $ranking[] = $row;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -59,10 +101,6 @@ foreach ($fichas_por_numero as $numeroFicha => $fichas) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- CSS personalizado para a área do usuário -->
   <link rel="stylesheet" href="../Public/user.css">
-  <style>
-    /* Ajustes adicionais, se necessário */
-    .table-responsive { margin-top: 15px; }
-  </style>
 </head>
 <body>
   <!-- Navbar -->
@@ -76,25 +114,71 @@ foreach ($fichas_por_numero as $numeroFicha => $fichas) {
 
   <!-- Conteúdo Principal -->
   <div class="container user-container mt-4">
-    <!-- Totalizadores em Cards -->
-    <div class="row mb-4">
-      <div class="col-md-6 mb-3">
-        <div class="card text-center border-primary">
-          <div class="card-body">
-            <h5 class="card-title text-primary">Total de Análises</h5>
-            <p class="card-text display-6"><?php echo $totalAnalises; ?></p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6 mb-3">
-        <div class="card text-center border-info">
-          <div class="card-body">
-            <h5 class="card-title text-info">Total de Fichas</h5>
-            <p class="card-text display-6"><?php echo $totalFichas; ?></p>
-          </div>
-        </div>
+  <div class="row mb-4">
+  <!-- Linha com Média de Notas e Ranking -->
+  <div class="col-lg-6 col-md-6 mb-3">
+    <div class="card text-center border-secondary">
+      <div class="card-body">
+        <h5 class="card-title">Média das Notas</h5>
+        <p class="card-text display-6 mt-4 <?php echo $classeMedia; ?>"><?php echo $mediaFormatada; ?></p>
+        <p class="<?php echo $classeMedia; ?>"><?php echo $textoMedia; ?></p>
       </div>
     </div>
+  </div>
+
+<!-- Ranking dos Melhores Usuários -->
+<div class="col-lg-6 mb-3">
+  <div class="card text-center border-dark">
+    <div class="card-body">
+      <h5 class="card-title">Ranking</h5>
+      <?php if (count($ranking) > 0): ?>
+        <div class="ranking-scroll"> <!-- Scroll aqui -->
+          <ul class="list-group">
+            <?php foreach ($ranking as $index => $rank): ?>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <?php
+                  if ($index == 0) {
+                      echo "🥇  " . $rank['usuario_nome'];
+                  } elseif ($index == 1) {
+                      echo "🥈  " . $rank['usuario_nome'];
+                  } elseif ($index == 2) {
+                      echo "🥉  " . $rank['usuario_nome'];
+                  } else {
+                      echo ($index + 1) . "º  " . $rank['usuario_nome'];
+                  }
+                ?>
+                <span class="badge bg-primary rounded-pill">
+                  <?php echo number_format($rank['mediaNotas'], 2, ',', '.'); ?>
+                </span>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+      <?php else: ?>
+        <p>Nenhum ranking disponível.</p>
+      <?php endif; ?>
+    </div>
+  </div>
+</div>
+
+  <div class="col-lg-6 col-md-6 mb-3">
+    <div class="card text-center border-primary">
+      <div class="card-body">
+        <h5 class="card-title text-primary">Total de Análises</h5>
+        <p class="card-text display-6"><?php echo $totalAnalises; ?></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6 col-md-6 mb-3">
+    <div class="card text-center border-info">
+      <div class="card-body">
+        <h5 class="card-title text-info">Total de Fichas</h5>
+        <p class="card-text display-6"><?php echo $totalFichas; ?></p>
+      </div>
+    </div>
+  </div>
+</div>
 
     <!-- Seções de Análises e Fichas -->
     <div class="row">
@@ -105,13 +189,6 @@ foreach ($fichas_por_numero as $numeroFicha => $fichas) {
             Análises
           </div>
           <div class="card-body">
-            <?php 
-            // Armazenar os dados de análises para iteração
-            $analises = [];
-            while ($row = $resultado_analises->fetch_assoc()) {
-                $analises[] = $row;
-            }
-            ?>
             <?php if ($totalAnalises > 0): ?>
               <div class="table-responsive">
                 <table class="table table-striped">
@@ -125,11 +202,27 @@ foreach ($fichas_por_numero as $numeroFicha => $fichas) {
                   </thead>
                   <tbody>
                     <?php foreach ($analises as $analise): ?>
+                      <?php
+                        $nota = $analise['Nota'];
+                        if ($nota == 5) {
+                            $classeNota = 'nota-verde';
+                        } elseif ($nota == 4) {
+                            $classeNota = 'nota-teal';
+                        } elseif ($nota == 3) {
+                            $classeNota = 'nota-amarela';
+                        } elseif ($nota == 2) {
+                            $classeNota = 'nota-laranja';
+                        } elseif ($nota == 0 || $nota == 1) {
+                            $classeNota = 'nota-vermelha';
+                        } else {
+                            $classeNota = '';
+                        }
+                      ?>
                       <tr>
                         <td><?php echo $analise['Descricao']; ?></td>
                         <td><?php echo $analise['numeroFicha'] ?? '-'; ?></td>
                         <td><?php echo $analise['Hora_ini']; ?></td>
-                        <td><?php echo $analise['Nota']; ?></td>
+                        <td class="<?php echo $classeNota; ?>"><?php echo $nota; ?></td>
                       </tr>
                     <?php endforeach; ?>
                   </tbody>
