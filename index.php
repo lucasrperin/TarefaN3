@@ -209,13 +209,23 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container">
-            <span class="navbar-brand mb-0 h1">Tarefas N3</span>
-            <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
-            <a href="Views/logout.php" class="btn btn-danger">Sair</a>
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container d-flex justify-content-between align-items-center">
+        <!-- Botão Hamburguer com Dropdown -->
+        <div class="dropdown">
+            <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
+                <li><a class="dropdown-item" href="Views/dashboard.php">Totalizadores</a></li>
+            </ul>
         </div>
-    </nav>
+        <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
+        <a href="Views/logout.php" class="btn btn-danger">
+            <i class="fa-solid fa-right-from-bracket me-2" style="font-size: 0.8em;"></i>Sair
+        </a>
+    </div>
+</nav>
  
    <!-- Linha com Resumo dos Totalizadores, Gráfico Mensal e Filtro de Período -->
 <div class="container mt-4">
