@@ -1,15 +1,15 @@
 <?php
 session_start();
-if (!isset($_SESSION['usuario_id'])) {
-    header("Location: ../Login.php");
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['usuario_id'])) {
+    $_SESSION['usuario_id'] = $_POST['usuario_id'];
+    header("Location: user.php");
     exit();
 }
-
 require '../Config/Database.php';
 
 $usuario_id = $_SESSION['usuario_id'];
 
-// Ranking de média por analista
+// Ranking de média por analista (apenas para exibição, sem links)
 $sql_ranking = "SELECT
                     usu.Id AS idAtendente,
                     usu.Nome AS Nome,
@@ -28,10 +28,9 @@ $sql_media_geral = "SELECT AVG(Nota) as MediaGeral FROM TB_ANALISES WHERE Nota I
 $stmt_media = $conn->prepare($sql_media_geral);
 $stmt_media->execute();
 $resultado_media = $stmt_media->get_result()->fetch_assoc();
-
 $media_geral = number_format($resultado_media['MediaGeral'], 2, '.', '');
 
-// Analiste por período
+// Análises por período
 $sql_analises_mes = "SELECT DATE_FORMAT(Hora_ini, '%Y-%m') as Mes, COUNT(*) as Total
                      FROM TB_ANALISES 
                      GROUP BY Mes 
@@ -40,7 +39,7 @@ $stmt_analises_mes = $conn->prepare($sql_analises_mes);
 $stmt_analises_mes->execute();
 $dados_analises = $stmt_analises_mes->get_result();
 
-// Função de filtro
+// Filtro
 $sql_filtro = "SELECT * FROM TB_ANALISES WHERE 1=1";
 if (!empty($_GET['data_inicio'])) {
     $sql_filtro .= " AND Hora_ini >= '{$_GET['data_inicio']}'";
@@ -54,6 +53,17 @@ if (!empty($_GET['analista'])) {
 $stmt_filtro = $conn->prepare($sql_filtro);
 $stmt_filtro->execute();
 $resultado_filtrado = $stmt_filtro->get_result();
+
+// Consulta para obter todos os usuários para a seção "Acessos aos Usuários"
+$sql_usuarios = "SELECT Id, Nome FROM TB_USUARIO";
+$stmt_usuarios_acessos = $conn->prepare($sql_usuarios);
+$stmt_usuarios_acessos->execute();
+$resultado_usuarios_acessos = $stmt_usuarios_acessos->get_result();
+
+// Consulta separada para preencher o dropdown do filtro
+$stmt_usuarios_dropdown = $conn->prepare($sql_usuarios);
+$stmt_usuarios_dropdown->execute();
+$resultado_usuarios_dropdown = $stmt_usuarios_dropdown->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -91,7 +101,7 @@ $resultado_filtrado = $stmt_filtro->get_result();
 
 <div class="container mt-4">
     <div class="row align-items-start">
-        <!-- Bloco 1: Média de Notas da Equipe (classe bg-blue define o fundo) -->
+        <!-- Bloco 1: Média de Notas da Equipe -->
         <div class="col-md-3">
             <div class="card custom-card bg-blue ranking-media">
                 <div class="card-header header-blue">Média de Notas da Equipe</div>
@@ -101,7 +111,7 @@ $resultado_filtrado = $stmt_filtro->get_result();
             </div>
         </div>
 
-        <!-- Bloco 2: Ranking de Analistas (classe bg-white define o fundo) -->
+        <!-- Bloco 2: Ranking de Analistas (apenas exibição) -->
         <div class="ranking col-md-4">
             <div class="card custom-card bg-white ranking-card">
                 <div class="card-header header-white">Ranking de Analistas</div>
@@ -138,6 +148,27 @@ $resultado_filtrado = $stmt_filtro->get_result();
             </div>
         </div>
     </div>
+    
+<!-- Seção: Acessos aos Usuários -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card custom-card">
+            <div class="card-header">Acessos aos Usuários</div>
+            <div class="card-body">
+                <ul class="list-group">
+                    <?php while ($user = $resultado_usuarios_acessos->fetch_assoc()): ?>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><?php echo $user['Nome']; ?></span>
+                            <form method="post" action="dashboard.php" style="margin: 0;">
+                                <input type="hidden" name="usuario_id" value="<?php echo $user['Id']; ?>">
+                                <button type="submit" class="btn btn-primary btn-sm">Acessar</button>
+                            </form>
+                        </li>
+                    <?php endwhile; ?>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Filtro -->
@@ -156,11 +187,7 @@ $resultado_filtrado = $stmt_filtro->get_result();
             <select name="analista" id="analista" class="form-select">
                 <option value="">Todos</option>
                 <?php
-                $sql_usuarios = "SELECT Id, Nome FROM TB_USUARIO";
-                $stmt_usuarios = $conn->prepare($sql_usuarios);
-                $stmt_usuarios->execute();
-                $usuarios = $stmt_usuarios->get_result();
-                while ($user = $usuarios->fetch_assoc()) {
+                while ($user = $resultado_usuarios_dropdown->fetch_assoc()) {
                     echo "<option value='{$user['Id']}'>{$user['Nome']}</option>";
                 }
                 ?>
