@@ -105,3 +105,15 @@ ul.list-unstyled li .average {
     max-width: 250px; /* Defina um valor máximo conforme necessário */
     padding: 0px;
 }
+.chart-container {
+    width: 80%;
+    max-width: 900px;
+    height: 40vh; /* 40% da altura do viewport */
+    margin: auto;
+    position: relative;
+}
+    .card {
+        width: 60%;       /* Define a largura da card como uma porcentagem da tela */
+        max-width: 600px; /* Limite máximo de largura */
+        margin: auto;     /* Centraliza a card na tela */
+    }
