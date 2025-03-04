@@ -112,8 +112,3 @@ ul.list-unstyled li .average {
     margin: auto;
     position: relative;
 }
-    .card {
-        width: 60%;       /* Define a largura da card como uma porcentagem da tela */
-        max-width: 600px; /* Limite máximo de largura */
-        margin: auto;     /* Centraliza a card na tela */
-    }

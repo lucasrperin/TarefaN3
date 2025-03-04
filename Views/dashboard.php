@@ -45,6 +45,7 @@ if (!empty($_GET['data_inicio'])) {
     $sql_filtro .= " AND Hora_ini >= '{$_GET['data_inicio']}'";
 }
 if (!empty($_GET['data_fim'])) {
+    // Usando o campo Hora_ini para manter a consistência com o gráfico
     $sql_filtro .= " AND Hora_ini <= '{$_GET['data_fim']}'";
 }
 if (!empty($_GET['analista'])) {
@@ -106,7 +107,6 @@ $resultado_grafico = $stmt_grafico->get_result();
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 </head>
 <body class="bg-light">
 <nav class="navbar navbar-dark bg-dark">
@@ -155,10 +155,10 @@ $resultado_grafico = $stmt_grafico->get_result();
     </div>
 </form>
 
-<div class="container mt-4">
+<div class="container mt-4 ">
     <div class="row d-flex align-items-start">
         <!-- Bloco 1: Média de Notas da Equipe -->
-        <div class="col-md-3">
+        <div class="col-md-3 ">
             <div class="card custom-card bg-blue ranking-media">
                 <div class="card-header header-blue">Média de Notas da Equipe</div>
                 <div class="card-body">
@@ -201,6 +201,15 @@ $resultado_grafico = $stmt_grafico->get_result();
             </div>
         </div>
 
+        <!-- Gráfico de Linhas -->
+<div  class="container  col-lg-6 ">
+    <div  class="card">
+        <div  class="card-header">Evolução da Média de Notas dos Analistas (Mensal)</div>
+        <div  class="card-body">
+            <canvas id="graficoNotas"></canvas>
+        </div>
+    </div>
+</div>
         <!-- Bloco 3: Acessos aos Usuários (à direita) -->
         <div class="col-md-4">
             <div class="card custom-card">
@@ -223,40 +232,30 @@ $resultado_grafico = $stmt_grafico->get_result();
     </div>
 </div>
 
-<!-- Gráfico de Linhas -->
-<div class="container mt-5">
-    <div class="card">
-        <div class="card-header">Evolução da Média de Notas dos Analistas (Mensal)</div>
-        <div class="card-body">
-            <div class="chart-container">
-                <canvas id="graficoNotas"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <script>
-    // Geração de labels (meses) de forma contínua, com base no filtro
+    // Gerar os labels (meses) de forma contínua
     <?php
+    // Cria um array de labels com todos os meses entre data_inicio e data_fim (ou um padrão de 12 meses do ano atual)
     if (!empty($_GET['data_inicio']) && !empty($_GET['data_fim'])) {
         $start = new DateTime($_GET['data_inicio']);
         $end = new DateTime($_GET['data_fim']);
-        $labelsArr = [];
+        $labels = [];
         $interval = new DateInterval('P1M');
         $endLabel = clone $end;
         $endLabel->modify('first day of next month');
         $period = new DatePeriod($start, $interval, $endLabel);
         foreach($period as $dt) {
-            $labelsArr[] = $dt->format('Y-m');
+            $labels[] = $dt->format('Y-m');
         }
     } else {
         $year = date("Y");
-        $labelsArr = [];
+        $labels = [];
         for ($m=1; $m<=12; $m++){
-             $labelsArr[] = sprintf("%s-%02d", $year, $m);
+             $labels[] = sprintf("%s-%02d", $year, $m);
         }
     }
-    echo "const labels = " . json_encode($labelsArr) . ";\n";
     ?>
 
     // Organiza os dados retornados da consulta do gráfico em um array multidimensional
@@ -272,6 +271,9 @@ $resultado_grafico = $stmt_grafico->get_result();
         $analistaData[$mes][$nome] = $mediaNota;
     }
     
+    // Ordena os meses cronologicamente (não estritamente necessário, pois os labels já foram definidos)
+    ksort($analistaData);
+    
     // Obter a união de todos os analistas presentes em qualquer mês
     $analistasUnion = [];
     foreach ($analistaData as $mesData) {
@@ -281,8 +283,10 @@ $resultado_grafico = $stmt_grafico->get_result();
     }
     $analistas = array_keys($analistasUnion);
     
+    echo "const labels = " . json_encode($labels) . ";\n";
     echo "const datasets = [];\n";
     foreach ($analistas as $analista) {
+        // Aqui você pode definir cores fixas ou gerar cores aleatórias para cada analista
         echo "datasets.push({\n";
         echo "  label: '" . addslashes($analista) . "',\n";
         echo "  data: [],\n";
@@ -290,15 +294,15 @@ $resultado_grafico = $stmt_grafico->get_result();
         echo "  borderWidth: 2\n";
         echo "});\n";
     }
-    foreach ($labelsArr as $mes) {
+    foreach ($labels as $mes) {
         foreach ($analistas as $index => $analista) {
             $nota = (isset($analistaData[$mes]) && isset($analistaData[$mes][$analista])) ? $analistaData[$mes][$analista] : "null";
             echo "datasets[$index].data.push(" . $nota . ");\n";
         }
     }
     ?>
-
-    // Configuração do gráfico usando Chart.js no modo linha, sem manter a proporção (para usar a altura definida no contêiner)
+    
+    // Configuração do gráfico usando Chart.js no modo linha
     const ctx = document.getElementById('graficoNotas').getContext('2d');
     const graficoNotas = new Chart(ctx, {
         type: 'line',
@@ -308,7 +312,6 @@ $resultado_grafico = $stmt_grafico->get_result();
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
             scales: {
                 x: {
                     title: {
