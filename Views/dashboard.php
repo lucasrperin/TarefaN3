@@ -16,9 +16,9 @@ $sql_ranking = "SELECT
                     FLOOR(AVG(a.Nota)*10)/10 as mediaNotas
                 FROM TB_ANALISES a
                 JOIN TB_USUARIO u ON a.idAtendente = u.Id
+                WHERE a.Nota is not null
                 GROUP BY a.idAtendente, u.Nome
-                ORDER BY mediaNotas DESC
-                LIMIT 5";
+                ORDER BY mediaNotas DESC";
 $result_ranking = $conn->query($sql_ranking);
 $ranking = [];
 if ($result_ranking) {
@@ -147,19 +147,9 @@ $resultado_grafico = $stmt_grafico->get_result();
         <label for="data_fim" class="form-label">Até:</label>
         <input type="date" name="data_fim" id="data_fim" class="form-control">
       </div>
-      <div class="col-auto">
-        <label for="analista" class="form-label">Analista:</label>
-        <select name="analista" id="analista" class="form-select">
-          <option value="">Todos</option>
-          <?php
-          while ($user = $resultado_usuarios_dropdown->fetch_assoc()) {
-              echo "<option value='{$user['Id']}'>{$user['Nome']}</option>";
-          }
-          ?>
-        </select>
-      </div>
       <div class="col-auto align-self-end">
-        <button type="submit" class="btn btn-primary">Filtrar</button>
+        <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+        <a href="dashboard.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
       </div>
     </div>
   </form>
@@ -172,81 +162,85 @@ $resultado_grafico = $stmt_grafico->get_result();
         <!-- Container flex para empilhar os 2 cards -->
         <div class="d-flex flex-column h-100">
           <!-- Card da Média de Notas (altura natural) -->
-          <div class="card custom-card bg-blue ranking-media mb-4">
-            <div class="card-header header-blue text-center">Média de Notas da Equipe</div>
-            <div class="card-body text-center">
-              <h5 class="card-title"><?php echo $media_geral; ?>⭐</h5>
-            </div>
-          </div>
-          <!-- Card do Ranking (ocupa o espaço restante) -->
-          <div class="card text-center card-ranking flex-grow-1">
-            <div class="card-body">
-              <h5 class="card-title">Ranking</h5>
-              <?php if (count($ranking) > 0): ?>
-                <div class="ranking-scroll">
-                <ul class="list-group">
-                <?php foreach ($ranking as $index => $rank): ?>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span class="ranking-name">
-                        <?php
-                        if ($index == 0) {
-                            echo "🥇 ";
-                        } elseif ($index == 1) {
-                            echo "🥈 ";
-                        } elseif ($index == 2) {
-                            echo "🥉 ";
-                        } else {
-                            echo ($index + 1) . "º ";
-                        }
-                        echo $rank['usuario_nome'];
-                        ?>
-                    </span>
-                    <span class="badge bg-primary rounded-pill">
-                        <?php echo number_format($rank['mediaNotas'], 2, ',', '.'); ?>
-                    </span>
-                    </li>
-                <?php endforeach; ?>
-                </ul>
+            <div class="card custom-card bg-blue ranking-media mb-4">
+                <div class="card-header header-blue text-center">
+                    Média de Notas da Equipe
                 </div>
-              <?php else: ?>
-                <p>Nenhum ranking disponível.</p>
-              <?php endif; ?>
+                <div class="card-body text-center">
+                    <h5 class="card-title"><?php echo $media_geral; ?>⭐</h5>
+                </div>
             </div>
-          </div>
+          <!-- Card do Ranking (ocupa o espaço restante) -->
+            <div class="card text-center card-ranking flex-grow-1">
+                <div class="card-header header-blue text-center">Ranking</div>
+                    <div class="card-body">  
+                    <?php if (count($ranking) > 0): ?>
+                        <div class="ranking-scroll">
+                            <ul class="list-group">
+                                <?php foreach ($ranking as $index => $rank): ?>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span class="ranking-name">
+                                            <?php
+                                            if ($index == 0) {
+                                                echo "🥇 ";
+                                            } elseif ($index == 1) {
+                                                echo "🥈 ";
+                                            } elseif ($index == 2) {
+                                                echo "🥉 ";
+                                            } else {
+                                                echo ($index + 1) . "º ";
+                                            }
+                                            echo $rank['usuario_nome'];
+                                            ?>
+                                        </span>
+                                        <span class="badge bg-primary rounded-pill">
+                                            <?php echo number_format($rank['mediaNotas'], 2, ',', '.'); ?>
+                                        </span>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                        <?php else: ?>
+                            <p>Nenhum ranking disponível.</p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
 
       <!-- Coluna Central: Gráfico -->
-      <div class="col-md-6">
-        <div class="card h-100">
-          <div class="card-header text-center">Evolução da Média de Notas dos Analistas (Mensal)</div>
-          <div class="card-body">
-            <canvas id="graficoNotas"></canvas>
-          </div>
-        </div>
-      </div>
+    <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header text-center">Evolução da Média de Notas dos Analistas (Mensal)</div>
+                    <div class="card-body mt-4">
+                        <canvas id="graficoNotas"></canvas>
+                    </div>
+                </div>
+            </div>
 
       <!-- Coluna Direita: Acessos aos Usuários -->
-      <div class="col-md-3">
-        <div class="card custom-card h-100">
-          <div class="card-header">Acessos aos Usuários</div>
-          <div class="card-body">
-            <ul class="list-group">
-              <?php while ($user = $resultado_usuarios_acessos->fetch_assoc()): ?>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <span><?php echo $user['Nome']; ?></span>
-                  <form method="post" action="dashboard.php" style="margin: 0;">
-                    <input type="hidden" name="usuario_id" value="<?php echo $user['Id']; ?>">
-                    <button type="submit" class="btn btn-primary btn-sm ">Acessar</button>
-                  </form>
-                </li>
-              <?php endwhile; ?>
-            </ul>
-          </div>
+        <div class="col-md-3">
+            <div class="card custom-card h-100">
+                <div class="card-header text-center">Acessos aos Usuários</div>
+                    <div class="card-body">
+                        <div class="access-scroll">
+                            <ul class="list-group">
+                            <?php while ($user = $resultado_usuarios_acessos->fetch_assoc()): ?>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span><?php echo $user['Nome']; ?></span>
+                                <form method="post" action="dashboard.php" style="margin: 0;">
+                                    <input type="hidden" name="usuario_id" value="<?php echo $user['Id']; ?>">
+                                    <button type="submit" class="btn btn-primary btn-sm ">Acessar</button>
+                                </form>
+                                </li>
+                            <?php endwhile; ?>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 
   <script>
     // Gerar os labels (meses) de forma contínua
