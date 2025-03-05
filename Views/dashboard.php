@@ -173,8 +173,8 @@ $resultado_grafico = $stmt_grafico->get_result();
         <div class="d-flex flex-column h-100">
           <!-- Card da Média de Notas (altura natural) -->
           <div class="card custom-card bg-blue ranking-media mb-4">
-            <div class="card-header header-blue">Média de Notas da Equipe</div>
-            <div class="card-body">
+            <div class="card-header header-blue text-center">Média de Notas da Equipe</div>
+            <div class="card-body text-center">
               <h5 class="card-title"><?php echo $media_geral; ?>⭐</h5>
             </div>
           </div>
@@ -185,28 +185,28 @@ $resultado_grafico = $stmt_grafico->get_result();
               <?php if (count($ranking) > 0): ?>
                 <div class="ranking-scroll">
                 <ul class="list-group">
-  <?php foreach ($ranking as $index => $rank): ?>
-    <li class="list-group-item d-flex justify-content-between align-items-center">
-      <span class="ranking-name">
-        <?php
-          if ($index == 0) {
-              echo "🥇 ";
-          } elseif ($index == 1) {
-              echo "🥈 ";
-          } elseif ($index == 2) {
-              echo "🥉 ";
-          } else {
-              echo ($index + 1) . "º ";
-          }
-          echo $rank['usuario_nome'];
-        ?>
-      </span>
-      <span class="badge bg-primary rounded-pill">
-        <?php echo number_format($rank['mediaNotas'], 2, ',', '.'); ?>
-      </span>
-    </li>
-  <?php endforeach; ?>
-</ul>
+                <?php foreach ($ranking as $index => $rank): ?>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span class="ranking-name">
+                        <?php
+                        if ($index == 0) {
+                            echo "🥇 ";
+                        } elseif ($index == 1) {
+                            echo "🥈 ";
+                        } elseif ($index == 2) {
+                            echo "🥉 ";
+                        } else {
+                            echo ($index + 1) . "º ";
+                        }
+                        echo $rank['usuario_nome'];
+                        ?>
+                    </span>
+                    <span class="badge bg-primary rounded-pill">
+                        <?php echo number_format($rank['mediaNotas'], 2, ',', '.'); ?>
+                    </span>
+                    </li>
+                <?php endforeach; ?>
+                </ul>
                 </div>
               <?php else: ?>
                 <p>Nenhum ranking disponível.</p>
@@ -219,7 +219,7 @@ $resultado_grafico = $stmt_grafico->get_result();
       <!-- Coluna Central: Gráfico -->
       <div class="col-md-6">
         <div class="card h-100">
-          <div class="card-header">Evolução da Média de Notas dos Analistas (Mensal)</div>
+          <div class="card-header text-center">Evolução da Média de Notas dos Analistas (Mensal)</div>
           <div class="card-body">
             <canvas id="graficoNotas"></canvas>
           </div>
