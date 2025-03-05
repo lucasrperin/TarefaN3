@@ -165,6 +165,7 @@ foreach ($rows as $row) {
  
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 
+    <link rel="icon" href="Public\Image\icone2.png" type="image/png">
     
 </head>
 <body class="bg-light">

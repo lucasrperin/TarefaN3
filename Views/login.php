@@ -51,6 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <!-- Arquivo CSS personalizado -->
     <link rel="stylesheet" href="../Public/login.css">
+    <link rel="icon" href="..\Public\Image\icone2.png" type="image/png">
 </head>
 <body>
 

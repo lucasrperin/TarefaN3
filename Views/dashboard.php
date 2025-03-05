@@ -102,6 +102,7 @@ $resultado_grafico = $stmt_grafico->get_result();
   <title>Totalizadores</title>
   <!-- Arquivo CSS personalizado -->
   <link href="../Public/dashboard.css" rel="stylesheet">
+  <link rel="icon" href="..\Public\Image\icone2.png" type="image/png">
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Ícones personalizados -->
