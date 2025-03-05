@@ -13,7 +13,7 @@ $usuario_id = $_SESSION['usuario_id'];
 $sql_ranking = "SELECT 
                     a.idAtendente, 
                     u.Nome as usuario_nome, 
-                    FLOOR(AVG(a.Nota)*10)/10 as mediaNotas
+                    AVG(a.Nota) as mediaNotas
                 FROM TB_ANALISES a
                 JOIN TB_USUARIO u ON a.idAtendente = u.Id
                 WHERE a.Nota is not null
@@ -28,7 +28,20 @@ if ($result_ranking) {
 }
 
 // Ranking Geral de Nota
-$sql_media_geral = "SELECT AVG(Nota) as MediaGeral FROM TB_ANALISES WHERE Nota IS NOT NULL";
+$sql_media_geral = "SELECT 
+                        ROUND(AVG(mediaNotas), 2) AS MediaGeral
+                    FROM (
+                        SELECT 
+                            a.idAtendente, 
+                            u.Nome AS usuario_nome, 
+                            ROUND(AVG(a.Nota), 2) AS mediaNotas
+                        FROM TB_ANALISES a
+                        JOIN TB_USUARIO u ON a.idAtendente = u.Id
+                        WHERE a.Nota IS NOT NULL
+                        GROUP BY a.idAtendente, u.Nome
+                    ) AS sub;";
+                    
+
 $stmt_media = $conn->prepare($sql_media_geral);
 $stmt_media->execute();
 $resultado_media = $stmt_media->get_result()->fetch_assoc();

@@ -52,9 +52,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $totalHora = "0000-00-00 00:00:00";
     
                 $stmtFicha = $conn->prepare("INSERT INTO TB_ANALISES 
-                    (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha, chkParado, Nota) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmtFicha->bind_param("siiiiissssssi", $descricaoFicha, $situacaoFicha, $atendente, $sistema, $statusFicha, $idUsuario, $hora_ini, $hora_fim, $totalHora, $chkFicha, $numeroFicha, $chkParado, $nota);
+                    (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha, chkParado) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmtFicha->bind_param("siiiiissssss", $descricaoFicha, $situacaoFicha, $atendente, $sistema, $statusFicha, $idUsuario, $hora_ini, $hora_fim, $totalHora, $chkFicha, $numeroFicha, $chkParado);
                 $stmtFicha->execute();
                 $stmtFicha->close();
             }

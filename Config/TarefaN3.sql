@@ -53,9 +53,15 @@ CREATE TABLE TB_USUARIO
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Lucas Perin', 'lucas.perin@zucchetti.com', 1234, 'Admin');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Guilherme Ferri', 'guilherme.ferri@zucchetti.com', 1234, 'Admin');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Gabriel Battistella', 'gabriel.battistella@zucchetti.com', 1234, 'Admin');
-INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Leandro Haefliger', 'leandro.haefliger@zucchetti.com', 1234, 'User');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Bernardo Rachadel', 'bernardo.rachadel@zucchetti.com', 1234, 'Admin');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Douglas da Silva', 'douglas.silva@zucchetti.com', 1234, 'Viewer');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Vagner Wilske', 'vagner.wilske@zucchetti.com', 1234, 'Viewer');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Leandro Haefliger', 'leandro.haefliger@zucchetti.com', 1234, 'User');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Wesley Zamarchi', 'wesley.zamarchi@zucchetti.com', 1234, 'User');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Lucas Rossato', 'lucas.rossato@zucchetti.com', 1234, 'User');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Giselle', 'giselle.goetz@zucchetti.com', 1234, 'User');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Caio Oliveira', 'caio.oliveira@zucchetti.com', 1234, 'User');
+
 
 
 ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idSituacao) REFERENCES TB_SITUACAO (Id);

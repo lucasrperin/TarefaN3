@@ -52,12 +52,12 @@ if ($mediaValor >= 4.5) {
 
 // Consulta para obter fichas do usuário logado
 $sql_fichas = "SELECT
-            a.Id,
-            a.Descricao,
-            a.numeroFicha,
-            DATE_FORMAT(a.Hora_ini, '%d/%m %H:%i:%s') as Hora_ini
-        FROM TB_ANALISES a
-        WHERE a.idAtendente = ? AND a.idSituacao = 3";
+                  a.Id,
+                  a.Descricao,
+                  a.numeroFicha,
+                  DATE_FORMAT(a.Hora_ini, '%d/%m %H:%i:%s') as Hora_ini
+              FROM TB_ANALISES a
+              WHERE a.idAtendente = ? AND a.idSituacao = 3";
 $stmt_fichas = $conn->prepare($sql_fichas);
 $stmt_fichas->bind_param("i", $usuario_id);
 $stmt_fichas->execute();
@@ -77,12 +77,14 @@ foreach ($fichas_por_numero as $numeroFicha => $fichas) {
 
 // Consulta para ranking: top 5 usuários com maior média de notas
 // A média é truncada para uma casa decimal: FLOOR(AVG(a.Nota)*10)/10
-$sql_ranking = "SELECT a.idAtendente, u.Nome as usuario_nome, FLOOR(AVG(a.Nota)*10)/10 as mediaNotas
+$sql_ranking = "SELECT 
+                  a.idAtendente, 
+                  u.Nome as usuario_nome, 
+                  AVG(a.Nota) as mediaNotas
                 FROM TB_ANALISES a
                 JOIN TB_USUARIO u ON a.idAtendente = u.Id
                 GROUP BY a.idAtendente, u.Nome
-                ORDER BY mediaNotas DESC
-                LIMIT 5";
+                ORDER BY mediaNotas DESC";
 $result_ranking = $conn->query($sql_ranking);
 $ranking = [];
 if ($result_ranking) {
