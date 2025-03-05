@@ -26,89 +26,57 @@ ul.list-unstyled li .average {
     font-weight: normal;
 }
 
-.custom-card .card-title {
-    display: flex;
-    justify-content: center;
-    size: 1rem;
+
+/* Estilo personalizado para o ranking */
+.card {
+    border-radius: 10px; /* Bordas arredondadas */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
 }
 
-.cards-container {
-    display: flex;
-    flex-wrap: wrap; /* Permite quebra para telas pequenas */
-    justify-content: space-between; /* Distribui os cards */
-    gap: 10px; /* Espaçamento entre os cards */
+.card-ranking {
+    max-width: 310px;
 }
 
-/* Estilo geral do card */
-.custom-card {
-    display: flex;
-    border: 1px solid #007bff;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-}
-
-/* Estilos específicos para os headers */
-.custom-card .header-blue {
-    background-color: #85b6eb; /* cor exclusiva para o header do card azul */
-    color: #000;
-    border-bottom: 1px solid #727272;
-}
-
-.custom-card .header-white {
-    background-color: #87f1e9; /* cor exclusiva para o header do card branco */
-    color: #000;
-    border-bottom: 1px solid #727272;
-}
-
-/* Área de scroll do ranking */
-.custom-card .ranking-body {
-    max-height: 110px;
-    overflow-y: auto;
-    padding: 1px 5px;
-}
-
-/* Estilo para a lista sem marcadores */
-.no-list-style {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-
-.no-list-style li {
-    padding: 5px 0;
-}
-
-/* Estilo para a média exibida no ranking */
-.rank-media {
-    display: inline-flex;
-    background-color: #007bff;
-    color: white;
-    padding: 1px 10px;
-    border-radius: 10px;
+.card-title {
+    font-family: 'Arial', sans-serif;
     font-weight: bold;
-    font-size: 0.8em;
-    justify-items: flex-end;
+    color: #3f51b5; /* Índigo */
+    margin-bottom: 10px;
 }
 
-.position-number {
-    margin-left: 5px;
+.list-group-item {
+    font-family: 'Verdana', sans-serif;
+    font-size: 15px;
+    border: none;
+    border-bottom: 1px solid #ddd;
+    transition: background-color 0.3s ease;
 }
 
-.custom-card.ranking-card {
-    width: 100%; /* Para ocupar toda a largura da coluna */
-    max-width: 280px; /* Defina um valor máximo conforme necessário */
+.list-group-item:hover {
+    background-color: #f8f9fa;
 }
 
-.custom-card.ranking-media {
-   
-    max-width: 250px; /* Defina um valor máximo conforme necessário */
-    padding: 0px;
+.badge {
+    font-size: 0.7rem;
+    padding: 5px 10px;
+    font-weight: bold;
 }
-.chart-container {
-    width: 80%;
-    max-width: 900px;
-    height: 40vh; /* 40% da altura do viewport */
-    margin: auto;
-    position: relative;
+
+/* Scroll para ranking */
+.ranking-scroll {
+    max-height: 120px; /* Ajuste conforme necessário */
+    overflow-y: auto;
 }
+
+/* Personalização do scrollbar (Chrome, Edge, Safari) */
+.ranking-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+.ranking-scroll::-webkit-scrollbar-thumb {
+    background: #888; 
+    border-radius: 10px;
+}
+.ranking-scroll::-webkit-scrollbar-thumb:hover {
+    background: #555; 
+}
+

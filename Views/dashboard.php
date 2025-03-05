@@ -10,18 +10,22 @@ require '../Config/Database.php';
 $usuario_id = $_SESSION['usuario_id'];
 
 // Ranking de média por analista (apenas para exibição, sem links)
-$sql_ranking = "SELECT
-                    usu.Id AS idAtendente,
-                    usu.Nome AS Nome,
-                    AVG(tas.Nota) AS MediaNota
-                FROM TB_ANALISES tas
-                LEFT JOIN TB_USUARIO usu ON usu.Id = tas.idAtendente
-                WHERE tas.Nota IS NOT NULL
-                GROUP BY usu.Id, usu.Nome
-                ORDER BY MediaNota DESC";
-$stmt_ranking = $conn->prepare($sql_ranking);
-$stmt_ranking->execute();
-$resultado_ranking = $stmt_ranking->get_result();
+$sql_ranking = "SELECT 
+                    a.idAtendente, 
+                    u.Nome as usuario_nome, 
+                    FLOOR(AVG(a.Nota)*10)/10 as mediaNotas
+                FROM TB_ANALISES a
+                JOIN TB_USUARIO u ON a.idAtendente = u.Id
+                GROUP BY a.idAtendente, u.Nome
+                ORDER BY mediaNotas DESC
+                LIMIT 5";
+$result_ranking = $conn->query($sql_ranking);
+$ranking = [];
+if ($result_ranking) {
+    while ($row = $result_ranking->fetch_assoc()) {
+         $ranking[] = $row;
+    }
+}
 
 // Ranking Geral de Nota
 $sql_media_geral = "SELECT AVG(Nota) as MediaGeral FROM TB_ANALISES WHERE Nota IS NOT NULL";
@@ -167,36 +171,37 @@ $resultado_grafico = $stmt_grafico->get_result();
             </div>
         </div>
 
-        <!-- Bloco 2: Ranking de Analistas (apenas exibição) -->
-        <div class="ranking col-md-4">
-            <div class="card custom-card bg-white ranking-card">
-                <div class="card-header header-white">Ranking de Analistas</div>
-                <div class="card-body ranking-body">
-                    <ul class="no-list-style">
-                        <?php 
-                        $contador = 0;
-                        while ($analista = $resultado_ranking->fetch_assoc()) {
-                            $mediaNota = number_format($analista['MediaNota'], 2, '.', '');
-                            $medalha = '';
-                            $posicaoClass = '';
-                            if ($contador == 0) {
-                                $medalha = "🥇";
-                            } elseif ($contador == 1) {
-                                $medalha = "🥈";
-                            } elseif ($contador == 2) {
-                                $medalha = "🥉";
-                            }
-                            if ($contador >= 3) {
-                                $posicao = ($contador + 1) . "º";
-                                $posicaoClass = 'position-number';
+        <!-- Ranking dos Melhores Usuários -->
+        <div class="col-lg-6 mb-3">
+            <div class="card text-center card-ranking">
+                <div class="card-body">
+                <h5 class="card-title">Ranking</h5>
+                <?php if (count($ranking) > 0): ?>
+                    <div class="ranking-scroll"> <!-- Scroll aqui -->
+                    <ul class="list-group">
+                        <?php foreach ($ranking as $index => $rank): ?>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <?php
+                            if ($index == 0) {
+                                echo "🥇  " . $rank['usuario_nome'];
+                            } elseif ($index == 1) {
+                                echo "🥈  " . $rank['usuario_nome'];
+                            } elseif ($index == 2) {
+                                echo "🥉  " . $rank['usuario_nome'];
                             } else {
-                                $posicao = $medalha;
+                                echo ($index + 1) . "º  " . $rank['usuario_nome'];
                             }
-                            echo "<li><strong class='$posicaoClass'>$posicao</strong> {$analista['Nome']} <strong><span class='rank-media'>$mediaNota</span></strong></li>";
-                            $contador++;
-                        }
-                        ?>
+                            ?>
+                            <span class="badge bg-primary rounded-pill">
+                            <?php echo number_format($rank['mediaNotas'], 2, ',', '.'); ?>
+                            </span>
+                        </li>
+                        <?php endforeach; ?>
                     </ul>
+                    </div>
+                <?php else: ?>
+                    <p>Nenhum ranking disponível.</p>
+                <?php endif; ?>
                 </div>
             </div>
         </div>
