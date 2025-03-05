@@ -103,6 +103,7 @@ if ($result_ranking) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- CSS personalizado para a área do usuário -->
   <link rel="stylesheet" href="../Public/user.css">
+  <link rel="icon" href="..\Public\Image\icone2.png" type="image/png">
 </head>
 <body>
   <!-- Navbar -->
