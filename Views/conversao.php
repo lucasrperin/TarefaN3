@@ -29,30 +29,30 @@ $result = $conn->query("SELECT * FROM TB_CONVERSOES ORDER BY data_solicitacao DE
         function fecharModal() {
             $(".modal").hide();
         }
-        
-                    function salvarCadastro() {
-                $.post("cadastrar_conversao.php", $("#formCadastro").serialize(), function(response) {
-                    if (response.trim() === "success") {
-                        location.reload();
-                    } else {
-                        alert("Erro ao cadastrar: " + response);
-                    }
-                }).fail(function(jqXHR, textStatus, errorThrown) {
-                    alert("Erro AJAX: " + textStatus + " - " + errorThrown);
-                });
-            }
 
-            function salvarEdicao() {
-                $.post("editar_conversao.php", $("#formEdicao").serialize(), function(response) {
-                    if (response.trim() === "success") {
-                        location.reload();
-                    } else {
-                        alert("Erro ao editar: " + response);
-                    }
-                }).fail(function(jqXHR, textStatus, errorThrown) {
-                    alert("Erro AJAX: " + textStatus + " - " + errorThrown);
-                });
-            }
+        function salvarCadastro() {
+            $.post("cadastrar_conversao.php", $("#formCadastro").serialize(), function(response) {
+                if (response.trim() === "success") {
+                    location.reload();
+                } else {
+                    alert("Erro ao cadastrar: " + response);
+                }
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                alert("Erro AJAX: " + textStatus + " - " + errorThrown);
+            });
+        }
+
+        function salvarEdicao() {
+            $.post("editar_conversao.php", $("#formEdicao").serialize(), function(response) {
+                if (response.trim() === "success") {
+                    location.reload();
+                } else {
+                    alert("Erro ao editar: " + response);
+                }
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                alert("Erro AJAX: " + textStatus + " - " + errorThrown);
+            });
+        }
     </script>
     <style>
         .modal {
@@ -63,7 +63,6 @@ $result = $conn->query("SELECT * FROM TB_CONVERSOES ORDER BY data_solicitacao DE
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.5);
-            display: flex;
             align-items: center;
             justify-content: center;
         }
