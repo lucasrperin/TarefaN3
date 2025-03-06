@@ -98,6 +98,8 @@ INSERT INTO TB_SITUACAO (Descricao) VALUES ('Analise N3');
 INSERT INTO TB_SITUACAO (Descricao) VALUES ('Auxilio Suporte/Vendas');
 INSERT INTO TB_SITUACAO (Descricao) VALUES ('Ficha Criada');
 
+
+--Criação do controle de Conversão
 CREATE TABLE TB_SISTEMA_CONVER (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL UNIQUE

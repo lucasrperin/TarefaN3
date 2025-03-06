@@ -108,7 +108,6 @@ $analistas = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ORDER BY nome");
       $("#edit_data_conclusao").val(dataConclusao);
       $("#edit_analista").val(analistaID);
       $("#edit_observacao").val(observacao);
-
       $("#modalEdicao").modal('show');
     }
 
@@ -231,98 +230,123 @@ $analistas = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ORDER BY nome");
 
   <!-- MODAL CADASTRO -->
   <div class="modal fade" id="modalCadastro" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog">
       <div class="modal-content p-4">
         <h4 class="modal-title mb-3">Cadastrar Conversão</h4>
         <form id="formCadastro">
-          <div class="mb-3">
-            <label class="form-label">Email do Cliente:</label>
-            <input type="email" class="form-control" name="email_cliente" required>
+          <div class="row mb-3">
+            <div class="col-md-5">
+              <div class="mb-3">
+                <label class="form-label"><span>(Telefone/Email)</span></label>
+                <input type="text" class="form-control" name="contato" required>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label class="form-label">Serial / CNPJ:</label>
+                <input type="text" class="form-control" name="serial">
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="mb-3">
+                <label class="form-label">Retrabalho:</label>
+                <select name="retrabalho" class="form-select">
+                  <option value="Sim">Sim</option>
+                  <option value="Não" selected>Não</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label">Contato (telefone ou email):</label>
-            <input type="text" class="form-control" name="contato" required>
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label class="form-label">Sistema:</label>
+                <select name="sistema_id" class="form-select" required>
+                  <option value="">Selecione...</option>
+                  <?php
+                  // Reposiciona o ponteiro para listar sistemas de novo
+                  mysqli_data_seek($sistemas, 0);
+                  while ($sis = $sistemas->fetch_assoc()):
+                  ?>
+                    <option value="<?= $sis['id']; ?>"><?= $sis['nome']; ?></option>
+                  <?php endwhile; ?>
+                </select>
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="mb-3">
+                <label class="form-label">Prazo Entrega:</label>
+                <input type="datetime-local" class="form-control" name="prazo_entrega" required>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label class="form-label">Status:</label>
+                <select name="status_id" class="form-select" required>
+                  <option value="">Selecione...</option>
+                  <?php
+                  mysqli_data_seek($status, 0);
+                  while ($st = $status->fetch_assoc()):
+                  ?>
+                    <option value="<?= $st['id']; ?>"><?= $st['descricao']; ?></option>
+                  <?php endwhile; ?>
+                </select>
+              </div>
+            </div>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label">Serial / CNPJ:</label>
-            <input type="text" class="form-control" name="serial">
+          <div class="row mb-3">
+            <div class="col-md-3">
+              <div class="mb-3">
+                <label class="form-label">Data Recebido:</label>
+                <input type="datetime-local" class="form-control" name="data_recebido" required>
+              </div>
+            </div>
+            
+            <div class="col-md-3">
+              <div class="mb-3">
+                <label class="form-label">Data Início:</label>
+                <input type="datetime-local" class="form-control" name="data_inicio" required>
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="mb-3">
+                <label class="form-label">Data Conclusão:</label>
+                <input type="datetime-local" class="form-control" name="data_conclusao">
+              </div>
+            </div>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label">Retrabalho:</label>
-            <select name="retrabalho" class="form-select">
-              <option value="Sim">Sim</option>
-              <option value="Não" selected>Não</option>
-            </select>
-          </div>
+          <div class="row mb-3">
+            <div class="col-md-3">
+              <div class="mb-3">
+                <label class="form-label">Analista:</label>
+                <select name="analista_id" class="form-select" required>
+                  <option value="">Selecione...</option>
+                  <?php
+                  mysqli_data_seek($analistas, 0);
+                  while ($an = $analistas->fetch_assoc()):
+                  ?>
+                    <option value="<?= $an['id']; ?>"><?= $an['nome']; ?></option>
+                  <?php endwhile; ?>
+                </select>
+              </div>
+            </div>
 
-          <div class="mb-3">
-            <label class="form-label">Sistema:</label>
-            <select name="sistema_id" class="form-select" required>
-              <option value="">Selecione...</option>
-              <?php
-              // Reposiciona o ponteiro para listar sistemas de novo
-              mysqli_data_seek($sistemas, 0);
-              while ($sis = $sistemas->fetch_assoc()):
-              ?>
-                <option value="<?= $sis['id']; ?>"><?= $sis['nome']; ?></option>
-              <?php endwhile; ?>
-            </select>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Observação:</label>
+                <textarea name="observacao" class="form-control" rows="3"></textarea>
+              </div>
+            </div>
           </div>
-
-          <div class="mb-3">
-            <label class="form-label">Prazo Entrega:</label>
-            <input type="datetime-local" class="form-control" name="prazo_entrega" required>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Status:</label>
-            <select name="status_id" class="form-select" required>
-              <option value="">Selecione...</option>
-              <?php
-              mysqli_data_seek($status, 0);
-              while ($st = $status->fetch_assoc()):
-              ?>
-                <option value="<?= $st['id']; ?>"><?= $st['descricao']; ?></option>
-              <?php endwhile; ?>
-            </select>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Data Recebido:</label>
-            <input type="datetime-local" class="form-control" name="data_recebido" required>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Data Início:</label>
-            <input type="datetime-local" class="form-control" name="data_inicio" required>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Data Conclusão:</label>
-            <input type="datetime-local" class="form-control" name="data_conclusao">
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Analista:</label>
-            <select name="analista_id" class="form-select" required>
-              <option value="">Selecione...</option>
-              <?php
-              mysqli_data_seek($analistas, 0);
-              while ($an = $analistas->fetch_assoc()):
-              ?>
-                <option value="<?= $an['id']; ?>"><?= $an['nome']; ?></option>
-              <?php endwhile; ?>
-            </select>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Observação:</label>
-            <textarea name="observacao" class="form-control" rows="3"></textarea>
-          </div>
-
+                 
           <div class="text-end">
             <button type="button" class="btn btn-success" onclick="salvarCadastro()">Salvar</button>
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
