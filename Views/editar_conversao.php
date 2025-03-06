@@ -1,24 +1,74 @@
 <?php
 include '../Config/Database.php'; // Conexão com o banco de dados
 
+// (Opcional) debug de erros
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id = $_POST['id'];
-    $email = $_POST['email_cliente'];
-    $status = $_POST['status'];
-    $data_solicitacao = $_POST['data_solicitacao'];
-    $data_fim = $_POST['data_fim'] ?: NULL;
+    // Captura dos campos
+    $id             = $_POST['id'];
+    $email          = $_POST['email_cliente'];
+    $contato        = $_POST['contato'];
+    $serial         = $_POST['serial'] ?: NULL;
+    $retrabalho     = $_POST['retrabalho'];       // 'Sim' ou 'Não'
+    $sistema_id     = $_POST['sistema_id'];       // ID válido em TB_SISTEMA_CONVER
+    $prazo_entrega  = $_POST['prazo_entrega'];    // DATETIME
+    $status_id      = $_POST['status_id'];        // ID válido em TB_STATUS_CONVER
+    $data_recebido  = $_POST['data_recebido'];    // DATETIME
+    $data_inicio    = $_POST['data_inicio'];      // DATETIME
+    $data_conclusao = $_POST['data_conclusao'] ?: NULL; // DATETIME ou NULL
+    $analista_id    = $_POST['analista_id'];      // ID válido em TB_ANALISTA_CONVER
+    $observacao     = $_POST['observacao'];
 
-    $query = "UPDATE TB_CONVERSOES SET email_cliente=?, status=?, data_solicitacao=?, data_fim=? WHERE id=?";
+    // (Opcional) Depurar os valores recebidos
+    // var_dump($sistema_id, $status_id, $analista_id);
+    // exit; // Se quiser inspecionar
+
+    // Preparar e executar o UPDATE
+    $query = "
+        UPDATE TB_CONVERSOES
+           SET email_cliente=?,
+               contato=?,
+               serial=?,
+               retrabalho=?,
+               sistema_id=?,
+               prazo_entrega=?,
+               status_id=?,
+               data_recebido=?,
+               data_inicio=?,
+               data_conclusao=?,
+               analista_id=?,
+               observacao=?
+         WHERE id=?
+    ";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param('ssssi', $email, $status, $data_solicitacao, $data_fim, $id);
-    
+    if (!$stmt) {
+        echo "error: " . $conn->error;
+        exit;
+    }
+
+    $stmt->bind_param(
+        'ssssisssssssi',
+        $email,
+        $contato,
+        $serial,
+        $retrabalho,
+        $sistema_id,
+        $prazo_entrega,
+        $status_id,
+        $data_recebido,
+        $data_inicio,
+        $data_conclusao,
+        $analista_id,
+        $observacao,
+        $id
+    );
+
     if ($stmt->execute()) {
         echo "success";
     } else {
-        echo "error";
+        // Se der erro por chave estrangeira (FK), exibe qual foi
+        echo "error: " . $stmt->error;
     }
 }
