@@ -16,9 +16,22 @@ $sql_ranking = "SELECT
                     AVG(a.Nota) as mediaNotas
                 FROM TB_ANALISES a
                 JOIN TB_USUARIO u ON a.idAtendente = u.Id
-                WHERE a.Nota is not null
-                GROUP BY a.idAtendente, u.Nome
-                ORDER BY mediaNotas DESC";
+                WHERE a.Nota is not null";
+
+// Filtros por data
+if (!empty($_GET['data_inicio'])) {
+    $sql_ranking .= " AND a.Hora_ini >= '{$_GET['data_inicio']}'";
+}
+if (!empty($_GET['data_fim'])) {
+    $sql_ranking .= " AND a.Hora_ini <= '{$_GET['data_fim']}'";
+}
+// Filtro por analista
+if (!empty($_GET['analista'])) {
+    $sql_ranking .= " AND a.idAtendente = '{$_GET['analista']}'";
+}
+
+$sql_ranking .= " GROUP BY a.idAtendente, u.Nome
+                  ORDER BY mediaNotas DESC";
 $result_ranking = $conn->query($sql_ranking);
 $ranking = [];
 if ($result_ranking) {
@@ -26,6 +39,7 @@ if ($result_ranking) {
          $ranking[] = $row;
     }
 }
+
 
 // Ranking Geral de Nota
 $sql_media_geral = "SELECT 
@@ -37,24 +51,23 @@ $sql_media_geral = "SELECT
                             ROUND(AVG(a.Nota), 2) AS mediaNotas
                         FROM TB_ANALISES a
                         JOIN TB_USUARIO u ON a.idAtendente = u.Id
-                        WHERE a.Nota IS NOT NULL
-                        GROUP BY a.idAtendente, u.Nome
-                    ) AS sub;";
-                    
-
+                        WHERE a.Nota IS NOT NULL";
+                        // Filtros por data
+                        if (!empty($_GET['data_inicio'])) {
+                            $sql_media_geral .= " AND a.Hora_ini >= '{$_GET['data_inicio']}'";
+                        }
+                        if (!empty($_GET['data_fim'])) {
+                            $sql_media_geral .= " AND a.Hora_ini <= '{$_GET['data_fim']}'";
+                        }
+                        // Filtro por analista
+                        if (!empty($_GET['analista'])) {
+                            $sql_media_geral .= " AND a.idAtendente = '{$_GET['analista']}'";
+                        }
+                        $sql_media_geral .= " GROUP BY a.idAtendente, u.Nome) AS sub;";
 $stmt_media = $conn->prepare($sql_media_geral);
 $stmt_media->execute();
 $resultado_media = $stmt_media->get_result()->fetch_assoc();
 $media_geral = number_format($resultado_media['MediaGeral'], 2, '.', '');
-
-// Análises por período (não utilizado no gráfico, mas mantido)
-$sql_analises_mes = "SELECT DATE_FORMAT(Hora_ini, '%Y-%m') as Mes, COUNT(*) as Total
-                     FROM TB_ANALISES 
-                     GROUP BY Mes 
-                     ORDER BY Mes";
-$stmt_analises_mes = $conn->prepare($sql_analises_mes);
-$stmt_analises_mes->execute();
-$dados_analises = $stmt_analises_mes->get_result();
 
 // Filtro (para outras seções, se necessário)
 $sql_filtro = "SELECT * FROM TB_ANALISES WHERE 1=1";
@@ -72,7 +85,7 @@ $stmt_filtro->execute();
 $resultado_filtrado = $stmt_filtro->get_result();
 
 // Consulta para obter todos os usuários para a seção "Acessos aos Usuários"
-$sql_usuarios = "SELECT Id, Nome FROM TB_USUARIO WHERE CARGO = 'User'";
+$sql_usuarios = "SELECT Id, Nome FROM TB_USUARIO WHERE CARGO = 'User' ORDER BY Nome";
 $stmt_usuarios_acessos = $conn->prepare($sql_usuarios);
 $stmt_usuarios_acessos->execute();
 $resultado_usuarios_acessos = $stmt_usuarios_acessos->get_result();
@@ -83,23 +96,24 @@ $stmt_usuarios_dropdown->execute();
 $resultado_usuarios_dropdown = $stmt_usuarios_dropdown->get_result();
 
 // Consulta para obter a média de notas por analista e mês para o gráfico
-$sql_grafico = "
-    SELECT 
-        usu.Nome AS Nome,
-        DATE_FORMAT(tas.Hora_ini, '%Y-%m') AS Mes,
-        AVG(tas.Nota) AS MediaNota
-    FROM 
-        TB_ANALISES tas
-    LEFT JOIN 
-        TB_USUARIO usu ON usu.Id = tas.idAtendente
-    WHERE 
-        tas.Nota IS NOT NULL
-";
+$sql_grafico = "SELECT 
+                    usu.Nome AS Nome,
+                    DATE_FORMAT(tas.Hora_ini, '%Y-%m') AS Mes,
+                    AVG(tas.Nota) AS MediaNota
+                FROM 
+                    TB_ANALISES tas
+                LEFT JOIN 
+                    TB_USUARIO usu ON usu.Id = tas.idAtendente
+                WHERE 
+                    tas.Nota IS NOT NULL";
 if (!empty($_GET['data_inicio'])) {
     $sql_grafico .= " AND tas.Hora_ini >= '{$_GET['data_inicio']}'";
 }
 if (!empty($_GET['data_fim'])) {
     $sql_grafico .= " AND tas.Hora_ini <= '{$_GET['data_fim']}'";
+}
+if (!empty($_GET['analista'])) {
+    $sql_grafico .= " AND tas.idAtendente = '{$_GET['analista']}'";
 }
 $sql_grafico .= " GROUP BY usu.Nome, Mes ORDER BY Mes, Nome";
 
@@ -152,21 +166,35 @@ $resultado_grafico = $stmt_grafico->get_result();
 
   <!-- Filtro -->
   <form method="GET" class="container mt-4">
-    <div class="row g-3">
-      <div class="col-auto">
-        <label for="data_inicio" class="form-label">Período:</label>
-        <input type="date" name="data_inicio" id="data_inicio" class="form-control">
-      </div>
-      <div class="col-auto">
-        <label for="data_fim" class="form-label">Até:</label>
-        <input type="date" name="data_fim" id="data_fim" class="form-control">
-      </div>
-      <div class="col-auto align-self-end">
-        <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-        <a href="dashboard.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
-      </div>
-    </div>
-  </form>
+        <div class="row g-3">
+            <div class="col-auto">
+                <label for="data_inicio" class="form-label">Período:</label>
+                <input type="date" name="data_inicio" id="data_inicio" class="form-control" value="<?php echo isset($_GET['data_inicio']) ? $_GET['data_inicio'] : ''; ?>">
+            </div>
+            <div class="col-auto">
+                <label for="data_fim" class="form-label">Até:</label>
+                <input type="date" name="data_fim" id="data_fim" class="form-control" value="<?php echo isset($_GET['data_fim']) ? $_GET['data_fim'] : ''; ?>">
+            </div>
+            <div class="col-auto">
+                <label for="analista" class="form-label">Analista:</label>
+                <select name="analista" id="analista" class="form-select">
+                    <option value="">Selecione</option>
+                    <?php 
+                    // Certifique-se de que $resultado_usuarios_dropdown esteja disponível e
+                    // se necessário, armazene os resultados em um array para não esgotar o ponteiro.
+                    while ($row = $resultado_usuarios_dropdown->fetch_assoc()) { ?>
+                        <option value="<?php echo $row['Id']; ?>" <?php echo (isset($_GET['analista']) && $_GET['analista'] == $row['Id']) ? 'selected' : ''; ?>>
+                        <?php echo $row['Nome']; ?>
+                        </option>
+                    <?php } ?>
+                </select>
+            </div>
+            <div class="col-auto align-self-end">
+                <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+                <a href="dashboard.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
+            </div>
+        </div>
+    </form>
 
   <!-- Container com altura mínima para que as 3 colunas fiquem iguais -->
   <div class="container mt-4 equal-height-container">
