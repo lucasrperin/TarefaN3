@@ -19,12 +19,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($senha == $usuario['Senha']) {
             $_SESSION['usuario_id'] = $usuario['Id'];
             $_SESSION['usuario_nome'] = $usuario['Nome'];
+            $_SESSION['cargo'] = $usuario['Cargo']; // Armazena o cargo na sessão
 
             // Verifica o cargo do usuário e redireciona conforme o cargo
             if ($usuario['Cargo'] == 'Admin' || $usuario['Cargo'] == 'Viewer') {
                 header("Location: ../index.php");
             } elseif ($usuario['Cargo'] == 'User') {
                 header("Location: ../Views/user.php");
+            } elseif ($usuario['Cargo'] == 'Conversor') {
+                header("Location: ../Views/conversao.php");
             } else {
                 // Caso o cargo não seja reconhecido, redireciona para uma página padrão ou exibe uma mensagem
                 header("Location: ../index.php");
