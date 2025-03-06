@@ -9,6 +9,10 @@ if (!isset($_SESSION['usuario_id'])) {
     exit();
 }
 
+// Definir o cargo do usuário (supondo que ele esteja armazenado na sessão, com a chave "Cargo")
+$usuario_id = $_SESSION['usuario_id'];
+$cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
+
 // Captura os parâmetros do filtro, se enviados
 $data_inicio = isset($_GET['data_inicio']) ? $_GET['data_inicio'] : '';
 $data_fim    = isset($_GET['data_fim']) ? $_GET['data_fim'] : '';
@@ -32,7 +36,8 @@ $sql = "SELECT
             tas.idSistema AS idSistema,
             tas.idStatus AS idStatus,
             tas.chkParado as Parado,
-            tas.Nota as Nota
+            tas.Nota as Nota,
+            usu.Cargo as Cargo
         FROM TB_ANALISES tas
             LEFT JOIN TB_SITUACAO sit ON sit.Id = tas.idSituacao
             LEFT JOIN TB_SISTEMA sis ON sis.Id = tas.idSistema
@@ -219,6 +224,7 @@ document.addEventListener("DOMContentLoaded", function () {
             </button>
             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
                 <li><a class="dropdown-item" href="Views/dashboard.php">Totalizadores</a></li>
+                <li><a class="dropdown-item" href="Views/conversao.php">Conversão</a></li>
             </ul>
         </div>
         <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
@@ -313,7 +319,9 @@ document.addEventListener("DOMContentLoaded", function () {
       <h2 class="mb-0">Lista de Análises</h2>
     </div>
     <div class="col-4 text-end">
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">Cadastrar</button>
+        <?php if ($cargo === 'Admin'): ?>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">Cadastrar</button>
+        <?php endif; ?>
     </div>
   </div>
 </div>
@@ -334,7 +342,10 @@ document.addEventListener("DOMContentLoaded", function () {
               <th style="width:15%">Hora Início</th>
               <th style="width:15%">Hora Fim</th>
               <th style="width:10%">Total Horas</th>
-              <th>Ações</th>
+              <?php
+              if ($cargo === 'Admin') {
+                echo "<th>Ações</th>";
+                }?>
             </tr>
           </thead>
           <tbody>
@@ -350,22 +361,23 @@ document.addEventListener("DOMContentLoaded", function () {
                 echo "<td>" . $row["Hora_ini2"] . "</td>";
                 echo "<td>" . $row["Hora_fim2"] . "</td>";
                 echo "<td>" . $row["Total_hora"] . "</td>";
+                if ($cargo === 'Admin') {
                 echo "<td class='text-center'>";
-                // Botão de edição: passando os IDs para edição
-          
-                echo "<a href='javascript:void(0)' class='btn btn-outline-primary btn-sm' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick=\"editarAnalise(" 
-                     . $row['Codigo'] . ", '" 
-                     . addslashes($row['Descricao']) . "', '" 
-                     . $row['idSituacao'] . "', '" 
-                     . $row['idAtendente'] . "', '" 
-                     . $row['idSistema'] . "', '" 
-                     . $row['idStatus'] . "', '" 
-                     . $row['Hora_ini'] . "', '" 
-                     . $row['Hora_fim'] . "', '"
-                     . $row['Nota'] . "')\"><i class='fa-sharp fa-solid fa-pen'></i></a> ";
-                echo "<a href='javascript:void(0)' class='btn btn-outline-danger btn-sm' data-bs-toggle='modal' data-bs-target='#modalExclusao' onclick=\"excluirAnalise(" 
-                     . $row['Codigo'] .")\"><i class='fa-sharp fa-solid fa-trash'></i></a>";
+                    echo "<a href='javascript:void(0)' class='btn btn-outline-primary btn-sm' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick=\"editarAnalise(" 
+                         . $row['Codigo'] . ", '" 
+                         . addslashes($row['Descricao']) . "', '" 
+                         . $row['idSituacao'] . "', '" 
+                         . $row['idAtendente'] . "', '" 
+                         . $row['idSistema'] . "', '" 
+                         . $row['idStatus'] . "', '" 
+                         . $row['Hora_ini'] . "', '" 
+                         . $row['Hora_fim'] . "', '"
+                         . $row['Nota'] . "')\"><i class='fa-sharp fa-solid fa-pen'></i></a> ";
+                    echo "<a href='javascript:void(0)' class='btn btn-outline-danger btn-sm' data-bs-toggle='modal' data-bs-target='#modalExclusao' onclick=\"excluirAnalise(" 
+                         . $row['Codigo'] .")\"><i class='fa-sharp fa-solid fa-trash'></i></a>";
+                }
                 echo "</td>";
+                echo "</tr>";
               }
             }
             ?>

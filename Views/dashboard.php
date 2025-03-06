@@ -40,7 +40,6 @@ if ($result_ranking) {
     }
 }
 
-
 // Ranking Geral de Nota
 $sql_media_geral = "SELECT 
                         ROUND(AVG(mediaNotas), 2) AS MediaGeral
@@ -154,7 +153,7 @@ $resultado_grafico = $stmt_grafico->get_result();
           <span class="navbar-toggler-icon"></span>
         </button>
         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-          <li><a class="dropdown-item" href="../index.php">Tarefas N3</a></li>
+          <li><a class="dropdown-item" href="../index.php">Painel</a></li>
         </ul>
       </div>
       <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
@@ -270,7 +269,7 @@ $resultado_grafico = $stmt_grafico->get_result();
                             <?php while ($user = $resultado_usuarios_acessos->fetch_assoc()): ?>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span><?php echo $user['Nome']; ?></span>
-                                <form method="post" action="dashboard.php" style="margin: 0;">
+                                <form method="post" action="dashboard.php" style="margin: 0;" target="_blank">
                                     <input type="hidden" name="usuario_id" value="<?php echo $user['Id']; ?>">
                                     <button type="submit" class="btn btn-primary btn-sm ">Acessar</button>
                                 </form>
