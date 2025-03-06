@@ -98,17 +98,55 @@ INSERT INTO TB_SITUACAO (Descricao) VALUES ('Analise N3');
 INSERT INTO TB_SITUACAO (Descricao) VALUES ('Auxilio Suporte/Vendas');
 INSERT INTO TB_SITUACAO (Descricao) VALUES ('Ficha Criada');
 
+CREATE TABLE TB_SISTEMA_CONVER (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL UNIQUE
+);
+
+INSERT INTO TB_SISTEMA_CONVER (nome) VALUES
+    ('Conc. p/ ClippPro'), ('Clipp p/ ClippPro'), ('Zeta p/ ClippPro'), ('Conc. p/ ClippFácil'), ('Clipp p/ ClippFácil'),
+    ('Zeta p/ Clipp360'), ('Small p/ Clipp360'), ('Conc. p/ Clipp360'), ('Clipp p/ Clipp360'), ('Conc. p/ ClippMEI'),
+    ('Clipp p/ ClippMEI'), ('Clipp p/ ZetaWeb'), ('Conc p/ ZetaWeb'), ('Small p/ ZetaWeb'), ('Gdoor p/ ZetaWeb'),
+    ('Gdoor p/ ClippPro'), ('AC p/ Clipp360'), ('ClippMei p/ ClippPro'), ('AC p/ ClippPRO');
+
+CREATE TABLE TB_STATUS_CONVER (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    descricao VARCHAR(255) NOT NULL UNIQUE
+);
+
+INSERT INTO TB_STATUS_CONVER (descricao) VALUES
+    ('Concluído'), ('Aguardando cliente'), ('Analise'), ('Em fila'), ('Cancelada'),
+    ('Dar prioridade'), ('Aguardando Termos'), ('Ficha'), ('Fin - Aguar. Login');
+
+CREATE TABLE TB_ANALISTA_CONVER (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL UNIQUE
+);
+
+INSERT INTO TB_ANALISTA_CONVER (nome) VALUES
+    ('Douglas'), ('Ian'), ('Gabriel');
+
 CREATE TABLE TB_CONVERSOES (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email_cliente VARCHAR(255) NOT NULL,
-    status ENUM('Pendente', 'Em andamento', 'Concluído') NOT NULL,
-    data_solicitacao DATETIME NOT NULL,
-    data_fim DATETIME DEFAULT NULL,
-    tempo_total TIME GENERATED ALWAYS AS (TIMEDIFF(data_fim, data_solicitacao)) VIRTUAL
+    contato VARCHAR(255) NOT NULL,
+    serial VARCHAR(255) NULL,
+    retrabalho ENUM('Sim', 'Não') NOT NULL,
+    sistema_id INT NOT NULL,
+    prazo_entrega DATETIME NOT NULL,
+    status_id INT NOT NULL,
+    data_recebido DATETIME NOT NULL,
+    data_inicio DATETIME NOT NULL,
+    data_conclusao DATETIME NULL,
+    analista_id INT NOT NULL,
+    observacao TEXT NULL,
+    tempo_total TIME GENERATED ALWAYS AS (TIMEDIFF(data_conclusao, data_recebido)) VIRTUAL,
+    FOREIGN KEY (sistema_id) REFERENCES TB_SISTEMA_CONVER(id) ON DELETE CASCADE,
+    FOREIGN KEY (status_id) REFERENCES TB_STATUS_CONVER(id) ON DELETE CASCADE,
+    FOREIGN KEY (analista_id) REFERENCES TB_ANALISTA_CONVER(id) ON DELETE CASCADE
 );
 
 -- Índices para otimizar buscas
-CREATE INDEX idx_status ON TB_CONVERSOES(status);
-CREATE INDEX idx_data_solicitacao ON TB_CONVERSOES(data_solicitacao);
-
-
+CREATE INDEX idx_status ON TB_CONVERSOES(status_id);
+CREATE INDEX idx_data_recebido ON TB_CONVERSOES(data_recebido);
+CREATE INDEX idx_data_inicio ON TB_CONVERSOES(data_inicio);
