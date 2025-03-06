@@ -1,100 +1,200 @@
 <?php
-/*********************************************************
- * conversao.php
- * Página principal para Gerenciar Conversões
- * Usa TB_CONVERSOES com chaves estrangeiras em:
- *   - TB_SISTEMA_CONVER
- *   - TB_STATUS_CONVER
- *   - TB_ANALISTA_CONVER
- *********************************************************/
-include '../Config/Database.php'; // Ajuste conforme seu caminho
+include '../Config/Database.php';
 
-// (Opcional) Debug de erros
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-/*******************************************************
- * 1) TOTALIZAÇÕES
- *******************************************************/
-// Quantidade de conversões no mês
-$sqlQuantidade = "
-    SELECT COUNT(*) 
-      FROM TB_CONVERSOES
-     WHERE MONTH(data_recebido) = MONTH(NOW())
-";
-$total_conversoes = $conn->query($sqlQuantidade)->fetch_row()[0] ?? 0;
+/****************************************************************
+ * 1) Capturar Filtros (GET)
+ ****************************************************************/
+$dataInicial = isset($_GET['data_inicial']) ? $_GET['data_inicial'] : '';
+$dataFinal   = isset($_GET['data_final'])   ? $_GET['data_final']   : '';
+$analistaID  = isset($_GET['analista_id'])  ? intval($_GET['analista_id']) : 0;
 
-// Tempo médio no mês
-$sqlTempoMedio = "
-    SELECT SEC_TO_TIME(AVG(TIME_TO_SEC(tempo_total))) 
-      FROM TB_CONVERSOES
-     WHERE MONTH(data_recebido) = MONTH(NOW())
-";
-$tempo_medio = $conn->query($sqlTempoMedio)->fetch_row()[0] ?? 'N/A';
+/****************************************************************
+ * 2) Montar WHERE Dinâmico
+ ****************************************************************/
+$where = " WHERE 1=1 ";
+if (!empty($dataInicial)) {
+    $where .= " AND c.data_recebido >= '{$dataInicial} 00:00:00' ";
+}
+if (!empty($dataFinal)) {
+    $where .= " AND c.data_recebido <= '{$dataFinal} 23:59:59' ";
+}
+if ($analistaID > 0) {
+    $where .= " AND c.analista_id = {$analistaID} ";
+}
 
-/*******************************************************
- * 2) LISTAGEM DAS CONVERSÕES (JOIN nas FK)
- *******************************************************/
-$sqlListar = "
-    SELECT c.id,
-           c.email_cliente,
-           c.contato,
-           c.serial,
-           c.retrabalho,
-           c.sistema_id,
-           s.nome           AS sistema_nome,
-           c.prazo_entrega,
-           c.status_id,
-           st.descricao     AS status_nome,
-           c.data_recebido,
-           c.data_inicio,
-           c.data_conclusao,
-           c.analista_id,
-           a.nome           AS analista_nome,
-           c.observacao
+/****************************************************************
+ * 3) Dados do Gráfico (Mês x Analista)
+ ****************************************************************/
+$sqlGrafico = "
+    SELECT 
+        YEAR(c.data_recebido) AS ano,
+        MONTH(c.data_recebido) AS mes,
+        a.nome                AS analista_nome,
+        COUNT(*)             AS total
       FROM TB_CONVERSOES c
-      JOIN TB_SISTEMA_CONVER s  ON c.sistema_id  = s.id
-      JOIN TB_STATUS_CONVER st  ON c.status_id   = st.id
       JOIN TB_ANALISTA_CONVER a ON c.analista_id = a.id
-     ORDER BY c.data_recebido DESC
+      $where
+      GROUP BY YEAR(c.data_recebido), MONTH(c.data_recebido), c.analista_id
+      ORDER BY ano, mes, analista_nome
+";
+$resGraf = $conn->query($sqlGrafico);
+
+$dataPorMesAnalista = [];
+$analistasDistinct  = [];
+while ($rowG = $resGraf->fetch_assoc()) {
+    $ano  = $rowG['ano'];
+    $mes  = $rowG['mes'];
+    $anal = $rowG['analista_nome'];
+    $tot  = $rowG['total'];
+
+    $rotuloMes = sprintf("%04d-%02d", $ano, $mes);
+    if (!isset($dataPorMesAnalista[$rotuloMes])) {
+        $dataPorMesAnalista[$rotuloMes] = [];
+    }
+    $dataPorMesAnalista[$rotuloMes][$anal] = $tot;
+    $analistasDistinct[$anal] = true;
+}
+
+$labelsMes = array_keys($dataPorMesAnalista);
+sort($labelsMes);
+
+$listaAnalistas = array_keys($analistasDistinct);
+sort($listaAnalistas);
+
+// Montar datasets p/ Chart.js
+$chartDatasets = [];
+$cores = ["#d9534f","#5bc0de","#5cb85c","#f0ad4e","#0275d8","#292b2c","#7f7f7f"];
+$corIndex = 0;
+foreach ($listaAnalistas as $anal) {
+    $dataVals = [];
+    foreach ($labelsMes as $m) {
+        $val = isset($dataPorMesAnalista[$m][$anal]) ? $dataPorMesAnalista[$m][$anal] : 0;
+        $dataVals[] = $val;
+    }
+    $chartDatasets[] = [
+        'label' => $anal,
+        'backgroundColor' => $cores[$corIndex % count($cores)],
+        'data' => $dataVals
+    ];
+    $corIndex++;
+}
+
+/****************************************************************
+ * 4) TOTALIZADORES GERAIS (Quantidade, Tempo Médio)
+ ****************************************************************/
+$sqlQtd = "
+    SELECT COUNT(*)
+      FROM TB_CONVERSOES c
+      $where
+";
+$total_conversoes = $conn->query($sqlQtd)->fetch_row()[0] ?? 0;
+
+$sqlTempo = "
+    SELECT SEC_TO_TIME(AVG(TIME_TO_SEC(tempo_total)))
+      FROM TB_CONVERSOES c
+      $where
+";
+$tempo_medio = $conn->query($sqlTempo)->fetch_row()[0] ?? 'N/A';
+
+/****************************************************************
+ * 5) Totalizadores por Status
+ ****************************************************************/
+$sqlStatusTot = "
+    SELECT st.descricao AS status_nome,
+           COUNT(*)     AS total
+      FROM TB_CONVERSOES c
+      JOIN TB_STATUS_CONVER st ON c.status_id = st.id
+      $where
+      GROUP BY c.status_id
+      ORDER BY st.descricao
+";
+$resStatusTot = $conn->query($sqlStatusTot);
+
+/****************************************************************
+ * 6) Totalizadores por Sistema
+ ****************************************************************/
+$sqlSistemaTot = "
+    SELECT s.nome AS sistema_nome,
+           COUNT(*) AS total
+      FROM TB_CONVERSOES c
+      JOIN TB_SISTEMA_CONVER s ON c.sistema_id = s.id
+      $where
+      GROUP BY c.sistema_id
+      ORDER BY s.nome
+";
+$resSistemaTot = $conn->query($sqlSistemaTot);
+
+/****************************************************************
+ * 7) LISTA DE CONVERSOES
+ ****************************************************************/
+$sqlListar = "
+  SELECT c.id,
+         c.contato,
+         c.serial,
+         c.sistema_id,
+         s.nome       AS sistema_nome,
+         c.prazo_entrega,
+         c.status_id,
+         st.descricao AS status_nome,
+         c.data_recebido,
+         c.data_inicio,
+         c.data_conclusao,
+         c.analista_id,
+         a.nome       AS analista_nome,
+         c.email_cliente,
+         c.retrabalho,
+         c.observacao
+    FROM TB_CONVERSOES c
+    JOIN TB_SISTEMA_CONVER s  ON c.sistema_id  = s.id
+    JOIN TB_STATUS_CONVER st  ON c.status_id   = st.id
+    JOIN TB_ANALISTA_CONVER a ON c.analista_id = a.id
+    $where
+   ORDER BY c.data_recebido DESC
 ";
 $result = $conn->query($sqlListar);
 
-/*******************************************************
- * 3) CARREGAR LISTAS (SISTEMA, STATUS, ANALISTAS)
- *    para preencher os <select> nos modais
- *******************************************************/
-$sistemas = $conn->query("SELECT * FROM TB_SISTEMA_CONVER ORDER BY nome");
-$status  = $conn->query("SELECT * FROM TB_STATUS_CONVER ORDER BY descricao");
+/****************************************************************
+ * 8) Listas p/ selects (Sistemas, Status, Analistas)
+ ****************************************************************/
+$sistemas  = $conn->query("SELECT * FROM TB_SISTEMA_CONVER ORDER BY nome");
+$status    = $conn->query("SELECT * FROM TB_STATUS_CONVER ORDER BY descricao");
 $analistas = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ORDER BY nome");
 
+// Para o filtro
+$analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ORDER BY nome");
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Gerenciar Conversões</title>
-
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+  <!-- CSS externo minimalista -->
+  <link rel="stylesheet" href="../Public/conversao.css">
 
   <script>
-    // Abre o modal de cadastro
+    // Mostra modal de cadastro
     function abrirModalCadastro() {
       $("#modalCadastro").modal('show');
     }
 
-    // Abre o modal de edição, passando ID e DEMAIS CAMPOS
-    // Ao final, definimos os selects para o ID correto
+    // Mostra modal de edição
     function abrirModalEdicao(
       id, email, contato, serial, retrabalho,
       sistemaID, prazoEntrega, statusID,
       dataRecebido, dataInicio, dataConclusao,
       analistaID, observacao
     ) {
+      // Preenche campos do modal Edição
       $("#edit_id").val(id);
       $("#edit_email_cliente").val(email);
       $("#edit_contato").val(contato);
@@ -111,122 +211,196 @@ $analistas = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ORDER BY nome");
       $("#modalEdicao").modal('show');
     }
 
-    // Salvar Cadastro via AJAX
+    // AJAX: Salvar Cadastro
     function salvarCadastro() {
       $.post("cadastrar_conversao.php",
-             $("#formCadastro").serialize(),
-             function(response) {
-               if (response.trim() === "success") {
-                 location.reload();
-               } else {
-                 alert("Erro ao cadastrar: " + response);
-               }
-             }
+        $("#formCadastro").serialize(),
+        function(response) {
+          if (response.trim() === "success") {
+            location.reload();
+          } else {
+            alert("Erro ao cadastrar: " + response);
+          }
+        }
       ).fail(function(jqXHR, textStatus, errorThrown) {
         alert("Erro AJAX [cadastro]: " + textStatus + " - " + errorThrown);
       });
     }
 
-    // Salvar Edição via AJAX
+    // AJAX: Salvar Edição
     function salvarEdicao() {
       $.post("editar_conversao.php",
-             $("#formEdicao").serialize(),
-             function(response) {
-               if (response.trim() === "success") {
-                 location.reload();
-               } else {
-                 alert("Erro ao editar: " + response);
-               }
-             }
+        $("#formEdicao").serialize(),
+        function(response) {
+          if (response.trim() === "success") {
+            location.reload();
+          } else {
+            alert("Erro ao editar: " + response);
+          }
+        }
       ).fail(function(jqXHR, textStatus, errorThrown) {
         alert("Erro AJAX [edição]: " + textStatus + " - " + errorThrown);
       });
     }
   </script>
 </head>
-<body class="container mt-4">
-
-  <!-- Título e Totalizadores -->
+<body>
+<div class="container mt-4">
   <h1 class="text-center mb-4">Gerenciar Conversões</h1>
 
-  <div class="row mb-3">
+  <!-- FILTRO GLOBAL -->
+  <form method="GET" class="row gy-2 gx-2 mb-4">
+    <div class="col-md-3">
+      <label>Data Inicial</label>
+      <input type="date" name="data_inicial" value="<?= htmlspecialchars($dataInicial) ?>" class="form-control">
+    </div>
+    <div class="col-md-3">
+      <label>Data Final</label>
+      <input type="date" name="data_final" value="<?= htmlspecialchars($dataFinal) ?>" class="form-control">
+    </div>
+    <div class="col-md-3">
+      <label>Analista</label>
+      <select name="analista_id" class="form-select">
+        <option value="0">-- Todos --</option>
+        <?php while ($anF = $analistasFiltro->fetch_assoc()): ?>
+          <option value="<?= $anF['id'] ?>"
+            <?= ($analistaID == $anF['id']) ? 'selected' : '' ?>>
+            <?= $anF['nome'] ?>
+          </option>
+        <?php endwhile; ?>
+      </select>
+    </div>
+    <div class="col-md-3 d-flex align-items-end">
+      <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+    </div>
+  </form>
+
+  <!-- ROW: Grafico à esquerda (col-md-8), Lista de totalizadores (status/sistema) à direita (col-md-4) -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Conversões Mensais por Analista</h5>
+          <canvas id="chartBarras" height="100"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <!-- Lista de totalizadores por status -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2 text-muted">Conversões por Status</h6>
+          <ul class="list-group">
+            <?php while ($rowSt = $resStatusTot->fetch_assoc()): ?>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <?= $rowSt['status_nome'] ?>
+              <span class="badge bg-primary rounded-pill"><?= $rowSt['total'] ?></span>
+            </li>
+            <?php endwhile; ?>
+          </ul>
+        </div>
+      </div>
+      <!-- Lista de totalizadores por sistema -->
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2 text-muted">Conversões por Sistema</h6>
+          <ul class="list-group">
+            <?php while ($rowSys = $resSistemaTot->fetch_assoc()): ?>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <?= $rowSys['sistema_nome'] ?>
+              <span class="badge bg-secondary rounded-pill"><?= $rowSys['total'] ?></span>
+            </li>
+            <?php endwhile; ?>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div><!-- .row -->
+
+  <!-- Totalizadores Gerais (Qtd, Tempo Médio) -->
+  <div class="row g-3 mb-3 card-total">
     <div class="col-md-6">
-      <div class="card p-3 text-center bg-primary text-white">
-        <h5 class="fw-bold">Total de Conversões (Mês)</h5>
-        <h3><?= $total_conversoes; ?></h3>
+      <div class="card text-white bg-primary">
+        <div class="card-body text-center">
+          <h5 class="card-title">Total de Conversões (Filtro)</h5>
+          <h3 class="card-text"><?= $total_conversoes; ?></h3>
+        </div>
       </div>
     </div>
     <div class="col-md-6">
-      <div class="card p-3 text-center bg-success text-white">
-        <h5 class="fw-bold">Tempo Médio (Mês)</h5>
-        <h3><?= $tempo_medio; ?></h3>
+      <div class="card text-white bg-success">
+        <div class="card-body text-center">
+          <h5 class="card-title">Tempo Médio (Filtro)</h5>
+          <h3 class="card-text"><?= $tempo_medio; ?></h3>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Botão para abrir modal de cadastro -->
-  <button class="btn btn-primary mb-3" onclick="abrirModalCadastro()">Cadastrar Nova Conversão</button>
+  <!-- Botão Cadastrar -->
+  <div class="d-flex justify-content-end mb-3">
+    <button class="btn btn-primary" onclick="abrirModalCadastro()">Cadastrar</button>
+  </div>
 
-  <!-- Tabela de conversões -->
-  <table class="table table-bordered table-striped">
-    <thead class="table-dark">
-      <tr>
-        <th>ID</th>
-        <th>Email</th>
-        <th>Contato</th>
-        <th>Serial/CNPJ</th>
-        <th>Retrabalho</th>
-        <th>Sistema</th>
-        <th>Prazo Entrega</th>
-        <th>Status</th>
-        <th>Data Recebido</th>
-        <th>Data Início</th>
-        <th>Data Conclusão</th>
-        <th>Analista</th>
-        <th>Observação</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php while ($row = $result->fetch_assoc()): ?>
-      <tr>
-        <td><?= $row['id']; ?></td>
-        <td><?= $row['email_cliente']; ?></td>
-        <td><?= $row['contato']; ?></td>
-        <td><?= $row['serial']; ?></td>
-        <td><?= $row['retrabalho']; ?></td>
-        <td><?= $row['sistema_nome']; ?></td>
-        <td><?= $row['prazo_entrega']; ?></td>
-        <td><?= $row['status_nome']; ?></td>
-        <td><?= $row['data_recebido']; ?></td>
-        <td><?= $row['data_inicio']; ?></td>
-        <td><?= $row['data_conclusao']; ?></td>
-        <td><?= $row['analista_nome']; ?></td>
-        <td><?= $row['observacao']; ?></td>
-        <td>
-          <button class="btn btn-warning"
-            onclick="abrirModalEdicao(
-              '<?= $row['id'] ?>',
-              '<?= $row['email_cliente'] ?>',
-              '<?= $row['contato'] ?>',
-              '<?= $row['serial'] ?>',
-              '<?= $row['retrabalho'] ?>',
-              '<?= $row['sistema_id'] ?>',      /* ID real do sistema */
-              '<?= $row['prazo_entrega'] ?>',
-              '<?= $row['status_id'] ?>',       /* ID real do status */
-              '<?= $row['data_recebido'] ?>',
-              '<?= $row['data_inicio'] ?>',
-              '<?= $row['data_conclusao'] ?>',
-              '<?= $row['analista_id'] ?>',     /* ID real do analista */
-              '<?= addslashes($row['observacao']) ?>'
-            )">
-            Editar
-          </button>
-        </td>
-      </tr>
-      <?php endwhile; ?>
-    </tbody>
-  </table>
+  <!-- Tabela de Conversões -->
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>Contato</th>
+              <th>Serial/CNPJ</th>
+              <th>Sistema</th>
+              <th>Prazo</th>
+              <th>Status</th>
+              <th>Recebido</th>
+              <th>Início</th>
+              <th>Conclusão</th>
+              <th>Analista</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php while ($row = $result->fetch_assoc()): ?>
+            <tr>
+              <td><?= $row['contato']; ?></td>
+              <td><?= $row['serial']; ?></td>
+              <td><?= $row['sistema_nome']; ?></td>
+              <td><?= $row['prazo_entrega']; ?></td>
+              <td><?= $row['status_nome']; ?></td>
+              <td><?= $row['data_recebido']; ?></td>
+              <td><?= $row['data_inicio']; ?></td>
+              <td><?= $row['data_conclusao']; ?></td>
+              <td><?= $row['analista_nome']; ?></td>
+              <td>
+                <button class="btn btn-warning btn-sm"
+                  onclick="abrirModalEdicao(
+                    '<?= $row['id'] ?>',
+                    '<?= $row['email_cliente'] ?>',
+                    '<?= $row['contato'] ?>',
+                    '<?= $row['serial'] ?>',
+                    '<?= $row['retrabalho'] ?>',
+                    '<?= $row['sistema_id'] ?>',
+                    '<?= $row['prazo_entrega'] ?>',
+                    '<?= $row['status_id'] ?>',
+                    '<?= $row['data_recebido'] ?>',
+                    '<?= $row['data_inicio'] ?>',
+                    '<?= $row['data_conclusao'] ?>',
+                    '<?= $row['analista_id'] ?>',
+                    '<?= addslashes($row['observacao']) ?>'
+                  )">
+                  Editar
+                </button>
+              </td>
+            </tr>
+            <?php endwhile; ?>
+          </tbody>
+        </table>
+      </div><!-- .table-responsive -->
+    </div><!-- .card-body -->
+  </div><!-- .card -->
+</div><!-- .container -->
 
   <!-- MODAL CADASTRO -->
   <div class="modal fade" id="modalCadastro" tabindex="-1">
@@ -356,112 +530,127 @@ $analistas = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ORDER BY nome");
     </div>
   </div>
 
-  <!-- MODAL EDIÇÃO -->
-  <div class="modal fade" id="modalEdicao" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content p-4">
-        <h4 class="modal-title mb-3">Editar Conversão</h4>
-        <form id="formEdicao">
-          <input type="hidden" id="edit_id" name="id">
-
-          <div class="mb-3">
-            <label class="form-label">Email do Cliente:</label>
-            <input type="email" class="form-control" id="edit_email_cliente" name="email_cliente" required>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Contato (telefone ou email):</label>
-            <input type="text" class="form-control" id="edit_contato" name="contato" required>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Serial / CNPJ:</label>
-            <input type="text" class="form-control" id="edit_serial" name="serial">
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Retrabalho:</label>
-            <select id="edit_retrabalho" name="retrabalho" class="form-select">
-              <option value="Sim">Sim</option>
-              <option value="Não">Não</option>
-            </select>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Sistema:</label>
-            <select id="edit_sistema" name="sistema_id" class="form-select" required>
-              <option value="">Selecione...</option>
-              <?php
-              // Precisamos reposicionar ponteiro de $sistemas novamente
-              mysqli_data_seek($sistemas, 0);
-              while ($sisE = $sistemas->fetch_assoc()):
-              ?>
-                <option value="<?= $sisE['id']; ?>"><?= $sisE['nome']; ?></option>
-              <?php endwhile; ?>
-            </select>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Prazo Entrega:</label>
-            <input type="datetime-local" class="form-control" id="edit_prazo_entrega" name="prazo_entrega" required>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Status:</label>
-            <select id="edit_status" name="status_id" class="form-select" required>
-              <option value="">Selecione...</option>
-              <?php
-              mysqli_data_seek($status, 0);
-              while ($stE = $status->fetch_assoc()):
-              ?>
-                <option value="<?= $stE['id']; ?>"><?= $stE['descricao']; ?></option>
-              <?php endwhile; ?>
-            </select>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Data Recebido:</label>
-            <input type="datetime-local" class="form-control" id="edit_data_recebido" name="data_recebido" required>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Data Início:</label>
-            <input type="datetime-local" class="form-control" id="edit_data_inicio" name="data_inicio" required>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Data Conclusão:</label>
-            <input type="datetime-local" class="form-control" id="edit_data_conclusao" name="data_conclusao">
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Analista:</label>
-            <select id="edit_analista" name="analista_id" class="form-select" required>
-              <option value="">Selecione...</option>
-              <?php
-              mysqli_data_seek($analistas, 0);
-              while ($anE = $analistas->fetch_assoc()):
-              ?>
-                <option value="<?= $anE['id']; ?>"><?= $anE['nome']; ?></option>
-              <?php endwhile; ?>
-            </select>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Observação:</label>
-            <textarea id="edit_observacao" class="form-control" name="observacao" rows="3"></textarea>
-          </div>
-
-          <div class="text-end">
-            <button type="button" class="btn btn-success" onclick="salvarEdicao()">Salvar</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-          </div>
-        </form>
-      </div>
+<!-- MODAL EDICAO -->
+<div class="modal fade" id="modalEdicao" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content p-4">
+      <h4 class="modal-title mb-3">Editar Conversão</h4>
+      <form id="formEdicao">
+        <input type="hidden" id="edit_id" name="id">
+        <div class="mb-3">
+          <label class="form-label">E-mail do Cliente:</label>
+          <input type="email" class="form-control" id="edit_email_cliente" name="email_cliente" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Contato:</label>
+          <input type="text" class="form-control" id="edit_contato" name="contato" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Serial / CNPJ:</label>
+          <input type="text" class="form-control" id="edit_serial" name="serial">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Retrabalho:</label>
+          <select id="edit_retrabalho" name="retrabalho" class="form-select">
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Sistema:</label>
+          <select id="edit_sistema" name="sistema_id" class="form-select" required>
+            <option value="">Selecione...</option>
+            <?php
+            mysqli_data_seek($sistemas, 0);
+            while ($sisE = $sistemas->fetch_assoc()):
+            ?>
+              <option value="<?= $sisE['id']; ?>"><?= $sisE['nome']; ?></option>
+            <?php endwhile; ?>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Prazo Entrega:</label>
+          <input type="datetime-local" class="form-control" id="edit_prazo_entrega" name="prazo_entrega" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Status:</label>
+          <select id="edit_status" name="status_id" class="form-select" required>
+            <option value="">Selecione...</option>
+            <?php
+            mysqli_data_seek($status, 0);
+            while ($stE = $status->fetch_assoc()):
+            ?>
+              <option value="<?= $stE['id']; ?>"><?= $stE['descricao']; ?></option>
+            <?php endwhile; ?>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Data Recebido:</label>
+          <input type="datetime-local" class="form-control" id="edit_data_recebido" name="data_recebido" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Data Início:</label>
+          <input type="datetime-local" class="form-control" id="edit_data_inicio" name="data_inicio" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Data Conclusão:</label>
+          <input type="datetime-local" class="form-control" id="edit_data_conclusao" name="data_conclusao">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Analista:</label>
+          <select id="edit_analista" name="analista_id" class="form-select" required>
+            <option value="">Selecione...</option>
+            <?php
+            mysqli_data_seek($analistas, 0);
+            while ($anE = $analistas->fetch_assoc()):
+            ?>
+              <option value="<?= $anE['id']; ?>"><?= $anE['nome']; ?></option>
+            <?php endwhile; ?>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Observação:</label>
+          <textarea id="edit_observacao" class="form-control" name="observacao" rows="3"></textarea>
+        </div>
+        <div class="text-end">
+          <button type="button" class="btn btn-success" onclick="salvarEdicao()">Salvar</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Bootstrap JS (para modal etc.) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+/*******************************************************
+ * Renderizar Gráfico com Chart.js
+ *******************************************************/
+let labelsMes = <?= json_encode($labelsMes); ?>;
+let chartDatasets = <?= json_encode($chartDatasets); ?>;
+
+let ctx = document.getElementById('chartBarras').getContext('2d');
+let chartBarras = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: labelsMes,
+    datasets: chartDatasets
+  },
+  options: {
+    responsive: true,
+    scales: {
+      x: {
+        title: { display: true, text: 'Mês (ano-mês)' }
+      },
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Quantidade' }
+      }
+    }
+  }
+});
+</script>
 </body>
 </html>

@@ -1,0 +1,58 @@
+/* conversao.css - Layout limpo e minimalista para conversao.php */
+
+/* Fundo suave para a página */
+body {
+    background-color: #f8f9fa; /* Cinza bem claro do Bootstrap */
+    margin: 0;
+    padding: 0;
+}
+
+/* Cartões de totalizadores com borda sutil e fundo branco */
+.card-total {
+    border: 1px solid #dee2e6;
+    background: #ffffff;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Título menor e espaçamento entre título e valor no card */
+.card-total h6 {
+    margin-bottom: 0.5rem;
+    color: #6c757d; /* Texto levemente acinzentado */
+}
+
+/* Tabela hover com fundo levemente mais claro ao passar o mouse */
+.table-hover tbody tr:hover {
+    background-color: #f1f1f1; /* Cinza clarinho */
+}
+
+/* Botões com bordas mais suaves */
+.btn {
+    border-radius: 4px;
+}
+
+/* Modal com bordas suaves */
+.modal-content {
+    border-radius: 6px;
+}
+
+/* Ajustes no card principal da lista de conversões */
+.card {
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    margin-bottom: 20px;
+}
+
+.card .card-body {
+    padding: 1rem;
+}
+
+.card .card-title {
+    margin-bottom: 1rem;
+}
+
+/* Ajuste do texto do cabeçalho da tabela (table-light) */
+.table thead th {
+    vertical-align: middle;
+}
