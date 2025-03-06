@@ -343,7 +343,7 @@ document.addEventListener("DOMContentLoaded", function () {
               <th style="width:15%">Hora Fim</th>
               <th style="width:10%">Total Horas</th>
               <?php
-              if ($cargo === 'Admin') {
+              if ($cargo === 'Admin') { //Se o cargo for ADM apresenta o menu ações
                 echo "<th>Ações</th>";
                 }?>
             </tr>
@@ -361,7 +361,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 echo "<td>" . $row["Hora_ini2"] . "</td>";
                 echo "<td>" . $row["Hora_fim2"] . "</td>";
                 echo "<td>" . $row["Total_hora"] . "</td>";
-                if ($cargo === 'Admin') {
+                if ($cargo === 'Admin') { //Se o cargo for ADM apresenta o menu ações
                 echo "<td class='text-center'>";
                     echo "<a href='javascript:void(0)' class='btn btn-outline-primary btn-sm' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick=\"editarAnalise(" 
                          . $row['Codigo'] . ", '" 
@@ -383,10 +383,10 @@ document.addEventListener("DOMContentLoaded", function () {
             ?>
           </tbody>
         </table>
-      </div> <!-- /.table-responsive -->
-    </div> <!-- /.card-body -->
-  </div> <!-- /.card -->
-</div> <!-- /.container -->
+      </div> 
+    </div> 
+  </div> 
+</div> 
 
 
 <script>

@@ -65,7 +65,7 @@ INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Caio Oliveira', 'cai
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Eduardo Forcellini', 'eduardo.forcellini@zucchetti.com', 1234, 'User');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Antonio Zampeze', 'antonio.zampeze@zucchetti.com', 1234, 'User');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Gabriel Deggerone', 'gabriel.deggerone@zucchetti.com', 1234, 'User');
-
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Douglas Santana', 'douglas.santana@zucchetti.com', 1234, 'Conversor');
 
 ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idSituacao) REFERENCES TB_SITUACAO (Id);
 ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idSistema) REFERENCES TB_SISTEMA (Id);
