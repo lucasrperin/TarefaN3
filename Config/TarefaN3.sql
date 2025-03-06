@@ -98,3 +98,17 @@ INSERT INTO TB_SITUACAO (Descricao) VALUES ('Analise N3');
 INSERT INTO TB_SITUACAO (Descricao) VALUES ('Auxilio Suporte/Vendas');
 INSERT INTO TB_SITUACAO (Descricao) VALUES ('Ficha Criada');
 
+CREATE TABLE TB_CONVERSOES (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email_cliente VARCHAR(255) NOT NULL,
+    status ENUM('Pendente', 'Em andamento', 'Concluído') NOT NULL,
+    data_solicitacao DATETIME NOT NULL,
+    data_fim DATETIME DEFAULT NULL,
+    tempo_total TIME GENERATED ALWAYS AS (TIMEDIFF(data_fim, data_solicitacao)) VIRTUAL
+);
+
+-- Índices para otimizar buscas
+CREATE INDEX idx_status ON TB_CONVERSOES(status);
+CREATE INDEX idx_data_solicitacao ON TB_CONVERSOES(data_solicitacao);
+
+
