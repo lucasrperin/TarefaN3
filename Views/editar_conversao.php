@@ -1,4 +1,5 @@
 <?php
+session_start();
 include '../Config/Database.php'; // Conexão com o banco de dados
 
 // (Opcional) debug de erros
@@ -19,10 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data_conclusao = $_POST['data_conclusao'] ?: NULL; // DATETIME ou NULL
     $analista_id    = $_POST['analista_id'];      // ID válido em TB_ANALISTA_CONVER
     $observacao     = $_POST['observacao'];
-
-    // (Opcional) Depurar os valores recebidos
-    // var_dump($sistema_id, $status_id, $analista_id);
-    // exit; // Se quiser inspecionar
 
     // Preparar e executar o UPDATE
     $query = "UPDATE TB_CONVERSOES
@@ -46,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $stmt->bind_param(
-        'sssisssssssi',
+        'sssisisssisi',
         $contato,
         $serial,
         $retrabalho,
@@ -60,7 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $observacao,
         $id
     );
-
     if ($stmt->execute()) {
         echo "success";
     } else {

@@ -1,6 +1,7 @@
 <?php
-include '../Config/Database.php'; // Conexão com o banco de dados
 session_start();
+include '../Config/Database.php'; // Conexão com o banco de dados
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $contato = $_POST['contato'];

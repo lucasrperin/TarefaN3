@@ -134,59 +134,55 @@ $resSistemaTot = $conn->query($sqlSistemaTot);
  * Aqui, assumimos st.descricao = 'Em fila'.
  ****************************************************************/
 // Tabela da esquerda: status = 'Em fila'
-$sqlFila = "
-  SELECT c.id,
-         c.contato,
-         c.serial,
-         c.sistema_id,
-         s.nome       AS sistema_nome,
-         c.prazo_entrega,
-         c.status_id,
-         st.descricao AS status_nome,
-         c.data_recebido,
-         c.data_inicio,
-         c.data_conclusao,
-         c.analista_id,
-         a.nome       AS analista_nome,
-         c.email_cliente,
-         c.retrabalho,
-         c.observacao
-    FROM TB_CONVERSOES c
-    JOIN TB_SISTEMA_CONVER s  ON c.sistema_id  = s.id
-    JOIN TB_STATUS_CONVER st  ON c.status_id   = st.id
-    JOIN TB_ANALISTA_CONVER a ON c.analista_id = a.id
-    $where
-      AND st.descricao = 'Em fila'
-   ORDER BY c.data_recebido DESC
-";
+$sqlFila = "SELECT 
+              c.id,
+              c.contato,
+              c.serial,
+              c.sistema_id,
+              s.nome       AS sistema_nome,
+              c.prazo_entrega,
+              c.status_id,
+              st.descricao AS status_nome,
+              c.data_recebido,
+              c.data_inicio,
+              c.data_conclusao,
+              c.analista_id,
+              a.nome       AS analista_nome,
+              c.retrabalho,
+              c.observacao
+          FROM TB_CONVERSOES c
+          JOIN TB_SISTEMA_CONVER s  ON c.sistema_id  = s.id
+          JOIN TB_STATUS_CONVER st  ON c.status_id   = st.id
+          JOIN TB_ANALISTA_CONVER a ON c.analista_id = a.id
+          $where
+            AND st.descricao = 'Em fila'
+        ORDER BY c.data_recebido DESC";
 $resFila = $conn->query($sqlFila);
 
 // Tabela da direita: status != 'Em fila'
-$sqlOutros = "
-  SELECT c.id,
-         c.contato,
-         c.serial,
-         c.sistema_id,
-         s.nome       AS sistema_nome,
-         c.prazo_entrega,
-         c.status_id,
-         st.descricao AS status_nome,
-         c.data_recebido,
-         c.data_inicio,
-         c.data_conclusao,
-         c.analista_id,
-         a.nome       AS analista_nome,
-         c.email_cliente,
-         c.retrabalho,
-         c.observacao
-    FROM TB_CONVERSOES c
-    JOIN TB_SISTEMA_CONVER s  ON c.sistema_id  = s.id
-    JOIN TB_STATUS_CONVER st  ON c.status_id   = st.id
-    JOIN TB_ANALISTA_CONVER a ON c.analista_id = a.id
-    $where
-      AND st.descricao <> 'Em fila'
-   ORDER BY c.data_recebido DESC
-";
+$sqlOutros = "SELECT 
+                c.id,
+                c.contato,
+                c.serial,
+                c.sistema_id,
+                s.nome       AS sistema_nome,
+                c.prazo_entrega,
+                c.status_id,
+                st.descricao AS status_nome,
+                c.data_recebido,
+                c.data_inicio,
+                c.data_conclusao,
+                c.analista_id,
+                a.nome       AS analista_nome,
+                c.retrabalho,
+                c.observacao
+              FROM TB_CONVERSOES c
+              JOIN TB_SISTEMA_CONVER s  ON c.sistema_id  = s.id
+              JOIN TB_STATUS_CONVER st  ON c.status_id   = st.id
+              JOIN TB_ANALISTA_CONVER a ON c.analista_id = a.id
+              $where
+                AND st.descricao <> 'Em fila'
+            ORDER BY c.data_recebido DESC";
 $resOutros = $conn->query($sqlOutros);
 
 /****************************************************************
@@ -205,13 +201,13 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ORDER BY nome"
   <title>Gerenciar Conversões</title>
   <!-- CSS externo minimalista -->
   <link rel="stylesheet" href="../Public/conversao.css">
+  <!-- Ícones personalizados -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <!-- Ícones personalizados -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
+  
 </head>
 <body>
 
@@ -223,7 +219,6 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ORDER BY nome"
         </div>
     </div>
 </div>
-  <link rel="stylesheet" href="../Public/conversao.css"> <!-- Ajuste o caminho -->
 
 <script>
 //Toast para mensagem de sucesso
@@ -244,7 +239,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     mensagem = "Conversão excluída com sucesso!";
                     break;
             }
-
             if (mensagem) {
                 document.getElementById("toastMensagem").textContent = mensagem;
                 var toastEl = document.getElementById("toastSucesso");
@@ -254,63 +248,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 </script> 
-
-
-  <script>
-    function abrirModalCadastro() {
-      $("#modalCadastro").modal('show');
-    }
-    function abrirModalEdicao(
-      id, email, contato, serial, retrabalho,
-      sistemaID, prazoEntrega, statusID,
-      dataRecebido, dataInicio, dataConclusao,
-      analistaID, observacao
-    ) {
-      $("#edit_id").val(id);
-      $("#edit_email_cliente").val(email);
-      $("#edit_contato").val(contato);
-      $("#edit_serial").val(serial);
-      $("#edit_retrabalho").val(retrabalho);
-      $("#edit_sistema").val(sistemaID);
-      $("#edit_prazo_entrega").val(prazoEntrega);
-      $("#edit_status").val(statusID);
-      $("#edit_data_recebido").val(dataRecebido);
-      $("#edit_data_inicio").val(dataInicio);
-      $("#edit_data_conclusao").val(dataConclusao);
-      $("#edit_analista").val(analistaID);
-      $("#edit_observacao").val(observacao);
-
-      $("#modalEdicao").modal('show');
-    }
-    function salvarCadastro() {
-      $.post("cadastrar_conversao.php",
-        $("#formCadastro").serialize(),
-        function(response) {
-          if (response.trim() === "success") {
-            location.reload();
-          } else {
-            alert("Erro ao cadastrar: " + response);
-          }
-        }
-      ).fail(function(jqXHR, textStatus, errorThrown) {
-        alert("Erro AJAX [cadastro]: " + textStatus + " - " + errorThrown);
-      });
-    }
-    function salvarEdicao() {
-      $.post("editar_conversao.php",
-        $("#formEdicao").serialize(),
-        function(response) {
-          if (response.trim() === "success") {
-            location.reload();
-          } else {
-            alert("Erro ao editar: " + response);
-          }
-        }
-      ).fail(function(jqXHR, textStatus, errorThrown) {
-        alert("Erro AJAX [edição]: " + textStatus + " - " + errorThrown);
-      });
-    }
-  </script>
 </head>
 <body>
 <div class="container mt-4">
@@ -340,6 +277,7 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
     <div class="col-md-3 d-flex align-items-end">
       <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+      <a href="conversao.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
     </div>
   </form>
 
@@ -444,10 +382,9 @@ document.addEventListener("DOMContentLoaded", function () {
                   <td><?= $rowF['data_conclusao']; ?></td>
                   <td><?= $rowF['analista_nome']; ?></td>
                   <td>
-                    <button class="btn btn-sm btn-secondary"
+                    <a class="btn btn-outline-primary btn-sm"
                       onclick="abrirModalEdicao(
                         '<?= $rowF['id'] ?>',
-                        '<?= $rowF['email_cliente'] ?>',
                         '<?= $rowF['contato'] ?>',
                         '<?= $rowF['serial'] ?>',
                         '<?= $rowF['retrabalho'] ?>',
@@ -460,8 +397,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         '<?= $rowF['analista_id'] ?>',
                         '<?= addslashes($rowF['observacao']) ?>'
                       )">
-                      Editar
-                    </button>
+                      <i class='fa-sharp fa-solid fa-pen'></i>
+                    </a>
+                    <a href="javascript:void(0)" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalExclusao" onclick="excluirAnalise(<?= $rowF['id'] ?>)">
+                        <i class="fa-sharp fa-solid fa-trash"></i>
+                      </a>
                   </td>
                 </tr>
                 <?php endwhile; ?>
@@ -508,10 +448,9 @@ document.addEventListener("DOMContentLoaded", function () {
                   <td><?= $rowO['data_conclusao']; ?></td>
                   <td><?= $rowO['analista_nome']; ?></td>
                   <td>
-                    <button class="btn btn-sm btn-warning"
+                    <a class="btn btn-outline-primary btn-sm"
                       onclick="abrirModalEdicao(
                         '<?= $rowO['id'] ?>',
-                        '<?= $rowO['email_cliente'] ?>',
                         '<?= $rowO['contato'] ?>',
                         '<?= $rowO['serial'] ?>',
                         '<?= $rowO['retrabalho'] ?>',
@@ -524,8 +463,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         '<?= $rowO['analista_id'] ?>',
                         '<?= addslashes($rowO['observacao']) ?>'
                       )">
-                      Editar
-                    </button>
+                      <i class='fa-sharp fa-solid fa-pen'></i>
+                    </a>
+                    <a href="javascript:void(0)" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalExclusao" onclick="excluirAnalise(<?= $rowO['id'] ?>)">
+                        <i class="fa-sharp fa-solid fa-trash"></i>
+                      </a>
                   </td>
                 </tr>
                 <?php endwhile; ?>
@@ -540,59 +482,82 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <!-- MODAL CADASTRO (id=modalCadastro) -->
 <div class="modal fade" id="modalCadastro" tabindex="-1">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog ">
     <div class="modal-content p-4">
       <h4 class="modal-title mb-3">Cadastrar Conversão</h4>
-      <form id="formCadastro">
+      <form id="formCadastro" action="cadastrar_conversao.php" method="POST">
         <input type="hidden" name="id">
-        <!-- Campos ... [igual antes] -->
-        <div class="mb-3">
-          <label class="form-label">E-mail do Cliente:</label>
-          <input type="email" class="form-control" name="email_cliente" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Contato:</label>
-          <input type="text" class="form-control" name="contato" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Serial / CNPJ:</label>
-          <input type="text" class="form-control" name="serial">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Retrabalho:</label>
-          <select name="retrabalho" class="form-select">
-            <option value="Sim">Sim</option>
-            <option value="Não" selected>Não</option>
-          </select>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Sistema:</label>
-          <select name="sistema_id" class="form-select" required>
-            <option value="">Selecione...</option>
-            <?php
-            mysqli_data_seek($sistemas, 0);
-            while ($sis = $sistemas->fetch_assoc()):
-            ?>
-              <option value="<?= $sis['id']; ?>"><?= $sis['nome']; ?></option>
-            <?php endwhile; ?>
-          </select>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Prazo Entrega:</label>
-          <input type="datetime-local" class="form-control" name="prazo_entrega" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Status:</label>
-          <select name="status_id" class="form-select" required>
-            <option value="">Selecione...</option>
-            <?php
-            mysqli_data_seek($status, 0);
-            while ($st = $status->fetch_assoc()):
-            ?>
-              <option value="<?= $st['id']; ?>"><?= $st['descricao']; ?></option>
-            <?php endwhile; ?>
-          </select>
-        </div>
+          <div class="row mb-3"> 
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Contato:</label>
+                <input type="text" class="form-control" name="contato" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="form-label">Serial / CNPJ:</label>
+                <input type="text" class="form-control" name="serial">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="mb-3">
+                <label class="form-label">Retrabalho:</label>
+                <select name="retrabalho" class="form-select">
+                  <option value="Sim">Sim</option>
+                  <option value="Não" selected>Não</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb-3"> 
+            <div class="col-md-3">
+              <div class="mb-3">
+                <label class="form-label">Sistema:</label>
+                <select name="sistema_id" class="form-select" required>
+                  <option value="">Selecione...</option>
+                  <?php
+                  mysqli_data_seek($sistemas, 0);
+                  while ($sis = $sistemas->fetch_assoc()):
+                  ?>
+                    <option value="<?= $sis['id']; ?>"><?= $sis['nome']; ?></option>
+                  <?php endwhile; ?>
+                </select>
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="mb-3">
+                <label class="form-label">Status:</label>
+                <select name="status_id" class="form-select" required>
+                  <option value="">Selecione...</option>
+                  <?php
+                  mysqli_data_seek($status, 0);
+                  while ($st = $status->fetch_assoc()):
+                  ?>
+                    <option value="<?= $st['id']; ?>"><?= $st['descricao']; ?></option>
+                  <?php endwhile; ?>
+                </select>
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="mb-3">
+                <label class="form-label">Analista:</label>
+                <select name="analista_id" class="form-select" required>
+                  <option value="">Selecione...</option>
+                  <?php
+                  mysqli_data_seek($analistas, 0);
+                  while ($an = $analistas->fetch_assoc()):
+                  ?>
+                    <option value="<?= $an['id']; ?>"><?= $an['nome']; ?></option>
+                  <?php endwhile; ?>
+                </select>
+              </div>
+            </div>
+
+
         <div class="mb-3">
           <label class="form-label">Data Recebido:</label>
           <input type="datetime-local" class="form-control" name="data_recebido" required>
@@ -605,24 +570,13 @@ document.addEventListener("DOMContentLoaded", function () {
           <label class="form-label">Data Conclusão:</label>
           <input type="datetime-local" class="form-control" name="data_conclusao">
         </div>
-        <div class="mb-3">
-          <label class="form-label">Analista:</label>
-          <select name="analista_id" class="form-select" required>
-            <option value="">Selecione...</option>
-            <?php
-            mysqli_data_seek($analistas, 0);
-            while ($an = $analistas->fetch_assoc()):
-            ?>
-              <option value="<?= $an['id']; ?>"><?= $an['nome']; ?></option>
-            <?php endwhile; ?>
-          </select>
-        </div>
+        
         <div class="mb-3">
           <label class="form-label">Observação:</label>
           <textarea name="observacao" class="form-control" rows="3"></textarea>
         </div>
         <div class="text-end">
-          <button type="button" class="btn btn-success" onclick="salvarCadastro()">Salvar</button>
+          <button type="submit" class="btn btn-success">Salvar</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
         </div>
       </form>
@@ -635,13 +589,9 @@ document.addEventListener("DOMContentLoaded", function () {
   <div class="modal-dialog modal-lg">
     <div class="modal-content p-4">
       <h4 class="modal-title mb-3">Editar Conversão</h4>
-      <form id="formEdicao">
+      <form id="formEdicao" action="editar_conversao.php" method="POST">
         <input type="hidden" id="edit_id" name="id">
         <!-- Campos ... [igual antes] -->
-        <div class="mb-3">
-          <label class="form-label">E-mail do Cliente:</label>
-          <input type="email" class="form-control" id="edit_email_cliente" name="email_cliente" required>
-        </div>
         <div class="mb-3">
           <label class="form-label">Contato:</label>
           <input type="text" class="form-control" id="edit_contato" name="contato" required>
@@ -714,13 +664,34 @@ document.addEventListener("DOMContentLoaded", function () {
           <textarea id="edit_observacao" class="form-control" name="observacao" rows="3"></textarea>
         </div>
         <div class="text-end">
-          <button type="button" class="btn btn-success" onclick="salvarEdicao()">Salvar</button>
+          <button type="submit" class="btn btn-success" onclick="salvarEdicao()">Salvar</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
         </div>
       </form>
     </div>
   </div>
 </div>
+
+<!-- Modal de Exclusão -->
+<div class="modal fade" id="modalExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalExclusaoLabel">Confirma a Exclusão da Análise?</h5>
+                </div>
+                <div class="modal-body">
+                    <form action="deletar_conversao.php" method="POST">
+                        <!-- Campo oculto para armazenar o ID da análise -->
+                        <input type="hidden" id="id_excluir" name="id_excluir">
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-success">Sim</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close">Não</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -774,21 +745,6 @@ let chartBarras = new Chart(ctx, {
       $("#edit_analista").val(analistaID);
       $("#edit_observacao").val(observacao);
       $("#modalEdicao").modal('show');
-    }
-    // AJAX: Salvar Edição
-    function salvarEdicao() {
-      $.post("editar_conversao.php",
-        $("#formEdicao").serialize(),
-        function(response) {
-          if (response.trim() === "success") {
-            location.reload();
-          } else {
-            alert("Erro ao editar: " + response);
-          }
-        }
-      ).fail(function(jqXHR, textStatus, errorThrown) {
-        alert("Erro AJAX [edição]: " + textStatus + " - " + errorThrown);
-      });
     }
 
     // Função para preencher o modal de exclusão
