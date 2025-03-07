@@ -104,3 +104,31 @@ body {
     display: inline; /* Garante que o texto não ocupe espaço extra */
     flex-grow: 0; /* Faz o texto ocupar apenas o espaço necessário */
 }
+
+.table {
+    background-color: white;
+}
+
+.table th {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table td {
+    text-align: center;
+    vertical-align: middle;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+.tabelaEstilizada {
+    border-collapse: separate;
+    border-spacing: 0 2px;
+}
+
+.tabelaEstilizada tbody tr {
+    border-radius: 5px;
+    overflow: hidden;
+    font-family: 'Nunito', sans-serif;
+}
