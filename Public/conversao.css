@@ -104,3 +104,6 @@ body {
     display: inline; /* Garante que o texto não ocupe espaço extra */
     flex-grow: 0; /* Faz o texto ocupar apenas o espaço necessário */
 }
+.totalizador-prazo {
+    max-width: 300px; /* Ajuste esse valor conforme necessário */
+}

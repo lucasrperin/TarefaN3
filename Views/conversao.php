@@ -127,6 +127,62 @@ $sqlSistemaTot = "
 ";
 $resSistemaTot = $conn->query($sqlSistemaTot);
 
+// NOVA QUERY: Conversões que ainda podem ser entregues hoje (dentro do prazo)
+$sqlDentroPrazo = "
+    SELECT COUNT(*) 
+      FROM TB_CONVERSOES c
+      JOIN TB_STATUS_CONVER st ON c.status_id = st.id
+      $where
+      AND DATE(c.data_recebido) = CURDATE()
+      AND TIME(c.data_recebido) <= '15:00:00'
+      AND st.descricao NOT IN ('Concluído','Cancelada')
+";
+$countDentroPrazo = $conn->query($sqlDentroPrazo)->fetch_row()[0] ?? 0;
+
+// NOVA QUERY: Conversões atrasadas (já passaram do prazo)
+// Considera somente status: Em fila, Analise, Dar prioridade
+$sqlAtrasadas = "
+    SELECT COUNT(*) 
+      FROM TB_CONVERSOES c
+      JOIN TB_STATUS_CONVER st ON c.status_id = st.id
+      $where
+      AND (
+           (DATE(c.data_recebido) < CURDATE())
+           OR (DATE(c.data_recebido) = CURDATE() AND TIME(c.data_recebido) > '15:00:00')
+          )
+      AND st.descricao IN ('Em fila','Analise','Dar prioridade')
+";
+$countAtrasadas = $conn->query($sqlAtrasadas)->fetch_row()[0] ?? 0;
+
+// Totalizador: Meta não batida (Concluídas, recebidas antes das 15:00 e concluídas em dia diferente)
+$sqlMetaNaoBatida = "
+    SELECT COUNT(*) 
+      FROM TB_CONVERSOES c
+      JOIN TB_STATUS_CONVER st ON c.status_id = st.id
+      $where
+      AND st.descricao = 'Concluído'
+      AND TIME(c.data_recebido) < '15:00:00'
+      AND DATE(c.data_conclusao) <> DATE(c.data_recebido)
+";
+$countMetaNaoBatida = $conn->query($sqlMetaNaoBatida)->fetch_row()[0] ?? 0;
+
+// Totalizador: Conversões concluídas no prazo (meta batida)
+$sqlMetaBatida = "
+    SELECT COUNT(*) 
+      FROM TB_CONVERSOES c
+      JOIN TB_STATUS_CONVER st ON c.status_id = st.id
+      $where
+      AND st.descricao = 'Concluído'
+      AND (
+           (TIME(c.data_recebido) < '15:00:00' AND DATE(c.data_conclusao) = DATE(c.data_recebido))
+           OR
+           (TIME(c.data_recebido) >= '15:00:00' 
+             AND DATE(c.data_conclusao) = DATE(c.data_recebido + INTERVAL 1 DAY)
+             AND TIME(c.data_conclusao) < '15:00:00')
+      )
+";
+$countMetaBatida = $conn->query($sqlMetaBatida)->fetch_row()[0] ?? 0;
+
 /****************************************************************
  * 7) 
  * Dividir a listagem em duas:
@@ -282,73 +338,114 @@ document.addEventListener("DOMContentLoaded", function () {
 <div class="container mt-4">
   <h1 class="text-center mb-4">Gerenciar Conversões</h1>
 
-  <!-- FILTRO GLOBAL -->
-  <form method="GET" class="row gy-2 gx-2 mb-4">
-    <div class="col-md-3">
-      <label>Data Inicial</label>
-      <input type="date" name="data_inicial" value="<?= htmlspecialchars($dataInicial) ?>" class="form-control">
+  <!-- Linha 1: Gráfico e Filtro Global na mesma linha -->
+<div class="row mb-4">
+  <!-- Gráfico à esquerda (8 colunas) -->
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Conversões Mensais por Analista</h5>
+        <canvas id="chartBarras" height="100"></canvas>
+      </div>
     </div>
-    <div class="col-md-3">
-      <label>Data Final</label>
-      <input type="date" name="data_final" value="<?= htmlspecialchars($dataFinal) ?>" class="form-control">
+  </div>
+  <!-- Filtro Global à direita (4 colunas) -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Filtro Global</h5>
+        <form method="GET" class="row gy-2 gx-2">
+          <div class="col-12">
+            <label>Data Inicial</label>
+            <input type="date" name="data_inicial" value="<?= htmlspecialchars($dataInicial) ?>" class="form-control">
+          </div>
+          <div class="col-12">
+            <label>Data Final</label>
+            <input type="date" name="data_final" value="<?= htmlspecialchars($dataFinal) ?>" class="form-control">
+          </div>
+          <div class="col-12">
+            <label>Analista</label>
+            <select name="analista_id" class="form-select">
+              <option value="0">-- Todos --</option>
+              <?php while ($anF = $analistasFiltro->fetch_assoc()): ?>
+              <option value="<?= $anF['id'] ?>" <?= ($analistaID == $anF['id']) ? 'selected' : '' ?>>
+                <?= $anF['nome'] ?>
+              </option>
+              <?php endwhile; ?>
+            </select>
+          </div>
+                 <div class="d-flex justify-content-center gap-2">
+                       <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+                        <a href="conversao.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
+                  </div>
+        </form>
+      </div>
     </div>
-    <div class="col-md-3">
-      <label>Analista</label>
-      <select name="analista_id" class="form-select">
-        <option value="0">-- Todos --</option>
-        <?php while ($anF = $analistasFiltro->fetch_assoc()): ?>
-          <option value="<?= $anF['id'] ?>"
-            <?= ($analistaID == $anF['id']) ? 'selected' : '' ?>>
-            <?= $anF['nome'] ?>
-          </option>
-        <?php endwhile; ?>
-      </select>
-    </div>
-    <div class="col-md-3 d-flex align-items-end gap-2">
-      <button type="submit" class="btn btn-primary w-50">Filtrar</button>
-      <a href="conversao.php" class="btn btn-secondary w-50">Limpar Filtros</a>
-    </div>
-  </form>
+  </div>
+</div>
 
-  <!-- ROW: Grafico + Totalizadores Status/Sistema -->
-  <div class="row mb-4">
-    <div class="col-md-8">
-      <div class="card mb-3">
-        <div class="card-body">
-          <h5 class="card-title">Conversões Mensais por Analista</h5>
-          <canvas id="chartBarras" height="100"></canvas>
-        </div>
+<!-- Linha 2: Três Totalizadores lado a lado -->
+<div class="row mb-4">
+  <!-- Conversões Pendentes para Entrega Hoje -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+         <h5 class="card-title">Conversões Pendentes</h5>
+         <ul class="list-group">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              Ainda dentro do prazo (até 15:00)
+              <span class="badge bg-info rounded-pill"><?= $countDentroPrazo; ?></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              Atrasadas (Em fila, Analise, Dar prioridade)
+              <span class="badge bg-warning rounded-pill"><?= $countAtrasadas; ?></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              Meta não batida (Concluídas com prazo não cumprido)
+              <span class="badge bg-danger rounded-pill"><?= $countMetaNaoBatida; ?></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              Concluídas no prazo (Meta Batida)
+              <span class="badge bg-success rounded-pill"><?= $countMetaBatida; ?></span>
+            </li>
+         </ul>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="card mb-3">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2 text-muted">Conversões por Status</h6>
-          <ul class="list-group">
-            <?php while ($rowSt = $resStatusTot->fetch_assoc()): ?>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <?= $rowSt['status_nome'] ?>
-              <span class="badge bg-primary rounded-pill"><?= $rowSt['total'] ?></span>
-            </li>
-            <?php endwhile; ?>
-          </ul>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2 text-muted">Conversões por Sistema</h6>
-          <ul class="list-group">
-            <?php while ($rowSys = $resSistemaTot->fetch_assoc()): ?>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <?= $rowSys['sistema_exibicao'] ?>
-              <span class="badge bg-secondary rounded-pill"><?= $rowSys['total'] ?></span>
-            </li>
-            <?php endwhile; ?>
-          </ul>
-        </div>
+  </div>
+  <!-- Conversões por Status -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Conversões por Status</h5>
+        <ul class="list-group">
+          <?php while ($rowSt = $resStatusTot->fetch_assoc()): ?>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <?= $rowSt['status_nome'] ?>
+            <span class="badge bg-primary rounded-pill"><?= $rowSt['total'] ?></span>
+          </li>
+          <?php endwhile; ?>
+        </ul>
       </div>
     </div>
-  </div><!-- row -->
+  </div>
+  <!-- Conversões por Sistema -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Conversões por Sistema</h5>
+        <ul class="list-group">
+          <?php while ($rowSys = $resSistemaTot->fetch_assoc()): ?>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <?= $rowSys['sistema_exibicao'] ?>
+            <span class="badge bg-secondary rounded-pill"><?= $rowSys['total'] ?></span>
+          </li>
+          <?php endwhile; ?>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
 
   <!-- TOTAlIZADORES GERAIS -->
   <div class="row g-3 mb-3 card-total">
