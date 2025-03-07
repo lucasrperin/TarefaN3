@@ -118,13 +118,13 @@ $resStatusTot = $conn->query($sqlStatusTot);
  * 6) Totalizadores por Sistema
  ****************************************************************/
 $sqlSistemaTot = "
-    SELECT s.nome AS sistema_nome,
+    SELECT TRIM(SUBSTRING_INDEX(s.nome, '/', -1)) AS sistema_exibicao,
            COUNT(*) AS total
       FROM TB_CONVERSOES c
       JOIN TB_SISTEMA_CONVER s ON c.sistema_id = s.id
       $where
-      GROUP BY c.sistema_id
-      ORDER BY s.nome
+      GROUP BY TRIM(SUBSTRING_INDEX(s.nome, '/', -1))
+      ORDER BY sistema_exibicao
 ";
 $resSistemaTot = $conn->query($sqlSistemaTot);
 
@@ -374,7 +374,7 @@ document.addEventListener("DOMContentLoaded", function () {
           <ul class="list-group">
             <?php while ($rowSys = $resSistemaTot->fetch_assoc()): ?>
             <li class="list-group-item d-flex justify-content-between align-items-center">
-              <?= $rowSys['sistema_nome'] ?>
+              <?= $rowSys['sistema_exibicao'] ?>
               <span class="badge bg-secondary rounded-pill"><?= $rowSys['total'] ?></span>
             </li>
             <?php endwhile; ?>
