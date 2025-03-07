@@ -275,9 +275,9 @@ document.addEventListener("DOMContentLoaded", function () {
         <?php endwhile; ?>
       </select>
     </div>
-    <div class="col-md-3 d-flex align-items-end">
-      <button type="submit" class="btn btn-primary w-100">Filtrar</button>
-      <a href="conversao.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
+    <div class="col-md-3 d-flex align-items-end gap-2">
+      <button type="submit" class="btn btn-primary w-50">Filtrar</button>
+      <a href="conversao.php" class="btn btn-secondary w-50">Limpar Filtros</a>
     </div>
   </form>
 
@@ -487,14 +487,14 @@ document.addEventListener("DOMContentLoaded", function () {
       <h4 class="modal-title mb-3">Cadastrar Conversão</h4>
       <form id="formCadastro" action="cadastrar_conversao.php" method="POST">
         <input type="hidden" name="id">
-          <div class="row mb-3"> 
-            <div class="col-md-6">
+          <div class="row mb-2"> 
+            <div class="col-md-4">
               <div class="mb-3">
                 <label class="form-label">Contato:</label>
                 <input type="text" class="form-control" name="contato" required>
               </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-5">
               <div class="mb-3">
                 <label class="form-label">Serial / CNPJ:</label>
                 <input type="text" class="form-control" name="serial">
@@ -512,7 +512,7 @@ document.addEventListener("DOMContentLoaded", function () {
           </div>
 
           <div class="row mb-3"> 
-            <div class="col-md-3">
+            <div class="col-md-4">
               <div class="mb-3">
                 <label class="form-label">Sistema:</label>
                 <select name="sistema_id" class="form-select" required>
@@ -527,7 +527,7 @@ document.addEventListener("DOMContentLoaded", function () {
               </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4">
               <div class="mb-3">
                 <label class="form-label">Status:</label>
                 <select name="status_id" class="form-select" required>
@@ -542,7 +542,7 @@ document.addEventListener("DOMContentLoaded", function () {
               </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-4">
               <div class="mb-3">
                 <label class="form-label">Analista:</label>
                 <select name="analista_id" class="form-select" required>
@@ -556,25 +556,37 @@ document.addEventListener("DOMContentLoaded", function () {
                 </select>
               </div>
             </div>
+          </div>
 
+          <div class="row mb-3"> 
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label class="form-label">Data Recebido:</label>
+                <input type="datetime-local" class="form-control" name="data_recebido" required>
+              </div>
+            </div>
 
-        <div class="mb-3">
-          <label class="form-label">Data Recebido:</label>
-          <input type="datetime-local" class="form-control" name="data_recebido" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Data Início:</label>
-          <input type="datetime-local" class="form-control" name="data_inicio" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Data Conclusão:</label>
-          <input type="datetime-local" class="form-control" name="data_conclusao">
-        </div>
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label class="form-label">Data Início:</label>
+                <input type="datetime-local" class="form-control" name="data_inicio" required>
+              </div>
+            </div>
+
+            <div class="col-md-4">
+              <div class="mb-3">
+                <label class="form-label">Data Conclusão:</label>
+                <input type="datetime-local" class="form-control" name="data_conclusao">
+              </div>
+            </div>
+          </div>
         
-        <div class="mb-3">
-          <label class="form-label">Observação:</label>
-          <textarea name="observacao" class="form-control" rows="3"></textarea>
-        </div>
+          <div class="row mb-4"> 
+            <div class="mb-3">
+              <label class="form-label">Observação:</label>
+              <textarea name="observacao" class="form-control" rows="3"></textarea>
+            </div>
+          </div>
         <div class="text-end">
           <button type="submit" class="btn btn-success">Salvar</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
