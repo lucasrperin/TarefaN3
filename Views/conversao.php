@@ -1,7 +1,6 @@
 <?php
 include '../Config/Database.php';
 
-
 session_start();
 
 error_reporting(E_ALL);
@@ -502,9 +501,24 @@ document.addEventListener("DOMContentLoaded", function () {
   </div>
 
   <!-- Botão Cadastrar -->
-  <div class="d-flex justify-content-end mb-3">
+  <div class="d-flex justify-content-end mb-3 gap-2">
+    <input type="text" id="searchInput" class="form-control ms-2" style="max-width: 200px;" placeholder="Pesquisar...">
     <button class="btn btn-primary" onclick="abrirModalCadastro()">Cadastrar</button>
   </div>
+  <!-- Função de pesquisa nas tabelas-->
+  <script>
+    $(document).ready(function(){
+      $("#searchInput").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        // Para cada linha em todas as tabelas com a classe 'tabelaEstilizada'
+        $(".tabelaEstilizada tbody tr").filter(function() {
+          // Se o texto da linha conter o valor da pesquisa (ignorando maiúsculas/minúsculas), mostra a linha; caso contrário, oculta
+          $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+        });
+      });
+    });
+  </script>
+
 
   <!-- DUAS TABELAS: ESQUERDA = Fila, DIREITA = Outras -->
   <div class="row">
