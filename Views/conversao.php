@@ -1,6 +1,7 @@
 <?php
 include '../Config/Database.php';
 
+
 session_start();
 
 error_reporting(E_ALL);
@@ -193,63 +194,92 @@ $countMetaBatida = $conn->query($sqlMetaBatida)->fetch_row()[0] ?? 0;
  ****************************************************************/
 // Tabela da esquerda: status = 'Em fila'
 $sqlFila = "SELECT 
-              c.id,
-              c.contato,
-              c.serial,
-              c.sistema_id,
-              s.nome       AS sistema_nome,
-              c.status_id,
-              st.descricao AS status_nome,
-              c.prazo_entrega,
-              c.data_recebido,
-              c.data_inicio,
-              c.data_conclusao,
-              DATE_FORMAT(c.prazo_entrega, '%d/%m %H:%i:%s') as prazo_entrega2,
-              DATE_FORMAT(c.data_recebido, '%d/%m %H:%i:%s') as data_recebido2,
-              DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicio2,
-              DATE_FORMAT(c.data_conclusao, '%d/%m %H:%i:%s') as data_conclusao2,
-              c.analista_id,
-              a.nome       AS analista_nome,
-              c.retrabalho,
-              c.observacao
-          FROM TB_CONVERSOES c
-          JOIN TB_SISTEMA_CONVER s  ON c.sistema_id  = s.id
-          JOIN TB_STATUS_CONVER st  ON c.status_id   = st.id
-          JOIN TB_ANALISTA_CONVER a ON c.analista_id = a.id
-          $where
-            AND st.descricao = 'Em fila'
-        ORDER BY c.data_recebido ASC";
-$resFila = $conn->query($sqlFila);
-
-// Tabela da direita: status != 'Em fila'
-$sqlOutros = "SELECT 
-                c.id,
-                c.contato,
-                c.serial,
-                c.sistema_id,
-                s.nome       AS sistema_nome,
-                c.status_id,
-                st.descricao AS status_nome,
-                c.prazo_entrega,
-                c.data_recebido,
-                c.data_inicio,
-                c.data_conclusao,
-                DATE_FORMAT(c.prazo_entrega, '%d/%m %H:%i:%s') as prazo_entrega2,
-                DATE_FORMAT(c.data_recebido, '%d/%m %H:%i:%s') as data_recebido2,
-                DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicio2,
-                DATE_FORMAT(c.data_conclusao, '%d/%m %H:%i:%s') as data_conclusao2,
-                c.analista_id,
-                a.nome       AS analista_nome,
-                c.retrabalho,
-                c.observacao
+                  c.id,
+                  c.contato,
+                  c.serial,
+                  c.sistema_id,
+                  s.nome       AS sistema_nome,
+                  c.status_id,
+                  st.descricao AS status_nome,
+                  c.prazo_entrega,
+                  c.data_recebido,
+                  c.data_inicio,
+                  c.data_conclusao,
+                  DATE_FORMAT(c.prazo_entrega, '%d/%m %H:%i:%s') as prazo_entrega2,
+                  DATE_FORMAT(c.data_recebido, '%d/%m %H:%i:%s') as data_recebido2,
+                  DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicio2,
+                  DATE_FORMAT(c.data_conclusao, '%d/%m %H:%i:%s') as data_conclusao2,
+                  c.analista_id,
+                  a.nome       AS analista_nome,
+                  c.retrabalho,
+                  c.observacao
               FROM TB_CONVERSOES c
               JOIN TB_SISTEMA_CONVER s  ON c.sistema_id  = s.id
               JOIN TB_STATUS_CONVER st  ON c.status_id   = st.id
               JOIN TB_ANALISTA_CONVER a ON c.analista_id = a.id
               $where
-                AND st.descricao <> 'Em fila'
+                AND st.descricao = 'Em fila'
             ORDER BY c.data_recebido ASC";
+$resFila = $conn->query($sqlFila);
+
+// Tabela da direita: status != 'Em fila'
+$sqlOutros = "SELECT 
+                  c.id,
+                  c.contato,
+                  c.serial,
+                  c.sistema_id,
+                  s.nome       AS sistema_nome,
+                  c.status_id,
+                  st.descricao AS status_nome,
+                  c.prazo_entrega,
+                  c.data_recebido,
+                  c.data_inicio,
+                  c.data_conclusao,
+                  DATE_FORMAT(c.prazo_entrega, '%d/%m %H:%i:%s') as prazo_entrega2,
+                  DATE_FORMAT(c.data_recebido, '%d/%m %H:%i:%s') as data_recebido2,
+                  DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicio2,
+                  DATE_FORMAT(c.data_conclusao, '%d/%m %H:%i:%s') as data_conclusao2,
+                  c.analista_id,
+                  a.nome       AS analista_nome,
+                  c.retrabalho,
+                  c.observacao
+                FROM TB_CONVERSOES c
+                JOIN TB_SISTEMA_CONVER s  ON c.sistema_id  = s.id
+                JOIN TB_STATUS_CONVER st  ON c.status_id   = st.id
+                JOIN TB_ANALISTA_CONVER a ON c.analista_id = a.id
+                $where
+                  AND st.descricao not in ('Em fila', 'Concluido', 'Cancelado')
+              ORDER BY c.data_recebido ASC";
 $resOutros = $conn->query($sqlOutros);
+
+$sqlFinalizados = "SELECT 
+                      c.id,
+                      c.contato,
+                      c.serial,
+                      c.sistema_id,
+                      s.nome       AS sistema_nome,
+                      c.status_id,
+                      st.descricao AS status_nome,
+                      c.prazo_entrega,
+                      c.data_recebido,
+                      c.data_inicio,
+                      c.data_conclusao,
+                      DATE_FORMAT(c.prazo_entrega, '%d/%m %H:%i:%s') as prazo_entrega2,
+                      DATE_FORMAT(c.data_recebido, '%d/%m %H:%i:%s') as data_recebido2,
+                      DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicio2,
+                      DATE_FORMAT(c.data_conclusao, '%d/%m %H:%i:%s') as data_conclusao2,
+                      c.analista_id,
+                      a.nome       AS analista_nome,
+                      c.retrabalho,
+                      c.observacao
+                    FROM TB_CONVERSOES c
+                    JOIN TB_SISTEMA_CONVER s  ON c.sistema_id  = s.id
+                    JOIN TB_STATUS_CONVER st  ON c.status_id   = st.id
+                    JOIN TB_ANALISTA_CONVER a ON c.analista_id = a.id
+                    $where
+                      AND st.descricao in ('Concluido', 'Cancelada')
+                  ORDER BY c.data_recebido ASC";
+$resFinalizados = $conn->query($sqlFinalizados);
 
 /****************************************************************
  * 8) Carregar listas p/ selects
@@ -273,6 +303,10 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ORDER BY nome"
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="..\Public\Image\icone2.png" type="image/png">
   
 </head>
 <body>
@@ -482,13 +516,13 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-striped table-bordered mb-0">
+            <table class="table table-striped table-bordered mb-0 tabelaEstilizada">
               <thead class="table-light">
                 <tr>
                   <th>Contato</th>
                   <th>Sistema</th>
-                  <th>Prazo</th>
                   <th>Recebido</th>
+                  <th>Prazo</th>
                   <th>Início</th>
                   <th>Analista</th>
                   <th>Ações</th>
@@ -499,10 +533,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 <tr>
                   <td><?= $rowF['contato']; ?></td>
                   <td><?= $rowF['sistema_nome']; ?></td>
-                  <td><?= $rowF['prazo_entrega2']; ?></td>
                   <td><?= $rowF['data_recebido2']; ?></td>
+                  <td><?= $rowF['prazo_entrega2']; ?></td>
                   <td><?= $rowF['data_inicio2']; ?></td>
-                  <td><?= $rowF['data_conclusao2']; ?></td>
                   <td><?= $rowF['analista_nome']; ?></td>
                   <td>
                     <a class="btn btn-outline-primary btn-sm"
@@ -512,9 +545,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         '<?= $rowF['serial'] ?>',
                         '<?= $rowF['retrabalho'] ?>',
                         '<?= $rowF['sistema_id'] ?>',
-                        '<?= $rowF['prazo_entrega'] ?>',
                         '<?= $rowF['status_id'] ?>',
                         '<?= $rowF['data_recebido'] ?>',
+                        '<?= $rowF['prazo_entrega'] ?>',
                         '<?= $rowF['data_inicio'] ?>',
                         '<?= $rowF['data_conclusao'] ?>',
                         '<?= $rowF['analista_id'] ?>',
@@ -543,12 +576,11 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-striped mb-0" style="border-spacing: 0 2px">
+            <table class="table table-striped table-bordered mb-0 tabelaEstilizada">
               <thead class="table-light">
                 <tr>
-                  <th>Contato</th>
+                  <th style="width:1%">Contato</th>
                   <th>Sistema</th>
-                  <th>Prazo</th>
                   <th>Status</th>
                   <th>Recebido</th>
                   <th>Início</th>
@@ -561,7 +593,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 <tr>
                   <td><?= $rowO['contato']; ?></td>
                   <td><?= $rowO['sistema_nome']; ?></td>
-                  <td><?= $rowO['prazo_entrega2']; ?></td>
                   <td><?= $rowO['status_nome']; ?></td>
                   <td><?= $rowO['data_recebido2']; ?></td>
                   <td><?= $rowO['data_inicio2']; ?></td>
@@ -574,9 +605,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         '<?= $rowO['serial'] ?>',
                         '<?= $rowO['retrabalho'] ?>',
                         '<?= $rowO['sistema_id'] ?>',
-                        '<?= $rowO['prazo_entrega'] ?>',
                         '<?= $rowO['status_id'] ?>',
                         '<?= $rowO['data_recebido'] ?>',
+                        '<?= $rowO['prazo_entrega'] ?>',
                         '<?= $rowO['data_inicio'] ?>',
                         '<?= $rowO['data_conclusao'] ?>',
                         '<?= $rowO['analista_id'] ?>',
@@ -597,6 +628,74 @@ document.addEventListener("DOMContentLoaded", function () {
       </div><!-- card -->
     </div><!-- col-md-6 -->
   </div><!-- row das duas tabelas -->
+
+  <!--TABELA DE FINALIZADOS-->
+  <div class="col-md-12 mb-3">
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <strong>Conversões Finalizadas</strong>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-striped table-bordered mb-0 tabelaEstilizada">
+              <thead class="table-light">
+                <tr>
+                  <th>Contato</th>
+                  <th>Serial</th>
+                  <th>Retrabalho</th>
+                  <th>Sistema</th>
+                  <th>Status</th>
+                  <th>Recebido</th>
+                  <th>Prazo</th>
+                  <th>Início</th>
+                  <th>Conclusão</th>
+                  <th>Analista</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php while ($rowC = $resFinalizados->fetch_assoc()): ?>
+                <tr>
+                  <td><?= $rowC['contato']; ?></td>
+                  <td><?= $rowC['serial']; ?></td>
+                  <td><?= $rowC['retrabalho']; ?></td>
+                  <td><?= $rowC['sistema_nome']; ?></td>
+                  <td><?= $rowC['status_nome']; ?></td>
+                  <td><?= $rowC['data_recebido2']; ?></td>
+                  <td><?= $rowC['prazo_entrega2']; ?></td>
+                  <td><?= $rowC['data_inicio2']; ?></td>
+                  <td><?= $rowC['data_conclusao2']; ?></td>
+                  <td><?= $rowC['analista_nome']; ?></td>
+                  <td>
+                    <a class="btn btn-outline-primary btn-sm"
+                      onclick="abrirModalEdicaoFinal(
+                        '<?= $rowC['id'] ?>',
+                        '<?= $rowC['contato'] ?>',
+                        '<?= $rowC['serial'] ?>',
+                        '<?= $rowC['retrabalho'] ?>',
+                        '<?= $rowC['sistema_id'] ?>',
+                        '<?= $rowC['status_id'] ?>',
+                        '<?= $rowC['data_recebido'] ?>',
+                        '<?= $rowC['prazo_entrega'] ?>',
+                        '<?= $rowC['data_inicio'] ?>',
+                        '<?= $rowC['data_conclusao'] ?>',
+                        '<?= $rowC['analista_id'] ?>',
+                        '<?= addslashes($rowC['observacao']) ?>'
+                      )">
+                      <i class='fa-sharp fa-solid fa-pen'></i>
+                    </a>
+                    <a href="javascript:void(0)" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalExclusao" onclick="excluirAnalise(<?= $rowO['id'] ?>)">
+                        <i class="fa-sharp fa-solid fa-trash"></i>
+                      </a>
+                  </td>
+                </tr>
+                <?php endwhile; ?>
+              </tbody>
+            </table>
+          </div><!-- table-responsive -->
+        </div><!-- card-body -->
+      </div><!-- card -->
+    </div><!-- col-md-6 -->
 </div><!-- container -->
 
 <!-- MODAL CADASTRO (id=modalCadastro) -->
@@ -896,8 +995,8 @@ let chartBarras = new Chart(ctx, {
     // Mostra modal de edição
     function abrirModalEdicao(
       id, contato, serial, retrabalho,
-      sistemaID, prazoEntrega, statusID,
-      dataRecebido, dataInicio, dataConclusao,
+      sistemaID, statusID, dataRecebido,
+      prazoEntrega, dataInicio, dataConclusao,
       analistaID, observacao
     ) {
       // Preenche campos do modal Edição
@@ -906,9 +1005,32 @@ let chartBarras = new Chart(ctx, {
       $("#edit_serial").val(serial);
       $("#edit_retrabalho").val(retrabalho);
       $("#edit_sistema").val(sistemaID);
-      $("#edit_prazo_entrega").val(prazoEntrega);
       $("#edit_status").val(statusID);
       $("#edit_data_recebido").val(dataRecebido);
+      $("#edit_prazo_entrega").val(prazoEntrega);
+      $("#edit_data_inicio").val(dataInicio);
+      $("#edit_data_conclusao").val(dataConclusao);
+      $("#edit_analista").val(analistaID);
+      $("#edit_observacao").val(observacao);
+      $("#modalEdicao").modal('show');
+    }
+
+    // Mostra modal de edição de conversão finalizado
+    function abrirModalEdicaoFinal(
+      id, contato, serial, retrabalho,
+      sistemaID, statusID, dataRecebido, 
+      prazoEntrega, dataInicio, dataConclusao,
+      analistaID, observacao
+    ) {
+      // Preenche campos do modal Edição
+      $("#edit_id").val(id);
+      $("#edit_contato").val(contato);
+      $("#edit_serial").val(serial);
+      $("#edit_retrabalho").val(retrabalho);
+      $("#edit_sistema").val(sistemaID);
+      $("#edit_status").val(statusID);
+      $("#edit_data_recebido").val(dataRecebido);
+      $("#edit_prazo_entrega").val(prazoEntrega);
       $("#edit_data_inicio").val(dataInicio);
       $("#edit_data_conclusao").val(dataConclusao);
       $("#edit_analista").val(analistaID);

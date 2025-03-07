@@ -106,7 +106,7 @@ CREATE TABLE TB_SISTEMA_CONVER (
 );
 
 INSERT INTO TB_SISTEMA_CONVER (nome) VALUES
-    ('Conc. p/ ClippPro'), ('Clipp p/ ClippPro'), ('Zeta p/ ClippPro'), ('Conc. p/ ClippFácil'), ('Clipp p/ ClippFácil'),
+    ('Conc. p/ ClippPro'), ('Clipp p/ ClippPro'), ('Zeta p/ ClippPro'), ('Conc. p/ ClippFacil'), ('Clipp p/ ClippFacil'),
     ('Zeta p/ Clipp360'), ('Small p/ Clipp360'), ('Conc. p/ Clipp360'), ('Clipp p/ Clipp360'), ('Conc. p/ ClippMEI'),
     ('Clipp p/ ClippMEI'), ('Clipp p/ ZetaWeb'), ('Conc p/ ZetaWeb'), ('Small p/ ZetaWeb'), ('Gdoor p/ ZetaWeb'),
     ('Gdoor p/ ClippPro'), ('AC p/ Clipp360'), ('ClippMei p/ ClippPro'), ('AC p/ ClippPRO');
@@ -117,7 +117,7 @@ CREATE TABLE TB_STATUS_CONVER (
 );
 
 INSERT INTO TB_STATUS_CONVER (descricao) VALUES
-    ('Concluído'), ('Aguardando cliente'), ('Analise'), ('Em fila'), ('Cancelada'),
+    ('Concluido'), ('Aguardando cliente'), ('Analise'), ('Em fila'), ('Cancelada'),
     ('Dar prioridade'), ('Aguardando Conversor'), ('Ficha'), ('Fin - Aguar. Login');
 
 CREATE TABLE TB_ANALISTA_CONVER (
@@ -133,7 +133,7 @@ CREATE TABLE TB_CONVERSOES (
     email_cliente VARCHAR(255) NOT NULL,
     contato VARCHAR(255) NOT NULL,
     serial VARCHAR(255) NULL,
-    retrabalho ENUM('Sim', 'Não') NOT NULL,
+    retrabalho ENUM('Sim', 'Nao') NOT NULL,
     sistema_id INT NOT NULL,
     prazo_entrega DATETIME NOT NULL,
     status_id INT NOT NULL,
