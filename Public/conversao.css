@@ -117,9 +117,13 @@ body {
 .table td {
     text-align: center;
     vertical-align: middle;
-    white-space: normal !important;
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important;
+}
+
+td.contato {
+    max-width: 150px; /* ajuste o valor conforme necessário */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .tabelaEstilizada {

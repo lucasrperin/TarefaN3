@@ -434,7 +434,7 @@ document.addEventListener("DOMContentLoaded", function () {
               <tbody>
                 <?php while ($rowF = $resFila->fetch_assoc()): ?>
                 <tr>
-                  <td><?= $rowF['contato']; ?></td>
+                  <td class="contato"><?= $rowF['contato']; ?></td>
                   <td><?= $rowF['sistema_nome']; ?></td>
                   <td><?= $rowF['data_recebido2']; ?></td>
                   <td><?= $rowF['prazo_entrega2']; ?></td>
@@ -494,7 +494,7 @@ document.addEventListener("DOMContentLoaded", function () {
               <tbody>
                 <?php while ($rowO = $resOutros->fetch_assoc()): ?>
                 <tr>
-                  <td><?= $rowO['contato']; ?></td>
+                  <td class="contato"><?= $rowO['contato']; ?></td>
                   <td><?= $rowO['sistema_nome']; ?></td>
                   <td><?= $rowO['status_nome']; ?></td>
                   <td><?= $rowO['data_recebido2']; ?></td>
