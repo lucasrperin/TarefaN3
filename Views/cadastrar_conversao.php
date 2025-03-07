@@ -10,7 +10,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $sistema_id = $_POST['sistema_id'];
     $prazo_entrega = $_POST['prazo_entrega'];
     $status_id = $_POST['status_id'];
+    // Calcula o prazo_entrega como data_recebido + 3 dias
     $data_recebido = $_POST['data_recebido'];
+    // Caso o valor venha no formato "YYYY-MM-DDTHH:MM", substituímos "T" por espaço
+    $data_recebido_formatada = str_replace('T', ' ', $data_recebido);
+    $date = new DateTime($data_recebido_formatada);
+    $date->add(new DateInterval('P3D'));
+    $prazo_entrega = $date->format('Y-m-d H:i:s'); // Formato para inserir no banco (ajuste conforme o campo)
     $data_inicio = $_POST['data_inicio'];
     $data_conclusao = $_POST['data_conclusao'] ?: NULL;
     $analista_id = $_POST['analista_id'];

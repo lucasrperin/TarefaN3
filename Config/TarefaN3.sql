@@ -118,7 +118,7 @@ CREATE TABLE TB_STATUS_CONVER (
 
 INSERT INTO TB_STATUS_CONVER (descricao) VALUES
     ('Concluído'), ('Aguardando cliente'), ('Analise'), ('Em fila'), ('Cancelada'),
-    ('Dar prioridade'), ('Aguardando Termos'), ('Ficha'), ('Fin - Aguar. Login');
+    ('Dar prioridade'), ('Aguardando Conversor'), ('Ficha'), ('Fin - Aguar. Login');
 
 CREATE TABLE TB_ANALISTA_CONVER (
     id INT AUTO_INCREMENT PRIMARY KEY,
