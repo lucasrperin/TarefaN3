@@ -1,8 +1,8 @@
 <?php
 include '../Config/Database.php'; // Conexão com o banco de dados
+session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email_cliente'];
     $contato = $_POST['contato'];
     $serial = $_POST['serial'] ?: NULL;
     $retrabalho = $_POST['retrabalho'];
@@ -15,9 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $analista_id = $_POST['analista_id'];
     $observacao = $_POST['observacao'];
 
-    $query = "INSERT INTO TB_CONVERSOES (email_cliente, contato, serial, retrabalho, sistema_id, prazo_entrega, status_id, data_recebido, data_inicio, data_conclusao, analista_id, observacao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $query = "INSERT INTO TB_CONVERSOES (contato, serial, retrabalho, sistema_id, prazo_entrega, status_id, data_recebido, data_inicio, data_conclusao, analista_id, observacao) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param('ssssisssssss', $email, $contato, $serial, $retrabalho, $sistema_id, $prazo_entrega, $status_id, $data_recebido, $data_inicio, $data_conclusao, $analista_id, $observacao);
+    $stmt->bind_param('sssisssssss', $contato, $serial, $retrabalho, $sistema_id, $prazo_entrega, $status_id, $data_recebido, $data_inicio, $data_conclusao, $analista_id, $observacao);
     
     if ($stmt->execute()) {
         echo "success";
@@ -25,3 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "error: " . $stmt->error;
     }
 }
+$conn->close();
+    header("Location: ../Views/conversao.php?success=1");
+    exit();
+?>

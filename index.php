@@ -387,8 +387,6 @@ document.addEventListener("DOMContentLoaded", function () {
     </div> 
   </div> 
 </div> 
-
-
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll("#tabelaAnalises tbody tr").forEach(row => {
@@ -689,7 +687,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             </div>
                         </div>
                         <div class="text-end">
-                            <button type="submit" class="btn btn-success" onclick="exibirToast()">Salvar</button>
+                            <button type="submit" class="btn btn-success">Salvar</button>
                         </div>
                     </form>
                 </div>

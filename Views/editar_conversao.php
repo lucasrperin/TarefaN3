@@ -8,7 +8,6 @@ ini_set('display_errors', 1);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Captura dos campos
     $id             = $_POST['id'];
-    $email          = $_POST['email_cliente'];
     $contato        = $_POST['contato'];
     $serial         = $_POST['serial'] ?: NULL;
     $retrabalho     = $_POST['retrabalho'];       // 'Sim' ou 'Não'
@@ -26,22 +25,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // exit; // Se quiser inspecionar
 
     // Preparar e executar o UPDATE
-    $query = "
-        UPDATE TB_CONVERSOES
-           SET email_cliente=?,
-               contato=?,
-               serial=?,
-               retrabalho=?,
-               sistema_id=?,
-               prazo_entrega=?,
-               status_id=?,
-               data_recebido=?,
-               data_inicio=?,
-               data_conclusao=?,
-               analista_id=?,
-               observacao=?
-         WHERE id=?
-    ";
+    $query = "UPDATE TB_CONVERSOES
+                SET 
+                    contato=?,
+                    serial=?,
+                    retrabalho=?,
+                    sistema_id=?,
+                    prazo_entrega=?,
+                    status_id=?,
+                    data_recebido=?,
+                    data_inicio=?,
+                    data_conclusao=?,
+                    analista_id=?,
+                    observacao=?
+                WHERE id=?";
     $stmt = $conn->prepare($query);
     if (!$stmt) {
         echo "error: " . $conn->error;
@@ -49,8 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $stmt->bind_param(
-        'ssssisssssssi',
-        $email,
+        'sssisssssssi',
         $contato,
         $serial,
         $retrabalho,
@@ -72,3 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "error: " . $stmt->error;
     }
 }
+$conn->close();
+    header("Location: ../Views/conversao.php?success=2");
+    exit();
+?>
