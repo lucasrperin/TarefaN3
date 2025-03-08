@@ -98,6 +98,8 @@ $sqlTempo = "
       $where
 ";
 $tempo_medio = $conn->query($sqlTempo)->fetch_row()[0] ?? 'N/A';
+$tempo_medio = substr($tempo_medio, 0, 8); // Pega apenas "HH:MM:SS"
+
 
 /****************************************************************
  * 5) Totalizadores por Status
@@ -485,7 +487,7 @@ document.addEventListener("DOMContentLoaded", function () {
     <div class="col-md-6">
       <div class="card text-white bg-primary">
         <div class="card-body text-center">
-          <h5 class="card-title">Total de Conversões (Filtro)</h5>
+          <h5 class="card-title">Total de Conversões</h5>
           <h3 class="card-text"><?= $total_conversoes; ?></h3>
         </div>
       </div>
@@ -493,7 +495,7 @@ document.addEventListener("DOMContentLoaded", function () {
     <div class="col-md-6">
       <div class="card text-white bg-success">
         <div class="card-body text-center">
-          <h5 class="card-title">Tempo Médio (Filtro)</h5>
+          <h5 class="card-title">Tempo Médio</h5>
           <h3 class="card-text"><?= $tempo_medio; ?></h3>
         </div>
       </div>
@@ -698,7 +700,7 @@ document.addEventListener("DOMContentLoaded", function () {
                       )">
                       <i class='fa-sharp fa-solid fa-pen'></i>
                     </a>
-                    <a href="javascript:void(0)" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalExclusao" onclick="excluirAnalise(<?= $rowO['id'] ?>)">
+                    <a href="javascript:void(0)" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalExclusao" onclick="excluirAnalise(<?= $rowC['id'] ?>)">
                         <i class="fa-sharp fa-solid fa-trash"></i>
                       </a>
                   </td>
@@ -737,7 +739,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <label class="form-label">Retrabalho:</label>
                 <select name="retrabalho" class="form-select">
                   <option value="Sim">Sim</option>
-                  <option value="Não" selected>Não</option>
+                  <option value="Nao" selected>Nao</option>
                 </select>
               </div>
             </div>
@@ -762,7 +764,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="col-md-4">
               <div class="mb-3">
                 <label class="form-label">Status:</label>
-                <select name="status_id" class="form-select" required>
+                <select name="status_id" id="status_id" class="form-select" required onchange="verificarStatus()">
                   <option value="">Selecione...</option>
                   <?php
                   mysqli_data_seek($status, 0);
@@ -801,14 +803,14 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="col-md-4">
               <div class="mb-3">
                 <label class="form-label">Data Início:</label>
-                <input type="datetime-local" class="form-control" name="data_inicio" required>
+                <input type="datetime-local" class="form-control" name="data_inicio">
               </div>
             </div>
 
             <div class="col-md-4">
               <div class="mb-3">
                 <label class="form-label">Data Conclusão:</label>
-                <input type="datetime-local" class="form-control" name="data_conclusao">
+                <input type="datetime-local" class="form-control" name="data_conclusao" id="data_conclusao">
               </div>
             </div>
           </div>
@@ -827,6 +829,24 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
   </div>
 </div>
+
+<!--Verifica se o status é concluido e obriga a data conclusao-->
+<script>
+  function verificarStatus() {
+    var status = document.getElementById("status_id");
+    var dataConclusao = document.getElementById("data_conclusao");
+
+    // Pega o texto da opção selecionada
+    var statusSelecionado = status.options[status.selectedIndex].text.trim();
+
+    // Verifica se a opção selecionada é "Concluido"
+    if (statusSelecionado === "Concluido") {
+      dataConclusao.setAttribute("required", "true"); // Adiciona required quando visível
+    } else {
+      dataConclusao.removeAttribute("required"); // Remove required quando oculto
+    }
+}
+</script>
 
 <!-- MODAL EDIÇÃO (id=modalEdicao) -->
 <div class="modal fade" id="modalEdicao" tabindex="-1">
@@ -853,7 +873,7 @@ document.addEventListener("DOMContentLoaded", function () {
               <label class="form-label">Retrabalho:</label>
               <select name="retrabalho" class="form-select" id="edit_retrabalho">
                 <option value="Sim">Sim</option>
-                <option value="Não" selected>Não</option>
+                <option value="Nao" selected>Nao</option>
               </select>
             </div>
           </div>
@@ -878,7 +898,7 @@ document.addEventListener("DOMContentLoaded", function () {
           <div class="col-md-4">
             <div class="mb-3">
               <label class="form-label">Status:</label>
-              <select name="status_id" class="form-select" id="edit_status" required>
+              <select name="status_id" class="form-select" id="edit_status" required onchange="verificarStatusEdit()">
                 <option value="">Selecione...</option>
                 <?php
                 mysqli_data_seek($status, 0);
@@ -887,6 +907,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   <option value="<?= $st['id']; ?>"><?= $st['descricao']; ?></option>
                 <?php endwhile; ?>
               </select>
+              <span id="statusError" class="text-danger mt-1" style="display: none;">Para concluir, selecione "Concluído".</span>
             </div>
           </div>
 
@@ -951,8 +972,45 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
   </div>
 </div>
+<!--Verifica se a data ta preenchida e obriga o status concluido-->
+<script>
+  document.getElementById("formEdicao").addEventListener("submit", function(event) {
+    var statusEdit = document.getElementById("edit_status");
+    var dataEditConclusao = document.getElementById("edit_data_conclusao");
+    var statusError = document.getElementById("statusError");
 
+    // ID real do status "Concluído" (substituir pelo valor correto do banco)
+    var idConcluido = "1"; 
 
+    // Se a data de conclusão estiver preenchida, mas o status não for "Concluído"
+    if (dataEditConclusao.value.trim() !== "" && statusEdit.value !== idConcluido) {
+      statusError.style.display = "block"; // Exibe a mensagem de erro
+      event.preventDefault(); // Impede o envio do formulário
+
+      // Remove a mensagem após 2 segundos
+      setTimeout(function() {
+        statusError.style.display = "none";
+      }, 2000);
+    } else {
+      statusError.style.display = "none"; // Oculta a mensagem se estiver tudo certo
+    }
+  });
+
+  function verificarStatusEdit() {
+    var statusEdit2 = document.getElementById("edit_status");
+    var dataConclusao2 = document.getElementById("edit_data_conclusao");
+
+    // Pega o texto da opção selecionada
+    var statusSelecionado2 = statusEdit2.options[statusEdit2.selectedIndex].text.trim();
+
+    // Verifica se a opção selecionada é "Concluido"
+    if (statusSelecionado2 === "Concluido") {
+      dataConclusao2.setAttribute("required", "true"); // Adiciona required quando visível
+    } else {
+      dataConclusao2.removeAttribute("required"); // Remove required quando oculto
+    }
+}
+</script>
 
 <!-- Modal de Exclusão -->
 <div class="modal fade" id="modalExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">

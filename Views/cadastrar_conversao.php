@@ -22,10 +22,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $analista_id = $_POST['analista_id'];
     $observacao = $_POST['observacao'];
 
-    $query = "INSERT INTO TB_CONVERSOES (contato, serial, retrabalho, sistema_id, prazo_entrega, status_id, data_recebido, data_inicio, data_conclusao, analista_id, observacao) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $query = "INSERT INTO TB_CONVERSOES (contato, serial, retrabalho, sistema_id, prazo_entrega, status_id, data_recebido, data_inicio, data_conclusao, analista_id, observacao, tempo_total) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TIMEDIFF(?, ?))";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param('sssisssssss', $contato, $serial, $retrabalho, $sistema_id, $prazo_entrega, $status_id, $data_recebido, $data_inicio, $data_conclusao, $analista_id, $observacao);
+    $stmt->bind_param('sssisssssssss', $contato, $serial, $retrabalho, $sistema_id, $prazo_entrega, $status_id, $data_recebido, $data_inicio, $data_conclusao, $analista_id, $observacao, $data_recebido, $data_conclusao);
     
     if ($stmt->execute()) {
         echo "success";
