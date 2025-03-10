@@ -96,6 +96,7 @@ $sqlTempo = "
     SELECT SEC_TO_TIME(AVG(TIME_TO_SEC(tempo_total)))
       FROM TB_CONVERSOES c
       $where
+      AND status_id = 1
 ";
 $tempo_medio = $conn->query($sqlTempo)->fetch_row()[0] ?? 'N/A';
 $tempo_medio = substr($tempo_medio, 0, 8); // Pega apenas "HH:MM:SS"
@@ -409,10 +410,10 @@ document.addEventListener("DOMContentLoaded", function () {
               <?php endwhile; ?>
             </select>
           </div>
-                 <div class="d-flex justify-content-center gap-2">
-                       <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-                        <a href="conversao.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
-                  </div>
+          <div class="d-flex justify-content-center gap-2">
+                <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+                <a href="conversao.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
+          </div>
         </form>
       </div>
     </div>
@@ -773,6 +774,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <option value="<?= $st['id']; ?>"><?= $st['descricao']; ?></option>
                   <?php endwhile; ?>
                 </select>
+                <span id="statusError" class="text-danger mt-1" style="display: none;">Para concluir, selecione "Concluído".</span>
               </div>
             </div>
 
@@ -832,12 +834,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <!--Verifica se o status é concluido e obriga a data conclusao-->
 <script>
-  function verificarStatus() {
+
+document.getElementById("formCadastro").addEventListener("submit", function(event) {
     var status = document.getElementById("status_id");
     var dataConclusao = document.getElementById("data_conclusao");
+    var statusError = document.getElementById("statusError");
+
+    // ID real do status "Concluído" (substituir pelo valor correto do banco)
+    var idConcluido = "1"; 
+
+    // Se a data de conclusão estiver preenchida, mas o status não for "Concluído"
+    if (dataConclusao.value.trim() !== "" && status.value !== idConcluido) {
+      statusError.style.display = "block"; // Exibe a mensagem de erro
+      event.preventDefault(); // Impede o envio do formulário
+
+      // Remove a mensagem após 2 segundos
+      setTimeout(function() {
+        statusError.style.display = "none";
+      }, 2000);
+    } else {
+      statusError.style.display = "none"; // Oculta a mensagem se estiver tudo certo
+    }
+});
+
+  function verificarStatus() {
+    var status2 = document.getElementById("status_id");
+    var dataConclusao2 = document.getElementById("data_conclusao");
 
     // Pega o texto da opção selecionada
-    var statusSelecionado = status.options[status.selectedIndex].text.trim();
+    var statusSelecionado = status2.options[status2.selectedIndex].text.trim();
 
     // Verifica se a opção selecionada é "Concluido"
     if (statusSelecionado === "Concluido") {
