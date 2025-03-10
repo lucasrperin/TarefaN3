@@ -194,17 +194,33 @@ $sqlMetaBatida = "
       $where
       AND st.descricao = 'Concluído'
       AND (
-           (TIME(c.data_recebido) < '15:00:00' AND DATE(c.data_conclusao) = DATE(c.data_recebido))
+           (TIME(c.data_recebido) < '15:00:00' 
+             AND DATE(c.data_conclusao) = DATE(c.data_recebido))
            OR
            (TIME(c.data_recebido) >= '15:00:00' 
-             AND DATE(c.data_conclusao) = DATE(c.data_recebido + INTERVAL 1 DAY)
-             AND TIME(c.data_conclusao) < '15:00:00')
+             AND c.data_conclusao < CONCAT(DATE(c.data_recebido + INTERVAL 1 DAY), ' 15:00:00'))
       )
 ";
+
 $countMetaBatida = $conn->query($sqlMetaBatida)->fetch_row()[0] ?? 0;
 
 $percentAtendimento = $totalConcluidas > 0 ? ($countMetaBatida / $totalConcluidas) * 100 : 0;
 
+// Calcular a porcentagem de atendimento (meta)
+// Supondo que $percentAtendimento já esteja calculado
+$meta = round($percentAtendimento, 2);
+
+// Definir a cor com base no valor da meta
+if ($meta < 90) {
+    // Abaixo da meta
+    $metaColor = "#FF746C"; // vermelho suave
+} elseif ($meta >= 90 && $meta <= 94) {
+    // Dentro do esperado
+    $metaColor = "#FFDB58"; // amarelo suave
+} else { // $meta >= 95
+    // Acima do esperado
+    $metaColor = "#00674F"; // verde suave
+}
 /****************************************************************
  * 7) 
  * Dividir a listagem em duas:
@@ -507,26 +523,31 @@ document.addEventListener("DOMContentLoaded", function () {
 </div>
 
 
-  <!-- TOTAlIZADORES GERAIS (Total de Conversões, Atendimento e Tempo Médio) -->
+<!-- TOTALIZADORES GERAIS (Total de Conversões, Atingimento da Meta e Tempo Médio) -->
 <div class="row g-3 mb-3 card-total">
+  <!-- Total de Conversões -->
   <div class="col-md-4">
-    <div class="card text-white bg-primary">
+    <div class="card text-white" style="background-color:rgb(120, 157, 184);"> 
+      <!-- Cor suave azul -->
       <div class="card-body text-center">
         <h5 class="card-title">Total de Conversões</h5>
         <h3 class="card-text"><?= $total_conversoes; ?></h3>
       </div>
     </div>
   </div>
+  <!-- Atingimento da Meta -->
   <div class="col-md-4">
-    <div class="card text-white bg-info">
+    <div class="card text-white" style="background-color: <?= $metaColor; ?>;">
       <div class="card-body text-center">
         <h5 class="card-title">Atingimento da Meta</h5>
-        <h3 class="card-text"><?= round($percentAtendimento, 2); ?>%</h3>
+        <h3 class="card-text"><?= $meta; ?>%</h3>
       </div>
     </div>
   </div>
+  <!-- Tempo Médio -->
   <div class="col-md-4">
-    <div class="card text-white bg-success">
+    <div class="card text-white" style="background-color:rgba(91, 41, 170, 0.67);"> 
+      <!-- Cor suave verde -->
       <div class="card-body text-center">
         <h5 class="card-title">Tempo Médio</h5>
         <h3 class="card-text"><?= $tempo_medio; ?></h3>
