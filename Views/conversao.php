@@ -846,7 +846,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <option value="<?= $st['id']; ?>"><?= $st['descricao']; ?></option>
                   <?php endwhile; ?>
                 </select>
-                <span id="statusError" class="text-danger mt-1" style="display: none;">Para concluir, selecione "Concluído".</span>
+                <span id="statusError2" class="text-danger mt-1" style="display: none;">Para concluir, selecione "Concluído".</span>
               </div>
             </div>
 
@@ -910,22 +910,22 @@ document.addEventListener("DOMContentLoaded", function () {
 document.getElementById("formCadastro").addEventListener("submit", function(event) {
     var status = document.getElementById("status_id");
     var dataConclusao = document.getElementById("data_conclusao");
-    var statusError = document.getElementById("statusError");
+    var statusError2 = document.getElementById("statusError2");
 
     // ID real do status "Concluído" (substituir pelo valor correto do banco)
     var idConcluido = "1"; 
 
     // Se a data de conclusão estiver preenchida, mas o status não for "Concluído"
     if (dataConclusao.value.trim() !== "" && status.value !== idConcluido) {
-      statusError.style.display = "block"; // Exibe a mensagem de erro
+      statusError2.style.display = "block"; // Exibe a mensagem de erro
       event.preventDefault(); // Impede o envio do formulário
 
       // Remove a mensagem após 2 segundos
       setTimeout(function() {
-        statusError.style.display = "none";
+        statusError2.style.display = "none";
       }, 2000);
     } else {
-      statusError.style.display = "none"; // Oculta a mensagem se estiver tudo certo
+      statusError2.style.display = "none"; // Oculta a mensagem se estiver tudo certo
     }
 });
 
