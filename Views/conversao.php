@@ -39,6 +39,7 @@ $sqlGrafico = "
       FROM TB_CONVERSOES c
       JOIN TB_ANALISTA_CONVER a ON c.analista_id = a.id
       $where
+      AND c.status_id <> 5
       GROUP BY YEAR(c.data_recebido), MONTH(c.data_recebido), c.analista_id
       ORDER BY ano, mes, analista_nome
 ";
@@ -89,6 +90,7 @@ $sqlQtd = "
     SELECT COUNT(*)
       FROM TB_CONVERSOES c
       $where
+      AND c.status_id <> 5
 ";
 $total_conversoes = $conn->query($sqlQtd)->fetch_row()[0] ?? 0;
 
@@ -125,6 +127,7 @@ $sqlSistemaTot = "
       FROM TB_CONVERSOES c
       JOIN TB_SISTEMA_CONVER s ON c.sistema_id = s.id
       $where
+      AND c.status_id <> 5
       GROUP BY TRIM(SUBSTRING_INDEX(s.nome, '/', -1))
       ORDER BY sistema_exibicao
 ";
@@ -250,7 +253,7 @@ $sqlOutros = "SELECT
                 JOIN TB_STATUS_CONVER st  ON c.status_id   = st.id
                 JOIN TB_ANALISTA_CONVER a ON c.analista_id = a.id
                 $where
-                  AND st.descricao not in ('Em fila', 'Concluido', 'Cancelado')
+                  AND st.descricao not in ('Em fila', 'Concluido', 'Cancelada')
               ORDER BY c.data_recebido ASC";
 $resOutros = $conn->query($sqlOutros);
 
@@ -654,7 +657,7 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-striped table-bordered mb-0 tabelaEstilizada">
+            <table id="tabelaFinalizados" class="table table-striped table-bordered mb-0 tabelaEstilizada">
               <thead class="table-light">
                 <tr>
                   <th>Contato</th>
@@ -714,6 +717,27 @@ document.addEventListener("DOMContentLoaded", function () {
       </div><!-- card -->
     </div><!-- col-md-6 -->
 </div><!-- container -->
+
+<!-- Controle de cores da tabela de concluído -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll("#tabelaFinalizados tbody tr").forEach(row => {
+    let statusCell = row.cells[4]; // 5ª coluna (índice 4)
+    let status_id = statusCell.textContent.trim();
+    // Remove classes de cores anteriores, se houver
+    statusCell.classList.remove("pastel-cancelado", "pastel-concluido");
+    // Aplica as classes com as novas cores:
+    switch (status_id) {
+      case "Cancelada":
+        statusCell.classList.add("pastel-cancelado");
+        break;
+      case "Concluído":
+        statusCell.classList.add("pastel-concluido");
+        break;
+    }
+  });
+});
+</script>
 
 <!-- MODAL CADASTRO (id=modalCadastro) -->
 <div class="modal fade" id="modalCadastro" tabindex="-1">
@@ -865,7 +889,7 @@ document.getElementById("formCadastro").addEventListener("submit", function(even
     var statusSelecionado = status2.options[status2.selectedIndex].text.trim();
 
     // Verifica se a opção selecionada é "Concluido"
-    if (statusSelecionado === "Concluido") {
+    if (statusSelecionado === "Concluído") {
       dataConclusao.setAttribute("required", "true"); // Adiciona required quando visível
     } else {
       dataConclusao.removeAttribute("required"); // Remove required quando oculto
@@ -1029,7 +1053,7 @@ document.getElementById("formCadastro").addEventListener("submit", function(even
     var statusSelecionado2 = statusEdit2.options[statusEdit2.selectedIndex].text.trim();
 
     // Verifica se a opção selecionada é "Concluido"
-    if (statusSelecionado2 === "Concluido") {
+    if (statusSelecionado2 === "Concluído") {
       dataConclusao2.setAttribute("required", "true"); // Adiciona required quando visível
     } else {
       dataConclusao2.removeAttribute("required"); // Remove required quando oculto

@@ -13,9 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $serial         = $_POST['serial'] ?: NULL;
     $retrabalho     = $_POST['retrabalho'];       // 'Sim' ou 'Não'
     $sistema_id     = $_POST['sistema_id'];       // ID válido em TB_SISTEMA_CONVER
-    $prazo_entrega  = $_POST['prazo_entrega'];    // DATETIME
     $status_id      = $_POST['status_id'];        // ID válido em TB_STATUS_CONVER
     $data_recebido  = $_POST['data_recebido'];    // DATETIME
+    $prazo_entrega  = $_POST['prazo_entrega'];    // DATETIME
     $data_inicio    = $_POST['data_inicio'];      // DATETIME
     $data_conclusao = $_POST['data_conclusao'] ?: NULL; // DATETIME ou NULL
     $analista_id    = $_POST['analista_id'];      // ID válido em TB_ANALISTA_CONVER
@@ -28,9 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     serial=?,
                     retrabalho=?,
                     sistema_id=?,
-                    prazo_entrega=?,
                     status_id=?,
                     data_recebido=?,
+                    prazo_entrega=?,
                     data_inicio=?,
                     data_conclusao=?,
                     analista_id=?,
@@ -43,14 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $stmt->bind_param(
-        'sssisisssisi',
+        'sssiissssisi',
         $contato,
         $serial,
         $retrabalho,
         $sistema_id,
-        $prazo_entrega,
         $status_id,
         $data_recebido,
+        $prazo_entrega,
         $data_inicio,
         $data_conclusao,
         $analista_id,

@@ -139,3 +139,13 @@ td.contato {
     overflow: hidden;
     font-family: 'Nunito', sans-serif;
 }
+
+/* Cores moderadas para os status */
+#tabelaFinalizados .pastel-cancelado {
+background-color: #fc05057e !important; /* Soft Yellow/Orange */
+color: #333 !important;
+}
+#tabelaFinalizados .pastel-concluido {
+background-color: #53fc53a6 !important; /* DarkSeaGreen */
+color: #333 !important;
+}
