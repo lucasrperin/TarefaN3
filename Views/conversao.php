@@ -103,6 +103,16 @@ $sqlTempo = "
 $tempo_medio = $conn->query($sqlTempo)->fetch_row()[0] ?? 'N/A';
 $tempo_medio = substr($tempo_medio, 0, 8); // Pega apenas "HH:MM:SS"
 
+// Total de conversões concluídas (status "Concluído")
+$sqlTotalConcluidas = "
+    SELECT COUNT(*) 
+      FROM TB_CONVERSOES c
+      JOIN TB_STATUS_CONVER st ON c.status_id = st.id
+      $where
+      AND st.descricao = 'Concluído'
+";
+$totalConcluidas = $conn->query($sqlTotalConcluidas)->fetch_row()[0] ?? 0;
+
 
 /****************************************************************
  * 5) Totalizadores por Status
@@ -188,6 +198,8 @@ $sqlMetaBatida = "
       )
 ";
 $countMetaBatida = $conn->query($sqlMetaBatida)->fetch_row()[0] ?? 0;
+
+$percentAtendimento = $totalConcluidas > 0 ? ($countMetaBatida / $totalConcluidas) * 100 : 0;
 
 /****************************************************************
  * 7) 
@@ -486,25 +498,34 @@ document.addEventListener("DOMContentLoaded", function () {
 </div>
 
 
-  <!-- TOTAlIZADORES GERAIS -->
-  <div class="row g-3 mb-3 card-total">
-    <div class="col-md-6">
-      <div class="card text-white bg-primary">
-        <div class="card-body text-center">
-          <h5 class="card-title">Total de Conversões</h5>
-          <h3 class="card-text"><?= $total_conversoes; ?></h3>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-6">
-      <div class="card text-white bg-success">
-        <div class="card-body text-center">
-          <h5 class="card-title">Tempo Médio</h5>
-          <h3 class="card-text"><?= $tempo_medio; ?></h3>
-        </div>
+  <!-- TOTAlIZADORES GERAIS (Total de Conversões, Atendimento e Tempo Médio) -->
+<div class="row g-3 mb-3 card-total">
+  <div class="col-md-4">
+    <div class="card text-white bg-primary">
+      <div class="card-body text-center">
+        <h5 class="card-title">Total de Conversões</h5>
+        <h3 class="card-text"><?= $total_conversoes; ?></h3>
       </div>
     </div>
   </div>
+  <div class="col-md-4">
+    <div class="card text-white bg-info">
+      <div class="card-body text-center">
+        <h5 class="card-title">Atingimento da Meta</h5>
+        <h3 class="card-text"><?= round($percentAtendimento, 2); ?>%</h3>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-white bg-success">
+      <div class="card-body text-center">
+        <h5 class="card-title">Tempo Médio</h5>
+        <h3 class="card-text"><?= $tempo_medio; ?></h3>
+      </div>
+    </div>
+  </div>
+</div>
+
 
   <!-- Botão Cadastrar -->
   <div class="d-flex justify-content-end mb-3 gap-2">
