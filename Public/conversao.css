@@ -141,11 +141,30 @@ td.contato {
 }
 
 /* Cores moderadas para os status */
-#tabelaFinalizados .pastel-cancelado {
+.pastel-cancelado {
 background-color: #fc05057e !important; /* Soft Yellow/Orange */
 color: #333 !important;
 }
-#tabelaFinalizados .pastel-concluido {
+.pastel-concluido {
 background-color: #53fc53a6 !important; /* DarkSeaGreen */
 color: #333 !important;
+}
+.pastel-alerta {
+background-color: #ffd90080 !important; /* Soft Yellow/Orange */
+color: #333 !important;
+}
+
+/*Icones parsolizados das tabelas*/
+.finalizado i {
+    color: #28a745;
+}
+
+.fila i {
+    color: #0d40ce;
+    padding-left: 5px;
+}
+
+.outras i {
+    color: #ce910d;
+    padding-left: 1px;
 }

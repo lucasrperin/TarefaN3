@@ -7,7 +7,9 @@ if (!isset($_SESSION['usuario_id'])) {
 
 require '../Config/Database.php';
 
+// Definir o cargo do usuário (supondo que ele esteja armazenado na sessão, com a chave "Cargo")
 $usuario_id = $_SESSION['usuario_id'];
+$cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 
 // Consulta para obter análises (incluindo o campo Nota) do usuário logado
 $sql_analises = "SELECT
@@ -102,18 +104,32 @@ if ($result_ranking) {
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- CSS personalizado para a área do usuário -->
-  <link rel="stylesheet" href="../Public/user.css">
+  <link href="../Public/user.css" rel="stylesheet" >
+  <!-- Ícones personalizados -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="icon" href="..\Public\Image\icone2.png" type="image/png">
 </head>
 <body>
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-    <div class="container d-flex align-items-center">
-      <a class="navbar-brand" href="#">Painel do Usuário</a>
-      <span class="text-white mx-auto">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
-      <a href="logout.php" class="btn btn-danger">Sair</a>
-    </div>
-  </nav>
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container d-flex justify-content-between align-items-center">
+      <!-- Botão Hamburguer com Dropdown -->
+      <?php if ($cargo === 'Conversor'): ?>
+        <div class="dropdown">
+            <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
+              <li><a class="dropdown-item" href="conversao.php">Conversão</a></li>
+            </ul>
+        </div>
+      <?php endif; ?>
+      <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
+      <a href="logout.php" class="btn btn-danger">
+          <i class="fa-solid fa-right-from-bracket me-2" style="font-size: 0.8em;"></i>Sair
+      </a>
+  </div>
+</nav>
 
   <!-- Conteúdo Principal -->
   <div class="container user-container mt-4">

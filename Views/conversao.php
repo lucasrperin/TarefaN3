@@ -6,6 +6,10 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Definir o cargo do usuário (supondo que ele esteja armazenado na sessão, com a chave "Cargo")
+$usuario_id = $_SESSION['usuario_id'];
+$cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
+
 /****************************************************************
  * 1) Capturar Filtros (GET)
  ****************************************************************/
@@ -336,8 +340,13 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ORDER BY nome"
                 <span class="navbar-toggler-icon"></span>
             </button>
             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-                <li><a class="dropdown-item" href="dashboard.php">Totalizadores</a></li>
+              <?php if ($cargo === 'Conversor'): ?>  <!-- Verifica o cargo do usuário -->
                 <li><a class="dropdown-item" href="user.php">Analises</a></li>
+                <?php endif; ?>
+              <?php if ($cargo === 'Admin'): ?>  <!-- Verifica o cargo do usuário -->
+                <li><a class="dropdown-item" href="../index.php">Painel N3</a></li>
+                <li><a class="dropdown-item" href="dashboard.php">Totalizadores</a></li>
+              <?php endif; ?>
             </ul>
         </div>
         <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
@@ -552,8 +561,8 @@ document.addEventListener("DOMContentLoaded", function () {
     <!-- TABELA 1: Em fila -->
     <div class="col-md-6 mb-3">
       <div class="card">
-        <div class="card-header bg-warning text-dark">
-          <strong>Conversões em Fila</strong> <!-- status='Em fila' -->
+        <div class="card-header">
+          <strong class="fila">Em Fila<i class="fa-solid fa-arrows-rotate"></i></strong> <!-- status='Em fila' -->
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">
@@ -612,12 +621,12 @@ document.addEventListener("DOMContentLoaded", function () {
     <!-- TABELA 2: Demais status (<> Em fila) -->
     <div class="col-md-6 mb-3">
       <div class="card">
-        <div class="card-header bg-dark text-white">
-          <strong>Outras Conversões</strong>
+        <div class="card-header">
+          <strong class="outras">Em Andamento <i class="fa-solid fa-gears"></i></strong>
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-striped table-bordered mb-0 tabelaEstilizada">
+            <table id="tabelaOutras" class="table table-striped table-bordered mb-0 tabelaEstilizada">
               <thead class="table-light">
                 <tr>
                   <th style="width:1%">Contato</th>
@@ -670,11 +679,29 @@ document.addEventListener("DOMContentLoaded", function () {
     </div><!-- col-md-6 -->
   </div><!-- row das duas tabelas -->
 
+  <!-- Controle de cores da tabela de Outras -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll("#tabelaOutras tbody tr").forEach(row => {
+    let statusCell = row.cells[2]; // 5ª coluna (índice 4)
+    let status_id = statusCell.textContent.trim();
+    // Remove classes de cores anteriores, se houver
+    statusCell.classList.remove("pastel-alerta");
+    // Aplica as classes com as novas cores:
+    switch (status_id) {
+      case "Dar prioridade":
+        statusCell.classList.add("pastel-alerta");
+        break;
+    }
+  });
+});
+</script>
+
   <!--TABELA DE FINALIZADOS-->
   <div class="col-md-12 mb-3">
       <div class="card">
-        <div class="card-header bg-success text-white">
-          <strong>Conversões Finalizadas</strong>
+        <div class="card-header">
+          <strong class="finalizado">Finalizadas <i class="fa-solid fa-check-circle"></i></strong>
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">
