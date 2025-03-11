@@ -153,11 +153,16 @@ $sqlDentroPrazo = "
       FROM TB_CONVERSOES c
       JOIN TB_STATUS_CONVER st ON c.status_id = st.id
       $where
-      AND DATE(c.data_recebido) = CURDATE()
-      AND TIME(c.data_recebido) <= '15:00:00'
       AND st.descricao NOT IN ('Concluído','Cancelada')
+      AND NOW() < 
+          CASE 
+            WHEN TIME(c.data_recebido) < '15:00:00'
+              THEN CONCAT(DATE(c.data_recebido), ' 15:00:00')
+            ELSE CONCAT(DATE(c.data_recebido + INTERVAL 1 DAY), ' 15:00:00')
+          END
 ";
 $countDentroPrazo = $conn->query($sqlDentroPrazo)->fetch_row()[0] ?? 0;
+
 
 // NOVA QUERY: Conversões atrasadas (já passaram do prazo)
 // Considera somente status: Em fila, Analise, Dar prioridade
@@ -166,13 +171,18 @@ $sqlAtrasadas = "
       FROM TB_CONVERSOES c
       JOIN TB_STATUS_CONVER st ON c.status_id = st.id
       $where
-      AND (
-           (DATE(c.data_recebido) < CURDATE())
-           OR (DATE(c.data_recebido) = CURDATE() AND TIME(c.data_recebido) > '15:00:00')
-          )
       AND st.descricao IN ('Em fila','Analise','Dar prioridade')
+      AND (
+           -- Se a conversão foi recebida antes das 15:00, o prazo é até as 15:00 do mesmo dia.
+           (TIME(c.data_recebido) < '15:00:00' AND NOW() >= CONCAT(DATE(c.data_recebido), ' 15:00:00'))
+           OR
+           -- Se a conversão foi recebida às 15:00 ou depois, o prazo é até as 15:00 do dia seguinte.
+           (TIME(c.data_recebido) >= '15:00:00' AND NOW() >= CONCAT(DATE(c.data_recebido + INTERVAL 1 DAY), ' 15:00:00'))
+      )
 ";
 $countAtrasadas = $conn->query($sqlAtrasadas)->fetch_row()[0] ?? 0;
+
+
 
 // Totalizador: Meta não batida (Concluídas, recebidas antes das 15:00 e concluídas em dia diferente)
 $sqlMetaNaoBatida = "
@@ -469,7 +479,7 @@ document.addEventListener("DOMContentLoaded", function () {
          <h5 class="card-title">Conversões Pendentes</h5>
          <ul class="list-group">
             <li class="list-group-item d-flex justify-content-between align-items-center">
-              Ainda dentro do prazo (até 15:00)
+              Ainda dentro do prazo
               <span class="badge bg-info rounded-pill"><?= $countDentroPrazo; ?></span>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center">
