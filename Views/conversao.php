@@ -88,7 +88,7 @@ foreach ($listaAnalistas as $anal) {
 }
 
 /****************************************************************
- * 4) TOTALIZADORES GERAIS (Quantidade, Tempo Médio)
+ * 4) TOTALIZADORES GERAIS (Quantidade, Tempo Médio, Tempo Conversão)
  ****************************************************************/
 $sqlQtd = "
     SELECT COUNT(*)
@@ -98,14 +98,23 @@ $sqlQtd = "
 ";
 $total_conversoes = $conn->query($sqlQtd)->fetch_row()[0] ?? 0;
 
-$sqlTempo = "
+$sqlTempoRet = "
     SELECT SEC_TO_TIME(AVG(TIME_TO_SEC(tempo_total)))
       FROM TB_CONVERSOES c
       $where
       AND status_id = 1
 ";
-$tempo_medio = $conn->query($sqlTempo)->fetch_row()[0] ?? 'N/A';
-$tempo_medio = substr($tempo_medio, 0, 8); // Pega apenas "HH:MM:SS"
+$tempo_medio_ret = $conn->query($sqlTempoRet)->fetch_row()[0] ?? 'N/A';
+$tempo_medio_ret = substr($tempo_medio_ret, 0, 8); // Pega apenas "HH:MM:SS"
+
+$sqlTempoConv = "
+    SELECT SEC_TO_TIME(AVG(TIME_TO_SEC(tempo_conver)))
+      FROM TB_CONVERSOES c
+      $where
+      AND status_id = 1
+";
+$tempo_medio_conv = $conn->query($sqlTempoConv)->fetch_row()[0] ?? 'N/A';
+$tempo_medio_conv = substr($tempo_medio_conv, 0, 8); // Pega apenas "HH:MM:SS"
 
 // Total de conversões concluídas (status "Concluído")
 $sqlTotalConcluidas = "
@@ -549,23 +558,42 @@ document.addEventListener("DOMContentLoaded", function () {
   <div class="col-md-4">
     <div class="card text-white" style="background-color: <?= $metaColor; ?>;">
       <div class="card-body text-center">
-        <h5 class="card-title">Atingimento da Meta</h5>
-        <h3 class="card-text"><?= $meta; ?>%</h3>
+        <span data-bs-toggle="tooltip" data-bs-html="true" title="🟩 Acima de 95%  <br>🟨 Entre 90% e 94%  <br>🟥 Abaixo de 90%">
+          <h5 class="card-title">Atingimento da Meta</h5>
+          <h3 class="card-text"><?= $meta; ?>%</h3>
+        </span>
       </div>
     </div>
   </div>
   <!-- Tempo Médio -->
   <div class="col-md-4">
     <div class="card text-white" style="background-color:rgba(91, 41, 170, 0.67);"> 
-      <!-- Cor suave verde -->
-      <div class="card-body text-center">
-        <h5 class="card-title">Tempo Médio</h5>
-        <h3 class="card-text"><?= $tempo_medio; ?></h3>
+      <div class="card-body text-center d-flex p-0">
+        <div class="card-body text-center">
+          <span data-bs-toggle="tooltip" title="Data Conclusão - Data Recebido">
+          <h5 class="card-title">Tempo Entrega</h5>
+          <h3 class="card-text"><?= $tempo_medio_ret; ?></h3>
+        </div>
+        <div class="card-body text-center">
+          <span data-bs-toggle="tooltip" title="Data Conclusão - Data Inicio">
+            <h5 class="card-title">Tempo Conversão</h5>
+            <h3 class="card-text"><?= $tempo_medio_conv; ?></h3>
+          </span>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Código para exibir e remover a mensagem/aviso -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+</script>
 
   <!-- Botão Cadastrar -->
   <div class="d-flex justify-content-end mb-3 gap-2">
