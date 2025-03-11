@@ -325,7 +325,7 @@ $sqlFinalizados = "SELECT
                     JOIN TB_ANALISTA_CONVER a ON c.analista_id = a.id
                     $where
                       AND st.descricao in ('Concluido', 'Cancelada')
-                  ORDER BY c.data_recebido ASC";
+                  ORDER BY c.data_conclusao DESC";
 $resFinalizados = $conn->query($sqlFinalizados);
 
 /****************************************************************
