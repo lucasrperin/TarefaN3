@@ -116,16 +116,15 @@ $sqlTempoConv = "
 $tempo_medio_conv = $conn->query($sqlTempoConv)->fetch_row()[0] ?? 'N/A';
 $tempo_medio_conv = substr($tempo_medio_conv, 0, 8); // Pega apenas "HH:MM:SS"
 
-// Total de conversões concluídas (status "Concluído")
+// Total de conversões concluídas (status "Concluido")
 $sqlTotalConcluidas = "
     SELECT COUNT(*) 
       FROM TB_CONVERSOES c
       JOIN TB_STATUS_CONVER st ON c.status_id = st.id
       $where
-      AND st.descricao = 'Concluído'
+      AND st.descricao = 'Concluido'
 ";
 $totalConcluidas = $conn->query($sqlTotalConcluidas)->fetch_row()[0] ?? 0;
-
 
 /****************************************************************
  * 5) Totalizadores por Status
@@ -162,7 +161,7 @@ $sqlDentroPrazo = "
       FROM TB_CONVERSOES c
       JOIN TB_STATUS_CONVER st ON c.status_id = st.id
       $where
-      AND st.descricao NOT IN ('Concluído','Cancelada')
+      AND st.descricao NOT IN ('Concluido','Cancelada')
       AND NOW() < 
           CASE 
             WHEN TIME(c.data_recebido) < '15:00:00'
@@ -171,7 +170,6 @@ $sqlDentroPrazo = "
           END
 ";
 $countDentroPrazo = $conn->query($sqlDentroPrazo)->fetch_row()[0] ?? 0;
-
 
 // NOVA QUERY: Conversões atrasadas (já passaram do prazo)
 // Considera somente status: Em fila, Analise, Dar prioridade
@@ -191,15 +189,13 @@ $sqlAtrasadas = "
 ";
 $countAtrasadas = $conn->query($sqlAtrasadas)->fetch_row()[0] ?? 0;
 
-
-
 // Totalizador: Meta não batida (Concluídas, recebidas antes das 15:00 e concluídas em dia diferente)
 $sqlMetaNaoBatida = "
     SELECT COUNT(*) 
       FROM TB_CONVERSOES c
       JOIN TB_STATUS_CONVER st ON c.status_id = st.id
       $where
-      AND st.descricao = 'Concluído'
+      AND st.descricao = 'Concluido'
       AND TIME(c.data_recebido) < '15:00:00'
       AND DATE(c.data_conclusao) <> DATE(c.data_recebido)
 ";
@@ -211,7 +207,7 @@ $sqlMetaBatida = "
       FROM TB_CONVERSOES c
       JOIN TB_STATUS_CONVER st ON c.status_id = st.id
       $where
-      AND st.descricao = 'Concluído'
+      AND st.descricao = 'Concluido'
       AND (
            (TIME(c.data_recebido) < '15:00:00' 
              AND DATE(c.data_conclusao) = DATE(c.data_recebido))
@@ -342,9 +338,9 @@ $resFinalizados = $conn->query($sqlFinalizados);
  ****************************************************************/
 $sistemas  = $conn->query("SELECT * FROM TB_SISTEMA_CONVER ORDER BY nome");
 $status    = $conn->query("SELECT * FROM TB_STATUS_CONVER ORDER BY descricao");
-$analistas = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ORDER BY nome");
+$analistas = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN TB_USUARIO u on u.id = ana.id WHERE u.cargo = 'Conversor' ORDER BY ana.nome");
 // Para o filtro:
-$analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ORDER BY nome");
+$analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN TB_USUARIO u on u.id = ana.id WHERE u.cargo = 'Conversor' ORDER BY ana.nome");
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -624,7 +620,7 @@ document.addEventListener("DOMContentLoaded", function () {
           <strong class="fila">Em Fila<i class="fa-solid fa-arrows-rotate"></i></strong> <!-- status='Em fila' -->
         </div>
         <div class="card-body p-0">
-          <div class="table-responsive">
+        <div class="table-responsive" id="tabelaEmfila_wrapper">
             <table class="table table-striped table-bordered mb-0 tabelaEstilizada">
               <thead class="table-light">
                 <tr>
@@ -686,7 +682,7 @@ document.addEventListener("DOMContentLoaded", function () {
       <strong class="outras">Em Andamento <i class="fa-solid fa-gears"></i></strong>
     </div>
     <div class="card-body p-0">
-      <div class="table-responsive">
+      <div class="table-responsive" id="tabelaOutros_wrapper">
         <table id="tabelaOutras" class="table table-striped table-bordered mb-0 tabelaEstilizada">
           <thead class="table-light">
             <tr>
@@ -767,7 +763,7 @@ document.addEventListener("DOMContentLoaded", function () {
           <strong class="finalizado">Finalizadas <i class="fa-solid fa-check-circle"></i></strong>
         </div>
         <div class="card-body p-0">
-          <div class="table-responsive">
+          <div class="table-responsive" id="tabelaFinalizados_wrapper">
             <table id="tabelaFinalizados" class="table table-striped table-bordered mb-0 tabelaEstilizada">
               <thead class="table-light">
                 <tr>
@@ -831,7 +827,7 @@ document.addEventListener("DOMContentLoaded", function () {
     </div><!-- col-md-6 -->
 </div><!-- container -->
 
-<!-- Controle de cores da tabela de concluído -->
+<!-- Controle de cores da tabela de Concluido -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll("#tabelaFinalizados tbody tr").forEach(row => {
@@ -844,7 +840,7 @@ document.addEventListener("DOMContentLoaded", function () {
       case "Cancelada":
         statusCell.classList.add("pastel-cancelado");
         break;
-      case "Concluído":
+      case "Concluido":
         statusCell.classList.add("pastel-concluido");
         break;
     }
@@ -911,7 +907,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <option value="<?= $st['id']; ?>"><?= $st['descricao']; ?></option>
                   <?php endwhile; ?>
                 </select>
-                <span id="statusError2" class="text-danger mt-1" style="display: none;">Para concluir, selecione "Concluído".</span>
+                <span id="statusError2" class="text-danger mt-1" style="display: none;">Para concluir, selecione "Concluido".</span>
               </div>
             </div>
 
@@ -942,7 +938,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="col-md-4">
               <div class="mb-3">
                 <label class="form-label">Data Início:</label>
-                <input type="datetime-local" class="form-control" name="data_inicio">
+                <input type="datetime-local" class="form-control" name="data_inicio" id="data_inicio">
               </div>
             </div>
 
@@ -977,10 +973,10 @@ document.getElementById("formCadastro").addEventListener("submit", function(even
     var dataConclusao = document.getElementById("data_conclusao");
     var statusError2 = document.getElementById("statusError2");
 
-    // ID real do status "Concluído" (substituir pelo valor correto do banco)
+    // ID real do status "Concluido" (substituir pelo valor correto do banco)
     var idConcluido = "1"; 
 
-    // Se a data de conclusão estiver preenchida, mas o status não for "Concluído"
+    // Se a data de conclusão estiver preenchida, mas o status não for "Concluido"
     if (dataConclusao.value.trim() !== "" && status.value !== idConcluido) {
       statusError2.style.display = "block"; // Exibe a mensagem de erro
       event.preventDefault(); // Impede o envio do formulário
@@ -995,17 +991,32 @@ document.getElementById("formCadastro").addEventListener("submit", function(even
 });
 
   function verificarStatus() {
-    var status2 = document.getElementById("status_id");
-    var dataConclusao2 = document.getElementById("data_conclusao");
+    var status = document.getElementById("status_id");
+    var dataConclusao = document.getElementById("data_conclusao");
+    var dataInicio = document.getElementById("data_inicio");
 
     // Pega o texto da opção selecionada
-    var statusSelecionado = status2.options[status2.selectedIndex].text.trim();
+    var statusSelecionado = status.options[status.selectedIndex].text.trim();
 
     // Verifica se a opção selecionada é "Concluido"
-    if (statusSelecionado === "Concluído") {
+    if (statusSelecionado === "Concluido") {
       dataConclusao.setAttribute("required", "true"); // Adiciona required quando visível
+      dataInicio.setAttribute("required", "true"); // Adiciona required quando visível
+       // Obtém a data e hora atuais no formato YYYY-MM-DDTHH:MM
+      var now = new Date();
+        var year = now.getFullYear();
+        var month = ("0" + (now.getMonth() + 1)).slice(-2);
+        var day = ("0" + now.getDate()).slice(-2);
+        var hours = ("0" + now.getHours()).slice(-2);
+        var minutes = ("0" + now.getMinutes()).slice(-2);
+        var currentDatetime = year + "-" + month + "-" + day + "T" + hours + ":" + minutes;
+
+        // Preenche automaticamente o campo "Data Conclusão"
+        dataConclusao.value = currentDatetime;
     } else {
       dataConclusao.removeAttribute("required"); // Remove required quando oculto
+      dataInicio.removeAttribute("required"); // Remove required quando oculto
+      dataConclusao.value = ""; // Limpa o campo caso o status não seja "Concluido"
     }
 }
 </script>
@@ -1069,7 +1080,7 @@ document.getElementById("formCadastro").addEventListener("submit", function(even
                   <option value="<?= $st['id']; ?>"><?= $st['descricao']; ?></option>
                 <?php endwhile; ?>
               </select>
-              <span id="statusError" class="text-danger mt-1" style="display: none;">Para concluir, selecione "Concluído".</span>
+              <span id="statusError" class="text-danger mt-1" style="display: none;">Para concluir, selecione "Concluido".</span>
             </div>
           </div>
 
@@ -1107,7 +1118,7 @@ document.getElementById("formCadastro").addEventListener("submit", function(even
           <div class="col-md-3">
             <div class="mb-3">
               <label class="form-label">Data Início:</label>
-              <input type="datetime-local" class="form-control" name="data_inicio" id="edit_data_inicio" required>
+              <input type="datetime-local" class="form-control" name="data_inicio" id="edit_data_inicio">
             </div>
           </div>
 
@@ -1141,10 +1152,10 @@ document.getElementById("formCadastro").addEventListener("submit", function(even
     var dataEditConclusao = document.getElementById("edit_data_conclusao");
     var statusError = document.getElementById("statusError");
 
-    // ID real do status "Concluído" (substituir pelo valor correto do banco)
+    // ID real do status "Concluido" (substituir pelo valor correto do banco)
     var idConcluido = "1"; 
 
-    // Se a data de conclusão estiver preenchida, mas o status não for "Concluído"
+    // Se a data de conclusão estiver preenchida, mas o status não for "Concluido"
     if (dataEditConclusao.value.trim() !== "" && statusEdit.value !== idConcluido) {
       statusError.style.display = "block"; // Exibe a mensagem de erro
       event.preventDefault(); // Impede o envio do formulário
@@ -1161,15 +1172,30 @@ document.getElementById("formCadastro").addEventListener("submit", function(even
   function verificarStatusEdit() {
     var statusEdit2 = document.getElementById("edit_status");
     var dataConclusao2 = document.getElementById("edit_data_conclusao");
+    var dataInicio2 = document.getElementById("edit_data_inicio");
 
     // Pega o texto da opção selecionada
     var statusSelecionado2 = statusEdit2.options[statusEdit2.selectedIndex].text.trim();
 
     // Verifica se a opção selecionada é "Concluido"
-    if (statusSelecionado2 === "Concluído") {
+    if (statusSelecionado2 === "Concluido") {
       dataConclusao2.setAttribute("required", "true"); // Adiciona required quando visível
+      dataInicio2.setAttribute("required", "true"); // Adiciona required quando visível
+       // Obtém a data e hora atuais no formato YYYY-MM-DDTHH:MM
+      var now = new Date();
+        var year = now.getFullYear();
+        var month = ("0" + (now.getMonth() + 1)).slice(-2);
+        var day = ("0" + now.getDate()).slice(-2);
+        var hours = ("0" + now.getHours()).slice(-2);
+        var minutes = ("0" + now.getMinutes()).slice(-2);
+        var currentDatetime = year + "-" + month + "-" + day + "T" + hours + ":" + minutes;
+
+        // Preenche automaticamente o campo "Data Conclusão"
+        dataConclusao2.value = currentDatetime;
     } else {
       dataConclusao2.removeAttribute("required"); // Remove required quando oculto
+      dataInicio2.removeAttribute("required"); // Remove required quando oculto
+      dataConclusao2.value = ""; // Limpa o campo caso o status não seja "Concluido"
     }
 }
 </script>

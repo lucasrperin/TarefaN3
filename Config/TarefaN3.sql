@@ -131,15 +131,14 @@ INSERT INTO TB_ANALISTA_CONVER (nome) VALUES
 
 CREATE TABLE TB_CONVERSOES (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    email_cliente VARCHAR(255) NOT NULL,
     contato VARCHAR(255) NOT NULL,
     serial VARCHAR(255) NULL,
     retrabalho ENUM('Sim', 'Nao') NOT NULL,
     sistema_id INT NOT NULL,
     status_id INT NOT NULL,
     data_recebido DATETIME NOT NULL,
-    prazo_entrega DATETIME NOT NULL,
-    data_inicio DATETIME NOT NULL,
+    prazo_entrega DATETIME NULL,
+    data_inicio DATETIME NULL,
     data_conclusao DATETIME NULL,
     analista_id INT NOT NULL,
     observacao TEXT NULL,

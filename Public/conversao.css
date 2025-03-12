@@ -123,7 +123,7 @@ body {
 }
 
 td.contato {
-    max-width: 150px; /* ajuste o valor conforme necessário */
+    max-width: 100px; /* ajuste o valor conforme necessário */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -167,4 +167,22 @@ color: #333 !important;
 .outras i {
     color: #F4D03F;
     padding-left: 1px;
+}
+
+#tabelaFinalizados_wrapper {
+    max-height: 400px !important;
+    overflow-y: auto !important;
+    display: block;
+}
+
+#tabelaOutros_wrapper {
+    max-height: 280px !important;
+    overflow-y: auto !important;
+    display: block;
+}
+
+#tabelaEmfila_wrapper {
+    max-height: 280px !important;
+    overflow-y: auto !important;
+    display: block;
 }
