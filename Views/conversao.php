@@ -201,6 +201,11 @@ $sqlMetaNaoBatida = "
             OR
             (TIME(c.data_recebido) >= '15:00:00' AND c.data_conclusao >= CONCAT(DATE(c.data_recebido + INTERVAL 1 DAY), ' 15:00:00'))
       )
+      AND (
+            (TIME(c.data_recebido) < '15:00:00' AND DATE(c.data_conclusao) <> DATE(c.data_recebido))
+            OR
+            (TIME(c.data_recebido) >= '15:00:00' AND c.data_conclusao >= CONCAT(DATE(c.data_recebido + INTERVAL 1 DAY), ' 15:00:00'))
+      )
 ";
 $countMetaNaoBatida = $conn->query($sqlMetaNaoBatida)->fetch_row()[0] ?? 0;
 
