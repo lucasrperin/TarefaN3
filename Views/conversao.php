@@ -191,13 +191,16 @@ $countAtrasadas = $conn->query($sqlAtrasadas)->fetch_row()[0] ?? 0;
 
 // Totalizador: Meta não batida (Concluídas, recebidas antes das 15:00 e concluídas em dia diferente)
 $sqlMetaNaoBatida = "
-    SELECT COUNT(*) 
+     SELECT COUNT(*) 
       FROM TB_CONVERSOES c
       JOIN TB_STATUS_CONVER st ON c.status_id = st.id
       $where
       AND st.descricao = 'Concluido'
-      AND TIME(c.data_recebido) < '15:00:00'
-      AND DATE(c.data_conclusao) <> DATE(c.data_recebido)
+      AND (
+            (TIME(c.data_recebido) < '15:00:00' AND DATE(c.data_conclusao) <> DATE(c.data_recebido))
+            OR
+            (TIME(c.data_recebido) >= '15:00:00' AND c.data_conclusao >= CONCAT(DATE(c.data_recebido + INTERVAL 1 DAY), ' 15:00:00'))
+      )
 ";
 $countMetaNaoBatida = $conn->query($sqlMetaNaoBatida)->fetch_row()[0] ?? 0;
 
@@ -643,7 +646,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   <td><?= $rowF['data_inicio2']; ?></td>
                   <td><?= $rowF['analista_nome']; ?></td>
                   <td>
-                                  <?php if ($cargo === 'Admin' || $usuario_id == $rowF['analista_id']): ?>
+                  <?php if ($cargo === 'Admin' || $usuario_id == $rowF['analista_id']): ?>
                   <a class="btn btn-outline-primary btn-sm"
                     onclick="abrirModalEdicao(
                       '<?= $rowF['id'] ?>',
