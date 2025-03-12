@@ -155,6 +155,7 @@ $resultado_grafico = $stmt_grafico->get_result();
         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
           <li><a class="dropdown-item" href="../index.php">Painel</a></li>
           <li><a class="dropdown-item" href="conversao.php">Conversão</a></li>
+          <li><a class="dropdown-item" href="escutas.php">Escutas</a></li>
         </ul>
       </div>
       <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
