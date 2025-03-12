@@ -647,26 +647,28 @@ document.addEventListener("DOMContentLoaded", function () {
                   <td><?= $rowF['data_inicio2']; ?></td>
                   <td><?= $rowF['analista_nome']; ?></td>
                   <td>
-                    <a class="btn btn-outline-primary btn-sm"
-                      onclick="abrirModalEdicao(
-                        '<?= $rowF['id'] ?>',
-                        '<?= $rowF['contato'] ?>',
-                        '<?= $rowF['serial'] ?>',
-                        '<?= $rowF['retrabalho'] ?>',
-                        '<?= $rowF['sistema_id'] ?>',
-                        '<?= $rowF['status_id'] ?>',
-                        '<?= $rowF['data_recebido'] ?>',
-                        '<?= $rowF['prazo_entrega'] ?>',
-                        '<?= $rowF['data_inicio'] ?>',
-                        '<?= $rowF['data_conclusao'] ?>',
-                        '<?= $rowF['analista_id'] ?>',
-                        '<?= addslashes($rowF['observacao']) ?>'
-                      )">
-                      <i class='fa-sharp fa-solid fa-pen'></i>
-                    </a>
-                    <a href="javascript:void(0)" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalExclusao" onclick="excluirAnalise(<?= $rowF['id'] ?>)">
-                      <i class="fa-sharp fa-solid fa-trash"></i>
-                    </a>
+                                  <?php if ($cargo === 'Admin' || $usuario_id == $rowF['analista_id']): ?>
+                  <a class="btn btn-outline-primary btn-sm"
+                    onclick="abrirModalEdicao(
+                      '<?= $rowF['id'] ?>',
+                      '<?= $rowF['contato'] ?>',
+                      '<?= $rowF['serial'] ?>',
+                      '<?= $rowF['retrabalho'] ?>',
+                      '<?= $rowF['sistema_id'] ?>',
+                      '<?= $rowF['status_id'] ?>',
+                      '<?= $rowF['data_recebido'] ?>',
+                      '<?= $rowF['prazo_entrega'] ?>',
+                      '<?= $rowF['data_inicio'] ?>',
+                      '<?= $rowF['data_conclusao'] ?>',
+                      '<?= $rowF['analista_id'] ?>',
+                      '<?= addslashes($rowF['observacao']) ?>'
+                    )">
+                    <i class='fa-sharp fa-solid fa-pen'></i>
+                  </a>
+                  <a href="javascript:void(0)" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalExclusao" onclick="excluirAnalise(<?= $rowF['id'] ?>)">
+                    <i class="fa-sharp fa-solid fa-trash"></i>
+                  </a>
+                <?php endif; ?>
                   </td>
                 </tr>
                 <?php endwhile; ?>
@@ -678,65 +680,67 @@ document.addEventListener("DOMContentLoaded", function () {
     </div><!-- col-md-6 -->
 
     <!-- TABELA 2: Demais status (<> Em fila) -->
-    <div class="col-md-6 mb-3">
-      <div class="card">
-        <div class="card-header">
-          <strong class="outras">Em Andamento <i class="fa-solid fa-gears"></i></strong>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table id="tabelaOutras" class="table table-striped table-bordered mb-0 tabelaEstilizada">
-              <thead class="table-light">
-                <tr>
-                  <th style="width:1%">Contato</th>
-                  <th>Sistema</th>
-                  <th>Status</th>
-                  <th>Recebido</th>
-                  <th>Início</th>
-                  <th>Analista</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php while ($rowO = $resOutros->fetch_assoc()): ?>
-                <tr>
-                  <td class="contato"><?= $rowO['contato']; ?></td>
-                  <td><?= $rowO['sistema_nome']; ?></td>
-                  <td><?= $rowO['status_nome']; ?></td>
-                  <td><?= $rowO['data_recebido2']; ?></td>
-                  <td><?= $rowO['data_inicio2']; ?></td>
-                  <td><?= $rowO['analista_nome']; ?></td>
-                  <td>
-                    <a class="btn btn-outline-primary btn-sm"
-                      onclick="abrirModalEdicao(
-                        '<?= $rowO['id'] ?>',
-                        '<?= $rowO['contato'] ?>',
-                        '<?= $rowO['serial'] ?>',
-                        '<?= $rowO['retrabalho'] ?>',
-                        '<?= $rowO['sistema_id'] ?>',
-                        '<?= $rowO['status_id'] ?>',
-                        '<?= $rowO['data_recebido'] ?>',
-                        '<?= $rowO['prazo_entrega'] ?>',
-                        '<?= $rowO['data_inicio'] ?>',
-                        '<?= $rowO['data_conclusao'] ?>',
-                        '<?= $rowO['analista_id'] ?>',
-                        '<?= addslashes($rowO['observacao']) ?>'
-                      )">
-                      <i class='fa-sharp fa-solid fa-pen'></i>
-                    </a>
-                    <a href="javascript:void(0)" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalExclusao" onclick="excluirAnalise(<?= $rowO['id'] ?>)">
-                        <i class="fa-sharp fa-solid fa-trash"></i>
-                      </a>
-                  </td>
-                </tr>
-                <?php endwhile; ?>
-              </tbody>
-            </table>
-          </div><!-- table-responsive -->
-        </div><!-- card-body -->
-      </div><!-- card -->
-    </div><!-- col-md-6 -->
-  </div><!-- row das duas tabelas -->
+<div class="col-md-6 mb-3">
+  <div class="card">
+    <div class="card-header">
+      <strong class="outras">Em Andamento <i class="fa-solid fa-gears"></i></strong>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table id="tabelaOutras" class="table table-striped table-bordered mb-0 tabelaEstilizada">
+          <thead class="table-light">
+            <tr>
+              <th style="width:1%">Contato</th>
+              <th>Sistema</th>
+              <th>Status</th>
+              <th>Recebido</th>
+              <th>Início</th>
+              <th>Analista</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php while ($rowO = $resOutros->fetch_assoc()): ?>
+            <tr>
+              <td class="contato"><?= $rowO['contato']; ?></td>
+              <td><?= $rowO['sistema_nome']; ?></td>
+              <td><?= $rowO['status_nome']; ?></td>
+              <td><?= $rowO['data_recebido2']; ?></td>
+              <td><?= $rowO['data_inicio2']; ?></td>
+              <td><?= $rowO['analista_nome']; ?></td>
+              <td>
+                <?php if ($cargo === 'Admin' || $rowO['analista_id'] == $usuario_id): ?>
+                  <a class="btn btn-outline-primary btn-sm"
+                    onclick="abrirModalEdicao(
+                      '<?= $rowO['id'] ?>',
+                      '<?= $rowO['contato'] ?>',
+                      '<?= $rowO['serial'] ?>',
+                      '<?= $rowO['retrabalho'] ?>',
+                      '<?= $rowO['sistema_id'] ?>',
+                      '<?= $rowO['status_id'] ?>',
+                      '<?= $rowO['data_recebido'] ?>',
+                      '<?= $rowO['prazo_entrega'] ?>',
+                      '<?= $rowO['data_inicio'] ?>',
+                      '<?= $rowO['data_conclusao'] ?>',
+                      '<?= $rowO['analista_id'] ?>',
+                      '<?= addslashes($rowO['observacao']) ?>'
+                    )">
+                    <i class='fa-sharp fa-solid fa-pen'></i>
+                  </a>
+                  <a href="javascript:void(0)" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalExclusao" onclick="excluirAnalise(<?= $rowO['id'] ?>)">
+                    <i class='fa-sharp fa-solid fa-trash'></i>
+                  </a>
+                <?php endif; ?>
+              </td>
+            </tr>
+            <?php endwhile; ?>
+          </tbody>
+        </table>
+      </div><!-- table-responsive -->
+    </div><!-- card-body -->
+  </div><!-- card -->
+</div><!-- col-md-6 -->
+
 
   <!-- Controle de cores da tabela de Outras -->
 <script>
@@ -794,27 +798,29 @@ document.addEventListener("DOMContentLoaded", function () {
                   <td><?= $rowC['data_conclusao2']; ?></td>
                   <td><?= $rowC['analista_nome']; ?></td>
                   <td>
-                    <a class="btn btn-outline-primary btn-sm"
-                      onclick="abrirModalEdicaoFinal(
-                        '<?= $rowC['id'] ?>',
-                        '<?= $rowC['contato'] ?>',
-                        '<?= $rowC['serial'] ?>',
-                        '<?= $rowC['retrabalho'] ?>',
-                        '<?= $rowC['sistema_id'] ?>',
-                        '<?= $rowC['status_id'] ?>',
-                        '<?= $rowC['data_recebido'] ?>',
-                        '<?= $rowC['prazo_entrega'] ?>',
-                        '<?= $rowC['data_inicio'] ?>',
-                        '<?= $rowC['data_conclusao'] ?>',
-                        '<?= $rowC['analista_id'] ?>',
-                        '<?= addslashes($rowC['observacao']) ?>'
-                      )">
-                      <i class='fa-sharp fa-solid fa-pen'></i>
-                    </a>
-                    <a href="javascript:void(0)" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalExclusao" onclick="excluirAnalise(<?= $rowC['id'] ?>)">
-                        <i class="fa-sharp fa-solid fa-trash"></i>
-                      </a>
-                  </td>
+                      <?php if ($cargo === 'Admin' || $rowC['analista_id'] == $usuario_id): ?>
+                        <a class="btn btn-outline-primary btn-sm"
+                          onclick="abrirModalEdicaoFinal(
+                            '<?= $rowC['id'] ?>',
+                            '<?= $rowC['contato'] ?>',
+                            '<?= $rowC['serial'] ?>',
+                            '<?= $rowC['retrabalho'] ?>',
+                            '<?= $rowC['sistema_id'] ?>',
+                            '<?= $rowC['status_id'] ?>',
+                            '<?= $rowC['data_recebido'] ?>',
+                            '<?= $rowC['prazo_entrega'] ?>',
+                            '<?= $rowC['data_inicio'] ?>',
+                            '<?= $rowC['data_conclusao'] ?>',
+                            '<?= $rowC['analista_id'] ?>',
+                            '<?= addslashes($rowC['observacao']) ?>'
+                          )">
+                          <i class='fa-sharp fa-solid fa-pen'></i>
+                        </a>
+                        <a href="javascript:void(0)" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalExclusao" onclick="excluirAnalise(<?= $rowC['id'] ?>)">
+                          <i class="fa-sharp fa-solid fa-trash"></i>
+                        </a>
+                      <?php endif; ?>
+                    </td>
                 </tr>
                 <?php endwhile; ?>
               </tbody>
