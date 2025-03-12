@@ -22,7 +22,7 @@ if(empty($dataInicial)) {
 if(empty($dataFinal)) {
   $dataFinal = date("Y-m-d");
 }
-
+//Limpa o filtro quando pressionado o botão
 if (isset($_GET['reset']) && $_GET['reset'] == 1) {
   $dataInicial = '';
   $dataFinal   = '';
@@ -395,8 +395,11 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
               <?php if ($cargo === 'Conversor'): ?>  <!-- Verifica o cargo do usuário -->
                 <li><a class="dropdown-item" href="user.php">Analises</a></li>
                 <?php endif; ?>
-              <?php if ($cargo === 'Admin'): ?>  <!-- Verifica o cargo do usuário -->
+              <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>  <!-- Verifica o cargo do usuário -->
                 <li><a class="dropdown-item" href="../index.php">Painel N3</a></li>
+              <?php endif; ?>
+              <?php if ($cargo === 'Admin'): ?>  <!-- Verifica o cargo do usuário -->
+                <li><a class="dropdown-item" href="escutas.php">Escutas</a></li>
                 <li><a class="dropdown-item" href="dashboard.php">Totalizadores</a></li>
               <?php endif; ?>
             </ul>
@@ -615,8 +618,11 @@ document.addEventListener("DOMContentLoaded", function () {
   <!-- Botão Cadastrar -->
   <div class="d-flex justify-content-end mb-3 gap-2">
     <input type="text" id="searchInput" class="form-control ms-2" style="max-width: 200px;" placeholder="Pesquisar...">
+    <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
     <button class="btn btn-primary" onclick="abrirModalCadastro()">Cadastrar</button>
+    <?php endif; ?>
   </div>
+  
   <!-- Função de pesquisa nas tabelas-->
   <script>
     $(document).ready(function(){

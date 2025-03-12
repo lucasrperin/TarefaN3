@@ -223,9 +223,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 <span class="navbar-toggler-icon"></span>
             </button>
             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-                <li><a class="dropdown-item" href="Views/dashboard.php">Totalizadores</a></li>
                 <li><a class="dropdown-item" href="Views/conversao.php">Conversão</a></li>
+                <?php if ($cargo === 'Admin'): ?>  <!-- Verifica o cargo do usuário -->
                 <li><a class="dropdown-item" href="Views/escutas.php">Escutas</a></li>
+                <li><a class="dropdown-item" href="Views/dashboard.php">Totalizadores</a></li>
+                <?php endif; ?>
             </ul>
         </div>
         <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
