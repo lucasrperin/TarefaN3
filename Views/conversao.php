@@ -201,11 +201,6 @@ $sqlMetaNaoBatida = "
             OR
             (TIME(c.data_recebido) >= '15:00:00' AND c.data_conclusao >= CONCAT(DATE(c.data_recebido + INTERVAL 1 DAY), ' 15:00:00'))
       )
-      AND (
-            (TIME(c.data_recebido) < '15:00:00' AND DATE(c.data_conclusao) <> DATE(c.data_recebido))
-            OR
-            (TIME(c.data_recebido) >= '15:00:00' AND c.data_conclusao >= CONCAT(DATE(c.data_recebido + INTERVAL 1 DAY), ' 15:00:00'))
-      )
 ";
 $countMetaNaoBatida = $conn->query($sqlMetaNaoBatida)->fetch_row()[0] ?? 0;
 
@@ -651,7 +646,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   <td><?= $rowF['data_inicio2']; ?></td>
                   <td><?= $rowF['analista_nome']; ?></td>
                   <td>
-                  <?php if ($cargo === 'Admin' || $usuario_id == $rowF['analista_id']): ?>
+                  <?php if ($cargo === 'Admin' || $usuario_id == $rowF['analista_id'] || $usuario_id == '16'): ?>
                   <a class="btn btn-outline-primary btn-sm"
                     onclick="abrirModalEdicao(
                       '<?= $rowF['id'] ?>',
@@ -694,7 +689,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <table id="tabelaOutras" class="table table-striped table-bordered mb-0 tabelaEstilizada">
           <thead class="table-light">
             <tr>
-              <th style="width:1%">Contato</th>
+              <th>Contato</th>
               <th>Sistema</th>
               <th>Status</th>
               <th>Recebido</th>
@@ -708,12 +703,12 @@ document.addEventListener("DOMContentLoaded", function () {
             <tr>
               <td class="contato"><?= $rowO['contato']; ?></td>
               <td><?= $rowO['sistema_nome']; ?></td>
-              <td><?= $rowO['status_nome']; ?></td>
+              <td class="contato"><?= $rowO['status_nome']; ?></td>
               <td><?= $rowO['data_recebido2']; ?></td>
               <td><?= $rowO['data_inicio2']; ?></td>
               <td><?= $rowO['analista_nome']; ?></td>
               <td>
-                <?php if ($cargo === 'Admin' || $rowO['analista_id'] == $usuario_id): ?>
+              <?php if ($cargo === 'Admin' || $rowO['analista_id'] == $usuario_id || $usuario_id == '16'): ?>
                   <a class="btn btn-outline-primary btn-sm"
                     onclick="abrirModalEdicao(
                       '<?= $rowO['id'] ?>',
@@ -802,7 +797,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   <td><?= $rowC['data_conclusao2']; ?></td>
                   <td><?= $rowC['analista_nome']; ?></td>
                   <td>
-                      <?php if ($cargo === 'Admin' || $rowC['analista_id'] == $usuario_id): ?>
+                      <?php if ($cargo === 'Admin' || $rowC['analista_id'] == $usuario_id || $usuario_id == '16'): ?>
                         <a class="btn btn-outline-primary btn-sm"
                           onclick="abrirModalEdicaoFinal(
                             '<?= $rowC['id'] ?>',
@@ -928,7 +923,9 @@ document.addEventListener("DOMContentLoaded", function () {
                   mysqli_data_seek($analistas, 0);
                   while ($an = $analistas->fetch_assoc()):
                   ?>
-                    <option value="<?= $an['id']; ?>"><?= $an['nome']; ?></option>
+                    <option value="<?= $an['id']; ?>" <?= ($an['id'] == $usuario_id) ? 'selected' : ''; ?>>
+                      <?= $an['nome']; ?>
+                    </option>
                   <?php endwhile; ?>
                 </select>
               </div>
