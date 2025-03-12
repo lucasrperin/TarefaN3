@@ -15,6 +15,24 @@ $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
  ****************************************************************/
 $dataInicial = isset($_GET['data_inicial']) ? $_GET['data_inicial'] : '';
 $dataFinal   = isset($_GET['data_final'])   ? $_GET['data_final']   : '';
+// Se os filtros estiverem vazios, preenche com a data atual (formato YYYY-MM-DD)
+if(empty($dataInicial)) {
+  $dataInicial = date("Y-m-d");
+}
+if(empty($dataFinal)) {
+  $dataFinal = date("Y-m-d");
+}
+
+if (isset($_GET['reset']) && $_GET['reset'] == 1) {
+  $dataInicial = '';
+  $dataFinal   = '';
+  $analistaID  = 0;
+} else {
+  $dataInicial = isset($_GET['data_inicial']) ? $_GET['data_inicial'] : date("Y-m-d");
+  $dataFinal   = isset($_GET['data_final'])   ? $_GET['data_final']   : date("Y-m-d");
+  $analistaID  = isset($_GET['analista_id'])  ? intval($_GET['analista_id']) : 0;
+}
+
 $analistaID  = isset($_GET['analista_id'])  ? intval($_GET['analista_id']) : 0;
 
 /****************************************************************
@@ -470,7 +488,7 @@ document.addEventListener("DOMContentLoaded", function () {
           </div>
           <div class="d-flex justify-content-center gap-2">
                 <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-                <a href="conversao.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
+                <a href="conversao.php?reset=1" class="btn btn-secondary btn-sm">Limpar Filtros</a>
           </div>
         </form>
       </div>
