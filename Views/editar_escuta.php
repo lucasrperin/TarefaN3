@@ -14,12 +14,14 @@ if (!isset($_SESSION['cargo']) || $_SESSION['cargo'] !== 'Admin') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id          = $_POST['id'];
     $user_id     = $_POST['user_id'];
+    $classificacao = ($_POST['edit_classi_id']);
     $data_escuta = $_POST['data_escuta'];
+    $positivo    = ($_POST['edit_positivo']);
     $transcricao = trim($_POST['transcricao']);
     $feedback    = trim($_POST['feedback']);
 
-    $stmt = $conn->prepare("UPDATE TB_ESCUTAS SET user_id = ?, data_escuta = ?, transcricao = ?, feedback = ? WHERE id = ?");
-    $stmt->bind_param("isssi", $user_id, $data_escuta, $transcricao, $feedback, $id);
+    $stmt = $conn->prepare("UPDATE TB_ESCUTAS SET user_id = ?, classi_id = ?, data_escuta = ?, transcricao = ?, feedback = ?, P_N = ? WHERE id = ?");
+    $stmt->bind_param("iissssi", $user_id, $classificacao, $data_escuta, $transcricao,  $feedback,  $positivo, $id);
     if ($stmt->execute()) {
         $_SESSION['success'] = "Escuta atualizada com sucesso.";
     } else {
@@ -28,6 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->close();
 }
 
-header("Location: escutas.php");
+header("Location: escutas_por_analista.php?user_id=$user_id");
 exit;
 ?>

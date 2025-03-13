@@ -36,7 +36,19 @@ if ($resultUsers) {
     }
     $resultUsers->free();
 }
+
+// Recupera os usuários com cargo "User" para preencher o select do modal de cadastro
+$classis = [];
+$queryClassi = "SELECT id, descricao FROM TB_CLASSIFICACAO";
+$resultClassi = $conn->query($queryClassi);
+if ($resultClassi) {
+    while ($row = $resultClassi->fetch_assoc()) {
+        $classis[] = $row;
+    }
+    $resultClassi->free();
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -106,19 +118,50 @@ if ($resultUsers) {
     <div class="modal-content p-4">
       <h5 class="modal-title mb-3" id="modalCadastrarLabel">Cadastrar Nova Escuta</h5>
       <form method="POST" action="cadastrar_escuta.php">
-        <div class="mb-3">
-          <label for="cad_user_id" class="form-label">Selecione o Usuário</label>
-          <select name="user_id" id="cad_user_id" class="form-select" required>
-            <option value="">Escolha o usuário</option>
-            <?php foreach($users as $user): ?>
-              <option value="<?php echo $user['id']; ?>"><?php echo $user['nome']; ?></option>
-            <?php endforeach; ?>
-          </select>
+        <div class="row mb-2">
+          <div class="col-md-6 mb-3">
+            <div class="mb-3">
+              <label for="cad_user_id" class="form-label">Selecione o Usuário</label>
+              <select name="user_id" id="cad_user_id" class="form-select" required>
+                <option value="">Escolha o usuário</option>
+                <?php foreach($users as $user): ?>
+                  <option value="<?php echo $user['id']; ?>"><?php echo $user['nome']; ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <div class="mb-3">
+              <label for="cad_classi_id" class="form-label">Classificação</label>
+              <select name="classi_id" id="cad_classi_id" class="form-select" required>
+                <option value="">Escolha a classificação</option>
+                <?php foreach($classis as $classi): ?>
+                  <option value="<?php echo $classi['id']; ?>"><?php echo $classi['descricao']; ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
         </div>
-        <div class="mb-3">
-          <label for="cad_data_escuta" class="form-label">Data da Escuta</label>
-          <input type="date" name="data_escuta" id="cad_data_escuta" class="form-control" required value="<?php echo date('Y-m-d'); ?>">
+
+        <div class="row mb-2">
+          <div class="col-md-4 mb-3">
+            <div class="mb-3">
+              <label for="tipo_escuta" class="form-label">Escuta Positiva</label>
+              <select name="positivo" id="tipo_escuta" class="form-select">
+                <option value="">Selecione...</option>
+                <option value="Sim">Sim</option>
+                <option value="Nao">Nao</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-4 mb-3">
+            <div class="mb-3">
+              <label for="cad_data_escuta" class="form-label">Data da Escuta</label>
+              <input type="date" name="data_escuta" id="cad_data_escuta" class="form-control" required value="<?php echo date('Y-m-d'); ?>">
+            </div>
+          </div>
         </div>
+
         <div class="mb-3">
           <label for="cad_transcricao" class="form-label">Transcrição da Ligação</label>
           <textarea name="transcricao" id="cad_transcricao" class="form-control" rows="4" required></textarea>

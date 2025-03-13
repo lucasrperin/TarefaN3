@@ -14,6 +14,8 @@ if (!isset($_SESSION['cargo']) || $_SESSION['cargo'] !== 'Admin') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id     = $_POST['user_id'];
     $data_escuta = $_POST['data_escuta'];
+    $classificacao = ($_POST['classi_id']);
+    $positivo    = ($_POST['positivo']);
     $transcricao = trim($_POST['transcricao']);
     $feedback    = trim($_POST['feedback']);
     $admin_id    = $_SESSION['usuario_id']; // ID do Admin logado
@@ -31,8 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($count >= 5) {
         $_SESSION['error'] = "Você já registrou 5 escutas neste mês.";
     } else {
-        $stmt = $conn->prepare("INSERT INTO TB_ESCUTAS (user_id, admin_id, data_escuta, transcricao, feedback) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("iisss", $user_id, $admin_id, $data_escuta, $transcricao, $feedback);
+        $stmt = $conn->prepare("INSERT INTO TB_ESCUTAS (user_id, admin_id, classi_id, data_escuta, transcricao, feedback, P_N) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("iiissss", $user_id, $admin_id, $classificacao, $data_escuta, $transcricao, $feedback, $positivo);
         if ($stmt->execute()) {
             $_SESSION['success'] = "Escuta registrada com sucesso.";
         } else {

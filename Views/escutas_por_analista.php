@@ -29,10 +29,14 @@ $stmt->close();
 $usuario_nome = $analista ? $analista['nome'] : "Analista Desconhecido";
 
 // Recupera o histórico de escutas para esse usuário (analista)
-$query = "SELECT e.*, u.nome AS usuario_nome, a.nome AS admin_nome 
+$query = "SELECT 
+            e.*, u.nome AS usuario_nome, 
+            a.nome AS admin_nome,
+            c.descricao as classificacao
           FROM TB_ESCUTAS e
           JOIN TB_USUARIO u ON e.user_id = u.id 
           JOIN TB_USUARIO a ON e.admin_id = a.id
+          JOIN TB_CLASSIFICACAO c on e.classi_id = c.id 
           WHERE e.user_id = $user_id
           ORDER BY e.data_escuta DESC";
 $result = $conn->query($query);
@@ -54,6 +58,17 @@ if ($resultUsers) {
     }
     $resultUsers->free();
 }
+// Recupera os usuários com cargo "User" para preencher o select do modal de cadastro
+$classis = [];
+$queryClassi = "SELECT id, descricao FROM TB_CLASSIFICACAO";
+$resultClassi = $conn->query($queryClassi);
+if ($resultClassi) {
+    while ($row = $resultClassi->fetch_assoc()) {
+        $classis[] = $row;
+    }
+    $resultClassi->free();
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -61,10 +76,7 @@ if ($resultUsers) {
   <meta charset="UTF-8">
   <title>Escutas de <?php echo $usuario_nome; ?></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Seus CSS customizados -->
-  <link rel="stylesheet" href="../css/index.css">
-  <link rel="stylesheet" href="../css/dashboard.css">
-  <link rel="stylesheet" href="../css/user.css">
+
   <!-- Ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
@@ -98,6 +110,8 @@ if ($resultUsers) {
             <tr>
               <th>Data da Escuta</th>
               <th>Usuário</th>
+              <th>Classificação</th>
+              <th>Positivo</th>
               <th>Transcrição</th>
               <th>Feedback</th>
               <th>Ações</th>
@@ -109,6 +123,8 @@ if ($resultUsers) {
                 <tr>
                   <td><?php echo date('d/m/Y', strtotime($escuta['data_escuta'])); ?></td>
                   <td><?php echo $escuta['usuario_nome']; ?></td>
+                  <td><?php echo $escuta['classificacao']; ?></td>
+                  <td><?php echo $escuta['P_N']; ?></td>
                   <td><?php echo $escuta['transcricao']; ?></td>
                   <td><?php echo $escuta['feedback']; ?></td>
                   <td>
@@ -118,6 +134,8 @@ if ($resultUsers) {
                             data-bs-target="#modalEditar"
                             onclick="preencherModalEditar('<?php echo $escuta['id']; ?>',
                                                           '<?php echo $escuta['user_id']; ?>',
+                                                          '<?php echo $escuta['classi_id']; ?>',
+                                                          '<?php echo $escuta['P_N']; ?>',
                                                           '<?php echo date('Y-m-d', strtotime($escuta['data_escuta'])); ?>',
                                                           '<?php echo addslashes($escuta['transcricao']); ?>',
                                                           '<?php echo addslashes($escuta['feedback']); ?>')">
@@ -152,19 +170,50 @@ if ($resultUsers) {
       <h5 class="modal-title mb-3" id="modalEditarLabel">Editar Escuta</h5>
       <form method="POST" action="editar_escuta.php">
         <input type="hidden" name="id" id="edit_id">
-        <div class="mb-3">
-          <label for="edit_user_id" class="form-label">Selecione o Usuário</label>
-          <select name="user_id" id="edit_user_id" class="form-select" required>
-            <option value="">Escolha o usuário</option>
-            <?php foreach($users as $user): ?>
-              <option value="<?php echo $user['id']; ?>"><?php echo $user['nome']; ?></option>
-            <?php endforeach; ?>
-          </select>
+        <div class="row mb-2">
+          <div class="col-md-6 mb-3">
+            <div class="mb-3">
+              <label for="edit_user_id" class="form-label">Selecione o Usuário</label>
+              <select name="user_id" id="edit_user_id" class="form-select" required>
+                <option value="">Escolha o usuário</option>
+                <?php foreach($users as $user): ?>
+                  <option value="<?php echo $user['id']; ?>"><?php echo $user['nome']; ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <div class="mb-3">
+              <label for="edit_cad_classi_id" class="form-label">Classificação</label>
+              <select name="edit_classi_id" id="edit_cad_classi_id" class="form-select" required>
+                <option value="">Escolha a classificação</option>
+                <?php foreach($classis as $classi): ?>
+                  <option value="<?php echo $classi['id']; ?>"><?php echo $classi['descricao']; ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
         </div>
-        <div class="mb-3">
-          <label for="edit_data_escuta" class="form-label">Data da Escuta</label>
-          <input type="date" name="data_escuta" id="edit_data_escuta" class="form-control" required>
+
+        <div class="row mb-2">
+          <div class="col-md-6 mb-3">
+            <div class="mb-3">
+              <label for="edit_tipo_escuta" class="form-label">Escuta Positiva</label>
+              <select name="edit_positivo" id="edit_tipo_escuta" class="form-select">
+                <option value="">Selecione...</option>
+                <option value="Sim">Sim</option>
+                <option value="Nao">Nao</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <div class="mb-3">
+              <label for="edit_data_escuta" class="form-label">Data da Escuta</label>
+              <input type="date" name="data_escuta" id="edit_data_escuta" class="form-control" required>
+            </div>
+          </div>
         </div>
+
         <div class="mb-3">
           <label for="edit_transcricao" class="form-label">Transcrição da Ligação</label>
           <textarea name="transcricao" id="edit_transcricao" class="form-control" rows="4" required></textarea>
@@ -201,9 +250,11 @@ if ($resultUsers) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-function preencherModalEditar(id, user_id, data_escuta, transcricao, feedback) {
+function preencherModalEditar(id, user_id, classi_id, P_N, data_escuta, transcricao, feedback) {
   document.getElementById('edit_id').value = id;
   document.getElementById('edit_user_id').value = user_id;
+  document.getElementById('edit_cad_classi_id').value = classi_id;
+  document.getElementById('edit_tipo_escuta').value = P_N;
   document.getElementById('edit_data_escuta').value = data_escuta;
   document.getElementById('edit_transcricao').value = transcricao;
   document.getElementById('edit_feedback').value = feedback;
