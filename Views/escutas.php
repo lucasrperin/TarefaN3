@@ -16,6 +16,8 @@ if ($cargo !== 'Admin') {
 $query = "SELECT DISTINCT e.user_id, u.nome AS usuario_nome 
           FROM TB_ESCUTAS e
           JOIN TB_USUARIO u ON e.user_id = u.id 
+          WHERE (u.cargo = 'User' OR u.id IN (17, 18))
+          AND u.id NOT IN (8)
           ORDER BY u.nome";
 $result = $conn->query($query);
 $analistas = [];
@@ -28,7 +30,7 @@ if ($result) {
 
 // Recupera os usuários com cargo "User" para preencher o select do modal de cadastro
 $users = [];
-$queryUsers = "SELECT id, nome FROM TB_USUARIO WHERE cargo = 'User'";
+$queryUsers = "SELECT u.id, u.nome FROM TB_USUARIO u WHERE (u.cargo = 'User' OR u.id IN (17, 18)) AND u.id NOT IN (8)";
 $resultUsers = $conn->query($queryUsers);
 if ($resultUsers) {
     while ($row = $resultUsers->fetch_assoc()) {
@@ -47,6 +49,71 @@ if ($resultClassi) {
     }
     $resultClassi->free();
 }
+
+// ----------------------------------------------------
+// 1. Escutas por Analista (usuários com cargo 'User')
+// ----------------------------------------------------
+$sqlEscutasAnalista = "SELECT 
+                        u.nome, 
+                        COUNT(e.id) AS total
+                      FROM TB_USUARIO u
+                      JOIN TB_ESCUTAS e ON e.user_id = u.id
+                      WHERE (u.cargo = 'User' OR u.id IN (17, 18))
+                      AND u.id NOT IN (8)
+                      GROUP BY u.id
+                      ORDER BY u.nome
+";
+$resAnalista = $conn->query($sqlEscutasAnalista);
+$escutasAnalista = [];
+if ($resAnalista) {
+    while ($row = $resAnalista->fetch_assoc()) {
+        $escutasAnalista[] = $row;
+    }
+}
+
+// ----------------------------------------------------
+// 2. Escutas por Supervisor (usuários com cargo 'Supervisor')
+// ----------------------------------------------------
+$sqlEscutasSupervisor = "
+    SELECT u.nome, COUNT(e.id) AS total
+    FROM TB_USUARIO u
+    JOIN TB_ESCUTAS e ON e.admin_id = u.id
+    WHERE u.cargo = 'Admin'
+    GROUP BY u.id
+    ORDER BY u.nome
+";
+$resSupervisor = $conn->query($sqlEscutasSupervisor);
+$escutasSupervisor = [];
+if ($resSupervisor) {
+    while ($row = $resSupervisor->fetch_assoc()) {
+        $escutasSupervisor[] = $row;
+    }
+}
+
+// ----------------------------------------------------
+// 3. Escutas Faltantes (para cada analista 'User', considerando meta de 5 escutas)
+// --Usuarios que são do Conversor
+// --Usuarios que são do Email
+// ----------------------------------------------------
+$sqlEscutasFaltantes = "SELECT 
+                          u.nome, (5 - COUNT(e.id)) AS faltantes
+                        FROM TB_USUARIO u
+                        LEFT JOIN TB_ESCUTAS e ON e.user_id = u.id
+                        WHERE (u.cargo = 'User' OR u.id IN (17, 18))
+                          AND u.id NOT IN (8)
+                        GROUP BY u.id
+                        HAVING faltantes > 0
+                        ORDER BY u.nome
+";
+$resFaltantes = $conn->query($sqlEscutasFaltantes);
+$escutasFaltantes = [];
+if ($resFaltantes) {
+    while ($row = $resFaltantes->fetch_assoc()) {
+        $escutasFaltantes[] = $row;
+    }
+}
+
+
 ?>
 
 <!DOCTYPE html>
@@ -54,11 +121,8 @@ if ($resultClassi) {
 <head>
   <meta charset="UTF-8">
   <title>Painel de Escutas - Por Analista</title>
+  <link href="../Public/escutas.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Seus CSS customizados -->
-  <link rel="stylesheet" href="../css/index.css">
-  <link rel="stylesheet" href="../css/dashboard.css">
-  <link rel="stylesheet" href="../css/user.css">
   <!-- Ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
@@ -82,6 +146,77 @@ if ($resultClassi) {
     </a>
   </div>
 </nav>
+
+<div class="container mt-3">
+  <!-- Linha dos Totalizadores -->
+  <div class="row justify-content-center mb-4">
+    <!-- Escutas por Analista -->
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Escutas por Analista</h5>
+          <?php if (count($escutasAnalista) > 0): ?>
+            <ul class="list-group scroll-container">
+                <!-- Supondo que $escutasAnalista seja um array com nome e total de escutas -->
+                <?php foreach($escutasAnalista as $analista): ?>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <?= htmlspecialchars($analista['nome']); ?>
+                  <span class="badge bg-info rounded-pill"><?= $analista['total']; ?></span>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+            <?php else: ?>
+            <p>Nenhum registro exibido</p>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+
+    <!-- Escutas por Supervisor -->
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Escutas por Supervisor</h5>
+          <?php if (count($escutasSupervisor) > 0): ?>
+            <ul class="list-group scroll-container">
+                <!-- Supondo que $escutasSupervisor seja um array com nome e total de escutas de supervisores -->
+                <?php foreach($escutasSupervisor as $supervisor): ?>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <?= htmlspecialchars($supervisor['nome']); ?>
+                  <span class="badge bg-primary rounded-pill"><?= $supervisor['total']; ?></span>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+            <?php else: ?>
+            <p>Nenhum registro exibido</p>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+
+    <!-- Escutas Faltantes -->
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Escutas Faltantes</h5>
+          <?php if (count($escutasFaltantes) > 0): ?>
+          <ul class="list-group scroll-container">
+              <!-- Para cada analista com cargo 'User', calcular quantas escutas faltam (5 - total) -->
+              <?php foreach($escutasFaltantes as $analista): ?>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span class="analista-name"><?= htmlspecialchars($analista['nome']); ?></span>
+                  <span class="analista-total badge bg-danger rounded-pill"><?= $analista['faltantes']; ?></span>
+                </li>
+              <?php endforeach; ?>
+          </ul>
+          <?php else: ?>
+            <p>Nenhum registro exibido</p>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="container mt-5">
   <!-- Botão para abrir modal de cadastro -->
@@ -144,7 +279,7 @@ if ($resultClassi) {
         </div>
 
         <div class="row mb-2">
-          <div class="col-md-4 mb-3">
+          <div class="col-md-6 mb-3">
             <div class="mb-3">
               <label for="tipo_escuta" class="form-label">Escuta Positiva</label>
               <select name="positivo" id="tipo_escuta" class="form-select">
@@ -154,7 +289,7 @@ if ($resultClassi) {
               </select>
             </div>
           </div>
-          <div class="col-md-4 mb-3">
+          <div class="col-md-6 mb-3">
             <div class="mb-3">
               <label for="cad_data_escuta" class="form-label">Data da Escuta</label>
               <input type="date" name="data_escuta" id="cad_data_escuta" class="form-control" required value="<?php echo date('Y-m-d'); ?>">
@@ -178,7 +313,6 @@ if ($resultClassi) {
     </div>
   </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </html>

@@ -20,19 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $feedback    = trim($_POST['feedback']);
     $admin_id    = $_SESSION['usuario_id']; // ID do Admin logado
 
-    // Verifica se o Admin já registrou 5 escutas neste mês
-    $currentMonth = date('Y-m');
-    $stmt = $conn->prepare("SELECT COUNT(*) AS count FROM TB_ESCUTAS WHERE admin_id = ? AND DATE_FORMAT(data_escuta, '%Y-%m') = ?");
-    $stmt->bind_param("is", $admin_id, $currentMonth);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $row = $result->fetch_assoc();
-    $count = $row['count'];
-    $stmt->close();
-
-    if ($count >= 5) {
-        $_SESSION['error'] = "Você já registrou 5 escutas neste mês.";
-    } else {
+    
         $stmt = $conn->prepare("INSERT INTO TB_ESCUTAS (user_id, admin_id, classi_id, data_escuta, transcricao, feedback, P_N) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param("iiissss", $user_id, $admin_id, $classificacao, $data_escuta, $transcricao, $feedback, $positivo);
         if ($stmt->execute()) {
@@ -42,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt->close();
     }
-}
+
 
 header("Location: escutas.php");
 exit;
