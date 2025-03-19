@@ -29,7 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $stmt->close();
 }
-
-header("Location: escutas_por_analista.php?user_id=$user_id");
+$conn->close();
+header("Location: escutas_por_analista.php?user_id=$user_id&success=3");
 exit;
+
 ?>

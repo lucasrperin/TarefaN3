@@ -112,21 +112,25 @@ if ($resFaltantes) {
         $escutasFaltantes[] = $row;
     }
 }
-
-
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Painel de Escutas - Por Analista</title>
-  <link href="../Public/escutas.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Ícones -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tarefas N3</title>
+    <!-- Arquivo CSS personalizado -->
+    <link href="../Public/escutas.css" rel="stylesheet">
 
-  <link rel="icon" href="..\Public\Image\icone2.png" type="image/png">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+   
+    <!-- Ícones personalizados -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <link rel="icon" href="Public\Image\icone2.png" type="image/png">
+    
 </head>
 <body>
 <nav class="navbar navbar-dark bg-dark">
@@ -148,6 +152,49 @@ if ($resFaltantes) {
     </a>
   </div>
 </nav>
+
+<!-- Container do Toast no canto superior direito -->
+<div class="toast-container">
+    <div id="toastSucesso" class="toast">
+        <div class="toast-body">
+            <i class="fa-solid fa-check-circle"></i> <span id="toastMensagem"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Script para exibir o toast -->
+<script dref>
+document.addEventListener("DOMContentLoaded", function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get("success");
+
+    if (success) {
+        let mensagem = "";
+        switch (success) {
+            case "1":
+                mensagem = "Usuário cadastrado com sucesso!";
+                break;
+            case "2":
+                mensagem = "Escuta cadastrada com sucesso!";
+                break;
+            case "3":
+                mensagem = "Escuta editada com sucesso!";
+                break;
+            case "4":
+                mensagem = "Escuta excluída com sucesso!";
+                break;
+        }
+
+        if (mensagem) {
+            document.getElementById("toastMensagem").textContent = mensagem;
+            var toastEl = document.getElementById("toastSucesso");
+            var toast = new bootstrap.Toast(toastEl, { delay: 2200 });
+            toast.show();
+        }
+    }
+});
+
+</script>
 
 <div class="container mt-3">
   <!-- Linha dos Totalizadores -->
@@ -220,12 +267,57 @@ if ($resFaltantes) {
   </div>
 </div>
 
+
+
 <div class="container mt-5">
-  <!-- Botão para abrir modal de cadastro -->
-  <div class="d-flex justify-content-end mb-4">
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrar">
-      Cadastrar Nova Escuta
-    </button>
+  <div class="row mb-2">
+    <div class="col-md-12 mb-3">
+      <!-- Botão para abrir modal de cadastro -->
+      <div class="d-flex justify-content-end mb-4 gap-2">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrarUser">
+          Cadastrar Usuário
+        </button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrar">
+          Cadastrar Nova Escuta
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Escutas por Analista</h5>
+    <?php if (count($escutasAnalista) > 0): ?>
+      <ul class="list-group">
+        <?php foreach($escutasAnalista as $analista): ?>
+          <?php 
+            // Total de escutas para o analista
+            $totalEscutas = $analista['total'];
+            // Calcula o percentual com base na meta de 5 escutas
+            $percentual = ($totalEscutas * 100) / 5;
+            // Limita o percentual a 100%
+            if ($percentual > 100) {
+              $percentual = 100;
+            }
+          ?>
+          <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+              <span><?= htmlspecialchars($analista['nome']); ?></span>
+              <span><?= $totalEscutas; ?> escutas</span>
+            </div>
+            <div class="progress mt-2">
+              <div class="progress-bar" role="progressbar" style="width: <?= $percentual; ?>%;" aria-valuenow="<?= $percentual; ?>" aria-valuemin="0" aria-valuemax="100">
+                <?= round($percentual); ?>%
+              </div>
+            </div>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    <?php else: ?>
+      <p>Nenhum registro exibido</p>
+    <?php endif; ?>
+  </div>
+</div>
+
   </div>
 
   <h3 class="mb-4">Escutas por Analista</h3>
@@ -309,6 +401,44 @@ if ($resFaltantes) {
         </div>
         <div class="d-flex justify-content-end">
           <button type="submit" class="btn btn-primary">Registrar Escuta</button>
+          <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Cadastrar Usuário -->
+<div class="modal fade" id="modalCadastrarUser" tabindex="-1" aria-labelledby="modalCadastrarLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content p-4">
+      <h5 class="modal-title mb-3" id="modalCadastrarLabel">Cadastrar Novo Usuário</h5>
+      <form method="POST" action="cadastrar_usuario.php">
+        <div class="row mb-2">
+          <div class="col-md-6 mb-3">
+            <div class="mb-3">
+              <label for="cad_new_user_id" class="form-label">E-mail</label>
+              <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <div class="mb-3">
+              <label for="user_name" class="form-label">Nome</label>
+              <input type="text" class="form-control" id="name" name="nome" maxlength="50" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col-md-6 mb-3">
+            <div class="mb-3">
+              <label for="tipo_escuta" class="form-label">Senha</label>
+              <input type="password" class="form-control" id="senha" name="senha" required>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-primary">Cadastrar</button>
           <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Fechar</button>
         </div>
       </form>

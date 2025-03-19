@@ -75,10 +75,16 @@ if ($resultClassi) {
 <head>
   <meta charset="UTF-8">
   <title>Escutas de <?php echo $usuario_nome; ?></title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Arquivo CSS personalizado -->
+    <link href="../Public/escutas.css" rel="stylesheet">
 
-  <!-- Ícones -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Ícones personalizados -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <link rel="icon" href="Public\Image\icone2.png" type="image/png">
 </head>
 <body>
 <nav class="navbar navbar-dark bg-dark">
@@ -99,6 +105,38 @@ if ($resultClassi) {
     </a>
   </div>
 </nav>
+
+<!-- Container do Toast no canto superior direito -->
+<div class="toast-container">
+    <div id="toastSucesso" class="toast">
+        <div class="toast-body">
+            <i class="fa-solid fa-check-circle"></i> <span id="toastMensagem"></span>
+        </div>
+    </div>
+</div>
+
+<!-- Script para exibir o toast -->
+<script dref>
+document.addEventListener("DOMContentLoaded", function () {
+  const urlParams = new URLSearchParams(window.location.search);
+  const success = urlParams.get("success");
+  if (success) {
+      let mensagem = "";
+      switch (success) {
+          case "3":
+              mensagem = "Escuta editada com sucesso!";
+              break;
+      }
+
+      if (mensagem) {
+          document.getElementById("toastMensagem").textContent = mensagem;
+          var toastEl = document.getElementById("toastSucesso");
+          var toast = new bootstrap.Toast(toastEl, { delay: 2200 });
+          toast.show();
+      }
+  }
+});
+</script>
 
 <div class="container mt-5">
   <h3 class="mb-4">Histórico de Escutas - <?php echo $usuario_nome; ?></h3>

@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->close();
 }
 
-header("Location: escutas.php");
-exit;
+$conn->close();
+    header("Location: escutas.php?success=4");
+    exit();
 ?>

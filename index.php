@@ -643,7 +643,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <select class="form-select" id="atendente" name="atendente" required>
                                     <option value="">Selecione</option>
                                     <?php
-                                    $queryAtendente = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo = 'User'";
+                                    $queryAtendente = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo = 'User' ORDER BY Nome ASC";
                                     $resultAtendente = $conn->query($queryAtendente);
                                     while ($rowA = $resultAtendente->fetch_assoc()) {
                                         echo "<option value='" . $rowA['Id'] . "'>" . $rowA['Nome'] . "</option>";
@@ -825,18 +825,6 @@ document.addEventListener("DOMContentLoaded", function () {
  
     <!-- Scripts adicionais -->
     <script>
-        // Exibe e remove automaticamente as mensagens de sucesso após 2 segundos
-        document.addEventListener("DOMContentLoaded", function () {
-            setTimeout(function () {
-                let alertSuccess = document.querySelector(".alert-success");
-                if (alertSuccess) {
-                    alertSuccess.style.transition = "opacity 0.5s";
-                    alertSuccess.style.opacity = "0";
-                    setTimeout(() => alertSuccess.remove(), 500);
-                }
-            }, 2500);
-        });
- 
         // Função para preencher o modal de edição
         function editarAnalise(id, descricao, idSituacao, idAtendente, idSistema, idStatus, hora_ini, hora_fim, nota_editar) {
             document.getElementById("id_editar").value = id;
