@@ -114,13 +114,20 @@ if ($result_ranking) {
 <nav class="navbar navbar-dark bg-dark">
   <div class="container d-flex justify-content-between align-items-center">
       <!-- Botão Hamburguer com Dropdown -->
-      <?php if ($cargo === 'Conversor'): ?>
+      <?php if ($cargo === 'Conversor' || $cargo === 'Admin'): ?>
         <div class="dropdown">
             <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-              <li><a class="dropdown-item" href="conversao.php">Conversão</a></li>
+                <li><a class="dropdown-item" href="Views/conversao.php">Conversão</a></li>
+                <?php if ($cargo === 'Admin'): ?>  <!-- Verifica o cargo do usuário -->
+                <li><a class="dropdown-item" href="Views/escutas.php">Escutas</a></li>
+                <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>  <!-- Verifica o cargo do usuário -->
+                <li><a class="dropdown-item" href="../index.php">Painel N3</a></li>
+                <?php endif; ?>
+                <li><a class="dropdown-item" href="Views/dashboard.php">Totalizadores</a></li>
+                <?php endif; ?>
             </ul>
         </div>
       <?php endif; ?>
