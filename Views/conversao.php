@@ -877,7 +877,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <!-- MODAL CADASTRO (id=modalCadastro) -->
 <div class="modal fade" id="modalCadastro" tabindex="-1">
-  <div class="modal-dialog ">
+  <div class="modal-dialog">
     <div class="modal-content p-4">
       <h4 class="modal-title mb-3">Cadastrar Conversão</h4>
       <form id="formCadastro" action="cadastrar_conversao.php" method="POST">

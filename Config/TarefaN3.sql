@@ -65,6 +65,7 @@ INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Giselle Goetz', 'gis
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Caio Oliveira', 'caio.oliveira@zucchetti.com', 1234, 'User');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Eduardo Forcellini', 'eduardo.forcellini@zucchetti.com', 1234, 'User');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Antonio Zampeze', 'antonio.zampeze@zucchetti.com', 1234, 'User');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Fabiano Martini', 'fabiano.martini@zucchetti.com', 1234, 'User');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Gabriel Deggerone', 'gabriel.deggerone@zucchetti.com', 1234, 'Conversor');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Douglas Santana', 'douglas.santana@zucchetti.com', 1234, 'Conversor');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Ian Savoldi', 'ian.savoldi@zucchetti.com', 1234, 'Conversor');
@@ -157,6 +158,12 @@ CREATE INDEX idx_status ON TB_CONVERSOES(status_id);
 CREATE INDEX idx_data_recebido ON TB_CONVERSOES(data_recebido);
 CREATE INDEX idx_data_inicio ON TB_CONVERSOES(data_inicio);
 
+-- Tabela de Classificação
+CREATE TABLE IF NOT EXISTS TB_CLASSIFICACAO (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    descricao varchar(255)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 -- Tabela de Escutas
 CREATE TABLE IF NOT EXISTS TB_ESCUTAS (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -171,10 +178,5 @@ CREATE TABLE IF NOT EXISTS TB_ESCUTAS (
     FOREIGN KEY (user_id) REFERENCES TB_USUARIO(id) ON DELETE CASCADE,
     FOREIGN KEY (admin_id) REFERENCES TB_USUARIO(id) ON DELETE CASCADE,
     FOREIGN KEY (classi_id) REFERENCES TB_CLASSIFICACAO(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
--- Tabela de Classificação
-CREATE TABLE IF NOT EXISTS TB_CLASSIFICACAO (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    descricao varchar(255)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;

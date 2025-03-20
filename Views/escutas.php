@@ -16,7 +16,6 @@ if ($cargo !== 'Admin') {
 $dataInicio = "";
 $dataFim = "";
 
-// Verifica se foram enviados parâmetros via GET
 if (isset($_GET['data_inicio']) && !empty($_GET['data_inicio'])) {
     $dataInicio = $_GET['data_inicio'];
 }
@@ -24,19 +23,24 @@ if (isset($_GET['data_fim']) && !empty($_GET['data_fim'])) {
     $dataFim = $_GET['data_fim'];
 }
 
-// Monta a condição para o WHERE com base no período
 $dataFilterCondition = "";
-if (!empty($dataInicio) && empty($dataFim)) {
-    // Apenas data início
-    $dataFilterCondition = " AND DATE(e.data_escuta) >= '" . $conn->real_escape_string($dataInicio) . "' ";
-} else if (empty($dataInicio) && !empty($dataFim)) {
-    // Apenas data fim
-    $dataFilterCondition = " AND DATE(e.data_escuta) <= '" . $conn->real_escape_string($dataFim) . "' ";
-} else if (!empty($dataInicio) && !empty($dataFim)) {
-    // Intervalo completo
-    $dataFilterCondition = " AND DATE(e.data_escuta) BETWEEN '" . $conn->real_escape_string($dataInicio) . "' 
-                                                    AND '" . $conn->real_escape_string($dataFim) . "' ";
+
+// Se NENHUMA data for informada, filtra pelo mês/ano atual
+if (empty($dataInicio) && empty($dataFim)) {
+    $dataFilterCondition = " AND MONTH(e.data_escuta) = MONTH(CURRENT_DATE())
+                             AND YEAR(e.data_escuta) = YEAR(CURRENT_DATE()) ";
+} else {
+    // Se tiver dataInicio ou dataFim, aplica a lógica do intervalo
+    if (!empty($dataInicio) && empty($dataFim)) {
+        $dataFilterCondition = " AND DATE(e.data_escuta) >= '" . $conn->real_escape_string($dataInicio) . "' ";
+    } else if (empty($dataInicio) && !empty($dataFim)) {
+        $dataFilterCondition = " AND DATE(e.data_escuta) <= '" . $conn->real_escape_string($dataFim) . "' ";
+    } else if (!empty($dataInicio) && !empty($dataFim)) {
+        $dataFilterCondition = " AND DATE(e.data_escuta) BETWEEN '" . $conn->real_escape_string($dataInicio) . "' 
+                                                        AND '" . $conn->real_escape_string($dataFim) . "' ";
+    }
 }
+
 
 // -------------------------------------------------------------------
 // Consulta os usuários (analistas) que possuem escutas registradas
@@ -56,14 +60,15 @@ if ($result) {
     $result->free();
 }
 
-// Recupera os usuários com cargo "User" (para modal de cadastro)
+// Recupera os usuários com cargo "User" (para meta Geral)
 $users = [];
 $queryUsers = "SELECT 
-                u.id, 
                 u.nome
-              FROM TB_USUARIO u 
-              WHERE (u.cargo = 'User' OR u.id IN (17, 18)) 
-              AND u.id NOT IN (8)";
+              FROM TB_USUARIO u
+              WHERE (u.cargo = 'User' OR u.id IN (17, 18))
+                AND u.id NOT IN (8)
+              ORDER BY u.nome
+";
 $resultUsers = $conn->query($queryUsers);
 if ($resultUsers) {
     while ($row = $resultUsers->fetch_assoc()) {
@@ -75,15 +80,20 @@ if ($resultUsers) {
 // Recupera os usuários com cargo "User" (para modal de cadastro) que não possuem 5 analises
 $userscadastro = [];
 $queryUsersCad = "SELECT 
-                    u.id, 
+                    u.id,
                     u.nome,
-                    (5 - COUNT(e.id)) AS faltantes 
-                  FROM TB_USUARIO u 
-                  LEFT JOIN TB_ESCUTAS e ON e.user_id = u.id
-                  WHERE (u.cargo = 'User' OR u.id IN (17, 18)) 
-                  AND u.id NOT IN (8)
+                    (5 - COUNT(e.id)) AS faltantes
+                  FROM TB_USUARIO u
+                  LEFT JOIN TB_ESCUTAS e 
+                    ON e.user_id = u.id 
+                    AND MONTH(e.data_escuta) = MONTH(CURRENT_DATE())
+                    AND YEAR(e.data_escuta) = YEAR(CURRENT_DATE())
+                  WHERE (u.cargo = 'User' OR u.id IN (17, 18))
+                    AND u.id NOT IN (8)
                   GROUP BY u.id
-                  HAVING faltantes > 0";
+                  HAVING faltantes > 0
+                  ORDER BY u.nome
+                  ";
 $resultUsersCad = $conn->query($queryUsersCad);
 if ($resultUsersCad) {
     while ($row = $resultUsersCad->fetch_assoc()) {
@@ -145,16 +155,18 @@ if ($resSupervisor) {
 // ----------------------------------------------------
 // 3. Escutas Faltantes (para cada analista 'User', meta de 5 escutas)
 $sqlEscutasFaltantes = "SELECT 
-                          u.nome, 
-                          COUNT(e.id) AS totalEscutas, 
-                          (5 - COUNT(e.id)) AS faltantes
-                        FROM TB_USUARIO u
-                        LEFT JOIN TB_ESCUTAS e ON e.user_id = u.id
-                        WHERE (u.cargo = 'User' OR u.id IN (17, 18))
-                          AND u.id NOT IN (8)
-                          $dataFilterCondition
-                        GROUP BY u.id
-                        ORDER BY u.nome";
+    u.nome,
+    COUNT(e.id) AS totalEscutas,
+    (5 - COUNT(e.id)) AS faltantes
+FROM TB_USUARIO u
+LEFT JOIN TB_ESCUTAS e 
+  ON e.user_id = u.id 
+  AND MONTH(e.data_escuta) = MONTH(CURRENT_DATE())
+  AND YEAR(e.data_escuta) = YEAR(CURRENT_DATE())
+WHERE (u.cargo = 'User' OR u.id IN (17, 18))
+  AND u.id NOT IN (8)
+GROUP BY u.id
+ORDER BY u.nome";
 $resFaltantes = $conn->query($sqlEscutasFaltantes);
 $escutasFaltantes = [];
 if ($resFaltantes) {
@@ -245,6 +257,12 @@ document.addEventListener("DOMContentLoaded", function () {
             case "4":
                 mensagem = "Escuta excluída com sucesso!";
                 break;
+            case "5":
+                mensagem = "Classificação cadastrada com sucesso!";
+                break;
+            case "6":
+                mensagem = "Usuário já cadastrado!";
+                break;
         }
 
         if (mensagem) {
@@ -269,20 +287,21 @@ document.addEventListener("DOMContentLoaded", function () {
           <h5 class="card-title">Escutas Faltantes</h5>
           <?php if (count($escutasFaltantes) > 0): ?>
             <ul class="list-group scroll-container">
-              <?php foreach($escutasFaltantes as $analista): ?>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <span class="analista-name"><?= htmlspecialchars($analista['nome']); ?></span>
-                  <?php if ($analista['faltantes'] <= 0): ?>
-                    <span class="analista-total badge bg-success rounded-pill">
-                      <i class="fa-solid fa-check-circle"></i>
-                    </span>
-                  <?php else: ?>
-                    <span class="analista-total badge bg-danger rounded-pill">
-                      <?= $analista['faltantes']; ?>
-                    </span>
-                  <?php endif; ?>
-                </li>
-              <?php endforeach; ?>
+            <?php foreach($escutasFaltantes as $analista): ?>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span class="analista-name"><?= htmlspecialchars($analista['nome']); ?></span>
+                <?php if ($analista['faltantes'] <= 0): ?>
+                  <span class="analista-total badge bg-success rounded-pill">
+                    <i class="fa-solid fa-check-circle"></i>
+                  </span>
+                <?php else: ?>
+                  <span class="analista-total badge bg-danger rounded-pill">
+                    <?= $analista['faltantes']; ?>
+                  </span>
+                <?php endif; ?>
+              </li>
+            <?php endforeach; ?>
+
             </ul>
           <?php else: ?>
             <p>Nenhum registro exibido</p>
@@ -364,14 +383,16 @@ document.addEventListener("DOMContentLoaded", function () {
   <!-- Título + Botões -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="mb-0">Escutas por Analista</h3>
-    <div class="d-flex gap-2">
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrarUser">
-        Cadastrar Usuário
-      </button>
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrar">
-        Cadastrar Nova Escuta
-      </button>
-    </div>
+      <div class="dropdown">
+        <button class="btn btn-primary" type="button" data-bs-toggle="dropdown">
+            Cadastrar
+        </button>
+        <ul class="dropdown-menu dropdown-menu-dark">
+          <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalCadastrarClassi">Classificação</a></li>
+          <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalCadastrarUser">Usuário</a></li>
+          <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalCadastrar">Escuta</a></li>
+        </ul>
+      </div>
   </div>
 
   <div class="row">
@@ -488,6 +509,26 @@ document.addEventListener("DOMContentLoaded", function () {
             <input type="password" class="form-control" id="senha" name="senha" required>
           </div>
         </div>
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-primary">Cadastrar</button>
+          <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Cadastrar CLassificação -->
+<div class="modal fade" id="modalCadastrarClassi" tabindex="-1" aria-labelledby="modalCadastrarLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content p-4">
+      <h5 class="modal-title mb-3" id="modalCadastrarLabel">Cadastrar Classificação</h5>
+      <form method="POST" action="cadastrar_classificacao.php">
+        <div class="row mb-2">
+          <div class="col-md-12 mb-3">
+            <label for="descricao" class="form-label">Classificação</label>
+            <input type="text" class="form-control" id="descricao" name="descricao" required>
+          </div>
         <div class="d-flex justify-content-end">
           <button type="submit" class="btn btn-primary">Cadastrar</button>
           <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Fechar</button>

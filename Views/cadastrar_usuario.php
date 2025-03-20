@@ -24,18 +24,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = $checkStmt->get_result();
 
         if ($result->num_rows > 0) {
-            $_SESSION['error'] = "Email já cadastrado.";
-            header("Location: escutas.php");
-            exit;
+            $conn->close();
+            header("Location: escutas.php?success=6");
+            exit();
         }
         $checkStmt->close();
 
         $stmt = $conn->prepare("INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("ssss", $email, $nome, $senha, $cargo);
+        $stmt->bind_param("ssss", $nome, $email, $senha, $cargo);
         if ($stmt->execute()) {
             $_SESSION['success'] = "Usuário registrado com sucesso.";
         } else {
-            $_SESSION['error'] = "Erro ao registrar o usuário. Tente novamente.";
+            header("Location: escutas.php?success=6");
         }
         $stmt->close();
     }
