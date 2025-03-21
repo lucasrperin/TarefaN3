@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $hora_fim    = $_POST['hora_fim'];
     $tempo_total = $_POST['tempo_total'];
 
-    $sql = "INSERT INTO tb_incidentes (sistema, gravidade, problema, hora_inicio, hora_fim, tempo_total) 
+    $sql = "INSERT INTO TB_INCIDENTES (sistema, gravidade, problema, hora_inicio, hora_fim, tempo_total) 
             VALUES (?, ?, ?, ?, ?, ?)";
     
     if ($stmt = $conn->prepare($sql)) {
