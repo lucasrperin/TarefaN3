@@ -108,19 +108,31 @@ $resultWeb = $conn->query($sqlWeb);
   <h2 class="mb-4">Incidentes Registrados</h2>
 
   <!-- Alerta de sucesso -->
-  <?php if(isset($_GET['msg']) && $_GET['msg'] == 'success'): ?>
-    <div class="alert alert-success" role="alert">
-      Incidente registrado com sucesso!
-    </div>
-  <?php elseif(isset($_GET['msg']) && $_GET['msg'] == 'edit_success'): ?>
-    <div class="alert alert-success" role="alert">
-      Incidente atualizado com sucesso!
-    </div>
-  <?php elseif(isset($_GET['msg']) && $_GET['msg'] == 'delete_success'): ?>
-    <div class="alert alert-success" role="alert">
-      Incidente excluído com sucesso!
-    </div>
-  <?php endif; ?>
+  <?php if (isset($_GET['msg'])): ?>
+    <?php if ($_GET['msg'] == 'success'): ?>
+        <div class="alert alert-success" role="alert" id="alert-msg">
+            Incidente registrado com sucesso!
+        </div>
+    <?php elseif ($_GET['msg'] == 'edit_success'): ?>
+        <div class="alert alert-success" role="alert" id="alert-msg">
+            Incidente atualizado com sucesso!
+        </div>
+    <?php elseif ($_GET['msg'] == 'delete_success'): ?>
+        <div class="alert alert-success" role="alert" id="alert-msg">
+            Incidente excluído com sucesso!
+        </div>
+    <?php endif; ?>
+
+    <script>
+      // Após 3 segundos (3000ms), esconde o alerta
+      setTimeout(function() {
+          var alertElement = document.getElementById('alert-msg');
+          if (alertElement) {
+              alertElement.style.display = 'none';
+          }
+      }, 3000);
+    </script>
+<?php endif; ?>
 
   <!-- PAINEL COM TOTALIZADORES E GRÁFICO (altura fixa) -->
   <div class="row mb-4 align-items-stretch" style="height: 250px;">
