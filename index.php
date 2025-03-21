@@ -223,11 +223,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 <span class="navbar-toggler-icon"></span>
             </button>
             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-                <li><a class="dropdown-item" href="Views/conversao.php">Conversão</a></li>
+                <li><a class="dropdown-item" href="Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversão</a></li>
                 <?php if ($cargo === 'Admin'): ?>  <!-- Verifica o cargo do usuário -->
-                <li><a class="dropdown-item" href="Views/escutas.php">Escutas</a></li>
-                <li><a class="dropdown-item" href="Views/incidente.php">Incidentes</a></li>
-                <li><a class="dropdown-item" href="Views/dashboard.php">Totalizadores</a></li>
+                <li><a class="dropdown-item" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+                <li><a class="dropdown-item" href="Views/incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
+                <li><a class="dropdown-item" href="Views/dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
                 <?php endif; ?>
             </ul>
         </div>

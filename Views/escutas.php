@@ -218,26 +218,10 @@ if ($percentMetaGeral > 100) {
         <span class="navbar-toggler-icon"></span>
       </button>
       <ul class="dropdown-menu dropdown-menu-dark">
-        <li>
-          <a class="dropdown-item" href="conversao.php">
-            <i class="fa-solid fa-right-left me-2"></i>Conversão
-          </a>
-        </li>
-        <li>
-          <a class="dropdown-item" href="incidente.php">
-            <i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes
-          </a>
-        </li>
-        <li>
-          <a class="dropdown-item" href="nivel3.php">
-            <i class="fa-solid fa-layer-group me-2"></i>Nível 3
-          </a>
-        </li>
-        <li>
-          <a class="dropdown-item" href="dashboard.php">
-            <i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores
-          </a>
-        </li>
+        <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversão</a></li>
+        <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
+        <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
+        <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
       </ul>
     </div>
     <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
@@ -249,11 +233,11 @@ if ($percentMetaGeral > 100) {
 
 <!-- Container do Toast -->
 <div class="toast-container">
-    <div id="toastSucesso" class="toast">
-        <div class="toast-body">
-          <i class="fa-solid fa-check-circle"></i> <span id="toastMensagem"></span>
-        </div>
-    </div>
+  <div id="toastSucesso" class="toast">
+      <div class="toast-body">
+        <i class="fa-solid fa-check-circle"></i> <span id="toastMensagem"></span>
+      </div>
+  </div>
 </div>
 
 <!-- Script para exibir o Toast -->

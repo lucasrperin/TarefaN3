@@ -81,8 +81,8 @@ $resultWeb = $conn->query($sqlWeb);
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 
-  <!-- Ícones personalizados -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+   <!-- Ícones personalizados -->
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
     /* Badges para a coluna de gravidade */
     .badge-moderado {
@@ -107,10 +107,10 @@ $resultWeb = $conn->query($sqlWeb);
         <span class="navbar-toggler-icon"></span>
       </button>
       <ul class="dropdown-menu dropdown-menu-dark">
-        <li><a class="dropdown-item" href="conversao.php">Conversão</a></li>
-        <li><a class="dropdown-item" href="escutas.php">Escutas</a></li>
-        <li><a class="dropdown-item" href="../index.php">Painel</a></li>
-        <li><a class="dropdown-item" href="dashboard.php">Totalizadores</a></li>
+        <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversão</a></li>
+        <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+        <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
+        <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
       </ul>
     </div>
     <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>

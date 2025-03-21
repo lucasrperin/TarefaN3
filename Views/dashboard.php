@@ -153,10 +153,10 @@ $resultado_grafico = $stmt_grafico->get_result();
           <span class="navbar-toggler-icon"></span>
         </button>
         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-          <li><a class="dropdown-item" href="conversao.php">Conversão</a></li>
-          <li><a class="dropdown-item" href="escutas.php">Escutas</a></li>
-          <li><a class="dropdown-item" href="incidente.php">Incidentes</a></li>
-          <li><a class="dropdown-item" href="../index.php">Painel</a></li>
+          <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversão</a></li>
+          <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+          <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
+          <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
         </ul>
       </div>
       <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
