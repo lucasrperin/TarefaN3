@@ -69,7 +69,13 @@ if ($resultEsc) {
 
 // Recupera os usuários (para o select do modal de edição)
 $users = [];
-$queryUsers = "SELECT id, nome FROM TB_USUARIO WHERE cargo = 'User'";
+$queryUsers = "SELECT 
+                u.id, 
+                u.nome 
+              FROM TB_USUARIO u
+              WHERE (u.cargo = 'User' OR u.id IN (17, 18))
+              AND u.id NOT IN (8)
+              ORDER BY u.nome";
 $resultUsers = $conn->query($queryUsers);
 if ($resultUsers) {
     while ($row = $resultUsers->fetch_assoc()) {
@@ -221,8 +227,11 @@ document.addEventListener("DOMContentLoaded", function () {
       let mensagem = "";
       switch (success) {
           case "3":
-              mensagem = "Escuta editada com sucesso!";
-              break;
+            mensagem = "Escuta editada com sucesso!";
+            break;
+          case "4":
+            mensagem = "Escuta excluída com sucesso!";
+            break;
       }
 
       if (mensagem) {
@@ -368,7 +377,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <button class="btn btn-outline-danger btn-sm" 
                             data-bs-toggle="modal" 
                             data-bs-target="#modalExcluir"
-                            onclick="preencherModalExcluir('<?php echo $escuta['id']; ?>')">
+                            onclick="preencherModalExcluir('<?php echo $escuta['id']; ?>','<?php echo $escuta['user_id']; ?>')">
                       <i class="fa-solid fa-trash"></i>
                     </button>
                   </td>
@@ -461,6 +470,7 @@ document.addEventListener("DOMContentLoaded", function () {
       <h5 class="modal-title mb-3" id="modalExcluirLabel">Confirmar Exclusão</h5>
       <form method="POST" action="deletar_escuta.php">
         <input type="hidden" name="id" id="delete_id">
+        <input type="hidden" name="user_id" id="delete_user_id">
         <p>Tem certeza que deseja excluir esta escuta?</p>
         <div class="d-flex justify-content-end">
           <button type="submit" class="btn btn-danger">Sim, excluir</button>
@@ -524,8 +534,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Preenche Modal Excluir
-  function preencherModalExcluir(id) {
+  function preencherModalExcluir(id, user_id) {
     document.getElementById('delete_id').value = id;
+    document.getElementById('delete_user_id').value = user_id;
   }
 </script>
 </body>

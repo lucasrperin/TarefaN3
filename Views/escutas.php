@@ -255,9 +255,6 @@ document.addEventListener("DOMContentLoaded", function () {
             case "2":
                 mensagem = "Escuta cadastrada com sucesso!";
                 break;
-            case "4":
-                mensagem = "Escuta excluída com sucesso!";
-                break;
             case "5":
                 mensagem = "Classificação cadastrada com sucesso!";
                 break;

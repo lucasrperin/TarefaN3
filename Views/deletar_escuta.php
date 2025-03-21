@@ -13,6 +13,7 @@ if (!isset($_SESSION['cargo']) || $_SESSION['cargo'] !== 'Admin') {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['id'];
+    $user_id = $_POST['user_id'];
     $stmt = $conn->prepare("DELETE FROM TB_ESCUTAS WHERE id = ?");
     $stmt->bind_param("i", $id);
     if ($stmt->execute()) {
@@ -24,6 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $conn->close();
-    header("Location: escutas.php?success=4");
+    header("Location: escutas_por_analista.php?user_id=$user_id&success=4");
     exit();
 ?>
