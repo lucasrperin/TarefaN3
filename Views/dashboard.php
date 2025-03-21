@@ -160,7 +160,7 @@ $resultado_grafico = $stmt_grafico->get_result();
         </ul>
       </div>
       <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
-      <a href="../index.php" class="btn btn-danger">
+      <a href="menu.php" class="btn btn-danger">
         <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
       </a>
     </div>

@@ -99,7 +99,7 @@ $resultWeb = $conn->query($sqlWeb);
       </ul>
     </div>
     <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
-    <a href="../index.php" class="btn btn-danger">
+    <a href="menu.php" class="btn btn-danger">
       <i class="fa-solid fa-arrow-left me-2"></i>Voltar
     </a>
   </div>
@@ -219,7 +219,7 @@ $resultWeb = $conn->query($sqlWeb);
   <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
-        <form action="processa_incidente.php" method="post">
+        <form action="cadastrar_incidente.php" method="post">
           <div class="modal-header">
             <h5 class="modal-title" id="modalCadastroLabel">Cadastrar Incidente</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
@@ -403,7 +403,7 @@ $resultWeb = $conn->query($sqlWeb);
                                     </a>
 
                                     <!-- Botão Excluir -->
-                                    <a href="excluir_incidente.php?id=<?= $row['id'] ?>"
+                                    <a href="deletar_incidente.php?id=<?= $row['id'] ?>"
                                     class="btn btn-sm btn-danger"
                                     onclick="return confirm('Tem certeza que deseja excluir este incidente?');">
                                     <i class="bi bi-trash"></i>
@@ -480,7 +480,7 @@ $resultWeb = $conn->query($sqlWeb);
                     </a>
 
                     <!-- Botão Excluir -->
-                    <a href="excluir_incidente.php?id=<?= $row['id'] ?>"
+                    <a href="deletar_incidente.php?id=<?= $row['id'] ?>"
                        class="btn btn-sm btn-danger"
                        onclick="return confirm('Tem certeza que deseja excluir este incidente?');">
                       <i class="bi bi-trash"></i>

@@ -23,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Verifica o cargo do usuário e redireciona conforme o cargo
             if ($usuario['Cargo'] == 'Admin' || $usuario['Cargo'] == 'Viewer') {
-                header("Location: ../index.php");
+                header("Location: menu.php");
             } elseif ($usuario['Cargo'] == 'User') {
                 header("Location: ../Views/user.php");
             } elseif ($usuario['Cargo'] == 'Conversor') {
