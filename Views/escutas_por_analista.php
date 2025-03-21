@@ -5,8 +5,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // Verifica se o usuário é Admin
-$usuario_id = $_SESSION['usuario_id'];
-$cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
+$usuario_id = $_SESSION['usuario_id'] ?? null;
+$cargo = $_SESSION['cargo'] ?? '';
 if ($cargo !== 'Admin') {
     header("Location: ../login.php");
     exit;
@@ -19,7 +19,22 @@ if ($user_id <= 0) {
     exit;
 }
 
-// Recupera o nome do analista
+// ------------------- Filtro por Período -------------------
+$dataInicio = $_GET['data_inicio'] ?? '';
+$dataFim    = $_GET['data_fim'] ?? '';
+$dataFilterCondition = "";
+
+// Monta condição do WHERE com base no período
+if (!empty($dataInicio) && !empty($dataFim)) {
+    $dataFilterCondition = " AND DATE(e.data_escuta) BETWEEN '".$conn->real_escape_string($dataInicio)."' 
+                                                     AND '".$conn->real_escape_string($dataFim)."' ";
+} else if (!empty($dataInicio)) {
+    $dataFilterCondition = " AND DATE(e.data_escuta) >= '".$conn->real_escape_string($dataInicio)."' ";
+} else if (!empty($dataFim)) {
+    $dataFilterCondition = " AND DATE(e.data_escuta) <= '".$conn->real_escape_string($dataFim)."' ";
+}
+
+// ------------------- Nome do Analista -------------------
 $stmt = $conn->prepare("SELECT nome FROM TB_USUARIO WHERE id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -29,23 +44,27 @@ $stmt->close();
 $usuario_nome = $analista ? $analista['nome'] : "Analista Desconhecido";
 
 // Recupera o histórico de escutas para esse usuário (analista)
-$query = "SELECT 
-            e.*, u.nome AS usuario_nome, 
-            a.nome AS admin_nome,
-            c.descricao as classificacao
-          FROM TB_ESCUTAS e
-          JOIN TB_USUARIO u ON e.user_id = u.id 
-          JOIN TB_USUARIO a ON e.admin_id = a.id
-          JOIN TB_CLASSIFICACAO c on e.classi_id = c.id 
-          WHERE e.user_id = $user_id
-          ORDER BY e.data_escuta DESC";
-$result = $conn->query($query);
+$query = "
+    SELECT 
+        e.*, 
+        u.nome AS usuario_nome, 
+        a.nome AS admin_nome,
+        c.descricao AS classificacao
+    FROM TB_ESCUTAS e
+    JOIN TB_USUARIO u ON e.user_id = u.id 
+    JOIN TB_USUARIO a ON e.admin_id = a.id
+    JOIN TB_CLASSIFICACAO c ON e.classi_id = c.id 
+    WHERE e.user_id = $user_id
+    $dataFilterCondition
+    ORDER BY e.data_escuta DESC
+";
+$resultEsc = $conn->query($query);
 $escutas = [];
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
+if ($resultEsc) {
+    while ($row = $resultEsc->fetch_assoc()) {
         $escutas[] = $row;
     }
-    $result->free();
+    $resultEsc->free();
 }
 
 // Recupera os usuários (para o select do modal de edição)
@@ -58,7 +77,8 @@ if ($resultUsers) {
     }
     $resultUsers->free();
 }
-// Recupera os usuários com cargo "User" para preencher o select do modal de cadastro
+
+// Recupera as classificações (para o select do modal de edição)
 $classis = [];
 $queryClassi = "SELECT id, descricao FROM TB_CLASSIFICACAO";
 $resultClassi = $conn->query($queryClassi);
@@ -69,22 +89,98 @@ if ($resultClassi) {
     $resultClassi->free();
 }
 
+/* ------------------------------
+   Totalizador: Classificações utilizadas
+   Para o analista atual, conta quantas vezes cada classificação foi usada
+------------------------------ */
+$stmtClass = $conn->prepare("
+    SELECT c.descricao, COUNT(e.id) AS total 
+    FROM TB_ESCUTAS e 
+    JOIN TB_CLASSIFICACAO c ON e.classi_id = c.id 
+    WHERE e.user_id = ?
+    $dataFilterCondition
+    GROUP BY c.id 
+    ORDER BY c.descricao
+");
+$stmtClass->bind_param("i", $user_id);
+$stmtClass->execute();
+$resultClass = $stmtClass->get_result();
+$classificacaoTotalizadores = [];
+while ($row = $resultClass->fetch_assoc()) {
+    $classificacaoTotalizadores[] = $row;
+}
+$stmtClass->close();
+
+/* ------------------------------
+   Totalizador: Percentual de Avaliações (Positivas vs Negativas)
+------------------------------ */
+$stmtEval = $conn->prepare("
+    SELECT 
+        SUM(CASE WHEN P_N = 'Sim' THEN 1 ELSE 0 END) AS pos_count,
+        SUM(CASE WHEN P_N = 'Nao' THEN 1 ELSE 0 END) AS neg_count,
+        COUNT(*) AS total_count
+    FROM TB_ESCUTAS e
+    WHERE e.user_id = ?
+    $dataFilterCondition
+");
+$stmtEval->bind_param("i", $user_id);
+$stmtEval->execute();
+$resultEval = $stmtEval->get_result();
+$evaluation = $resultEval->fetch_assoc();
+$stmtEval->close();
+
+$pos_count = (int)$evaluation['pos_count'];
+$neg_count = (int)$evaluation['neg_count'];
+$total_count = (int)$evaluation['total_count'];
+$percent_positive = $total_count > 0 ? ($pos_count / $total_count) * 100 : 0;
+$percent_negative = $total_count > 0 ? ($neg_count / $total_count) * 100 : 0;
+
+// ------------------- Gráfico Mensal (Positivas x Negativas) -------------------
+/*
+   Agrupamos por ano-mês (YYYY-MM) e contamos quantas escutas foram 'Sim' e quantas foram 'Nao'
+   Exemplo de query:
+*/
+$stmtGrafico = $conn->prepare("
+    SELECT 
+        DATE_FORMAT(e.data_escuta, '%Y-%m') AS mes,
+        SUM(CASE WHEN e.P_N = 'Sim' THEN 1 ELSE 0 END) AS totalPos,
+        SUM(CASE WHEN e.P_N = 'Nao' THEN 1 ELSE 0 END) AS totalNeg
+    FROM TB_ESCUTAS e
+    WHERE e.user_id = ?
+    $dataFilterCondition
+    GROUP BY DATE_FORMAT(e.data_escuta, '%Y-%m')
+    ORDER BY mes
+");
+$stmtGrafico->bind_param("i", $user_id);
+$stmtGrafico->execute();
+$resultGraf = $stmtGrafico->get_result();
+
+$meses = [];
+$positivosMensais = [];
+$negativosMensais = [];
+
+while ($row = $resultGraf->fetch_assoc()) {
+    $meses[] = $row['mes'];            // Ex.: 2023-08
+    $positivosMensais[] = (int)$row['totalPos'];
+    $negativosMensais[] = (int)$row['totalNeg'];
+}
+$stmtGrafico->close();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <title>Escutas de <?php echo $usuario_nome; ?></title>
-    <!-- Arquivo CSS personalizado -->
-    <link href="../Public/escutas.css" rel="stylesheet">
+  <!-- Arquivo CSS personalizado -->
+  <link href="../Public/escutas_por_analista.css" rel="stylesheet">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Ícones personalizados -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- Chart.js (para o gráfico) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Ícones personalizados -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
-    <link rel="icon" href="Public\Image\icone2.png" type="image/png">
+  <link rel="icon" href="Public\Image\icone2.png" type="image/png">
 </head>
 <body>
 <nav class="navbar navbar-dark bg-dark">
@@ -94,7 +190,7 @@ if ($resultClassi) {
         <span class="navbar-toggler-icon"></span>
       </button>
       <ul class="dropdown-menu dropdown-menu-dark">
-      <li><a class="dropdown-item" href="conversao.php">Conversão</a></li>
+        <li><a class="dropdown-item" href="conversao.php">Conversão</a></li>
         <li><a class="dropdown-item" href="../index.php">Painel</a></li>
         <li><a class="dropdown-item" href="dashboard.php">Totalizadores</a></li>
       </ul>
@@ -116,7 +212,7 @@ if ($resultClassi) {
 </div>
 
 <!-- Script para exibir o toast -->
-<script dref>
+<script defer>
 document.addEventListener("DOMContentLoaded", function () {
   const urlParams = new URLSearchParams(window.location.search);
   const success = urlParams.get("success");
@@ -138,12 +234,104 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-<div class="container mt-5">
+<div class="container mt-4 ">
+  <div class="row g-3 justify-content-center">
+    <!-- Coluna 1: Classificações + Percentual -->
+    <div class="col-md-3 d-flex flex-column">
+      <!-- Card: Totalizador de Classificações -->
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Totalizador de Classificações</h5>
+          <?php if(count($classificacaoTotalizadores) > 0): ?>
+            <ul class="list-group scroll-container">
+              <?php foreach($classificacaoTotalizadores as $item): ?>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <?= htmlspecialchars($item['descricao']); ?>
+                  <span class="badge bg-primary rounded-pill"><?= $item['total']; ?></span>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          <?php else: ?>
+            <p>Nenhuma classificação utilizada neste período.</p>
+          <?php endif; ?>
+        </div>
+      </div>
+
+      <!-- Card: Percentual de Avaliações -->
+      <div class="card mt-3">
+        <div class="card-body">
+          <h5 class="card-title">Percentual de Avaliações</h5>
+          <?php if($total_count > 0): ?>
+            <div class="progress" style="height: 20px;">
+              <div class="progress-bar bg-success" role="progressbar" 
+                   style="width: <?= round($percent_positive); ?>%;" 
+                   aria-valuenow="<?= round($percent_positive); ?>" aria-valuemin="0" aria-valuemax="100">
+                <?= round($percent_positive); ?>%
+              </div>
+              <div class="progress-bar bg-danger" role="progressbar" 
+                   style="width: <?= round($percent_negative); ?>%;" 
+                   aria-valuenow="<?= round($percent_negative); ?>" aria-valuemin="0" aria-valuemax="100">
+                <?= round($percent_negative); ?>%
+              </div>
+            </div>
+          <?php else: ?>
+            <p>Nenhuma avaliação registrada neste período.</p>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coluna 2: Evolução Mensal (Gráfico) -->
+    <div class="col-md-6 d-flex flex-column">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Evolução Mensal</h5>
+          <?php if(count($meses) > 0): ?>
+            <div style="position: relative; height: 300px;">
+              <canvas id="chartMensal"></canvas>
+            </div>
+          <?php else: ?>
+            <p>Nenhuma escuta registrada neste período.</p>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coluna 3: Filtro de Período -->
+    <div class="col-md-2 d-flex flex-column">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Filtro de Período</h5>
+          <form method="GET">
+            <input type="hidden" name="user_id" value="<?= $user_id; ?>">
+            <div class="mb-3">
+              <label for="data_inicio" class="form-label">Data Início</label>
+              <input type="date" class="form-control" id="data_inicio" name="data_inicio" value="<?= htmlspecialchars($dataInicio); ?>">
+            </div>
+            <div class="mb-3">
+              <label for="data_fim" class="form-label">Data Fim</label>
+              <input type="date" class="form-control" id="data_fim" name="data_fim" value="<?= htmlspecialchars($dataFim); ?>">
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+              <a href="escutas_por_analista.php?user_id=<?= $user_id; ?>" class="btn btn-secondary btn-sm">Limpar</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- fim row -->
+
+
+
+
+  <!-- Histórico de Escutas (Tabela) -->
   <h3 class="mb-4">Histórico de Escutas - <?php echo $usuario_nome; ?></h3>
   <div class="card">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-bordered">
+      <table class="table table-bordered">
           <thead class="table-light">
             <tr>
               <th>Data da Escuta</th>
@@ -191,7 +379,7 @@ document.addEventListener("DOMContentLoaded", function () {
               <?php endforeach; ?>
             <?php else: ?>
               <tr>
-                <td colspan="5">Nenhuma escuta registrada para este analista.</td>
+                <td colspan="7">Nenhuma escuta registrada para este analista.</td>
               </tr>
             <?php endif; ?>
           </tbody>
@@ -286,21 +474,62 @@ document.addEventListener("DOMContentLoaded", function () {
   </div>
 </div>
 
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-function preencherModalEditar(id, user_id, classi_id, P_N, data_escuta, transcricao, feedback) {
-  document.getElementById('edit_id').value = id;
-  document.getElementById('edit_user_id').value = user_id;
-  document.getElementById('edit_cad_classi_id').value = classi_id;
-  document.getElementById('edit_tipo_escuta').value = P_N;
-  document.getElementById('edit_data_escuta').value = data_escuta;
-  document.getElementById('edit_transcricao').value = transcricao;
-  document.getElementById('edit_feedback').value = feedback;
-}
 
-function preencherModalExcluir(id) {
-  document.getElementById('delete_id').value = id;
-}
+<!-- Script para montar o gráfico Chart.js -->
+<script>
+  // Arrays com dados do PHP
+  const meses = <?php echo json_encode($meses); ?>;               // ex: ["2023-01","2023-02"]
+  const posMensal = <?php echo json_encode($positivosMensais); ?>; 
+  const negMensal = <?php echo json_encode($negativosMensais); ?>;
+
+  if (meses.length > 0) {
+    const ctx = document.getElementById('chartMensal').getContext('2d');
+    const myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: meses, // rótulos no eixo X
+        datasets: [
+          {
+            label: 'Positivas',
+            data: posMensal,
+            backgroundColor: 'rgba(40, 167, 69, 0.8)' // verde
+          },
+          {
+            label: 'Negativas',
+            data: negMensal,
+            backgroundColor: 'rgba(220, 53, 69, 0.8)' // vermelho
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            stepSize: 1
+          }
+        }
+      }
+    });
+  }
+
+  // Preenche Modal Editar
+  function preencherModalEditar(id, user_id, classi_id, P_N, data_escuta, transcricao, feedback) {
+    document.getElementById('edit_id').value = id;
+    document.getElementById('edit_user_id').value = user_id;
+    document.getElementById('edit_cad_classi_id').value = classi_id;
+    document.getElementById('edit_tipo_escuta').value = P_N;
+    document.getElementById('edit_data_escuta').value = data_escuta;
+    document.getElementById('edit_transcricao').value = transcricao;
+    document.getElementById('edit_feedback').value = feedback;
+  }
+
+  // Preenche Modal Excluir
+  function preencherModalExcluir(id) {
+    document.getElementById('delete_id').value = id;
+  }
 </script>
 </body>
 </html>

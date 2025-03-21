@@ -279,7 +279,6 @@ document.addEventListener("DOMContentLoaded", function () {
 <div class="container mt-4">
   <!-- .row com align-items-stretch e g-3 para espaçamento -->
   <div class="row justify-content-center align-items-stretch g-3">
-
     <!-- Coluna 1: Escutas Faltantes -->
     <div class="col-md-3 d-flex flex-column">
       <div class="card flex-fill">

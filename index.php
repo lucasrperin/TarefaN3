@@ -643,7 +643,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <select class="form-select" id="atendente" name="atendente" required>
                                     <option value="">Selecione</option>
                                     <?php
-                                    $queryAtendente = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo = 'User' ORDER BY Nome ASC";
+                                    $queryAtendente = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo in ('User', 'Conversor') ORDER BY Nome ASC";
                                     $resultAtendente = $conn->query($queryAtendente);
                                     while ($rowA = $resultAtendente->fetch_assoc()) {
                                         echo "<option value='" . $rowA['Id'] . "'>" . $rowA['Nome'] . "</option>";
