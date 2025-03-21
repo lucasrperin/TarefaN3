@@ -5,6 +5,22 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Consulta os usuários (analistas) que possuem escutas registradas
+$query = "SELECT DISTINCT e.user_id, u.nome AS usuario_nome 
+          FROM TB_ESCUTAS e
+          JOIN TB_USUARIO u ON e.user_id = u.id 
+          WHERE (u.cargo = 'User' OR u.id IN (17, 18))
+            AND u.id NOT IN (8)
+          ORDER BY u.nome";
+$result = $conn->query($query);
+$analistas = [];
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $analistas[] = $row;
+    }
+    $result->free();
+}
+
 // ======== TOTALIZADORES E DADOS PARA O GRÁFICO ========
 
 // Total por sistema
@@ -64,6 +80,9 @@ $resultWeb = $conn->query($sqlWeb);
   <title>Incidentes Registrados</title>
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+  <!-- Ícones personalizados -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
     /* Badges para a coluna de gravidade */
     .badge-moderado {
@@ -81,6 +100,26 @@ $resultWeb = $conn->query($sqlWeb);
   </style>
 </head>
 <body>
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div class="dropdown">
+      <button class="navbar-toggler" type="button" data-bs-toggle="dropdown">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-dark">
+        <li><a class="dropdown-item" href="conversao.php">Conversão</a></li>
+        <li><a class="dropdown-item" href="escutas.php">Escutas</a></li>
+        <li><a class="dropdown-item" href="../index.php">Painel</a></li>
+        <li><a class="dropdown-item" href="dashboard.php">Totalizadores</a></li>
+      </ul>
+    </div>
+    <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
+    <a href="../index.php" class="btn btn-danger">
+      <i class="fa-solid fa-arrow-left me-2"></i>Voltar
+    </a>
+  </div>
+</nav>
+
 <div class="container my-5">
   <h2 class="mb-4">Incidentes Registrados</h2>
 
