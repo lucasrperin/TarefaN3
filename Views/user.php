@@ -19,7 +19,7 @@ $sql_analises = "SELECT
             a.numeroFicha,
             DATE_FORMAT(a.Hora_ini, '%d/%m %H:%i:%s') as Hora_ini
         FROM TB_ANALISES a
-        WHERE a.idAtendente = ? AND a.idSituacao = 1";
+        WHERE a.idAtendente = ? AND a.idSituacao = 1 AND a.idStatus = 1";
 $stmt_analises = $conn->prepare($sql_analises);
 $stmt_analises->bind_param("i", $usuario_id);
 $stmt_analises->execute();
@@ -85,6 +85,7 @@ $sql_ranking = "SELECT
                   AVG(a.Nota) as mediaNotas
                 FROM TB_ANALISES a
                 JOIN TB_USUARIO u ON a.idAtendente = u.Id
+                WHERE a.idStatus = 1
                 GROUP BY a.idAtendente, u.Nome
                 ORDER BY mediaNotas DESC";
 $result_ranking = $conn->query($sql_ranking);
@@ -122,11 +123,11 @@ if ($result_ranking) {
             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
                 <li><a class="dropdown-item" href="conversao.php">Conversão</a></li>
                 <?php if ($cargo === 'Admin'): ?>  <!-- Verifica o cargo do usuário -->
-                <li><a class="dropdown-item" href="Views/escutas.php">Escutas</a></li>
+                <li><a class="dropdown-item" href="escutas.php">Escutas</a></li>
                 <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>  <!-- Verifica o cargo do usuário -->
                 <li><a class="dropdown-item" href="../index.php">Painel N3</a></li>
                 <?php endif; ?>
-                <li><a class="dropdown-item" href="Views/dashboard.php">Totalizadores</a></li>
+                <li><a class="dropdown-item" href="dashboard.php">Totalizadores</a></li>
                 <?php endif; ?>
             </ul>
         </div>
@@ -238,8 +239,10 @@ if ($result_ranking) {
                             $classeNota = 'nota-amarela';
                         } elseif ($nota == 2) {
                             $classeNota = 'nota-laranja';
-                        } elseif ($nota == 0 || $nota == 1) {
+                        } elseif ($nota == 1) {
                             $classeNota = 'nota-vermelha';
+                        } elseif ($nota == 0) {
+                            $classeNota = 'nota-neutra';
                         } else {
                             $classeNota = '';
                         }

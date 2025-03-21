@@ -52,3 +52,35 @@
     display: inline; /* Garante que o texto não ocupe espaço extra */
     flex-grow: 0; /* Faz o texto ocupar apenas o espaço necessário */
   }
+
+  td.sobrepor {
+    max-width: 100px; /* ajuste o valor conforme necessário */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.table {
+    background-color: white;
+}
+
+.table th {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.tabelaEstilizada {
+    border-collapse: separate;
+    border-spacing: 0 2px;
+}
+
+.tabelaEstilizada tbody tr {
+    border-radius: 5px;
+    overflow: hidden;
+    font-family: 'Nunito', sans-serif;
+}

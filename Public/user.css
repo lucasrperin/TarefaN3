@@ -63,8 +63,8 @@ body {
 }
 
 /* Cores para as notas com !important para maior prioridade */
-.nota-vermelha {
-    color: #dc3545 !important;
+.nota-neutra {
+    color: #686868 !important;
     font-weight: bold;
 }
 .nota-laranja {

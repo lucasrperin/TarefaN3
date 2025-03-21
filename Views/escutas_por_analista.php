@@ -239,7 +239,7 @@ document.addEventListener("DOMContentLoaded", function () {
     <!-- Coluna 1: Classificações + Percentual -->
     <div class="col-md-3 d-flex flex-column">
       <!-- Card: Totalizador de Classificações -->
-      <div class="card h-100">
+      <div class="card">
         <div class="card-body">
           <h5 class="card-title">Totalizador de Classificações</h5>
           <?php if(count($classificacaoTotalizadores) > 0): ?>
@@ -262,7 +262,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <div class="card-body">
           <h5 class="card-title">Percentual de Avaliações</h5>
           <?php if($total_count > 0): ?>
-            <div class="progress" style="height: 20px;">
+            <div class="progress" style="height: 15px;">
               <div class="progress-bar bg-success" role="progressbar" 
                    style="width: <?= round($percent_positive); ?>%;" 
                    aria-valuenow="<?= round($percent_positive); ?>" aria-valuemin="0" aria-valuemax="100">
@@ -283,7 +283,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     <!-- Coluna 2: Evolução Mensal (Gráfico) -->
     <div class="col-md-6 d-flex flex-column">
-      <div class="card h-100">
+      <div class="card">
         <div class="card-body">
           <h5 class="card-title">Evolução Mensal</h5>
           <?php if(count($meses) > 0): ?>
@@ -320,27 +320,23 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
       </div>
     </div>
-
   </div> <!-- fim row -->
 
-
-
-
   <!-- Histórico de Escutas (Tabela) -->
-  <h3 class="mb-4">Histórico de Escutas - <?php echo $usuario_nome; ?></h3>
+  <h3 class="mb-4 mt-4">Histórico de Escutas - <?php echo $usuario_nome; ?></h3>
   <div class="card">
     <div class="card-body">
       <div class="table-responsive">
-      <table class="table table-bordered">
-          <thead class="table-light">
+      <table class="table table-bordered tabelaEstilizada">
+          <thead class="table-light align-items-center">
             <tr>
-              <th>Data da Escuta</th>
-              <th>Usuário</th>
-              <th>Classificação</th>
-              <th>Positivo</th>
-              <th>Transcrição</th>
-              <th>Feedback</th>
-              <th>Ações</th>
+              <th width="10%">Data da Escuta</th>
+              <th width="10%">Usuário</th>
+              <th width="15%">Classificação</th>
+              <th width="5%">Positivo</th>
+              <th width="15%">Transcrição</th>
+              <th width="15%">Feedback</th>
+              <th width="10%">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -351,8 +347,8 @@ document.addEventListener("DOMContentLoaded", function () {
                   <td><?php echo $escuta['usuario_nome']; ?></td>
                   <td><?php echo $escuta['classificacao']; ?></td>
                   <td><?php echo $escuta['P_N']; ?></td>
-                  <td><?php echo $escuta['transcricao']; ?></td>
-                  <td><?php echo $escuta['feedback']; ?></td>
+                  <td class="sobrepor"><?php echo $escuta['transcricao']; ?></td>
+                  <td class="sobrepor"><?php echo $escuta['feedback']; ?></td>
                   <td>
                     <!-- Botão Editar -->
                     <button class="btn btn-outline-primary btn-sm" 
