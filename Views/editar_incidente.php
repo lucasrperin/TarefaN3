@@ -11,7 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $hora_fim    = $_POST['hora_fim'];
     $tempo_total = $_POST['tempo_total'];
     
-    $sql = "UPDATE tb_incidentes SET sistema = ?, gravidade = ?, problema = ?, hora_inicio = ?, hora_fim = ?, tempo_total = ? WHERE id = ?";
+    $sql = "UPDATE TB_INCIDENTES SET sistema = ?, gravidade = ?, problema = ?, hora_inicio = ?, hora_fim = ?, tempo_total = ? WHERE id = ?";
     if ($stmt = $conn->prepare($sql)) {
         $stmt->bind_param("ssssssi", $sistema, $gravidade, $problema, $hora_inicio, $hora_fim, $tempo_total, $id);
         if ($stmt->execute()) {

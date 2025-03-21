@@ -8,17 +8,17 @@ ini_set('display_errors', 1);
 // ======== TOTALIZADORES E DADOS PARA O GRÁFICO ========
 
 // Total por sistema
-$systemTotalsSql = "SELECT sistema, COUNT(*) as total FROM tb_incidentes GROUP BY sistema";
+$systemTotalsSql = "SELECT sistema, COUNT(*) as total FROM TB_INCIDENTES GROUP BY sistema";
 $systemTotals = $conn->query($systemTotalsSql);
 
 // Total por gravidade
-$severityTotalsSql = "SELECT gravidade, COUNT(*) as total FROM tb_incidentes GROUP BY gravidade";
+$severityTotalsSql = "SELECT gravidade, COUNT(*) as total FROM TB_INCIDENTES GROUP BY gravidade";
 $severityTotals = $conn->query($severityTotalsSql);
 
 // Dados mensais por gravidade para o gráfico
 $sqlMonthly = "
     SELECT MONTH(hora_inicio) AS mes, gravidade, COUNT(*) AS total
-    FROM tb_incidentes
+    FROM TB_INCIDENTES
     WHERE YEAR(hora_inicio) = YEAR(CURDATE())
     GROUP BY mes, gravidade
     ORDER BY mes
@@ -45,13 +45,13 @@ $labels = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','De
 // ======== CONSULTAS PARA AS TABELAS DE INCIDENTES ========
 
 // Incidentes Desktop (sistema ClippPRO)
-$sqlDesktop = "SELECT * FROM tb_incidentes WHERE sistema = 'ClippPRO' ORDER BY hora_inicio DESC";
+$sqlDesktop = "SELECT * FROM TB_INCIDENTES WHERE sistema = 'ClippPRO' ORDER BY hora_inicio DESC";
 $resultDesktop = $conn->query($sqlDesktop);
 
 // Incidentes Web (sistemas: ZWEB, Clipp360, ClippFácil, Conversor)
 $sqlWeb = "
     SELECT * 
-    FROM tb_incidentes 
+    FROM TB_INCIDENTES 
     WHERE sistema IN ('ZWEB','Clipp360','ClippFácil','Conversor') 
     ORDER BY hora_inicio DESC
 ";
