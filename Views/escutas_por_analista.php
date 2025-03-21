@@ -190,10 +190,10 @@ $stmtGrafico->close();
         <span class="navbar-toggler-icon"></span>
       </button>
       <ul class="dropdown-menu dropdown-menu-dark">
-        <li><a class="dropdown-item" href="conversao.php">Conversão</a></li>
-        <li><a class="dropdown-item" href="incidente.php">Incidentes</a></li>
-        <li><a class="dropdown-item" href="../index.php">Painel</a></li>
-        <li><a class="dropdown-item" href="dashboard.php">Totalizadores</a></li>
+        <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversão</a></li>
+        <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
+        <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Painel</a></li>
+        <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
       </ul>
     </div>
     <span class="text-white">Escutas de <?php echo $usuario_nome; ?></span>
