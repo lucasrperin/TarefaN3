@@ -119,7 +119,6 @@ $resultWeb = $conn->query($sqlWeb);
     </a>
   </div>
 </nav>
-
 <div class="container my-5">
   <h2 class="mb-4">Incidentes Registrados</h2>
 

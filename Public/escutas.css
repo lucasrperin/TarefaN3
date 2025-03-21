@@ -54,17 +54,17 @@
 }
 
 /* Sobrescreve a cor de fundo e a cor do texto do dropdown-menu-dark */
-.dropdown-menu.dropdown-menu-dark {
+.dropEstilizado .dropdown-menu.dropdown-menu-dark {
   background-color: #ffffff !important; /* fundo branco */
 }
 
-.dropdown-menu.dropdown-menu-dark .dropdown-item {
+.dropEstilizado .dropdown-menu.dropdown-menu-dark .dropdown-item {
   color: #000 !important;
 }
 
 /* Ao passar o mouse, os itens ficam com fundo azul e texto branco */
-.dropdown-menu.dropdown-menu-dark .dropdown-item:hover,
-.dropdown-menu.dropdown-menu-dark .dropdown-item:focus {
+.dropEstilizado .dropdown-menu.dropdown-menu-dark .dropdown-item:hover,
+.dropEstilizado .dropdown-menu.dropdown-menu-dark .dropdown-item:focus {
   background-color: #0d6efd; /* cor azul padrão do Bootstrap */
   color: #ffffff !important;
 }
