@@ -392,16 +392,40 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
                 <span class="navbar-toggler-icon"></span>
             </button>
             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-              <?php if ($cargo === 'Conversor'): ?>  <!-- Verifica o cargo do usuário -->
-                <li><a class="dropdown-item" href="user.php">Analises</a></li>
-                <?php endif; ?>
-              <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>  <!-- Verifica o cargo do usuário -->
-                <li><a class="dropdown-item" href="../index.php">Painel N3</a></li>
-              <?php endif; ?>
-              <?php if ($cargo === 'Admin'): ?>  <!-- Verifica o cargo do usuário -->
-                <li><a class="dropdown-item" href="escutas.php">Escutas</a></li>
-                <li><a class="dropdown-item" href="dashboard.php">Totalizadores</a></li>
-              <?php endif; ?>
+            <?php if ($cargo === 'Conversor'): ?>  <!-- Verifica o cargo do usuário -->
+              <li>
+                <a class="dropdown-item" href="user.php">
+                  <i class="fa-solid fa-chart-line me-2"></i>Analises
+                </a>
+              </li>
+            <?php endif; ?>
+
+            <?php if ($cargo === 'Admin'): ?>  <!-- Verifica o cargo do usuário -->
+              <li>
+                <a class="dropdown-item" href="escutas.php">
+                  <i class="fa-solid fa-headphones me-2"></i>Escutas
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="incidente.php">
+                  <i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="dashboard.php">
+                  <i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores
+                </a>
+              </li>
+            <?php endif; ?>
+
+            <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>  <!-- Verifica o cargo do usuário -->
+              <li>
+                <a class="dropdown-item" href="../index.php">
+                  <i class="fa-solid fa-layer-group me-2"></i>Nível 3
+                </a>
+              </li>
+            <?php endif; ?>
+
             </ul>
         </div>
         <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>

@@ -191,6 +191,7 @@ $stmtGrafico->close();
       </button>
       <ul class="dropdown-menu dropdown-menu-dark">
         <li><a class="dropdown-item" href="conversao.php">Conversão</a></li>
+        <li><a class="dropdown-item" href="incidente.php">Incidentes</a></li>
         <li><a class="dropdown-item" href="../index.php">Painel</a></li>
         <li><a class="dropdown-item" href="dashboard.php">Totalizadores</a></li>
       </ul>
@@ -330,13 +331,13 @@ document.addEventListener("DOMContentLoaded", function () {
       <table class="table table-bordered tabelaEstilizada">
           <thead class="table-light align-items-center">
             <tr>
-              <th width="10%">Data da Escuta</th>
+              <th width="7%">Data da Escuta</th>
               <th width="10%">Usuário</th>
-              <th width="15%">Classificação</th>
-              <th width="5%">Positivo</th>
-              <th width="15%">Transcrição</th>
-              <th width="15%">Feedback</th>
-              <th width="10%">Ações</th>
+              <th width="12%">Classificação</th>
+              <th width="3%">Positivo</th>
+              <th width="17%">Transcrição</th>
+              <th width="17%">Feedback</th>
+              <th width="5%">Ações</th>
             </tr>
           </thead>
           <tbody>

@@ -218,9 +218,26 @@ if ($percentMetaGeral > 100) {
         <span class="navbar-toggler-icon"></span>
       </button>
       <ul class="dropdown-menu dropdown-menu-dark">
-        <li><a class="dropdown-item" href="conversao.php">Conversão</a></li>
-        <li><a class="dropdown-item" href="../index.php">Painel</a></li>
-        <li><a class="dropdown-item" href="dashboard.php">Totalizadores</a></li>
+        <li>
+          <a class="dropdown-item" href="conversao.php">
+            <i class="fa-solid fa-right-left me-2"></i>Conversão
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="incidente.php">
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="nivel3.php">
+            <i class="fa-solid fa-layer-group me-2"></i>Nível 3
+          </a>
+        </li>
+        <li>
+          <a class="dropdown-item" href="dashboard.php">
+            <i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores
+          </a>
+        </li>
       </ul>
     </div>
     <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
@@ -382,15 +399,17 @@ document.addEventListener("DOMContentLoaded", function () {
   <!-- Título + Botões -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="mb-0">Escutas por Analista</h3>
-      <div class="dropdown">
-        <button class="btn btn-primary" type="button" data-bs-toggle="dropdown">
-            Cadastrar
-        </button>
-        <ul class="dropdown-menu dropdown-menu-dark">
-          <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalCadastrarClassi">Classificação</a></li>
-          <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalCadastrarUser">Usuário</a></li>
-          <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalCadastrar">Escuta</a></li>
-        </ul>
+    <div class="d-flex justify-content-between align-items-center gap-2">
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrar">Inserir Escuta</button>
+        <div class="dropdown dropEstilizado">
+          <a class="btn btn-primary"  data-bs-toggle="dropdown">
+              Cadastrar<i class="fa-solid fa-caret-down ms-2"></i>
+            </a>
+          <ul class="dropdown-menu dropdown-menu-dark">
+            <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalCadastrarClassi">Classificação</a></li>
+            <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalCadastrarUser">Usuário</a></li>
+          </ul>
+        </div>
       </div>
   </div>
 

@@ -82,6 +82,25 @@ $resultWeb = $conn->query($sqlWeb);
   </style>
 </head>
 <body>
+<nav class="navbar navbar-dark bg-dark">
+  <div class="container d-flex justify-content-between align-items-center">
+    <div class="dropdown">
+      <button class="navbar-toggler" type="button" data-bs-toggle="dropdown">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-dark">
+        <li><a class="dropdown-item" href="conversao.php">Conversão</a></li>
+        <li><a class="dropdown-item" href="escutas.php">Escutas</a></li>
+        <li><a class="dropdown-item" href="../index.php">Painel</a></li>
+        <li><a class="dropdown-item" href="dashboard.php">Totalizadores</a></li>
+      </ul>
+    </div>
+    <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
+    <a href="../index.php" class="btn btn-danger">
+      <i class="fa-solid fa-arrow-left me-2"></i>Voltar
+    </a>
+  </div>
+</nav>
 <div class="container my-5">
   <h2 class="mb-4">Incidentes Registrados</h2>
 
