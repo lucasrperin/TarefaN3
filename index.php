@@ -227,6 +227,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <?php if ($cargo === 'Admin'): ?>  <!-- Verifica o cargo do usuário -->
                 <li><a class="dropdown-item" href="Views/escutas.php">Escutas</a></li>
                 <li><a class="dropdown-item" href="Views/dashboard.php">Totalizadores</a></li>
+                <li><a class="dropdown-item" href="Views/incidente.php">Incidentes</a></li>
                 <?php endif; ?>
             </ul>
         </div>
