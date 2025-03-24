@@ -89,7 +89,7 @@ if ($resultUsers) {
 
 // Recupera as classificações (para o select do modal de edição)
 $classis = [];
-$queryClassi = "SELECT id, descricao FROM TB_CLASSIFICACAO";
+$queryClassi = "SELECT id, descricao FROM TB_CLASSIFICACAO where id <> 1";
 $resultClassi = $conn->query($queryClassi);
 if ($resultClassi) {
     while ($row = $resultClassi->fetch_assoc()) {
@@ -364,18 +364,21 @@ document.addEventListener("DOMContentLoaded", function () {
                   <td class="sobrepor"><?php echo $escuta['feedback']; ?></td>
                   <td>
                     <!-- Botão Editar -->
-                    <button class="btn btn-outline-primary btn-sm" 
-                            data-bs-toggle="modal" 
+                    <button class="btn btn-outline-primary btn-sm"
+                            data-bs-toggle="modal"
                             data-bs-target="#modalEditar"
-                            onclick="preencherModalEditar('<?php echo $escuta['id']; ?>',
-                                                          '<?php echo $escuta['user_id']; ?>',
-                                                          '<?php echo $escuta['classi_id']; ?>',
-                                                          '<?php echo $escuta['P_N']; ?>',
-                                                          '<?php echo date('Y-m-d', strtotime($escuta['data_escuta'])); ?>',
-                                                          '<?php echo addslashes($escuta['transcricao']); ?>',
-                                                          '<?php echo addslashes($escuta['feedback']); ?>')">
+                            onclick="preencherModalEditar(
+                              <?php echo htmlspecialchars(json_encode($escuta['id']), ENT_QUOTES, 'UTF-8'); ?>,
+                              <?php echo htmlspecialchars(json_encode($escuta['user_id']), ENT_QUOTES, 'UTF-8'); ?>,
+                              <?php echo htmlspecialchars(json_encode($escuta['classi_id']), ENT_QUOTES, 'UTF-8'); ?>,
+                              <?php echo htmlspecialchars(json_encode($escuta['P_N']), ENT_QUOTES, 'UTF-8'); ?>,
+                              <?php echo htmlspecialchars(json_encode(date('Y-m-d', strtotime($escuta['data_escuta']))), ENT_QUOTES, 'UTF-8'); ?>,
+                              <?php echo htmlspecialchars(json_encode($escuta['transcricao']), ENT_QUOTES, 'UTF-8'); ?>,
+                              <?php echo htmlspecialchars(json_encode($escuta['feedback']), ENT_QUOTES, 'UTF-8'); ?>
+                            )">
                       <i class="fa-solid fa-pen"></i>
                     </button>
+
                     <!-- Botão Excluir -->
                     <button class="btn btn-outline-danger btn-sm" 
                             data-bs-toggle="modal" 
@@ -421,7 +424,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="mb-3">
               <label for="edit_cad_classi_id" class="form-label">Classificação</label>
               <select name="edit_classi_id" id="edit_cad_classi_id" class="form-select">
-                <option value="">Escolha a classificação</option>
+                <option value="1">Sem Classificação</option>
                 <?php foreach($classis as $classi): ?>
                   <option value="<?php echo $classi['id']; ?>"><?php echo $classi['descricao']; ?></option>
                 <?php endforeach; ?>

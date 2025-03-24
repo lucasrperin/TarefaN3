@@ -104,7 +104,7 @@ if ($resultUsersCad) {
 
 // Recupera as classificações (para modal de cadastro)
 $classis = [];
-$queryClassi = "SELECT id, descricao FROM TB_CLASSIFICACAO";
+$queryClassi = "SELECT id, descricao FROM TB_CLASSIFICACAO where id <> 1";
 $resultClassi = $conn->query($queryClassi);
 if ($resultClassi) {
     while ($row = $resultClassi->fetch_assoc()) {
@@ -443,7 +443,7 @@ document.addEventListener("DOMContentLoaded", function () {
           <div class="col-md-6 mb-3">
             <label for="cad_classi_id" class="form-label">Classificação</label>
             <select name="classi_id" id="cad_classi_id" class="form-select">
-              <option value="">Escolha a classificação</option>
+              <option value="1">Sem Classificação</option>
               <?php foreach($classis as $classi): ?>
                 <option value="<?= $classi['id']; ?>"><?= htmlspecialchars($classi['descricao']); ?></option>
               <?php endforeach; ?>
