@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS TB_ESCUTAS (
     FOREIGN KEY (classi_id) REFERENCES TB_CLASSIFICACAO(id) ON DELETE CASCADE
 );
 
-CREATE TABLE tb_incidentes (
+CREATE TABLE TB_INCIDENTES (
     id INT AUTO_INCREMENT PRIMARY KEY,
     sistema VARCHAR(50) NOT NULL,
     gravidade VARCHAR(20) NOT NULL,
@@ -189,4 +189,24 @@ CREATE TABLE tb_incidentes (
     hora_fim DATETIME NOT NULL,
     tempo_total TIME NOT NULL,
     data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE TB_PLUGIN (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS TB_INDICACAO (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    plugin_id INT NOT NULL,       -- Referência ao plugin na TB_PLUGIN
+    data DATE NOT NULL,
+    cnpj VARCHAR(20),
+    serial VARCHAR(50),
+    contato VARCHAR(100),
+    fone VARCHAR(20),
+    user_id INT NOT NULL,         -- Referência ao usuário que cadastrou a indicação (TB_USUARIO)
+    status ENUM('Faturado', 'Pendente', 'Cancelado') NOT NULL DEFAULT 'Pendente',
+    FOREIGN KEY (plugin_id) REFERENCES TB_PLUGIN(id),
+    FOREIGN KEY (user_id) REFERENCES TB_USUARIO(id)
 );
