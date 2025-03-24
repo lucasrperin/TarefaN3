@@ -104,7 +104,7 @@ if ($resultUsersCad) {
 
 // Recupera as classificações (para modal de cadastro)
 $classis = [];
-$queryClassi = "SELECT id, descricao FROM TB_CLASSIFICACAO";
+$queryClassi = "SELECT id, descricao FROM TB_CLASSIFICACAO where id <> 1";
 $resultClassi = $conn->query($queryClassi);
 if ($resultClassi) {
     while ($row = $resultClassi->fetch_assoc()) {
@@ -254,9 +254,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 break;
             case "2":
                 mensagem = "Escuta cadastrada com sucesso!";
-                break;
-            case "4":
-                mensagem = "Escuta excluída com sucesso!";
                 break;
             case "5":
                 mensagem = "Classificação cadastrada com sucesso!";
@@ -445,8 +442,8 @@ document.addEventListener("DOMContentLoaded", function () {
           </div>
           <div class="col-md-6 mb-3">
             <label for="cad_classi_id" class="form-label">Classificação</label>
-            <select name="classi_id" id="cad_classi_id" class="form-select" required>
-              <option value="">Escolha a classificação</option>
+            <select name="classi_id" id="cad_classi_id" class="form-select">
+              <option value="1">Sem Classificação</option>
               <?php foreach($classis as $classi): ?>
                 <option value="<?= $classi['id']; ?>"><?= htmlspecialchars($classi['descricao']); ?></option>
               <?php endforeach; ?>
@@ -477,7 +474,7 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
         <div class="mb-3">
           <label for="cad_feedback" class="form-label">Feedback / Ajustes</label>
-          <textarea name="feedback" id="cad_feedback" class="form-control" rows="2" required></textarea>
+          <textarea name="feedback" id="cad_feedback" class="form-control" rows="2"></textarea>
         </div>
         <div class="d-flex justify-content-end">
           <button type="submit" class="btn btn-primary">Registrar Escuta</button>

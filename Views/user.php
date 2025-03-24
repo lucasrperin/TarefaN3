@@ -17,8 +17,11 @@ $sql_analises = "SELECT
             a.Descricao,
             a.Nota,
             a.numeroFicha,
-            DATE_FORMAT(a.Hora_ini, '%d/%m %H:%i:%s') as Hora_ini
+            DATE_FORMAT(a.Hora_ini, '%d/%m %H:%i:%s') as Hora_ini,
+            a.justificativa as justificativa,
+            u.Nome as Usuario
         FROM TB_ANALISES a
+        LEFT JOIN TB_USUARIO u ON u.Id = a.idUsuario
         WHERE a.idAtendente = ? AND a.idSituacao = 1 AND a.idStatus = 1";
 $stmt_analises = $conn->prepare($sql_analises);
 $stmt_analises->bind_param("i", $usuario_id);
@@ -141,72 +144,73 @@ if ($result_ranking) {
 
   <!-- Conteúdo Principal -->
   <div class="container user-container mt-4">
-  <div class="row mb-4">
-  <!-- Linha com Média de Notas e Ranking -->
-  <div class="col-lg-6 col-md-6 mb-3">
-    <div class="card text-center border-secondary">
-      <div class="card-body">
-        <h5 class="card-title">Média das Notas</h5>
-        <p class="card-text display-6 mt-4 <?php echo $classeMedia; ?>"><?php echo $mediaFormatada; ?></p>
-        <p class="<?php echo $classeMedia; ?>"><?php echo $textoMedia; ?></p>
+    <div class="row mb-4">
+    <!-- Linha com Média de Notas e Ranking -->
+      <div class="col-lg-6 col-md-6 mb-3">
+        <div class="card text-center border-secondary">
+          <div class="card-body">
+            <h5 class="card-title">Média das Notas</h5>
+            <p class="card-text display-6 mt-4 <?php echo $classeMedia; ?>"><?php echo $mediaFormatada; ?></p>
+            <p class="<?php echo $classeMedia; ?>"><?php echo $textoMedia; ?></p>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
 
 <!-- Ranking dos Melhores Usuários -->
-<div class="col-lg-6 mb-3">
-  <div class="card text-center border-dark">
-    <div class="card-body">
-      <h5 class="card-title">Ranking</h5>
-      <?php if (count($ranking) > 0): ?>
-        <div class="ranking-scroll"> <!-- Scroll aqui -->
-          <ul class="list-group">
-            <?php foreach ($ranking as $index => $rank): ?>
-              <li class="list-group-item d-flex justify-content-between align-items-center">
-                <?php
-                  if ($index == 0) {
-                      echo "🥇  " . $rank['usuario_nome'];
-                  } elseif ($index == 1) {
-                      echo "🥈  " . $rank['usuario_nome'];
-                  } elseif ($index == 2) {
-                      echo "🥉  " . $rank['usuario_nome'];
-                  } else {
-                      echo ($index + 1) . "º  " . $rank['usuario_nome'];
-                  }
-                ?>
-                <span class="badge bg-primary rounded-pill">
-                  <?php echo number_format($rank['mediaNotas'], 2, ',', '.'); ?>
-                </span>
-              </li>
-            <?php endforeach; ?>
-          </ul>
+      <div class="col-lg-6 mb-3">
+        <div class="card text-center border-dark">
+          <div class="card-body">
+            <h5 class="card-title">Ranking</h5>
+            <?php if (count($ranking) > 0): ?>
+              <div class="ranking-scroll"> <!-- Scroll aqui -->
+                <ul class="list-group">
+                  <?php foreach ($ranking as $index => $rank): ?>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                      <?php
+                        if ($index == 0) {
+                            echo "🥇  " . $rank['usuario_nome'];
+                        } elseif ($index == 1) {
+                            echo "🥈  " . $rank['usuario_nome'];
+                        } elseif ($index == 2) {
+                            echo "🥉  " . $rank['usuario_nome'];
+                        } else {
+                            echo ($index + 1) . "º  " . $rank['usuario_nome'];
+                        }
+                      ?>
+                      <span class="badge bg-primary rounded-pill">
+                        <?php echo number_format($rank['mediaNotas'], 2, ',', '.'); ?>
+                      </span>
+                    </li>
+                  <?php endforeach; ?>
+                </ul>
+              </div>
+            <?php else: ?>
+              <p>Nenhum ranking disponível.</p>
+            <?php endif; ?>
+          </div>
         </div>
-      <?php else: ?>
-        <p>Nenhum ranking disponível.</p>
-      <?php endif; ?>
-    </div>
-  </div>
-</div>
+      </div>
 
-  <div class="col-lg-6 col-md-6 mb-3">
-    <div class="card text-center border-primary">
-      <div class="card-body">
-        <h5 class="card-title text-primary">Total de Análises</h5>
-        <p class="card-text display-6"><?php echo $totalAnalises; ?></p>
+      <div class="col-lg-6 col-md-6 mb-3">
+        <div class="card text-center border-primary">
+          <div class="card-body">
+            <h5 class="card-title text-primary">Total de Análises</h5>
+            <p class="card-text display-6"><?php echo $totalAnalises; ?></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-md-6 mb-3">
+        <div class="card text-center border-info">
+          <div class="card-body">
+            <h5 class="card-title text-info">Total de Fichas</h5>
+            <p class="card-text display-6"><?php echo $totalFichas; ?></p>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="col-lg-6 col-md-6 mb-3">
-    <div class="card text-center border-info">
-      <div class="card-body">
-        <h5 class="card-title text-info">Total de Fichas</h5>
-        <p class="card-text display-6"><?php echo $totalFichas; ?></p>
-      </div>
-    </div>
-  </div>
-</div>
-
+    
     <!-- Seções de Análises e Fichas -->
     <div class="row">
       <!-- Seção de Análises -->
@@ -228,31 +232,32 @@ if ($result_ranking) {
                     </tr>
                   </thead>
                   <tbody>
-                    <?php foreach ($analises as $analise): ?>
-                      <?php
-                        $nota = $analise['Nota'];
-                        if ($nota == 5) {
-                            $classeNota = 'nota-verde';
-                        } elseif ($nota == 4) {
-                            $classeNota = 'nota-teal';
-                        } elseif ($nota == 3) {
-                            $classeNota = 'nota-amarela';
-                        } elseif ($nota == 2) {
-                            $classeNota = 'nota-laranja';
-                        } elseif ($nota == 1) {
-                            $classeNota = 'nota-vermelha';
-                        } elseif ($nota == 0) {
-                            $classeNota = 'nota-neutra';
-                        } else {
-                            $classeNota = '';
-                        }
-                      ?>
-                      <tr>
-                        <td><?php echo $analise['Descricao']; ?></td>
-                        <td><?php echo $analise['numeroFicha'] ?? '-'; ?></td>
-                        <td><?php echo $analise['Hora_ini']; ?></td>
-                        <td class="<?php echo $classeNota; ?>"><?php echo $nota; ?></td>
-                      </tr>
+                    <?php foreach ($analises as $analise):
+                      $nota = $analise['Nota'];
+                      if ($nota == 5) {
+                        $classeNota = 'nota-verde';
+                      } elseif ($nota == 4) {
+                        $classeNota = 'nota-teal';
+                      } elseif ($nota == 3) {
+                        $classeNota = 'nota-amarela';
+                      } elseif ($nota == 2) {
+                        $classeNota = 'nota-laranja';
+                      } elseif ($nota == 1) {
+                        $classeNota = 'nota-vermelha';
+                      } elseif ($nota == 0) {
+                        $classeNota = 'nota-neutra';
+                      } else {
+                        $classeNota = '';
+                      }
+                    ?>
+                    <!-- Linha clicável que chama a função e passa a justificativa -->
+                    <tr class="clickable" data-justificativa="<?php echo htmlspecialchars($analise['justificativa'], ENT_QUOTES, 'UTF-8'); ?>" 
+                      onclick="mostrarJustificativaModal(this.getAttribute('data-justificativa'))">
+                      <td><?php echo $analise['Descricao']; ?></td>
+                      <td><?php echo $analise['numeroFicha'] ?? '-'; ?></td>
+                      <td><?php echo $analise['Hora_ini']; ?></td>
+                      <td class="<?php echo $classeNota; ?>"><?php echo $nota; ?></td>
+                    </tr>
                     <?php endforeach; ?>
                   </tbody>
                 </table>
@@ -263,7 +268,43 @@ if ($result_ranking) {
           </div>
         </div>
       </div>
-      
+      <!-- Modal para exibir a Justificativa -->
+      <div class="modal fade" id="justificativaModal" tabindex="-1" aria-labelledby="justificativaModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <!-- Cabeçalho -->
+            <div class="modal-header">
+              <div class="d-flex flex-column">
+                <h5 class="modal-title" id="justificativaModalLabel">Justificativa da Nota</h5>
+                <small class="text-muted" >Atribuido por: <?php echo $analise['Usuario']; ?></small>
+              </div>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <!-- Corpo -->
+            <div class="modal-body" id="justificativaModalBody">
+              <!-- O conteúdo da justificativa será inserido aqui -->
+            </div>
+            <!-- Rodapé -->
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+       <!-- Bootstrap Bundle com Popper -->
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      <script>
+        function mostrarJustificativaModal(justificativa) {
+          console.log("Justificativa:", justificativa); // Para depuração
+          // Preenche o corpo do modal com a justificativa
+          document.getElementById("justificativaModalBody").innerText = justificativa;
+          // Cria a instância do modal e o exibe
+          var modalElement = document.getElementById("justificativaModal");
+          var modal = new bootstrap.Modal(modalElement);
+          modal.show();
+        }
+      </script>
+
       <!-- Seção de Fichas -->
       <div class="col-md-6 mb-4">
         <div class="card">

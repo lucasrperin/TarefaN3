@@ -45,18 +45,21 @@ $usuario_nome = $analista ? $analista['nome'] : "Analista Desconhecido";
 
 // Recupera o histórico de escutas para esse usuário (analista)
 $query = "
-    SELECT 
-        e.*, 
-        u.nome AS usuario_nome, 
-        a.nome AS admin_nome,
-        c.descricao AS classificacao
-    FROM TB_ESCUTAS e
-    JOIN TB_USUARIO u ON e.user_id = u.id 
-    JOIN TB_USUARIO a ON e.admin_id = a.id
-    JOIN TB_CLASSIFICACAO c ON e.classi_id = c.id 
-    WHERE e.user_id = $user_id
-    $dataFilterCondition
-    ORDER BY e.data_escuta DESC
+          SELECT 
+          e.*, 
+          u.nome AS usuario_nome, 
+          a.nome AS admin_nome,
+          CASE
+              WHEN c.descricao IS NOT NULL THEN c.descricao
+              ELSE 'Sem Classificação'
+          END AS classificacao
+      FROM TB_ESCUTAS e
+      JOIN TB_USUARIO u ON e.user_id = u.id 
+      JOIN TB_USUARIO a ON e.admin_id = a.id
+      LEFT JOIN TB_CLASSIFICACAO c ON e.classi_id = c.id 
+      WHERE e.user_id = $user_id
+      $dataFilterCondition
+      ORDER BY e.data_escuta DESC
 ";
 $resultEsc = $conn->query($query);
 $escutas = [];
@@ -69,7 +72,13 @@ if ($resultEsc) {
 
 // Recupera os usuários (para o select do modal de edição)
 $users = [];
-$queryUsers = "SELECT id, nome FROM TB_USUARIO WHERE cargo = 'User'";
+$queryUsers = "SELECT 
+                u.id, 
+                u.nome 
+              FROM TB_USUARIO u
+              WHERE (u.cargo = 'User' OR u.id IN (17, 18))
+              AND u.id NOT IN (8)
+              ORDER BY u.nome";
 $resultUsers = $conn->query($queryUsers);
 if ($resultUsers) {
     while ($row = $resultUsers->fetch_assoc()) {
@@ -80,7 +89,7 @@ if ($resultUsers) {
 
 // Recupera as classificações (para o select do modal de edição)
 $classis = [];
-$queryClassi = "SELECT id, descricao FROM TB_CLASSIFICACAO";
+$queryClassi = "SELECT id, descricao FROM TB_CLASSIFICACAO where id <> 1";
 $resultClassi = $conn->query($queryClassi);
 if ($resultClassi) {
     while ($row = $resultClassi->fetch_assoc()) {
@@ -180,6 +189,8 @@ $stmtGrafico->close();
   <!-- Chart.js (para o gráfico) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  
   <link rel="icon" href="Public\Image\icone2.png" type="image/png">
 </head>
 <body>
@@ -190,10 +201,10 @@ $stmtGrafico->close();
         <span class="navbar-toggler-icon"></span>
       </button>
       <ul class="dropdown-menu dropdown-menu-dark">
-        <li><a class="dropdown-item" href="conversao.php">Conversão</a></li>
-        <li><a class="dropdown-item" href="incidente.php">Incidentes</a></li>
-        <li><a class="dropdown-item" href="../index.php">Painel</a></li>
-        <li><a class="dropdown-item" href="dashboard.php">Totalizadores</a></li>
+        <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversão</a></li>
+        <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
+        <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Painel</a></li>
+        <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
       </ul>
     </div>
     <span class="text-white">Escutas de <?php echo $usuario_nome; ?></span>
@@ -221,8 +232,11 @@ document.addEventListener("DOMContentLoaded", function () {
       let mensagem = "";
       switch (success) {
           case "3":
-              mensagem = "Escuta editada com sucesso!";
-              break;
+            mensagem = "Escuta editada com sucesso!";
+            break;
+          case "4":
+            mensagem = "Escuta excluída com sucesso!";
+            break;
       }
 
       if (mensagem) {
@@ -352,23 +366,26 @@ document.addEventListener("DOMContentLoaded", function () {
                   <td class="sobrepor"><?php echo $escuta['feedback']; ?></td>
                   <td>
                     <!-- Botão Editar -->
-                    <button class="btn btn-outline-primary btn-sm" 
-                            data-bs-toggle="modal" 
+                    <button class="btn btn-outline-primary btn-sm"
+                            data-bs-toggle="modal"
                             data-bs-target="#modalEditar"
-                            onclick="preencherModalEditar('<?php echo $escuta['id']; ?>',
-                                                          '<?php echo $escuta['user_id']; ?>',
-                                                          '<?php echo $escuta['classi_id']; ?>',
-                                                          '<?php echo $escuta['P_N']; ?>',
-                                                          '<?php echo date('Y-m-d', strtotime($escuta['data_escuta'])); ?>',
-                                                          '<?php echo addslashes($escuta['transcricao']); ?>',
-                                                          '<?php echo addslashes($escuta['feedback']); ?>')">
+                            onclick="preencherModalEditar(
+                              <?php echo htmlspecialchars(json_encode($escuta['id']), ENT_QUOTES, 'UTF-8'); ?>,
+                              <?php echo htmlspecialchars(json_encode($escuta['user_id']), ENT_QUOTES, 'UTF-8'); ?>,
+                              <?php echo htmlspecialchars(json_encode($escuta['classi_id']), ENT_QUOTES, 'UTF-8'); ?>,
+                              <?php echo htmlspecialchars(json_encode($escuta['P_N']), ENT_QUOTES, 'UTF-8'); ?>,
+                              <?php echo htmlspecialchars(json_encode(date('Y-m-d', strtotime($escuta['data_escuta']))), ENT_QUOTES, 'UTF-8'); ?>,
+                              <?php echo htmlspecialchars(json_encode($escuta['transcricao']), ENT_QUOTES, 'UTF-8'); ?>,
+                              <?php echo htmlspecialchars(json_encode($escuta['feedback']), ENT_QUOTES, 'UTF-8'); ?>
+                            )">
                       <i class="fa-solid fa-pen"></i>
                     </button>
+
                     <!-- Botão Excluir -->
                     <button class="btn btn-outline-danger btn-sm" 
                             data-bs-toggle="modal" 
                             data-bs-target="#modalExcluir"
-                            onclick="preencherModalExcluir('<?php echo $escuta['id']; ?>')">
+                            onclick="preencherModalExcluir('<?php echo $escuta['id']; ?>','<?php echo $escuta['user_id']; ?>')">
                       <i class="fa-solid fa-trash"></i>
                     </button>
                   </td>
@@ -408,8 +425,8 @@ document.addEventListener("DOMContentLoaded", function () {
           <div class="col-md-6 mb-3">
             <div class="mb-3">
               <label for="edit_cad_classi_id" class="form-label">Classificação</label>
-              <select name="edit_classi_id" id="edit_cad_classi_id" class="form-select" required>
-                <option value="">Escolha a classificação</option>
+              <select name="edit_classi_id" id="edit_cad_classi_id" class="form-select">
+                <option value="1">Sem Classificação</option>
                 <?php foreach($classis as $classi): ?>
                   <option value="<?php echo $classi['id']; ?>"><?php echo $classi['descricao']; ?></option>
                 <?php endforeach; ?>
@@ -443,7 +460,7 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
         <div class="mb-3">
           <label for="edit_feedback" class="form-label">Feedback / Ajustes</label>
-          <textarea name="feedback" id="edit_feedback" class="form-control" rows="2" required></textarea>
+          <textarea name="feedback" id="edit_feedback" class="form-control" rows="2"></textarea>
         </div>
         <div class="d-flex justify-content-end">
           <button type="submit" class="btn btn-primary">Salvar Alterações</button>
@@ -461,6 +478,7 @@ document.addEventListener("DOMContentLoaded", function () {
       <h5 class="modal-title mb-3" id="modalExcluirLabel">Confirmar Exclusão</h5>
       <form method="POST" action="deletar_escuta.php">
         <input type="hidden" name="id" id="delete_id">
+        <input type="hidden" name="user_id" id="delete_user_id">
         <p>Tem certeza que deseja excluir esta escuta?</p>
         <div class="d-flex justify-content-end">
           <button type="submit" class="btn btn-danger">Sim, excluir</button>
@@ -524,8 +542,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Preenche Modal Excluir
-  function preencherModalExcluir(id) {
+  function preencherModalExcluir(id, user_id) {
     document.getElementById('delete_id').value = id;
+    document.getElementById('delete_user_id').value = user_id;
   }
 </script>
 </body>

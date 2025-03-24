@@ -1,63 +1,63 @@
 .scroll-container {
-    max-height: 200px !important; /* ajuste a altura conforme necessário */
-    overflow-y: auto;
-  }
+  max-height: 200px !important; /* ajuste a altura conforme necessário */
+  overflow-y: auto;
+}
 
-    /* Estilo do Toast */
+/* Estilo do Toast */
 .toast-container {
-    position: fixed!important;
-    top: 0;
-    right: 0;
-    z-index: 1050; /* Garantir que o toast esteja acima de outros elementos */
-    padding: 10px;
-    display: flex; /* Para evitar que o toast tente expandir */
-    flex-direction: column; /* Para que os toasts fiquem empilhados, se houver mais de um */
-    align-items: flex-end; /* Garante que os toasts fiquem alinhados à direita */
-  }
-  
-  .toast {
-    width: fit-content !important;
-    display: none;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-    background-color: #28a745;
-    color: white;
-    width: auto; /* Faz o toast ocupar apenas o espaço necessário */
-    max-width: 30px; /* Limite para não ficar muito grande */
-  }
-  
-  .toast.show {
-    display: flex;
-    opacity: 1;
-    background-color: #28a745;
-    color: white;
-  }
-  
-  .toast-body {
-    display: flex;
-    align-items: center;
-    padding: 10px 15px; /* Reduz o espaçamento interno */
-    font-size: 16px;
-    white-space: nowrap; /* Impede que o texto quebre em múltiplas linhas */
-    flex-grow: 1; /* Garante que o conteúdo ocupe só o espaço necessário */
-  }
-  
-  .toast-body i {
-    margin-right: 10px;
-    font-size: 25px;
-    flex-shrink: 0; /* Evita que o ícone encolha */
-  }
-  
-  #toastMensagem {
-    display: inline; /* Garante que o texto não ocupe espaço extra */
-    flex-grow: 0; /* Faz o texto ocupar apenas o espaço necessário */
-  }
+  position: fixed!important;
+  top: 0;
+  right: 0;
+  z-index: 1050; /* Garantir que o toast esteja acima de outros elementos */
+  padding: 10px;
+  display: flex; /* Para evitar que o toast tente expandir */
+  flex-direction: column; /* Para que os toasts fiquem empilhados, se houver mais de um */
+  align-items: flex-end; /* Garante que os toasts fiquem alinhados à direita */
+}
 
-  td.sobrepor {
-    max-width: 100px; /* ajuste o valor conforme necessário */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.toast {
+  width: fit-content !important;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  background-color: #28a745;
+  color: white;
+  width: auto; /* Faz o toast ocupar apenas o espaço necessário */
+  max-width: 30px; /* Limite para não ficar muito grande */
+}
+
+.toast.show {
+  display: flex;
+  opacity: 1;
+  background-color: #28a745;
+  color: white;
+}
+
+.toast-body {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px; /* Reduz o espaçamento interno */
+  font-size: 16px;
+  white-space: nowrap; /* Impede que o texto quebre em múltiplas linhas */
+  flex-grow: 1; /* Garante que o conteúdo ocupe só o espaço necessário */
+}
+
+.toast-body i {
+  margin-right: 10px;
+  font-size: 25px;
+  flex-shrink: 0; /* Evita que o ícone encolha */
+}
+
+#toastMensagem {
+  display: inline; /* Garante que o texto não ocupe espaço extra */
+  flex-grow: 0; /* Faz o texto ocupar apenas o espaço necessário */
+}
+
+td.sobrepor {
+  max-width: 100px; /* ajuste o valor conforme necessário */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .table {

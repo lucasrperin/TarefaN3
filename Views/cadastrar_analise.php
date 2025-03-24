@@ -11,6 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $hora_ini = $_POST['hora_ini'];
     $hora_fim = $_POST['hora_fim'];
     $nota = $_POST['nota'];
+    $justificativa = $_POST['justificativa'];
     $idUsuario = $_SESSION['usuario_id'];
     
 
@@ -39,9 +40,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } elseif ($chkParado || $chkFicha) {
         // Primeiro INSERT (sempre executado quando chkParado ou chkFicha estiver marcado)
         $stmtParado = $conn->prepare("INSERT INTO TB_ANALISES 
-            (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha, Nota) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, TIMEDIFF(?, ?), ?, ?, ?)");
-        $stmtParado->bind_param("siiiiissssssi", $descricao, $situacao, $atendente, $sistema, $status, $idUsuario, $hora_ini, $hora_fim, $hora_fim, $hora_ini, $chkFicha, $numeroFicha, $nota);
+            (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha, Nota, justificativa) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, TIMEDIFF(?, ?), ?, ?, ?, ?)");
+        $stmtParado->bind_param("siiiiissssssis", $descricao, $situacao, $atendente, $sistema, $status, $idUsuario, $hora_ini, $hora_fim, $hora_fim, $hora_ini, $chkFicha, $numeroFicha, $nota, $justificativa);
         
         if ($stmtParado->execute()) {
             // Se a ficha foi marcada e o número foi informado, insere o segundo registro (Ficha)
@@ -52,9 +53,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $totalHora = "0000-00-00 00:00:00";
     
                 $stmtFicha = $conn->prepare("INSERT INTO TB_ANALISES 
-                    (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha, chkParado) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmtFicha->bind_param("siiiiissssss", $descricaoFicha, $situacaoFicha, $atendente, $sistema, $statusFicha, $idUsuario, $hora_ini, $hora_fim, $totalHora, $chkFicha, $numeroFicha, $chkParado);
+                    (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha, chkParado, justificativa) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmtFicha->bind_param("siiiiisssssss", $descricaoFicha, $situacaoFicha, $atendente, $sistema, $statusFicha, $idUsuario, $hora_ini, $hora_fim, $totalHora, $chkFicha, $numeroFicha, $chkParado, $justificativa);
                 $stmtFicha->execute();
                 $stmtFicha->close();
             }
@@ -65,9 +66,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         // Primeiro INSERT (se nenhum dos dois estiver marcado, entra aqui)
         $stmt = $conn->prepare("INSERT INTO TB_ANALISES 
-        (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha, Nota) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, TIMEDIFF(?, ?), ?, ?, ?)");
-        $stmt->bind_param("siiiiissssssi", $descricao, $situacao, $atendente, $sistema, $status, $idUsuario, $hora_ini, $hora_fim, $hora_fim, $hora_ini, $chkFicha, $numeroFicha, $nota);
+        (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha, Nota, justificativa) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, TIMEDIFF(?, ?), ?, ?, ?, ?)");
+        $stmt->bind_param("siiiiissssssis", $descricao, $situacao, $atendente, $sistema, $status, $idUsuario, $hora_ini, $hora_fim, $hora_fim, $hora_ini, $chkFicha, $numeroFicha, $nota, $justificativa);
         
         if ($stmt->execute()) {
             // Se a ficha foi marcada e o número foi informado, insere o segundo registro
@@ -78,9 +79,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $totalHora = "0000-00-00 00:00:00";
     
                 $stmtFicha = $conn->prepare("INSERT INTO TB_ANALISES 
-                    (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha, Nota) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmtFicha->bind_param("siiiiisssssi", $descricaoFicha, $situacaoFicha, $atendente, $sistema, $statusFicha, $idUsuario, $hora_ini, $hora_fim, $totalHora, $chkFicha, $numeroFicha, $nota);
+                    (Descricao, idSituacao, idAtendente, idSistema, idStatus, idUsuario, Hora_ini, Hora_fim, Total_hora, chkFicha, numeroFicha, Nota, justificativa) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmtFicha->bind_param("siiiiisssssis", $descricaoFicha, $situacaoFicha, $atendente, $sistema, $statusFicha, $idUsuario, $hora_ini, $hora_fim, $totalHora, $chkFicha, $numeroFicha, $nota, $justificativa);
                 $stmtFicha->execute();
                 $stmtFicha->close();
             }

@@ -130,3 +130,10 @@ tbody a.btn-remove:hover {
     overflow: hidden;
     font-family: 'Nunito';
   }
+
+  td.sobrepor {
+    max-width: 50px; /* ajuste o valor conforme necessário */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
