@@ -442,7 +442,7 @@ document.addEventListener("DOMContentLoaded", function () {
           </div>
           <div class="col-md-6 mb-3">
             <label for="cad_classi_id" class="form-label">Classificação</label>
-            <select name="classi_id" id="cad_classi_id" class="form-select" required>
+            <select name="classi_id" id="cad_classi_id" class="form-select">
               <option value="">Escolha a classificação</option>
               <?php foreach($classis as $classi): ?>
                 <option value="<?= $classi['id']; ?>"><?= htmlspecialchars($classi['descricao']); ?></option>
@@ -474,7 +474,7 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
         <div class="mb-3">
           <label for="cad_feedback" class="form-label">Feedback / Ajustes</label>
-          <textarea name="feedback" id="cad_feedback" class="form-control" rows="2" required></textarea>
+          <textarea name="feedback" id="cad_feedback" class="form-control" rows="2"></textarea>
         </div>
         <div class="d-flex justify-content-end">
           <button type="submit" class="btn btn-primary">Registrar Escuta</button>

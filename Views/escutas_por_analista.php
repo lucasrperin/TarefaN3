@@ -45,18 +45,21 @@ $usuario_nome = $analista ? $analista['nome'] : "Analista Desconhecido";
 
 // Recupera o histórico de escutas para esse usuário (analista)
 $query = "
-    SELECT 
-        e.*, 
-        u.nome AS usuario_nome, 
-        a.nome AS admin_nome,
-        c.descricao AS classificacao
-    FROM TB_ESCUTAS e
-    JOIN TB_USUARIO u ON e.user_id = u.id 
-    JOIN TB_USUARIO a ON e.admin_id = a.id
-    JOIN TB_CLASSIFICACAO c ON e.classi_id = c.id 
-    WHERE e.user_id = $user_id
-    $dataFilterCondition
-    ORDER BY e.data_escuta DESC
+          SELECT 
+          e.*, 
+          u.nome AS usuario_nome, 
+          a.nome AS admin_nome,
+          CASE
+              WHEN c.descricao IS NOT NULL THEN c.descricao
+              ELSE 'Sem Classificação'
+          END AS classificacao
+      FROM TB_ESCUTAS e
+      JOIN TB_USUARIO u ON e.user_id = u.id 
+      JOIN TB_USUARIO a ON e.admin_id = a.id
+      LEFT JOIN TB_CLASSIFICACAO c ON e.classi_id = c.id 
+      WHERE e.user_id = $user_id
+      $dataFilterCondition
+      ORDER BY e.data_escuta DESC
 ";
 $resultEsc = $conn->query($query);
 $escutas = [];
@@ -417,7 +420,7 @@ document.addEventListener("DOMContentLoaded", function () {
           <div class="col-md-6 mb-3">
             <div class="mb-3">
               <label for="edit_cad_classi_id" class="form-label">Classificação</label>
-              <select name="edit_classi_id" id="edit_cad_classi_id" class="form-select" required>
+              <select name="edit_classi_id" id="edit_cad_classi_id" class="form-select">
                 <option value="">Escolha a classificação</option>
                 <?php foreach($classis as $classi): ?>
                   <option value="<?php echo $classi['id']; ?>"><?php echo $classi['descricao']; ?></option>
@@ -452,7 +455,7 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
         <div class="mb-3">
           <label for="edit_feedback" class="form-label">Feedback / Ajustes</label>
-          <textarea name="feedback" id="edit_feedback" class="form-control" rows="2" required></textarea>
+          <textarea name="feedback" id="edit_feedback" class="form-control" rows="2"></textarea>
         </div>
         <div class="d-flex justify-content-end">
           <button type="submit" class="btn btn-primary">Salvar Alterações</button>
