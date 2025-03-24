@@ -38,6 +38,20 @@ $ranking = array();
 while($row = mysqli_fetch_assoc($resultRanking)) {
     $ranking[] = $row;
 }
+
+// Consulta para o totalizador por plugin
+$sqlPluginsCount = "
+  SELECT p.nome AS plugin_nome, COUNT(i.id) AS total_indicacoes
+  FROM TB_INDICACAO i
+  JOIN TB_PLUGIN p ON i.plugin_id = p.id
+  GROUP BY p.id
+  ORDER BY total_indicacoes DESC
+";
+$resultPluginsCount = mysqli_query($conn, $sqlPluginsCount);
+$pluginsCount = array();
+while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
+    $pluginsCount[] = $rowPC;
+}
 ?>
 
 <!DOCTYPE html>
@@ -80,46 +94,77 @@ while($row = mysqli_fetch_assoc($resultRanking)) {
 </nav>
 
 <div class="container mt-4">
-    <!-- Ranking de Indicações -->
-    <div class="d-flex flex-column mb-4">
-      <div class="card card-ranking col-md-3">
-        <div class="card-header text-center">Ranking de Indicações</div>
-        <div class="card-body">
-          <?php if (count($ranking) > 0): ?>
-            <div class="ranking-scroll">
-              <ul class="list-group">
-                <?php foreach ($ranking as $index => $rank): ?>
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span class="ranking-name">
-                      <?php
-                        if ($index == 0) {
-                            echo "🥇 ";
-                        } elseif ($index == 1) {
-                            echo "🥈 ";
-                        } elseif ($index == 2) {
-                            echo "🥉 ";
-                        } else {
-                            echo ($index + 1) . "º ";
-                        }
-                        echo $rank['usuario_nome'];
-                      ?>
-                    </span>
-                    <span class="badge badge-primary rounded-pill">
-                      <?php echo $rank['total_indicacoes']; ?>
-                    </span>
-                  </li>
-                <?php endforeach; ?>
-              </ul>
-            </div>
-          <?php else: ?>
-            <p>Nenhum ranking disponível.</p>
-          <?php endif; ?>
+    <!-- Linha para Ranking e Totalizador por Plugin -->
+    <div class="row mb-4">
+      <!-- Ranking de Indicações -->
+      <div class="col-md-3">
+        <div class="card card-ranking">
+          <div class="card-header text-center">Ranking de Indicações</div>
+          <div class="card-body">
+            <?php if (count($ranking) > 0): ?>
+              <div class="ranking-scroll">
+                <ul class="list-group">
+                  <?php foreach ($ranking as $index => $rank): ?>
+                    <li class="list-group-item d-flex align-items-center">
+                      <span class="ranking-name">
+                        <?php
+                          if ($index == 0) {
+                              echo "🥇 ";
+                          } elseif ($index == 1) {
+                              echo "🥈 ";
+                          } elseif ($index == 2) {
+                              echo "🥉 ";
+                          } else {
+                              echo ($index + 1) . "º ";
+                          }
+                          echo $rank['usuario_nome'];
+                        ?>
+                      </span>
+                      <!-- Badge empurrado para a direita com ms-auto -->
+                      <span class="badge badge-primary rounded-pill ml-auto">
+                        <?php echo $rank['total_indicacoes']; ?>
+                      </span>
+                    </li>
+                  <?php endforeach; ?>
+                </ul>
+              </div>
+            <?php else: ?>
+              <p>Nenhum ranking disponível.</p>
+            <?php endif; ?>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Totalizador por Plugin -->
+      <div class="col-md-3">
+        <div class="card">
+          <div class="card-header text-center">Total por Plugin</div>
+          <div class="card-body">
+            <?php if (count($pluginsCount) > 0): ?>
+              <div class="ranking-scroll">
+                <ul class="list-group">
+                  <?php foreach ($pluginsCount as $pc): ?>
+                    <li class="list-group-item d-flex align-items-center">
+                      <span class="ranking-name">
+                        <?php echo $pc['plugin_nome']; ?>
+                      </span>
+                      <!-- Badge empurrado para a direita com ms-auto -->
+                      <span class="badge badge-info rounded-pill ml-auto">
+                        <?php echo $pc['total_indicacoes']; ?>
+                      </span>
+                    </li>
+                  <?php endforeach; ?>
+                </ul>
+              </div>
+            <?php else: ?>
+              <p>Nenhum plugin encontrado.</p>
+            <?php endif; ?>
+          </div>
         </div>
       </div>
     </div>
 
-    
-
+    <!-- Card com a lista de indicações -->
     <div class="card shadow mb-4">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="mb-0">Indicações de Plugins</h4>
