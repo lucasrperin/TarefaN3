@@ -37,7 +37,8 @@ CREATE TABLE TB_ANALISES
  chkMultiplica char(1),
  numeroMulti int DEFAULT NULL,
  chkParado char(1),
- Nota tinyint
+ Nota tinyint,
+ justificativa varchar(255)
 ); 
 
 CREATE TABLE TB_USUARIO

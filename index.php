@@ -37,7 +37,8 @@ $sql = "SELECT
             tas.idStatus AS idStatus,
             tas.chkParado as Parado,
             tas.Nota as Nota,
-            usu.Cargo as Cargo
+            usu.Cargo as Cargo,
+            tas.justificativa as Justificativa
         FROM TB_ANALISES tas
             LEFT JOIN TB_SITUACAO sit ON sit.Id = tas.idSituacao
             LEFT JOIN TB_SISTEMA sis ON sis.Id = tas.idSistema
@@ -357,7 +358,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if ($result->num_rows > 0) {
               while($row = $result->fetch_assoc()) {
                 echo "<tr>";
-                echo "<td>" . $row["Descricao"] . "</td>";
+                echo "<td class=\"sobrepor\">" . $row["Descricao"] . "</td>";
                 echo "<td>" . $row["Situacao"] . "</td>";
                 echo "<td>" . $row["NomeUsuario"] . "</td>";
                 echo "<td>" . $row["Sistema"] . "</td>";
@@ -365,21 +366,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 echo "<td>" . $row["Hora_ini2"] . "</td>";
                 echo "<td>" . $row["Hora_fim2"] . "</td>";
                 echo "<td>" . $row["Total_hora"] . "</td>";
-                if ($cargo === 'Admin') { //Se o cargo for ADM apresenta o menu ações
-                echo "<td class='text-center'>";
-                    echo "<a href='javascript:void(0)' class='btn btn-outline-primary btn-sm' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick=\"editarAnalise(" 
-                         . $row['Codigo'] . ", '" 
-                         . addslashes($row['Descricao']) . "', '" 
-                         . $row['idSituacao'] . "', '" 
-                         . $row['idAtendente'] . "', '" 
-                         . $row['idSistema'] . "', '" 
-                         . $row['idStatus'] . "', '" 
-                         . $row['Hora_ini'] . "', '" 
-                         . $row['Hora_fim'] . "', '"
-                         . $row['Nota'] . "')\"><i class='fa-sharp fa-solid fa-pen'></i></a> ";
-                    echo "<a href='javascript:void(0)' class='btn btn-outline-danger btn-sm' data-bs-toggle='modal' data-bs-target='#modalExclusao' onclick=\"excluirAnalise(" 
-                         . $row['Codigo'] .")\"><i class='fa-sharp fa-solid fa-trash'></i></a>";
+                if ($cargo === 'Admin') { // Se o cargo for ADM apresenta o menu ações
+                    echo "<td class='text-center'>";
+                    echo "<a href='javascript:void(0)' class='btn btn-outline-primary btn-sm' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick='editarAnalise(" 
+                         . htmlspecialchars(json_encode($row['Codigo']), ENT_QUOTES, 'UTF-8') . ", " 
+                         . htmlspecialchars(json_encode($row['Descricao']), ENT_QUOTES, 'UTF-8') . ", " 
+                         . htmlspecialchars(json_encode($row['idSituacao']), ENT_QUOTES, 'UTF-8') . ", " 
+                         . htmlspecialchars(json_encode($row['idAtendente']), ENT_QUOTES, 'UTF-8') . ", " 
+                         . htmlspecialchars(json_encode($row['idSistema']), ENT_QUOTES, 'UTF-8') . ", " 
+                         . htmlspecialchars(json_encode($row['idStatus']), ENT_QUOTES, 'UTF-8') . ", " 
+                         . htmlspecialchars(json_encode($row['Hora_ini']), ENT_QUOTES, 'UTF-8') . ", " 
+                         . htmlspecialchars(json_encode($row['Hora_fim']), ENT_QUOTES, 'UTF-8') . ", " 
+                         . htmlspecialchars(json_encode($row['Nota']), ENT_QUOTES, 'UTF-8') . ", " 
+                         . htmlspecialchars(json_encode($row['Justificativa']), ENT_QUOTES, 'UTF-8') .
+                         ")'><i class='fa-sharp fa-solid fa-pen'></i></a> ";
+                    echo "<a href='javascript:void(0)' class='btn btn-outline-danger btn-sm' data-bs-toggle='modal' data-bs-target='#modalExclusao' onclick='excluirAnalise(" 
+                         . htmlspecialchars(json_encode($row['Codigo']), ENT_QUOTES, 'UTF-8') .
+                         ")'><i class='fa-sharp fa-solid fa-trash'></i></a>";
+                    echo "</td>";
                 }
+                
                 echo "</td>";
                 echo "</tr>";
               }
@@ -487,10 +493,23 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
                 <div class="modal-body">
                     <form action="Views/cadastrar_analise.php" method="POST">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
+                        <div class="row mb-1">
+                            <div class="col-md-12 mb-2">
                                 <label for="descricao" class="form-label">Descrição</label>
-                                <input type="text" class="form-control" id="descricao" name="descricao" maxlength="50" required>
+                                <textarea type="text" class="form-control" id="descricao" name="descricao" maxlength="100" required></textarea>
+                            </div>
+                        </div>    
+                        <div class="row mb-1">
+                            <div class="col-md-6 mb-2">
+                                <label for="nota" id="notaAnalise" class="form-label">Nota</label>
+                                <select class="form-select" id="nota" name="nota">
+                                    <option value="0">0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>
                             </div>
                             <div class="col-md-6">
                                 <label for="situacao" class="form-label">Situação</label>
@@ -509,15 +528,15 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <div class="row mb-3 mt-3">
                                         <div class="form-check d-flex justify-content-center ms-1">
                                             <input class="form-check-input" type="checkbox" id="chkFicha" name="chkFicha" onchange="verificarFicha() ">
-                                            <label class="form-check-label me-5" for="chkFicha">Ficha</label>
-                                            <input class="form-check-input" type="checkbox" id="chkParado" name="chkParado" onchange="marcaParado()">
+                                            <label class="form-check-label" for="chkFicha">Ficha</label>
+                                            <input class="form-check-input ms-2" type="checkbox" id="chkParado" name="chkParado" onchange="marcaParado()">
                                             <label class="form-check-label" for="chkParado">Cliente Parado</label>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="row mb-3" id="numeroFichaContainer" style="display: none;">
-                                    <div class="col-md-15">
+                                    <div class="col-md-12">
                                         <label for="numeroFicha" class="form-label">Número da Ficha</label>
                                         <input type="number" class="form-control" id="numeroFicha" name="numeroFicha" pattern="\d+">
                                     </div>
@@ -544,99 +563,107 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         <!-- JavaScript para controlar a exibição dos campos -->
                         <script>
-                        function verificarSituacao() {
-                            var situacao = document.getElementById("situacao");
-                            var fichaContainer = document.getElementById("fichaContainer");
+                            function verificarSituacao() {
+                                var situacao = document.getElementById("situacao");
+                                var fichaContainer = document.getElementById("fichaContainer");
 
-                            // Pega o texto da opção selecionada
-                            var situacaoSelecionada = situacao.options[situacao.selectedIndex].text.trim();
+                                // Pega o texto da opção selecionada
+                                var situacaoSelecionada = situacao.options[situacao.selectedIndex].text.trim();
 
-                            // Verifica se a opção selecionada é "Analise N3"
-                            if (situacaoSelecionada === "Analise N3") {
-                                fichaContainer.style.display = "block";
-                            } else {
-                                fichaContainer.style.display = "none";
-                                document.getElementById("numeroFichaContainer").style.display = "none";
-                                document.getElementById("chkFicha").checked = false;
-            
+                                // Verifica se a opção selecionada é "Analise N3"
+                                if (situacaoSelecionada === "Analise N3") {
+                                    fichaContainer.style.display = "block";
+                                } else {
+                                    fichaContainer.style.display = "none";
+                                    document.getElementById("numeroFichaContainer").style.display = "none";
+                                    document.getElementById("chkFicha").checked = false;
+                
+                                }
                             }
-                        }
 
-                        function verificarFicha() {
-                            var chkFicha = document.getElementById("chkFicha").checked;
-                            var numeroFichaContainer = document.getElementById("numeroFichaContainer");
-                            var numeroFichaInput = document.getElementById("numeroFicha");
+                            function verificarFicha() {
+                                var chkFicha = document.getElementById("chkFicha").checked;
+                                var numeroFichaContainer = document.getElementById("numeroFichaContainer");
+                                var numeroFichaInput = document.getElementById("numeroFicha");
 
-                            if (chkFicha) {
-                                numeroFichaContainer.style.display = "block";
-                                numeroFichaInput.setAttribute("required", "true"); // Adiciona required quando visível
-                            } else {
-                                numeroFichaContainer.style.display = "none";
-                                numeroFichaInput.removeAttribute("required"); // Remove required quando oculto
-                                numeroFichaInput.value = ""; // Limpa o valor do campo
+                                if (chkFicha) {
+                                    numeroFichaContainer.style.display = "block";
+                                    numeroFichaInput.setAttribute("required", "true"); // Adiciona required quando visível
+                                } else {
+                                    numeroFichaContainer.style.display = "none";
+                                    numeroFichaInput.removeAttribute("required"); // Remove required quando oculto
+                                    numeroFichaInput.value = ""; // Limpa o valor do campo
+                                }
                             }
-                        }
 
-                        function verificarSituacao2() {
-                            var situacao = document.getElementById("situacao");
-                            var fichaContainer = document.getElementById("multiplicaContainer");
+                            function verificarSituacao2() {
+                                var situacao = document.getElementById("situacao");
+                                var fichaContainer = document.getElementById("multiplicaContainer");
 
-                            // Pega o texto da opção selecionada
-                            var situacaoSelecionada = situacao.options[situacao.selectedIndex].text.trim();
+                                // Pega o texto da opção selecionada
+                                var situacaoSelecionada = situacao.options[situacao.selectedIndex].text.trim();
 
-                            var atendente = document.getElementById("atendente");
-                            var atenTitulo = document.getElementById("atenTitulo");
+                                var atendente = document.getElementById("atendente");
+                                var atenTitulo = document.getElementById("atenTitulo");
 
-                            // Verifica se a opção selecionada é "Analise N3"
-                            if (situacaoSelecionada === "Auxilio Suporte/Vendas") {
-                                multiplicaContainer.style.display = "block";
-                                atendente.style.display = "none";
-                                atendente.removeAttribute("required"); // Adiciona required quando visível
-                                atenTitulo.style.display = "none";
-                            } else {
-                                multiplicaContainer.style.display = "none";
-                                document.getElementById("numeroMultiplicaContainer").style.display = "none";
-                                document.getElementById("chkMultiplica").checked = false;
+                                // Verifica se a opção selecionada é "Analise N3"
+                                if (situacaoSelecionada === "Auxilio Suporte/Vendas") {
+                                    multiplicaContainer.style.display = "block";
+                                    atendente.style.display = "none";
+                                    atendente.removeAttribute("required"); // Adiciona required quando visível
+                                    atenTitulo.style.display = "none";
+                                } else {
+                                    multiplicaContainer.style.display = "none";
+                                    document.getElementById("numeroMultiplicaContainer").style.display = "none";
+                                    document.getElementById("chkMultiplica").checked = false;
+                                }
                             }
-                        }
 
-                        function verificarMultiplica() {
-                            var chkMultiplica = document.getElementById("chkMultiplica").checked;
-                            var numeroMultiContainer = document.getElementById("numeroMultiContainer");
-                            var numeroMulti = document.getElementById("numeroMulti");
-                            
-                            if (chkMultiplica) {
-                                numeroMultiContainer.style.display = "block";
-                                numeroMulti.setAttribute("required", "true"); // Adiciona required quando visível
-                            } else {
-                                numeroMultiContainer.style.display = "none";
-                                numeroMulti.removeAttribute("required"); // Remove required quando oculto
-                                numeroMulti.value = ""; // Limpa o valor do campo
+                            function verificarMultiplica() {
+                                var chkMultiplica = document.getElementById("chkMultiplica").checked;
+                                var numeroMultiContainer = document.getElementById("numeroMultiContainer");
+                                var numeroMulti = document.getElementById("numeroMulti");
+                                
+                                if (chkMultiplica) {
+                                    numeroMultiContainer.style.display = "block";
+                                    numeroMulti.setAttribute("required", "true"); // Adiciona required quando visível
+                                } else {
+                                    numeroMultiContainer.style.display = "none";
+                                    numeroMulti.removeAttribute("required"); // Remove required quando oculto
+                                    numeroMulti.value = ""; // Limpa o valor do campo
+                                }
                             }
-                        }
 
-                        function marcaParado() {
-                            var chkParado = document.getElementById("chkParado").checked;
-                            var chkFicha = document.getElementById("chkFicha");
+                            function marcaParado() {
+                                var chkParado = document.getElementById("chkParado").checked;
+                                var chkFicha = document.getElementById("chkFicha");
 
-                            if (chkParado) {
-                                chkFicha.setAttribute("required", "true"); // Adiciona required quando marcado o Parado
-                            } else {
-                                chkFicha.removeAttribute("required"); // Remove required quando não marcado o Parado
+                                if (chkParado) {
+                                    chkFicha.setAttribute("required", "true"); // Adiciona required quando marcado o Parado
+                                } else {
+                                    chkFicha.removeAttribute("required"); // Remove required quando não marcado o Parado
+                                }
                             }
-                        }
-                        </script>
+                            </script>
+                        <div class="row mb-3"> 
+                            <div>
+                                <label for="just_nota" class="form-label">Justificativa Nota</label>
+                                <textarea name="justificativa" id="just_nota" class="form-control" maxlength="255" rows="2"></textarea>
+                            </div>
+                        </div>
 
-                        <div class="row mb-3">
+                        <div class="row mb-3">    
                             <div class="col-md-6">
-                                <label for="nota" id="notaAnalise" class="form-label">Nota</label>
-                                <select class="form-select" id="nota" name="nota">
-                                    <option value="0">0</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                    <option value="4">4</option>
-                                    <option value="5">5</option>
+                                <label for="sistema" class="form-label">Sistema</label>
+                                <select class="form-select" id="sistema" name="sistema" required>
+                                    <option value="">Selecione</option>
+                                    <?php
+                                    $querySistema = "SELECT Id, Descricao FROM TB_SISTEMA";
+                                    $resultSistema = $conn->query($querySistema);
+                                    while ($rowSi = $resultSistema->fetch_assoc()) {
+                                        echo "<option value='" . $rowSi['Id'] . "'>" . $rowSi['Descricao'] . "</option>";
+                                    }
+                                    ?>
                                 </select>
                             </div>
                             <div class="col-md-6">
@@ -652,20 +679,10 @@ document.addEventListener("DOMContentLoaded", function () {
                                     ?>
                                 </select>
                             </div>
-                            <div class="col-md-6 mt-3">
-                                <label for="sistema" class="form-label">Sistema</label>
-                                <select class="form-select" id="sistema" name="sistema" required>
-                                    <option value="">Selecione</option>
-                                    <?php
-                                    $querySistema = "SELECT Id, Descricao FROM TB_SISTEMA";
-                                    $resultSistema = $conn->query($querySistema);
-                                    while ($rowSi = $resultSistema->fetch_assoc()) {
-                                        echo "<option value='" . $rowSi['Id'] . "'>" . $rowSi['Descricao'] . "</option>";
-                                    }
-                                    ?>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mt-3">
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
                                 <label for="status" class="form-label">Status</label>
                                 <select class="form-select" id="status" name="status" required>
                                     <option value="">Selecione</option>
@@ -678,9 +695,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     ?>
                                 </select>
                             </div>
-                        </div>
-                        <div class="row mb-3">
-                            
+
                             <div class="col-md-3">
                                 <label for="hora_ini" class="form-label">Hora Início</label>
                                 <input type="datetime-local" class="form-control" id="hora_ini" name="hora_ini" required>
@@ -703,102 +718,149 @@ document.addEventListener("DOMContentLoaded", function () {
     <div class="modal fade" id="modalEdicao" tabindex="-1" aria-labelledby="modalEdicaoLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalEdicaoLabel">Editar Análise</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form action="Views/editar_analise.php" method="POST">
-                        <!-- Campo oculto para armazenar o ID da análise -->
-                        <input type="hidden" id="id_editar" name="id_editar">
- 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="descricao_editar" class="form-label">Descrição</label>
-                                <input type="text" class="form-control" id="descricao_editar" name="descricao_editar" maxlength="50" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="situacao_editar" class="form-label">Situação</label>
-                                <select class="form-select" id="situacao_editar" name="situacao_editar" required>
-                                    <option value="">Selecione</option>
-                                    <?php
-                                    $querySituacao2 = "SELECT Id, Descricao FROM TB_SITUACAO";
-                                    $resultSituacao2 = $conn->query($querySituacao2);
-                                    while ($rowS2 = $resultSituacao2->fetch_assoc()) {
-                                        echo "<option value='" . $rowS2['Id'] . "'>" . $rowS2['Descricao'] . "</option>";
-                                    }
-                                    ?>
-                                </select>
+            <!-- Cabeçalho do Modal -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEdicaoLabel">Editar Análise</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <!-- Corpo do Modal -->
+            <div class="modal-body">
+                <form action="Views/editar_analise.php" method="POST">
+                    <!-- Campo oculto para o ID -->
+                    <input type="hidden" id="id_editar" name="id_editar">
+                    <!-- Linha de Descrição -->
+                    <div class="row mb-1">
+                        <div class="col-md-12 mb-2">
+                            <label for="descricao_editar" class="form-label">Descrição</label>
+                            <textarea class="form-control" id="descricao_editar" name="descricao_editar" maxlength="100" required></textarea>
+                        </div>
+                    </div>
+                    <!-- Linha com Nota e Situação -->
+                    <div class="row mb-1">
+                        <div class="col-md-6 mb-2">
+                            <label for="nota_editar" id="notaAnalise_editar" class="form-label">Nota</label>
+                            <select class="form-select" id="nota_editar" name="nota_editar">
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="situacao_editar" class="form-label">Situação</label>
+                            <select class="form-select" id="situacao_editar" name="situacao_editar" required onchange="verificarSituacao_editar(); verificarSituacao2_editar();">
+                                <option value="">Selecione</option>
+                                <?php
+                                $querySituacao2 = "SELECT Id, Descricao FROM TB_SITUACAO";
+                                $resultSituacao2 = $conn->query($querySituacao2);
+                                while ($rowS2 = $resultSituacao2->fetch_assoc()) {
+                                echo "<option value='" . $rowS2['Id'] . "'>" . $rowS2['Descricao'] . "</option>";
+                                }
+                                ?>
+                            </select>
+                            <!-- Checkbox e campo de Número da Ficha (inicialmente ocultos) -->
+                            <div class="row mt-3" id="fichaContainer_editar" style="display: none;">
+                                <div class="row mb-3 mt-3">
+                                <div class="form-check d-flex justify-content-center ms-1">
+                                    <input class="form-check-input" type="checkbox" id="chkFicha_editar" name="chkFicha_editar" onchange="verificarFicha_editar()">
+                                    <label class="form-check-label" for="chkFicha_editar">Ficha</label>
+                                    <input class="form-check-input ms-2" type="checkbox" id="chkParado_editar" name="chkParado_editar" onchange="marcaParado_editar()">
+                                    <label class="form-check-label" for="chkParado_editar">Cliente Parado</label>
+                                </div>
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="nota_editar" id="notaAnalise_editar" class="form-label">Nota</label>
-                                <select class="form-select" id="nota_editar" name="nota_editar">
-                                    <option value="0">0</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                    <option value="4">4</option>
-                                    <option value="5">5</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="atendente_editar" class="form-label">Atendente</label>
-                                <select class="form-select" id="atendente_editar" name="atendente_editar" required>
-                                    <option value="">Selecione</option>
-                                    <?php
-                                    $queryAtendente2 = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo = 'User' ";
-                                    $resultAtendente2 = $conn->query($queryAtendente2);
-                                    while ($rowA2 = $resultAtendente2->fetch_assoc()) {
-                                        echo "<option value='" . $rowA2['Id'] . "'>" . $rowA2['Nome'] . "</option>";
-                                    }
-                                    ?>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mt-3">
-                                <label for="sistema_editar" class="form-label">Sistema</label>
-                                <select class="form-select" id="sistema_editar" name="sistema_editar" required>
-                                    <option value="">Selecione</option>
-                                    <?php
-                                    $querySistema2 = "SELECT Id, Descricao FROM TB_SISTEMA";
-                                    $resultSistema2 = $conn->query($querySistema2);
-                                    while ($rowSi2 = $resultSistema2->fetch_assoc()) {
-                                        echo "<option value='" . $rowSi2['Id'] . "'>" . $rowSi2['Descricao'] . "</option>";
-                                    }
-                                    ?>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mt-3">
-                                <label for="status_editar" class="form-label">Status</label>
-                                <select class="form-select" id="status_editar" name="status_editar" required>
-                                    <option value="">Selecione</option>
-                                    <?php
-                                    $queryStatus2 = "SELECT Id, Descricao FROM TB_STATUS";
-                                    $resultStatus2 = $conn->query($queryStatus2);
-                                    while ($rowSt2 = $resultStatus2->fetch_assoc()) {
-                                        echo "<option value='" . $rowSt2['Id'] . "'>" . $rowSt2['Descricao'] . "</option>";
-                                    }
-                                    ?>
-                                </select>
+                        <div class="row mb-3" id="numeroFichaContainer_editar" style="display: none;">
+                            <div class="col-md-12">
+                            <label for="numeroFicha_editar" class="form-label">Número da Ficha</label>
+                            <input type="number" class="form-control" id="numeroFicha_editar" name="numeroFicha_editar" pattern="\d+">
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            
-                            <div class="col-md-3">
-                                <label for="hora_ini_editar" class="form-label">Hora Início</label>
-                                <input type="datetime-local" class="form-control" id="hora_ini_editar" name="hora_ini_editar" required>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="hora_fim_editar" class="form-label">Hora Fim</label>
-                                <input type="datetime-local" class="form-control" id="hora_fim_editar" name="hora_fim_editar" required>
+                        <!-- Checkbox e campo de Quantidade para Replicar (inicialmente ocultos) -->
+                        <div class="row mb-3 mt-3" id="multiplicaContainer_editar" style="display: none;">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="chkMultiplica_editar" name="chkMultiplica_editar" onchange="verificarMultiplica_editar()">
+                                    <label class="form-check-label" for="chkMultiplica_editar">Replicar</label>
+                                </div>
                             </div>
                         </div>
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-success">Salvar</button>
+                        <div class="row mb-3" id="numeroMultiContainer_editar" style="display: none;">
+                            <div class="col-md-12">
+                                <label for="numeroMulti_editar" class="form-label">Quantidade para Replicar</label>
+                                <input type="number" class="form-control" id="numeroMulti_editar" name="numeroMulti_editar" pattern="\d+">
+                            </div>
                         </div>
-                    </form>
-                </div>
+                        </div>
+                    </div>
+                    <!-- Justificativa Nota -->
+                    <div class="row mb-3"> 
+                        <div>
+                            <label for="just_nota_editar" class="form-label">Justificativa Nota</label>
+                            <textarea name="just_nota_editar" id="just_nota_editar" class="form-control" maxlength="255" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <!-- Linha com Sistema e Atendente -->
+                    <div class="row mb-3">    
+                        <div class="col-md-6">
+                            <label for="sistema_editar" class="form-label">Sistema</label>
+                            <select class="form-select" id="sistema_editar" name="sistema_editar" required>
+                                <option value="">Selecione</option>
+                                <?php
+                                $querySistema2 = "SELECT Id, Descricao FROM TB_SISTEMA";
+                                $resultSistema2 = $conn->query($querySistema2);
+                                while ($rowSi2 = $resultSistema2->fetch_assoc()) {
+                                echo "<option value='" . $rowSi2['Id'] . "'>" . $rowSi2['Descricao'] . "</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="atendente_editar" id="atenTitulo_editar" class="form-label">Atendente</label>
+                            <select class="form-select" id="atendente_editar" name="atendente_editar" required>
+                                <option value="">Selecione</option>
+                                <?php
+                                $queryAtendente2 = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo in ('User', 'Conversor') ORDER BY Nome ASC";
+                                $resultAtendente2 = $conn->query($queryAtendente2);
+                                while ($rowA2 = $resultAtendente2->fetch_assoc()) {
+                                echo "<option value='" . $rowA2['Id'] . "'>" . $rowA2['Nome'] . "</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Linha com Status, Hora Início e Hora Fim -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="status_editar" class="form-label">Status</label>
+                            <select class="form-select" id="status_editar" name="status_editar" required>
+                                <option value="">Selecione</option>
+                                <?php
+                                $queryStatus2 = "SELECT Id, Descricao FROM TB_STATUS";
+                                $resultStatus2 = $conn->query($queryStatus2);
+                                while ($rowSt2 = $resultStatus2->fetch_assoc()) {
+                                echo "<option value='" . $rowSt2['Id'] . "'>" . $rowSt2['Descricao'] . "</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="hora_ini_editar" class="form-label">Hora Início</label>
+                            <input type="datetime-local" class="form-control" id="hora_ini_editar" name="hora_ini_editar" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="hora_fim_editar" class="form-label">Hora Fim</label>
+                            <input type="datetime-local" class="form-control" id="hora_fim_editar" name="hora_fim_editar" required>
+                        </div>
+                    </div>
+                    <!-- Botão Salvar -->
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success">Salvar</button>
+                    </div>
+                </form>
+            </div>
+            <!-- Você precisará criar funções JavaScript similares às do modal de cadastro, mas com os sufixos _editar, para controlar a exibição dos campos -->
             </div>
         </div>
     </div>
@@ -827,7 +889,7 @@ document.addEventListener("DOMContentLoaded", function () {
     <!-- Scripts adicionais -->
     <script>
         // Função para preencher o modal de edição
-        function editarAnalise(id, descricao, idSituacao, idAtendente, idSistema, idStatus, hora_ini, hora_fim, nota_editar) {
+        function editarAnalise(id, descricao, idSituacao, idAtendente, idSistema, idStatus, hora_ini, hora_fim, nota_editar, just_nota_editar) {
             document.getElementById("id_editar").value = id;
             document.getElementById("descricao_editar").value = descricao;
             document.getElementById("situacao_editar").value = idSituacao;
@@ -837,6 +899,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("hora_ini_editar").value = hora_ini;
             document.getElementById("hora_fim_editar").value = hora_fim;
             document.getElementById("nota_editar").value = nota_editar;
+            document.getElementById("just_nota_editar").value = just_nota_editar;
         }
  
         // Função para preencher o modal de exclusão
