@@ -60,17 +60,20 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
   <meta charset="UTF-8">
   <title>Indicações de Plugins</title>
   <!-- CSS personalizado -->
-  <link rel="stylesheet" href="../Public/indicacao.css">
+  <link rel="stylesheet" href="indicacao.css">
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Ícones do Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- Fonte personalizada -->
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-  
 </head>
-
 <body>
+<!-- Carregue primeiro o jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <nav class="navbar navbar-dark bg-dark">
   <div class="container d-flex justify-content-between align-items-center">
     <!-- Botão Hamburguer com Dropdown -->
@@ -161,7 +164,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
   <div class="card shadow mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h4 class="mb-0">Indicações de Plugins</h4>
-      <button class="btn btn-primary" data-toggle="modal" data-target="#modalNovaIndicacao">
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovaIndicacao">
         Cadastrar
       </button>
     </div>
@@ -235,9 +238,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
       <!-- Conteúdo do modal de cadastro (como antes) -->
       <div class="modal-header">
         <h5 class="modal-title" id="modalNovaIndicacaoLabel">Nova Indicação</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form action="cadastrar_indicacao.php" method="POST">
         <div class="modal-body">
@@ -313,7 +314,6 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
           <button type="submit" class="btn btn-primary">Cadastrar Indicação</button>
         </div>
       </form>
@@ -397,8 +397,8 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
               <!-- Container para campos adicionais quando o status for Faturado -->
               <div class="col-md-6" id="faturadoContainer" style="display: none;">
                 <div class="form-group">
-                  <label for="editar_valor">Valor</label>
-                  <input type="text" class="form-control" id="editar_valor" name="editar_valor">
+                  <label for="editar_valor">Valor R$</label>
+                  <input type="text" class="form-control" id="editar_valor" name="editar_valor" value="0">
                 </div>
                 <div class="form-group mt-2">
                   <label for="editar_venda">Nº Venda</label>
@@ -415,106 +415,136 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
     </div>
   </div>
 
-<!-- Cleave.js para máscara de valor monetário -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cleave.js/1.6.0/cleave.min.js"></script>
-<!-- jQuery e Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Função para exibir ou ocultar campos quando o status for "Faturado"
+    function verificarStatus() {
+        var status = document.getElementById("editar_status");
+        var faturadoContainer = document.getElementById("faturadoContainer");
+        var valor = document.getElementById("editar_valor");
+        var venda = document.getElementById("editar_venda");
 
+        // Pega o texto da opção selecionada
+        var statusSelecionado = status.options[status.selectedIndex].text.trim();
 
-<script>
-  // Função para exibir ou ocultar campos quando o status for "Faturado"
-  function verificarStatus() {
-      var status = document.getElementById("editar_status");
-      var faturadoContainer = document.getElementById("faturadoContainer");
-      var valor = document.getElementById("editar_valor");
-      var venda = document.getElementById("editar_venda");
-
-      // Pega o texto da opção selecionada
-      var statusSelecionado = status.options[status.selectedIndex].text.trim();
-
-      if (statusSelecionado === "Faturado") {
-        faturadoContainer.style.display = "block";
-        valor.setAttribute("required", "true");
-        venda.setAttribute("required", "true");
-      } else {
-        faturadoContainer.style.display = "none";
-        valor.removeAttribute("required");
-        venda.removeAttribute("required");
-      }
-    }
-
-    // Inicializa o Cleave.js para o campo de valor
-    var cleaveValor = new Cleave('#editar_valor', {
-      numeral: true,
-      numeralThousandsGroupStyle: 'thousand',
-      prefix: 'R$ ',
-      numeralDecimalMark: ',',
-      delimiter: '.',
-      numeralDecimalScale: 2
-    });
-
-// Script para cadastrar novo plugin via AJAX
-
-$(document).ready(function(){
-    $('#btnCadastrarPlugin').click(function(){
-        var novoPlugin = $('#novo_plugin').val().trim();
-        if(novoPlugin === ''){
-            alert('Informe o nome do novo plugin.');
-            return;
+        if (statusSelecionado === "Faturado") {
+          faturadoContainer.style.display = "block";
+          valor.setAttribute("required", "true");
+          venda.setAttribute("required", "true");
+        } else {
+          faturadoContainer.style.display = "none";
+          valor.removeAttribute("required");
+          venda.removeAttribute("required");
         }
-        $.ajax({
-            url: 'cadastrar_plugin.php',
-            type: 'POST',
-            data: { nome: novoPlugin },
-            dataType: 'json',
-            success: function(resp){
-                if (resp.duplicate === true) {
-                    alert(resp.message);
-                    $('#plugin_id').val(resp.id);
-                } else if (resp.id) {
-                    $('#plugin_id').append('<option value="' + resp.id + '">' + resp.nome + '</option>');
-                    $('#plugin_id').val(resp.id);
-                    alert('Plugin cadastrado com sucesso!');
-                } else {
-                    alert('Erro: ' + resp.message);
-                }
-                $('#novo_plugin').val('');
-                $('#novoPluginCollapse').collapse('hide');
-            },
-            error: function(jqXHR, textStatus, errorThrown){
-                alert('Erro na requisição: ' + errorThrown);
-            }
-        });
-    });
-});
-
- // Função para popular o modal de edição com os dados da indicação
-    // Agora inclui o status, valor e nº venda
-    function editarIndicacao(id, plugin_id, data, cnpj, serial, contato, fone, status, editar_valor, editar_venda) {
-      document.getElementById("editar_id").value = id;
-      document.getElementById("editar_plugin_id").value = plugin_id;
-      document.getElementById("editar_data").value = data;
-      document.getElementById("editar_cnpj").value = cnpj;
-      document.getElementById("editar_serial").value = serial;
-      document.getElementById("editar_contato").value = contato;
-      document.getElementById("editar_fone").value = fone;
-      document.getElementById("editar_status").value = status;
-
-      // Se o status for Faturado, popula os campos extras
-      if (status === "Faturado") {
-        document.getElementById("editar_valor").value = editar_valor;
-        document.getElementById("editar_venda").value = editar_venda;
-      } else {
-        document.getElementById("editar_valor").value = "";
-        document.getElementById("editar_venda").value = "";
       }
-      // Chama a função para ajustar a exibição dos campos
-      verificarStatus();
-
-      // Exibe o modal (utilizando jQuery/Bootstrap)
-      $('#modalEditarIndicacao').modal('show');
+  </script>
+  <script>
+  // Função que formata uma string de dígitos para o formato "R$X,XXXX"
+  function formatCurrency(digits) {
+    // Garante que a string tenha pelo menos 4 dígitos para os decimais
+    while (digits.length < 4) {
+      digits = "0" + digits;
     }
-</script>
+    // Separa a parte inteira e a decimal
+    var intPart = digits.slice(0, digits.length - 4);
+    var decPart = digits.slice(-4);
+    // Remove zeros à esquerda da parte inteira (mas se ficar vazia, define como "0")
+    intPart = intPart.replace(/^0+/, "") || "0";
+    // Adiciona separador de milhares à parte inteira, se necessário
+    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return "R$" + intPart + "," + decPart;
+  }
+
+  // Atualiza o valor do input conforme os dígitos digitados
+  function updateValorField() {
+    var input = document.getElementById("editar_valor");
+    // Remove tudo que não seja dígito
+    var digits = input.value.replace(/\D/g, "");
+    input.value = formatCurrency(digits);
+  }
+
+  // Configura o comportamento ao carregar a página e quando o modal for aberto
+  document.addEventListener("DOMContentLoaded", function() {
+    var input = document.getElementById("editar_valor");
+
+    // Se estiver vazio ou sem dígitos, define o padrão "R$0,0000"
+    if (!input.value || input.value.replace(/\D/g, "") === "") {
+      input.value = formatCurrency("0");
+    } else {
+      input.value = formatCurrency(input.value.replace(/\D/g, ""));
+    }
+
+    // Atualiza conforme o usuário digita
+    input.addEventListener("input", updateValorField);
+
+    // Quando o modal de edição for exibido, garante a formatação
+    $('#modalEditarIndicacao').on('shown.bs.modal', function () {
+      updateValorField();
+    });
+  });
+  </script>
+
+  <script>
+  // Script para cadastrar novo plugin via AJAX
+  $(document).ready(function(){
+      $('#btnCadastrarPlugin').click(function(){
+          var novoPlugin = $('#novo_plugin').val().trim();
+          if(novoPlugin === ''){
+              alert('Informe o nome do novo plugin.');
+              return;
+          }
+          $.ajax({
+              url: 'cadastrar_plugin.php',
+              type: 'POST',
+              data: { nome: novoPlugin },
+              dataType: 'json',
+              success: function(resp){
+                  if (resp.duplicate === true) {
+                      alert(resp.message);
+                      $('#plugin_id').val(resp.id);
+                  } else if (resp.id) {
+                      $('#plugin_id').append('<option value="' + resp.id + '">' + resp.nome + '</option>');
+                      $('#plugin_id').val(resp.id);
+                      alert('Plugin cadastrado com sucesso!');
+                  } else {
+                      alert('Erro: ' + resp.message);
+                  }
+                  $('#novo_plugin').val('');
+                  $('#novoPluginCollapse').collapse('hide');
+              },
+              error: function(jqXHR, textStatus, errorThrown){
+                  alert('Erro na requisição: ' + errorThrown);
+              }
+          });
+      });
+  });
+  </script>
+  <script>
+  // Função para popular o modal de edição com os dados da indicação
+      // Agora inclui o status, valor e nº venda
+      function editarIndicacao(id, plugin_id, data, cnpj, serial, contato, fone, status, editar_valor, editar_venda) {
+        document.getElementById("editar_id").value = id;
+        document.getElementById("editar_plugin_id").value = plugin_id;
+        document.getElementById("editar_data").value = data;
+        document.getElementById("editar_cnpj").value = cnpj;
+        document.getElementById("editar_serial").value = serial;
+        document.getElementById("editar_contato").value = contato;
+        document.getElementById("editar_fone").value = fone;
+        document.getElementById("editar_status").value = status;
+
+        // Se o status for Faturado, popula os campos extras
+        if (status === "Faturado") {
+          document.getElementById("editar_valor").value = editar_valor;
+          document.getElementById("editar_venda").value = editar_venda;
+        } else {
+          document.getElementById("editar_valor").value = "";
+          document.getElementById("editar_venda").value = "";
+        }
+        // Chama a função para ajustar a exibição dos campos
+        verificarStatus();
+
+        // Exibe o modal (utilizando jQuery/Bootstrap)
+        $('#modalEditarIndicacao').modal('show');
+      }
+  </script>
 </body>
 </html>
