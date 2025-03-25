@@ -380,7 +380,6 @@ document.addEventListener("DOMContentLoaded", function () {
                             )">
                       <i class="fa-solid fa-pen"></i>
                     </button>
-
                     <!-- Botão Excluir -->
                     <button class="btn btn-outline-danger btn-sm" 
                             data-bs-toggle="modal" 

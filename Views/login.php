@@ -25,9 +25,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($usuario['Cargo'] == 'Admin' || $usuario['Cargo'] == 'Viewer') {
                 header("Location: menu.php");
             } elseif ($usuario['Cargo'] == 'User') {
-                header("Location: ../Views/user.php");
+                header("Location: ../Views/menu.php");
             } elseif ($usuario['Cargo'] == 'Conversor') {
-                header("Location: ../Views/conversao.php");
+                header("Location: ../Views/menu.php");
             } else {
                 // Caso o cargo não seja reconhecido, redireciona para uma página padrão ou exibe uma mensagem
                 header("Location: ../index.php");

@@ -1,0 +1,20 @@
+/* Badges para a coluna de gravidade */
+.badge-moderado {
+    background-color: #ADD8E6; /* Azul claro */
+    color: #000;
+  }
+  .badge-grave {
+    background-color: #FFFF00; /* Amarelo */
+    color: #000;
+  }
+  .badge-gravissimo {
+    background-color: #FF0000; /* Vermelho */
+    color: #FFF;
+  }
+
+td.sobrepor {
+    max-width: 100px; /* ajuste o valor conforme necessário */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }

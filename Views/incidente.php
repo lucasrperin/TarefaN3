@@ -62,27 +62,13 @@ $resultWeb = $conn->query($sqlWeb);
 <head>
   <meta charset="UTF-8">
   <title>Incidentes Registrados</title>
+  <!-- CSS externo minimalista -->
+  <link rel="stylesheet" href="../Public/incidentes.css">
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-
-   <!-- Ícones personalizados -->
-   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <style>
-    /* Badges para a coluna de gravidade */
-    .badge-moderado {
-      background-color: #ADD8E6; /* Azul claro */
-      color: #000;
-    }
-    .badge-grave {
-      background-color: #FFFF00; /* Amarelo */
-      color: #000;
-    }
-    .badge-gravissimo {
-      background-color: #FF0000; /* Vermelho */
-      color: #FFF;
-    }
-  </style>
+  <!-- Ícones personalizados -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
 <nav class="navbar navbar-dark bg-dark">
@@ -382,7 +368,7 @@ $resultWeb = $conn->query($sqlWeb);
                                     <?= $row['gravidade'] ?>
                                     </span>
                                 </td>
-                                <td><?= $row['problema'] ?></td>
+                                <td class="sobrepor"><?= $row['problema'] ?></td>
                                 <td><?= date('d/m/Y H:i:s', strtotime($row['hora_inicio'])) ?></td>
                                 <td><?= date('d/m/Y H:i:s', strtotime($row['hora_fim'])) ?></td>
                                 <td><?= $row['tempo_total'] ?></td>
@@ -459,7 +445,7 @@ $resultWeb = $conn->query($sqlWeb);
                       <?= $row['gravidade'] ?>
                     </span>
                   </td>
-                  <td><?= $row['problema'] ?></td>
+                  <td class="sobrepor"><?= $row['problema'] ?></td>
                   <td><?= date('d/m/Y H:i:s', strtotime($row['hora_inicio'])) ?></td>
                   <td><?= date('d/m/Y H:i:s', strtotime($row['hora_fim'])) ?></td>
                   <td><?= $row['tempo_total'] ?></td>

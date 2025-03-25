@@ -233,8 +233,8 @@ document.addEventListener("DOMContentLoaded", function () {
             </ul>
         </div>
         <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
-        <a href="Views/logout.php" class="btn btn-danger">
-            <i class="fa-solid fa-right-from-bracket me-2" style="font-size: 0.8em;"></i>Sair
+        <a href="Views/menu.php" class="btn btn-danger">
+            <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
         </a>
     </div>
 </nav>
