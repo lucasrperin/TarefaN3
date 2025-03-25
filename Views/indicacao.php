@@ -59,13 +59,17 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
 <head>
   <meta charset="UTF-8">
   <title>Indicações de Plugins</title>
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- CSS personalizado -->
-  <link rel="stylesheet" href="indicacao.css">
+  <link rel="stylesheet" href="../Public/indicacao.css">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Ícones do Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- Fonte personalizada -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  
 </head>
+
 <body>
 <nav class="navbar navbar-dark bg-dark">
   <div class="container d-flex justify-content-between align-items-center">
@@ -79,8 +83,8 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
       </ul>
     </div>
     <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
-    <a href="logout.php" class="btn btn-danger">
-      <i class="fa-solid fa-right-from-bracket" style="font-size: 0.8em;"></i> Sair
+    <a href="menu.php" class="btn btn-danger">
+      <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
     </a>
   </div>
 </nav>
@@ -97,7 +101,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
             <div class="ranking-scroll">
               <ul class="list-group">
                 <?php foreach ($ranking as $index => $rank): ?>
-                  <li class="list-group-item d-flex align-items-center">
+                  <li class="list-group-item d-flex align-items-center justify-content-between">
                     <span class="ranking-name">
                       <?php
                         if ($index == 0) {
@@ -112,7 +116,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                         echo $rank['usuario_nome'];
                       ?>
                     </span>
-                    <span class="badge badge-primary rounded-pill ml-auto">
+                    <span class="badge bg-primary rounded-pill ml-auto">
                       <?php echo $rank['total_indicacoes']; ?>
                     </span>
                   </li>
@@ -134,11 +138,11 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
             <div class="ranking-scroll">
               <ul class="list-group">
                 <?php foreach ($pluginsCount as $pc): ?>
-                  <li class="list-group-item d-flex align-items-center">
+                  <li class="list-group-item d-flex align-items-center justify-content-between">
                     <span class="ranking-name">
                       <?php echo $pc['plugin_nome']; ?>
                     </span>
-                    <span class="badge badge-info rounded-pill ml-auto">
+                    <span class="badge bg-primary rounded-pill ml-auto">
                       <?php echo $pc['total_indicacoes']; ?>
                     </span>
                   </li>
@@ -163,22 +167,22 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
     </div>
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-striped table-bordered">
+        <table class="table table-striped table-bordered tabelaEstilizada">
           <thead class="thead-dark">
             <tr>
               <th>Plugin</th>
-              <th>Data</th>
-              <th>CNPJ</th>
-              <th>Serial</th>
+              <th width="5%">Data</th>
+              <th width="13%">CNPJ</th>
+              <th width="10%">Serial</th>
               <th>Contato</th>
               <th>Fone</th>
-              <th>Usuário</th>
-              <th>Status</th>
-              <th>Ações</th>
+              <th width="10%">Usuário</th>
+              <th width="5%">Status</th>
+              <th width="5%">Ações</th>
             </tr>
           </thead>
           <tbody>
-            <?php while($row = mysqli_fetch_assoc($result)): ?>
+            <?php while($row = mysqli_fetch_assoc($result)): ?> 
               <tr>
                 <td><?= $row['plugin_nome'] ?></td>
                 <td><?= date('d/m/Y', strtotime($row['data'])) ?></td>
@@ -189,30 +193,31 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                 <td><?= $row['usuario_nome'] ?></td>
                 <td><?= $row['status'] ?></td>
                 <td class="text-center">
-                  <?php if ($row['status'] === 'Pendente'): ?>
-                    <div class="d-flex flex-column align-items-center">
-                      <button type="button" 
-                              class="btn btn-outline-primary btn-sm"
-                              title="Editar"
-                              onclick='editarIndicacao(<?= 
-                                htmlspecialchars(json_encode($row['id']), ENT_QUOTES, "UTF-8") ?>, 
-                                <?= htmlspecialchars(json_encode($row['plugin_id']), ENT_QUOTES, "UTF-8") ?>, 
-                                <?= htmlspecialchars(json_encode($row["data"]), ENT_QUOTES, "UTF-8") ?>, 
-                                <?= htmlspecialchars(json_encode($row["cnpj"]), ENT_QUOTES, "UTF-8") ?>, 
-                                <?= htmlspecialchars(json_encode($row["serial"]), ENT_QUOTES, "UTF-8") ?>, 
-                                <?= htmlspecialchars(json_encode($row["contato"]), ENT_QUOTES, "UTF-8") ?>, 
-                                <?= htmlspecialchars(json_encode($row["fone"]), ENT_QUOTES, "UTF-8") ?>
-                              )'>
-                        <i class="fa-sharp fa-solid fa-pen"></i>
-                      </button>
-                      <a href="deletar_indicacao.php?id=<?= $row['id'] ?>" 
-                         class="btn btn-outline-danger btn-sm"
-                         title="Excluir"
-                         onclick="return confirm('Tem certeza que deseja excluir esta indicação?');">
-                        <i class="fa-sharp fa-solid fa-trash"></i>
-                      </a>
-                    </div>
-                  <?php endif; ?>
+                  <div class="d-flex flex-row align-items-center gap-1">
+                    <button type="button" 
+                            class="btn btn-outline-primary btn-sm "
+                            title="Editar"
+                            onclick='editarIndicacao(<?= 
+                              htmlspecialchars(json_encode($row['id']), ENT_QUOTES, "UTF-8") ?>, 
+                              <?= htmlspecialchars(json_encode($row['plugin_id']), ENT_QUOTES, "UTF-8") ?>, 
+                              <?= htmlspecialchars(json_encode($row["data"]), ENT_QUOTES, "UTF-8") ?>, 
+                              <?= htmlspecialchars(json_encode($row["cnpj"]), ENT_QUOTES, "UTF-8") ?>, 
+                              <?= htmlspecialchars(json_encode($row["serial"]), ENT_QUOTES, "UTF-8") ?>, 
+                              <?= htmlspecialchars(json_encode($row["contato"]), ENT_QUOTES, "UTF-8") ?>, 
+                              <?= htmlspecialchars(json_encode($row["fone"]), ENT_QUOTES, "UTF-8") ?>,
+                              <?= htmlspecialchars(json_encode($row["status"]), ENT_QUOTES, "UTF-8") ?>,
+                              <?= htmlspecialchars(json_encode($row["vlr_total"]), ENT_QUOTES, "UTF-8") ?>,
+                              <?= htmlspecialchars(json_encode($row["n_venda"]), ENT_QUOTES, "UTF-8") ?>
+                            )'>
+                      <i class="fa-sharp fa-solid fa-pen"></i>
+                    </button>
+                    <a href="deletar_indicacao.php?id=<?= $row['id'] ?>" 
+                        class="btn btn-outline-danger btn-sm"
+                        title="Excluir"
+                        onclick="return confirm('Tem certeza que deseja excluir esta indicação?');">
+                      <i class="fa-sharp fa-solid fa-trash"></i>
+                    </a>
+                  </div>
                 </td>
               </tr>
             <?php endwhile; ?>
@@ -318,84 +323,139 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
 
 <!-- Modal para edição de indicação -->
 <div class="modal fade" id="modalEditarIndicacao" tabindex="-1" role="dialog" aria-labelledby="modalEditarIndicacaoLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <form action="editar_indicacao.php" method="POST">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalEditarIndicacaoLabel">Editar Indicação</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <!-- Campo oculto para o ID -->
-          <input type="hidden" id="editar_id" name="id">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="editar_plugin_id">Plugin</label>
-                <select class="form-control" id="editar_plugin_id" name="plugin_id" required>
-                  <?php
-                  $sqlPlugins = "SELECT * FROM TB_PLUGIN ORDER BY nome";
-                  $resPlugins = mysqli_query($conn, $sqlPlugins);
-                  while($plugin = mysqli_fetch_assoc($resPlugins)):
-                  ?>
-                    <option value="<?= $plugin['id'] ?>"><?= $plugin['nome'] ?></option>
-                  <?php endwhile; ?>
-                </select>
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form action="editar_indicacao.php" method="POST">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalEditarIndicacaoLabel">Editar Indicação</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Campo oculto para o ID -->
+            <input type="hidden" id="editar_id" name="id">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="editar_plugin_id">Plugin</label>
+                  <select class="form-control" id="editar_plugin_id" name="plugin_id" required>
+                    <?php
+                    $sqlPlugins = "SELECT * FROM TB_PLUGIN ORDER BY nome";
+                    $resPlugins = mysqli_query($conn, $sqlPlugins);
+                    while($plugin = mysqli_fetch_assoc($resPlugins)):
+                    ?>
+                      <option value="<?= $plugin['id'] ?>"><?= $plugin['nome'] ?></option>
+                    <?php endwhile; ?>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="editar_data">Data</label>
+                  <input type="date" class="form-control" id="editar_data" name="data" required>
+                </div>
               </div>
             </div>
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="editar_data">Data</label>
-                <input type="date" class="form-control" id="editar_data" name="data" required>
+            <div class="row mt-2">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="editar_cnpj">CNPJ</label>
+                  <input type="text" class="form-control" id="editar_cnpj" name="cnpj" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="editar_serial">Serial</label>
+                  <input type="text" class="form-control" id="editar_serial" name="serial" required>
+                </div>
+              </div>
+            </div>
+            <div class="row mt-2">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="editar_contato">Contato</label>
+                  <input type="text" class="form-control" id="editar_contato" name="contato" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="editar_fone">Fone</label>
+                  <input type="text" class="form-control" id="editar_fone" name="fone" required>
+                </div>
+              </div>
+            </div>
+            <div class="row mt-2">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="editar_status">Status</label>
+                  <select name="editar_status" class="form-select" id="editar_status" onchange="verificarStatus()">
+                    <option value="Pendente">Pendente</option>
+                    <option value="Faturado">Faturado</option>
+                    <option value="Cancelado">Cancelado</option>
+                  </select>
+                </div>
+              </div>
+              <!-- Container para campos adicionais quando o status for Faturado -->
+              <div class="col-md-6" id="faturadoContainer" style="display: none;">
+                <div class="form-group">
+                  <label for="editar_valor">Valor</label>
+                  <input type="text" class="form-control" id="editar_valor" name="editar_valor">
+                </div>
+                <div class="form-group mt-2">
+                  <label for="editar_venda">Nº Venda</label>
+                  <input type="text" class="form-control" id="editar_venda" name="editar_venda">
+                </div>
               </div>
             </div>
           </div>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="editar_cnpj">CNPJ</label>
-                <input type="text" class="form-control" id="editar_cnpj" name="cnpj" required>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="editar_serial">Serial</label>
-                <input type="text" class="form-control" id="editar_serial" name="serial" required>
-              </div>
-            </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Salvar Alterações</button>
           </div>
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="editar_contato">Contato</label>
-                <input type="text" class="form-control" id="editar_contato" name="contato" required>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="editar_fone">Fone</label>
-                <input type="text" class="form-control" id="editar_fone" name="fone" required>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
-          <button type="submit" class="btn btn-primary">Salvar Alterações</button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
-</div>
 
+<!-- Cleave.js para máscara de valor monetário -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cleave.js/1.6.0/cleave.min.js"></script>
 <!-- jQuery e Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Script para cadastrar novo plugin via AJAX -->
+
 <script>
+  // Função para exibir ou ocultar campos quando o status for "Faturado"
+  function verificarStatus() {
+      var status = document.getElementById("editar_status");
+      var faturadoContainer = document.getElementById("faturadoContainer");
+      var valor = document.getElementById("editar_valor");
+      var venda = document.getElementById("editar_venda");
+
+      // Pega o texto da opção selecionada
+      var statusSelecionado = status.options[status.selectedIndex].text.trim();
+
+      if (statusSelecionado === "Faturado") {
+        faturadoContainer.style.display = "block";
+        valor.setAttribute("required", "true");
+        venda.setAttribute("required", "true");
+      } else {
+        faturadoContainer.style.display = "none";
+        valor.removeAttribute("required");
+        venda.removeAttribute("required");
+      }
+    }
+
+    // Inicializa o Cleave.js para o campo de valor
+    var cleaveValor = new Cleave('#editar_valor', {
+      numeral: true,
+      numeralThousandsGroupStyle: 'thousand',
+      prefix: 'R$ ',
+      numeralDecimalMark: ',',
+      delimiter: '.',
+      numeralDecimalScale: 2
+    });
+
+// Script para cadastrar novo plugin via AJAX
+
 $(document).ready(function(){
     $('#btnCadastrarPlugin').click(function(){
         var novoPlugin = $('#novo_plugin').val().trim();
@@ -429,18 +489,32 @@ $(document).ready(function(){
     });
 });
 
-// Função para preencher o modal de edição e exibi-lo
-function editarIndicacao(id, plugin_id, data, cnpj, serial, contato, fone) {
-    $('#editar_id').val(id);
-    $('#editar_plugin_id').val(plugin_id);
-    // Se a data estiver em formato completo (ex: "2023-07-18T00:00:00Z"), extraia apenas a parte YYYY-MM-DD
-    $('#editar_data').val(data.substring(0,10));
-    $('#editar_cnpj').val(cnpj);
-    $('#editar_serial').val(serial);
-    $('#editar_contato').val(contato);
-    $('#editar_fone').val(fone);
-    $('#modalEditarIndicacao').modal('show');
-}
+ // Função para popular o modal de edição com os dados da indicação
+    // Agora inclui o status, valor e nº venda
+    function editarIndicacao(id, plugin_id, data, cnpj, serial, contato, fone, status, editar_valor, editar_venda) {
+      document.getElementById("editar_id").value = id;
+      document.getElementById("editar_plugin_id").value = plugin_id;
+      document.getElementById("editar_data").value = data;
+      document.getElementById("editar_cnpj").value = cnpj;
+      document.getElementById("editar_serial").value = serial;
+      document.getElementById("editar_contato").value = contato;
+      document.getElementById("editar_fone").value = fone;
+      document.getElementById("editar_status").value = status;
+
+      // Se o status for Faturado, popula os campos extras
+      if (status === "Faturado") {
+        document.getElementById("editar_valor").value = editar_valor;
+        document.getElementById("editar_venda").value = editar_venda;
+      } else {
+        document.getElementById("editar_valor").value = "";
+        document.getElementById("editar_venda").value = "";
+      }
+      // Chama a função para ajustar a exibição dos campos
+      verificarStatus();
+
+      // Exibe o modal (utilizando jQuery/Bootstrap)
+      $('#modalEditarIndicacao').modal('show');
+    }
 </script>
 </body>
 </html>

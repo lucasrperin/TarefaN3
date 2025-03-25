@@ -1,5 +1,3 @@
-/* Indicacao.css */
-
 /* Estilo global */
 body {
     background-color: #f8f9fa;
@@ -26,15 +24,6 @@ body {
     margin: 0 auto;
   }
   
-  .card-ranking .card-header {
-    font-family: 'Arial', sans-serif;
-    font-weight: bold;
-    color: #3f51b5; /* Índigo */
-    background-color: #f1f1f1;
-    border-bottom: 1px solid #e0e0e0;
-    text-align: center;
-  }
-  
   /* Lista de ranking */
   .list-group-item {
     font-family: 'Verdana', sans-serif;
@@ -56,7 +45,7 @@ body {
   
   /* Scroll para ranking */
   .ranking-scroll {
-    height: 200px;
+    height: 100px;
     overflow-y: auto;
   }
   
@@ -115,3 +104,27 @@ body {
     margin-left: 10px; /* Adiciona espaço entre o nome e a badge */
   }
   
+  .table {
+    background-color: white;
+}
+
+.table th {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.tabelaEstilizada {
+    border-collapse: separate;
+    border-spacing: 0 2px;
+}
+
+.tabelaEstilizada tbody tr {
+    border-radius: 5px;
+    overflow: hidden;
+    font-family: 'Nunito', sans-serif;
+}
