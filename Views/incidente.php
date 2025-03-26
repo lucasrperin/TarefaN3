@@ -201,18 +201,19 @@ $resultWeb = $conn->query($sqlWeb);
     </button>
   </div>
 
-  <!-- MODAL DE CADASTRO -->
-  <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <form action="cadastrar_incidente.php" method="post">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalCadastroLabel">Cadastrar Incidente</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-          </div>
-          <div class="modal-body">
-            <!-- SISTEMA -->
-            <div class="mb-3">
+ <!-- MODAL DE CADASTRO -->
+<div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="cadastrar_incidente.php" method="post">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalCadastroLabel">Cadastrar Incidente</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Linha: Sistema | Gravidade -->
+          <div class="row mb-3">
+            <div class="col-md-6">
               <label for="sistema" class="form-label">Sistema</label>
               <select class="form-select" id="sistema" name="sistema" required>
                 <option value="">Selecione o sistema</option>
@@ -223,8 +224,7 @@ $resultWeb = $conn->query($sqlWeb);
                 <option value="Conversor">Conversor (Web)</option>
               </select>
             </div>
-            <!-- GRAVIDADE -->
-            <div class="mb-3">
+            <div class="col-md-6">
               <label for="gravidade" class="form-label">Gravidade</label>
               <select class="form-select" id="gravidade" name="gravidade" required>
                 <option value="">Selecione a gravidade</option>
@@ -233,50 +233,73 @@ $resultWeb = $conn->query($sqlWeb);
                 <option value="Gravissimo">Gravissimo</option>
               </select>
             </div>
-            <!-- PROBLEMA -->
-            <div class="mb-3">
+          </div>
+
+          <!-- Linha inteira: Descrição do Problema -->
+          <div class="row mb-3">
+            <div class="col-12">
               <label for="problema" class="form-label">Descrição do Problema</label>
               <textarea class="form-control" id="problema" name="problema" rows="3" required></textarea>
             </div>
-            <!-- HORA INÍCIO -->
-            <div class="mb-3">
+          </div>
+
+          <!-- Linha: Horário de Início | Horário de Término -->
+          <div class="row mb-3">
+            <div class="col-md-6">
               <label for="hora_inicio" class="form-label">Horário de Início</label>
               <input type="datetime-local" class="form-control" id="hora_inicio" name="hora_inicio" required>
             </div>
-            <!-- HORA FIM -->
-            <div class="mb-3">
+            <div class="col-md-6">
               <label for="hora_fim" class="form-label">Horário de Término</label>
               <input type="datetime-local" class="form-control" id="hora_fim" name="hora_fim" required>
             </div>
-            <!-- TEMPO TOTAL -->
-            <div class="mb-3">
+          </div>
+
+          <!-- Linha: Tempo Total (calculado) | Tipo de Indisponibilidade -->
+          <div class="row mb-3">
+            <div class="col-md-6">
               <label for="tempo_total" class="form-label">Tempo Total (calculado)</label>
               <input type="text" class="form-control" id="tempo_total" name="tempo_total" readonly>
             </div>
+            <div class="col-md-6">
+              <label for="indisponibilidade" class="form-label">Tipo de Indisponibilidade</label>
+              <select class="form-select" id="indisponibilidade" name="indisponibilidade" required>
+                <option value="">Selecione</option>
+                <option value="Total">Total</option>
+                <option value="Parcial">Parcial</option>
+              </select>
+            </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-            <button type="submit" class="btn btn-primary">Gravar</button>
-          </div>
-        </form>
-      </div>
+        </div>
+
+        <!-- Rodapé do Modal -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          <button type="submit" class="btn btn-primary">Gravar</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
 
-  <!-- MODAL DE EDIÇÃO (inicialmente oculto) -->
-  <div class="modal fade" id="modalEdicao" tabindex="-1" aria-labelledby="modalEdicaoLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <form action="editar_incidente.php" method="post" id="formEdicao">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalEdicaoLabel">Editar Incidente</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-          </div>
-          <div class="modal-body">
-            <!-- Campo oculto para o ID -->
-            <input type="hidden" name="id" id="edit_id">
-            <!-- SISTEMA -->
-            <div class="mb-3">
+
+
+<!-- MODAL DE EDIÇÃO (inicialmente oculto) -->
+<div class="modal fade" id="modalEdicao" tabindex="-1" aria-labelledby="modalEdicaoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="editar_incidente.php" method="post" id="formEdicao">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEdicaoLabel">Editar Incidente</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Campo oculto para o ID -->
+          <input type="hidden" name="id" id="edit_id">
+
+          <!-- Linha: Sistema | Gravidade -->
+          <div class="row mb-3">
+            <div class="col-md-6">
               <label for="edit_sistema" class="form-label">Sistema</label>
               <select class="form-select" name="sistema" id="edit_sistema" required>
                 <option value="">Selecione o sistema</option>
@@ -287,8 +310,7 @@ $resultWeb = $conn->query($sqlWeb);
                 <option value="Conversor">Conversor (Web)</option>
               </select>
             </div>
-            <!-- GRAVIDADE -->
-            <div class="mb-3">
+            <div class="col-md-6">
               <label for="edit_gravidade" class="form-label">Gravidade</label>
               <select class="form-select" name="gravidade" id="edit_gravidade" required>
                 <option value="">Selecione a gravidade</option>
@@ -297,35 +319,55 @@ $resultWeb = $conn->query($sqlWeb);
                 <option value="Gravissimo">Gravissimo</option>
               </select>
             </div>
-            <!-- PROBLEMA -->
-            <div class="mb-3">
+          </div>
+
+          <!-- Linha inteira: Descrição do Problema -->
+          <div class="row mb-3">
+            <div class="col-12">
               <label for="edit_problema" class="form-label">Descrição do Problema</label>
               <textarea class="form-control" name="problema" id="edit_problema" rows="3" required></textarea>
             </div>
-            <!-- HORA INÍCIO -->
-            <div class="mb-3">
+          </div>
+
+          <!-- Linha: Horário de Início | Horário de Término -->
+          <div class="row mb-3">
+            <div class="col-md-6">
               <label for="edit_hora_inicio" class="form-label">Horário de Início</label>
               <input type="datetime-local" class="form-control" name="hora_inicio" id="edit_hora_inicio" required>
             </div>
-            <!-- HORA FIM -->
-            <div class="mb-3">
+            <div class="col-md-6">
               <label for="edit_hora_fim" class="form-label">Horário de Término</label>
               <input type="datetime-local" class="form-control" name="hora_fim" id="edit_hora_fim" required>
             </div>
-            <!-- TEMPO TOTAL -->
-            <div class="mb-3">
+          </div>
+
+          <!-- Linha: Tempo Total (calculado) | Tipo de Indisponibilidade -->
+          <div class="row mb-3">
+            <div class="col-md-6">
               <label for="edit_tempo_total" class="form-label">Tempo Total (calculado)</label>
               <input type="text" class="form-control" name="tempo_total" id="edit_tempo_total" readonly>
             </div>
+            <div class="col-md-6">
+              <label for="edit_indisponibilidade" class="form-label">Tipo de Indisponibilidade</label>
+              <select class="form-select" name="indisponibilidade" id="edit_indisponibilidade" required>
+                <option value="">Selecione</option>
+                <option value="Total">Total</option>
+                <option value="Parcial">Parcial</option>
+              </select>
+            </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-            <button type="submit" class="btn btn-primary">Atualizar</button>
-          </div>
-        </form>
-      </div>
+        </div>
+
+        <!-- Rodapé do Modal -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          <button type="submit" class="btn btn-primary">Atualizar</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
+
 
   <!-- TABELAS DE INCIDENTES -->
   <div class="row">
@@ -375,18 +417,19 @@ $resultWeb = $conn->query($sqlWeb);
                                 <td>
                                     <!-- Botão Editar -->
                                     <a href="javascript:void(0);" 
-                                    class="btn btn-sm btn-primary me-1"
-                                    onclick="openEditModal(
-                                        '<?= $row['id'] ?>',
-                                        '<?= $row['sistema'] ?>',
-                                        '<?= $row['gravidade'] ?>',
-                                        '<?= htmlspecialchars($row['problema'], ENT_QUOTES) ?>',
-                                        '<?= date('Y-m-d\TH:i', strtotime($row['hora_inicio'])) ?>',
-                                        '<?= date('Y-m-d\TH:i', strtotime($row['hora_fim'])) ?>',
-                                        '<?= $row['tempo_total'] ?>'
-                                    );">
-                                    <i class="bi bi-pencil"></i>
-                                    </a>
+                                              class="btn btn-sm btn-primary me-1"
+                                              onclick="openEditModal(
+                                                '<?= $row['id'] ?>',
+                                                '<?= $row['sistema'] ?>',
+                                                '<?= $row['gravidade'] ?>',
+                                                '<?= htmlspecialchars($row['problema'], ENT_QUOTES) ?>',
+                                                '<?= date('Y-m-d\TH:i', strtotime($row['hora_inicio'])) ?>',
+                                                '<?= date('Y-m-d\TH:i', strtotime($row['hora_fim'])) ?>',
+                                                '<?= $row['tempo_total'] ?>',
+                                                '<?= $row['indisponibilidade'] ?>'
+                                              );">
+                                              <i class="bi bi-pencil"></i>
+                                            </a>
 
                                     <!-- Botão Excluir -->
                                     <a href="deletar_incidente.php?id=<?= $row['id'] ?>"
@@ -452,18 +495,19 @@ $resultWeb = $conn->query($sqlWeb);
                   <td>
                     <!-- Botão Editar -->
                     <a href="javascript:void(0);" 
-                       class="btn btn-sm btn-primary me-1"
-                       onclick="openEditModal(
-                         '<?= $row['id'] ?>',
-                         '<?= $row['sistema'] ?>',
-                         '<?= $row['gravidade'] ?>',
-                         '<?= htmlspecialchars($row['problema'], ENT_QUOTES) ?>',
-                         '<?= date('Y-m-d\TH:i', strtotime($row['hora_inicio'])) ?>',
-                         '<?= date('Y-m-d\TH:i', strtotime($row['hora_fim'])) ?>',
-                         '<?= $row['tempo_total'] ?>'
-                       );">
-                      <i class="bi bi-pencil"></i>
-                    </a>
+                        class="btn btn-sm btn-primary me-1"
+                        onclick="openEditModal(
+                          '<?= $row['id'] ?>',
+                          '<?= $row['sistema'] ?>',
+                          '<?= $row['gravidade'] ?>',
+                          '<?= htmlspecialchars($row['problema'], ENT_QUOTES) ?>',
+                          '<?= date('Y-m-d\TH:i', strtotime($row['hora_inicio'])) ?>',
+                          '<?= date('Y-m-d\TH:i', strtotime($row['hora_fim'])) ?>',
+                          '<?= $row['tempo_total'] ?>',
+                          '<?= $row['indisponibilidade'] ?>'  // Passa o valor da coluna indisponibilidade
+                        );">
+                        <i class="bi bi-pencil"></i>
+                      </a>
 
                     <!-- Botão Excluir -->
                     <a href="deletar_incidente.php?id=<?= $row['id'] ?>"
@@ -550,17 +594,29 @@ $resultWeb = $conn->query($sqlWeb);
   });
   
   // Função para abrir o modal de edição e preencher os campos
-  function openEditModal(id, sistema, gravidade, problema, hora_inicio, hora_fim, tempo_total) {
-      document.getElementById('edit_id').value = id;
-      document.getElementById('edit_sistema').value = sistema;
-      document.getElementById('edit_gravidade').value = gravidade;
-      document.getElementById('edit_problema').value = problema;
-      document.getElementById('edit_hora_inicio').value = hora_inicio;
-      document.getElementById('edit_hora_fim').value = hora_fim;
-      document.getElementById('edit_tempo_total').value = tempo_total;
-      var editModal = new bootstrap.Modal(document.getElementById('modalEdicao'));
-      editModal.show();
-  }
+  function openEditModal(
+  id,
+  sistema,
+  gravidade,
+  problema,
+  hora_inicio,
+  hora_fim,
+  tempo_total,
+  indisponibilidade  // Novo parâmetro
+) {
+  document.getElementById('edit_id').value = id;
+  document.getElementById('edit_sistema').value = sistema;
+  document.getElementById('edit_gravidade').value = gravidade;
+  document.getElementById('edit_problema').value = problema;
+  document.getElementById('edit_hora_inicio').value = hora_inicio;
+  document.getElementById('edit_hora_fim').value = hora_fim;
+  document.getElementById('edit_tempo_total').value = tempo_total;
+  // Preenche o campo de indisponibilidade com o valor recebido
+  document.getElementById('edit_indisponibilidade').value = indisponibilidade;
+  
+  var editModal = new bootstrap.Modal(document.getElementById('modalEdicao'));
+  editModal.show();
+}
   
   // Função para recalcular o tempo total no modal de edição
   function calcularTempoTotalEdicao() {
