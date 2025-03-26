@@ -1,111 +1,93 @@
 /* Estilo global */
 body {
-    background-color: #f8f9fa;
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-  }
+  background-color: #f8f9fa;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Navbar */
+.navbar {
+  margin-bottom: 20px;
+}
+
+/* Cards */
+.card {
+  border-radius: 10px; /* Bordas arredondadas */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  margin-bottom: 20px;
+}
+
+/* Card Ranking */
+.card-ranking {
+  max-width: 310px;
+  margin: 0 auto;
+}
+
+.list-group-item:hover {
+  background-color: #f8f9fa;
+}
+
+.badge {
+  font-size: 0.7rem;
+  padding: 5px 10px;
+  font-weight: bold;
+}
+
+/* Scroll para ranking */
+.ranking-scroll {
+  height: 100px;
+  overflow-y: auto;
+}
+
+/* Personalização do scrollbar (Chrome, Edge, Safari) */
+.ranking-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.ranking-scroll::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 10px;
+}
+.ranking-scroll::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+
+/* Ranking name: quebra de linha e ellipsis */
+.ranking-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Botões */
+.btn {
+  border-radius: 0;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+/* Inputs do modal */
+.modal .form-control {
+  border-radius: 4px;
+}
   
-  /* Navbar */
-  .navbar {
-    margin-bottom: 20px;
-  }
+.list-group-item .badge {
+  font-size: 0.7rem;
+  padding: 5px 10px;
+  font-weight: bold;
+  margin-left: 10px; /* Adiciona espaço entre o nome e a badge */
+}
   
-  /* Cards */
-  .card {
-    border-radius: 10px; /* Bordas arredondadas */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
-    margin-bottom: 20px;
-  }
-  
-  /* Card Ranking */
-  .card-ranking {
-    max-width: 310px;
-    margin: 0 auto;
-  }
-  
-  /* Lista de ranking */
-  .list-group-item {
-    font-family: 'Verdana', sans-serif;
-    font-size: 15px;
-    border: none;
-    border-bottom: 1px solid #ddd;
-    transition: background-color 0.3s ease;
-  }
-  
-  .list-group-item:hover {
-    background-color: #f8f9fa;
-  }
-  
-  .badge {
-    font-size: 0.7rem;
-    padding: 5px 10px;
-    font-weight: bold;
-  }
-  
-  /* Scroll para ranking */
-  .ranking-scroll {
-    height: 100px;
-    overflow-y: auto;
-  }
-  
-  /* Personalização do scrollbar (Chrome, Edge, Safari) */
-  .ranking-scroll::-webkit-scrollbar {
-    width: 8px;
-  }
-  .ranking-scroll::-webkit-scrollbar-thumb {
-    background: #888; 
-    border-radius: 10px;
-  }
-  .ranking-scroll::-webkit-scrollbar-thumb:hover {
-    background: #555; 
-  }
-  
-  /* Ranking name: quebra de linha e ellipsis */
-  .ranking-name {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  /* Tabela de indicações */
-  .table-responsive {
-    margin-top: 15px;
-  }
-  
-  .table th, .table td {
-    vertical-align: middle;
-  }
-  
-  /* Botões */
-  .btn {
-    border-radius: 0;
-  }
-  
-  .btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
-  }
-  
-  .btn-secondary {
-    background-color: #6c757d;
-    border-color: #6c757d;
-  }
-  
-  /* Inputs do modal */
-  .modal .form-control {
-    border-radius: 4px;
-  }
-  
-  .list-group-item .badge {
-    font-size: 0.7rem;
-    padding: 5px 10px;
-    font-weight: bold;
-    margin-left: 10px; /* Adiciona espaço entre o nome e a badge */
-  }
-  
-  .table {
-    background-color: white;
+.table {
+  background-color: white;
 }
 
 .table th {
@@ -129,3 +111,19 @@ body {
     font-family: 'Nunito', sans-serif;
 }
 
+/* Remove o canto arredondado da direita do select */
+.input-group .form-select {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* Remove o canto arredondado da esquerda do botão 
+   e deixa o fundo branco (por padrão, .btn-outline-secondary é transparente) */
+.input-group .btn-outline-secondary {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  background-color: #fff;   /* fundo branco */
+  color: #8a8989;   
+  border: 1px solid #ced4daa2;           /* texto escuro */
+  border-left: none;        /* remove a linha divisória entre o select e o botão */
+}

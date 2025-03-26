@@ -59,8 +59,8 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
 <head>
   <meta charset="UTF-8">
   <title>Indicações de Plugins</title>
-  <!-- CSS personalizado -->
-  <link rel="stylesheet" href="indicacao.css">
+  <!-- CSS personalizado (carregado por último) -->
+  <link href="../Public/indicacao.css" rel="stylesheet">
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Ícones do Font Awesome -->
@@ -68,6 +68,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
   <!-- Fonte personalizada -->
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
 <!-- Carregue primeiro o jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -245,9 +246,9 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
           <!-- Linha 1: Plugin e Data -->
           <div class="row">
             <div class="col-md-6">
-              <div class="form-group">
-                <label for="plugin_id">Plugin</label>
-                <div class="input-group">
+              <div class="form-group position-relative">
+                <label for="plugin_id" class="form-label mb-0">Plugin</label>
+                <div class="input-group mt-0">
                   <select class="form-control" id="plugin_id" name="plugin_id" required>
                     <?php
                     $sqlPlugins = "SELECT * FROM TB_PLUGIN ORDER BY nome";
@@ -256,12 +257,15 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                     ?>
                       <option value="<?= $plugin['id'] ?>"><?= $plugin['nome'] ?></option>
                     <?php endwhile; ?>
+                    
                   </select>
-                  <div class="input-group-append">
-                    <button class="btn btn-secondary" type="button" data-toggle="collapse" data-target="#novoPluginCollapse" aria-expanded="false" aria-controls="novoPluginCollapse">
-                      Cadastrar
-                    </button>
-                  </div>
+                  <button class="btn btn-outline-secondary" type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#novoPluginCollapse"
+                          aria-expanded="false"
+                          aria-controls="novoPluginCollapse">
+                    <i class="fa-solid fa-plus"></i>
+                  </button>
                 </div>
               </div>
             </div>
@@ -273,13 +277,13 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
             </div>
           </div>
           <!-- Collapse para novo plugin -->
-          <div class="collapse mb-3" id="novoPluginCollapse">
+          <div class="collapse mb-3 mt-2" id="novoPluginCollapse">
             <div class="card card-body">
               <div class="form-group">
                 <label for="novo_plugin">Nome do Novo Plugin</label>
                 <input type="text" class="form-control" id="novo_plugin" placeholder="Informe o nome do novo plugin">
               </div>
-              <button type="button" class="btn btn-info" id="btnCadastrarPlugin">Salvar Plugin</button>
+              <button type="button" class="btn btn-primary mt-1" id="btnCadastrarPlugin">Salvar Plugin</button>
             </div>
           </div>
           <!-- Linha 2: CNPJ e Serial -->
@@ -335,17 +339,26 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
             <input type="hidden" id="editar_id" name="id">
             <div class="row">
               <div class="col-md-6">
-                <div class="form-group">
+                <div class="form-group position-relative">
                   <label for="editar_plugin_id">Plugin</label>
-                  <select class="form-control" id="editar_plugin_id" name="plugin_id" required>
-                    <?php
-                    $sqlPlugins = "SELECT * FROM TB_PLUGIN ORDER BY nome";
-                    $resPlugins = mysqli_query($conn, $sqlPlugins);
-                    while($plugin = mysqli_fetch_assoc($resPlugins)):
-                    ?>
-                      <option value="<?= $plugin['id'] ?>"><?= $plugin['nome'] ?></option>
-                    <?php endwhile; ?>
-                  </select>
+                  <div class="input-group mt-0">
+                    <select class="form-control" id="editar_plugin_id" name="plugin_id" required>
+                      <?php
+                      $sqlPlugins = "SELECT * FROM TB_PLUGIN ORDER BY nome";
+                      $resPlugins = mysqli_query($conn, $sqlPlugins);
+                      while($plugin = mysqli_fetch_assoc($resPlugins)):
+                      ?>
+                        <option value="<?= $plugin['id'] ?>"><?= $plugin['nome'] ?></option>
+                      <?php endwhile; ?>
+                    </select>
+                    <button class="btn btn-outline-secondary" type="button"
+                          data-bs-toggle="collapse"
+                          data-bs-target="#novoPluginCollapseEdicao"
+                          aria-expanded="false"
+                          aria-controls="novoPluginCollapseEdicao">
+                      <i class="fa-solid fa-plus"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
               <div class="col-md-6">
@@ -355,6 +368,17 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                 </div>
               </div>
             </div>
+            <!-- Collapse para novo plugin -->
+            <div class="collapse mb-3 mt-2" id="novoPluginCollapseEdicao">
+              <div class="card card-body">
+                <div class="form-group">
+                  <label for="novo_plugin_edit">Nome do Novo Plugin</label>
+                  <input type="text" class="form-control" id="novo_plugin_edit" placeholder="Informe o nome do novo plugin">
+                </div>
+                <button type="button" class="btn btn-primary mt-1" id="btnCadastrarPluginEdit">Salvar Plugin</button>
+              </div>
+            </div>
+
             <div class="row mt-2">
               <div class="col-md-6">
                 <div class="form-group">
@@ -509,7 +533,41 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                       alert('Erro: ' + resp.message);
                   }
                   $('#novo_plugin').val('');
-                  $('#novoPluginCollapse').collapse('hide');
+                  $('#novoPluginCollapse, #novoPluginCollapseEdicao').collapse('hide');
+              },
+              error: function(jqXHR, textStatus, errorThrown){
+                  alert('Erro na requisição: ' + errorThrown);
+              }
+          });
+      });
+  });
+
+  // Script para cadastrar novo plugin via AJAX na EDIÇÃO
+  $(document).ready(function(){
+      $('#btnCadastrarPluginEdit').click(function(){
+          var novoPluginEdit = $('#novo_plugin_edit').val().trim();
+          if(novoPluginEdit === ''){
+              alert('Informe o nome do novo plugin.');
+              return;
+          }
+          $.ajax({
+              url: 'cadastrar_plugin.php',
+              type: 'POST',
+              data: { nome: novoPluginEdit },
+              dataType: 'json',
+              success: function(resp){
+                  if (resp.duplicate === true) {
+                      alert(resp.message);
+                      $('#editar_plugin_id').val(resp.id);
+                  } else if (resp.id) {
+                      $('#editar_plugin_id').append('<option value="' + resp.id + '">' + resp.nome + '</option>');
+                      $('#editar_plugin_id').val(resp.id);
+                      alert('Plugin cadastrado com sucesso!');
+                  } else {
+                      alert('Erro: ' + resp.message);
+                  }
+                  $('#novo_plugin_edit').val('');
+                  $('#novoPluginCollapse, #novoPluginCollapseEdicao').collapse('hide');
               },
               error: function(jqXHR, textStatus, errorThrown){
                   alert('Erro na requisição: ' + errorThrown);
