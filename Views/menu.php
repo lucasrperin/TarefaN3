@@ -67,22 +67,22 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
         </div>
       <?php endif; ?>
 
+      <?php if ($cargo === 'Admin' || $cargo === 'User' || $cargo === 'Conversor' || $cargo === 'Comercial'): ?>
+        <!-- Indicações -->
+        <div class="col-12 col-md-3 max-three">
+          <div class="tile" onclick="location.href='indicacao.php';">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+            <h5>Indicações</h5>
+          </div>
+        </div>
+      <?php endif; ?>
+
       <?php if ($cargo === 'User' || $cargo === 'Conversor'): ?>
         <!-- Meu Painel -->
         <div class="col-12 col-md-3 max-three">
           <div class="tile" onclick="location.href='user.php';">
             <i class="fa-solid fa-chalkboard-user"></i>
             <h5>Meu Painel</h5>
-          </div>
-        </div>
-      <?php endif; ?>
-
-      <?php if ($cargo === 'Admin' || $cargo === 'User' || $cargo === 'Conversor'): ?>
-        <!-- Indicações -->
-        <div class="col-12 col-md-3 max-three">
-          <div class="tile" onclick="location.href='indicacao.php';">
-            <i class="fa-solid fa-hand-holding-dollar"></i>
-            <h5>Indicações</h5>
           </div>
         </div>
       <?php endif; ?>

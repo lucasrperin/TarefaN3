@@ -214,7 +214,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                               <?= htmlspecialchars(json_encode($row["vlr_total"]), ENT_QUOTES, "UTF-8") ?>,
                               <?= htmlspecialchars(json_encode($row["n_venda"]), ENT_QUOTES, "UTF-8") ?>
                             )'>
-                      <i class="fa-sharp fa-solid fa-pen"></i>
+                      <i class="fa-solid fa-pen"></i>
                     </button>
                     <a href="deletar_indicacao.php?id=<?= $row['id'] ?>" 
                         class="btn btn-outline-danger btn-sm"
@@ -292,7 +292,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
             <div class="col-md-6">
               <div class="form-group">
                 <label for="cnpj">CNPJ</label>
-                <input type="text" class="form-control" id="cnpj" name="cnpj" required>
+                <input type="text" class="form-control" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00" required>
               </div>
             </div>
             <div class="col-md-6">
@@ -573,6 +573,16 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
       });
   });
   </script>
+
+<script>
+  $(document).ready(function(){
+    // Aplica a máscara de CNPJ com placeholder
+    $('#cnpj').inputmask("99.999.999/9999-99", {
+      "placeholder": "00.000.000/0000-00"
+    });
+  });
+</script>
+
   <script>
    // Função para popular o modal de edição com os dados recebidos
    function editarIndicacao(id, plugin_id, data, cnpj, serial, contato, fone, status, editar_valor, editar_venda) {
@@ -613,5 +623,10 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
 
 
   </script>
+
+  <!-- Máscara CNPJ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/inputmask/5.0.8/jquery.inputmask.min.js"></script>
+
 </body>
 </html>

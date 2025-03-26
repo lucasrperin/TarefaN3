@@ -45,8 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     n_venda = '$n_venda'
                 WHERE id = '$id'
             ";
-        } else {
-            // Para status "Pendente" ou "Cancelado", atualiza somente os campos comuns (além do status)
+        } elseif ($status === 'Cancelado') {
             $sqlUpdate = "
                 UPDATE TB_INDICACAO
                 SET plugin_id = '$plugin_id',
@@ -56,6 +55,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     contato = '$contato',
                     fone = '$fone',
                     status = '$status'
+                WHERE id = '$id'
+            ";
+        } else {
+            // Para status "Pendente", atualiza somente os campos comuns (além do status)
+            $sqlUpdate = "
+                UPDATE TB_INDICACAO
+                SET plugin_id = '$plugin_id',
+                    data = '$data',
+                    cnpj = '$cnpj',
+                    serial = '$serial',
+                    contato = '$contato',
+                    fone = '$fone'
                 WHERE id = '$id'
             ";
         }
