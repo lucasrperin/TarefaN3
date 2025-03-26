@@ -10,8 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $serial    = $_POST['serial'];
     $contato   = $_POST['contato'];
     $fone      = $_POST['fone'];
-    $status    = $_POST['editar_status']; // Status enviado pelo formulário
-    $vlr_total = $_POST['editar_valor'];
+    $status    = $_POST['editar_status'];
+    $vlt_total = $_POST['editar_valor'];
     $n_venda   = $_POST['editar_venda'];
 
     // Consulta o status atual no banco (se necessário para regras de transição)
@@ -26,15 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $rowCheck['status'] === 'Cancelado'
     ) {
         if ($status === 'Faturado') {
-            // Converte o valor formatado (ex: "R$1.234,5678") para número (1.2345678)
-            $valorFormatado   = $vlr_total; // Valor vindo do formulário
-            $valorLimpo       = preg_replace('/[^0-9,]/', '', $valorFormatado);
-            $valorNormalizado = str_replace(',', '.', $valorLimpo);
-            $vlr_total_numeric = (float)$valorNormalizado;
+            // Remove caracteres não numéricos e ajusta vírgula e ponto
+            $valorLimpo = str_replace(['R$', '.'], '', $vlt_total);
+            $valorLimpo = str_replace(',', '.', $valorLimpo);
+            $valorNumerico = floatval($valorLimpo);
+            $valorFormatado = number_format($valorNumerico, 4, '.', '');
             
-            // Se o status for "Faturado", pega os campos extras
-            $editar_valor = $_POST['editar_valor'];
-            $editar_venda = $_POST['editar_venda'];
             $sqlUpdate = "
                 UPDATE TB_INDICACAO
                 SET plugin_id = '$plugin_id',
@@ -44,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     contato = '$contato',
                     fone = '$fone',
                     status = '$status',
-                    vlr_total = '$vlr_total_numeric',
-                    n_venda = '$editar_venda'
+                    vlr_total = '$valorFormatado',
+                    n_venda = '$n_venda'
                 WHERE id = '$id'
             ";
         } else {
