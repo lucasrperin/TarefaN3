@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fone      = $_POST['fone'];
     $status    = $_POST['editar_status']; // Status enviado pelo formulário
     $vlr_total = $_POST['editar_valor'];
-    $n_venda    = $_POST['editar_venda'];
+    $n_venda   = $_POST['editar_venda'];
 
     // Consulta o status atual no banco (se necessário para regras de transição)
     $sqlCheck = "SELECT status FROM TB_INDICACAO WHERE id = '$id'";
@@ -26,7 +26,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $rowCheck['status'] === 'Cancelado'
     ) {
         if ($status === 'Faturado') {
-            // Se o status enviado for "Faturado", pega os campos extras
+            // Converte o valor formatado (ex: "R$1.234,5678") para número (1.2345678)
+            $valorFormatado   = $vlr_total; // Valor vindo do formulário
+            $valorLimpo       = preg_replace('/[^0-9,]/', '', $valorFormatado);
+            $valorNormalizado = str_replace(',', '.', $valorLimpo);
+            $vlr_total_numeric = (float)$valorNormalizado;
+            
+            // Se o status for "Faturado", pega os campos extras
             $editar_valor = $_POST['editar_valor'];
             $editar_venda = $_POST['editar_venda'];
             $sqlUpdate = "
@@ -38,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     contato = '$contato',
                     fone = '$fone',
                     status = '$status',
-                    vlr_total = '$vlr_total',
-                    n_venda = '$n_venda'
+                    vlr_total = '$vlr_total_numeric',
+                    n_venda = '$editar_venda'
                 WHERE id = '$id'
             ";
         } else {
