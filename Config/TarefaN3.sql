@@ -182,14 +182,15 @@ CREATE TABLE IF NOT EXISTS TB_ESCUTAS (
 );
 
 CREATE TABLE TB_INCIDENTES (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    sistema VARCHAR(50) NOT NULL,
-    gravidade VARCHAR(20) NOT NULL,
-    problema TEXT NOT NULL,
-    hora_inicio DATETIME NOT NULL,
-    hora_fim DATETIME NOT NULL,
-    tempo_total TIME NOT NULL,
-    data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  sistema VARCHAR(50) NOT NULL,
+  gravidade VARCHAR(20) NOT NULL,
+  indisponibilidade VARCHAR(20) NOT NULL,  
+  problema TEXT NOT NULL,
+  hora_inicio DATETIME NOT NULL,
+  hora_fim DATETIME NOT NULL,
+  tempo_total TIME NOT NULL,
+  data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 

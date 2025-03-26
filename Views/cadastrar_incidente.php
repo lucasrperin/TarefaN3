@@ -1,36 +1,32 @@
 <?php
 include '../Config/Database.php';
-session_start();
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Captura os valores enviados pelo formulário
+$sistema = $_POST['sistema'];
+$gravidade = $_POST['gravidade'];
+$indisponibilidade = $_POST['indisponibilidade']; // Novo campo
+$problema = $_POST['problema'];
+$hora_inicio = $_POST['hora_inicio'];
+$hora_fim = $_POST['hora_fim'];
+$tempo_total = $_POST['tempo_total'];
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $sistema     = $_POST['sistema'];
-    $gravidade   = $_POST['gravidade'];  // "Gravissimo" sem acento
-    $problema    = $_POST['problema'];
-    $hora_inicio = $_POST['hora_inicio'];
-    $hora_fim    = $_POST['hora_fim'];
-    $tempo_total = $_POST['tempo_total'];
-
-    $sql = "INSERT INTO TB_INCIDENTES (sistema, gravidade, problema, hora_inicio, hora_fim, tempo_total) 
-            VALUES (?, ?, ?, ?, ?, ?)";
-    
-    if ($stmt = $conn->prepare($sql)) {
-        $stmt->bind_param("ssssss", $sistema, $gravidade, $problema, $hora_inicio, $hora_fim, $tempo_total);
-        if ($stmt->execute()) {
-            // Redireciona de volta para a página principal com mensagem de sucesso
-            header("Location: incidente.php?msg=success");
-            exit;
-        } else {
-            echo "Erro ao registrar incidente: " . $stmt->error;
-        }
-        $stmt->close();
-    } else {
-        echo "Erro na preparação da query: " . $conn->error;
-    }
-    $conn->close();
-} else {
-    echo "Método de requisição inválido.";
+// Prepara a consulta SQL para inserir os dados, incluindo indisponibilidade
+$sql = "INSERT INTO TB_INCIDENTES (sistema, gravidade, indisponibilidade, problema, hora_inicio, hora_fim, tempo_total) VALUES (?, ?, ?, ?, ?, ?, ?)";
+$stmt = $conn->prepare($sql);
+if(!$stmt){
+    die("Erro na preparação: " . $conn->error);
 }
+
+// Ajusta o bind_param para 7 parâmetros (todos como string)
+$stmt->bind_param('sssssss', $sistema, $gravidade, $indisponibilidade, $problema, $hora_inicio, $hora_fim, $tempo_total);
+
+if($stmt->execute()){
+    header("Location: incidente.php?msg=success");
+    exit();
+} else {
+    echo "Erro ao inserir o incidente: " . $stmt->error;
+}
+
+$stmt->close();
+$conn->close();
 ?>
