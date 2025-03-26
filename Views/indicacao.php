@@ -12,6 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['usuario_id'])) {
 require '../Config/Database.php';
 
 $usuario_id = $_SESSION['usuario_id'];
+$cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 
 // Consulta para pegar todas as indicações do mês e ano atuais, incluindo nome do usuário e status
 $sql = "
@@ -407,29 +408,31 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                 </div>
               </div>
             </div>
-            <div class="row mt-2">
-              <div class="col-md-6">
-                <div class="form-group">
-                  <label for="editar_status">Status</label>
-                  <select name="editar_status" class="form-select" id="editar_status" onchange="verificarStatus()">
-                    <option value="Pendente">Pendente</option>
-                    <option value="Faturado">Faturado</option>
-                    <option value="Cancelado">Cancelado</option>
-                  </select>
+            <?php if ($cargo === 'Admin' || $cargo === 'Comercial'): ?>
+              <div class="row mt-2">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="editar_status">Status</label>
+                    <select name="editar_status" class="form-select" id="editar_status" onchange="verificarStatus()">
+                      <option value="Pendente">Pendente</option>
+                      <option value="Faturado">Faturado</option>
+                      <option value="Cancelado">Cancelado</option>
+                    </select>
+                  </div>
+                </div>
+                <!-- Container para campos adicionais quando o status for Faturado -->
+                <div class="col-md-6" id="faturadoContainer" style="display: none;">
+                  <div class="form-group">
+                    <label for="editar_valor">Valor R$</label>
+                    <input type="text" class="form-control" id="editar_valor" name="editar_valor" value="0">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="editar_venda">Nº Venda</label>
+                    <input type="text" class="form-control" id="editar_venda" name="editar_venda">
+                  </div>
                 </div>
               </div>
-              <!-- Container para campos adicionais quando o status for Faturado -->
-              <div class="col-md-6" id="faturadoContainer" style="display: none;">
-                <div class="form-group">
-                  <label for="editar_valor">Valor R$</label>
-                  <input type="text" class="form-control" id="editar_valor" name="editar_valor" value="0">
-                </div>
-                <div class="form-group mt-2">
-                  <label for="editar_venda">Nº Venda</label>
-                  <input type="text" class="form-control" id="editar_venda" name="editar_venda">
-                </div>
-              </div>
-            </div>
+            <?php endif; ?>
           </div>
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Salvar Alterações</button>
@@ -462,47 +465,41 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
       }
   </script>
   <script>
-  // Função que formata uma string de dígitos para o formato "R$X,XXXX"
-  function formatCurrency(digits) {
-    // Garante que a string tenha pelo menos 4 dígitos para os decimais
+   // Função para formatar o valor com duas casas decimais
+   function formatCurrency(digits) {
+    // Remove caracteres não numéricos
+    digits = digits.replace(/\D/g, "");
+    // Garante que haja pelo menos 3 dígitos (exemplo: "1" vira "001" para representar R$1,00)
     while (digits.length < 4) {
       digits = "0" + digits;
     }
-    // Separa a parte inteira e a decimal
     var intPart = digits.slice(0, digits.length - 4);
     var decPart = digits.slice(-4);
-    // Remove zeros à esquerda da parte inteira (mas se ficar vazia, define como "0")
     intPart = intPart.replace(/^0+/, "") || "0";
-    // Adiciona separador de milhares à parte inteira, se necessário
-    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    intPart = intPart.replace(/\B(?=(\d{4})+(?!\d))/g, ".");
     return "R$" + intPart + "," + decPart;
   }
 
-  // Atualiza o valor do input conforme os dígitos digitados
+  // Atualiza o campo de valor enquanto o usuário digita
   function updateValorField() {
     var input = document.getElementById("editar_valor");
-    // Remove tudo que não seja dígito
     var digits = input.value.replace(/\D/g, "");
     input.value = formatCurrency(digits);
   }
 
-  // Configura o comportamento ao carregar a página e quando o modal for aberto
   document.addEventListener("DOMContentLoaded", function() {
     var input = document.getElementById("editar_valor");
-
-    // Se estiver vazio ou sem dígitos, define o padrão "R$0,0000"
-    if (!input.value || input.value.replace(/\D/g, "") === "") {
-      input.value = formatCurrency("0");
-    } else {
-      input.value = formatCurrency(input.value.replace(/\D/g, ""));
+    if (input) {
+      if (!input.value || input.value.replace(/\D/g, "") === "") {
+        input.value = formatCurrency("0");
+      } else {
+        input.value = formatCurrency(input.value.replace(/\D/g, ""));
+      }
+      input.addEventListener("input", updateValorField);
     }
 
-    // Atualiza conforme o usuário digita
-    input.addEventListener("input", updateValorField);
-
-    // Quando o modal de edição for exibido, garante a formatação
     $('#modalEditarIndicacao').on('shown.bs.modal', function () {
-      updateValorField();
+      if (input) updateValorField();
     });
   });
   </script>
@@ -577,32 +574,44 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
   });
   </script>
   <script>
-  // Função para popular o modal de edição com os dados da indicação
-      // Agora inclui o status, valor e nº venda
-      function editarIndicacao(id, plugin_id, data, cnpj, serial, contato, fone, status, editar_valor, editar_venda) {
-        document.getElementById("editar_id").value = id;
-        document.getElementById("editar_plugin_id").value = plugin_id;
-        document.getElementById("editar_data").value = data;
-        document.getElementById("editar_cnpj").value = cnpj;
-        document.getElementById("editar_serial").value = serial;
-        document.getElementById("editar_contato").value = contato;
-        document.getElementById("editar_fone").value = fone;
-        document.getElementById("editar_status").value = status;
+   // Função para popular o modal de edição com os dados recebidos
+   function editarIndicacao(id, plugin_id, data, cnpj, serial, contato, fone, status, editar_valor, editar_venda) {
+    document.getElementById("editar_id").value = id;
+    document.getElementById("editar_plugin_id").value = plugin_id;
+    document.getElementById("editar_data").value = data;
+    document.getElementById("editar_cnpj").value = cnpj;
+    document.getElementById("editar_serial").value = serial;
+    document.getElementById("editar_contato").value = contato;
+    document.getElementById("editar_fone").value = fone;
 
-        // Se o status for Faturado, popula os campos extras
-        if (status === "Faturado") {
+    // Se o select de status existir (usuários com permissão)
+    if (document.getElementById("editar_status")) {
+      document.getElementById("editar_status").value = status;
+      if (status === "Faturado") {
+        if (document.getElementById("editar_valor")) {
           document.getElementById("editar_valor").value = editar_valor;
+        }
+        if (document.getElementById("editar_venda")) {
           document.getElementById("editar_venda").value = editar_venda;
-        } else {
+        }
+      } else {
+        if (document.getElementById("editar_valor")) {
           document.getElementById("editar_valor").value = "";
+        }
+        if (document.getElementById("editar_venda")) {
           document.getElementById("editar_venda").value = "";
         }
-        // Chama a função para ajustar a exibição dos campos
-        verificarStatus();
-
-        // Exibe o modal (utilizando jQuery/Bootstrap)
-        $('#modalEditarIndicacao').modal('show');
       }
+      verificarStatus();
+    } else if (document.getElementById("editar_status_hidden")) {
+      // Usuário sem permissão: popula o campo oculto
+      document.getElementById("editar_status_hidden").value = status;
+    }
+
+    $('#modalEditarIndicacao').modal('show');
+  }
+
+
   </script>
 </body>
 </html>

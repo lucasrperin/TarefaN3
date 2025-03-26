@@ -28,9 +28,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 header("Location: ../Views/menu.php");
             } elseif ($usuario['Cargo'] == 'Conversor') {
                 header("Location: ../Views/menu.php");
+            } elseif ($usuario['Cargo'] == 'Comercial') {
+                header("Location: ../Views/indicacao.php");
             } else {
                 // Caso o cargo não seja reconhecido, redireciona para uma página padrão ou exibe uma mensagem
-                header("Location: ../index.php");
+                header("Location: menu.php");
             }
             exit();
         } else {
