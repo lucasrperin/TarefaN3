@@ -227,7 +227,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 <li><a class="dropdown-item" href="Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversão</a></li>
                 <?php if ($cargo === 'Admin'): ?>  <!-- Verifica o cargo do usuário -->
                 <li><a class="dropdown-item" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+                <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
                 <li><a class="dropdown-item" href="Views/incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
+                <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a></li>
                 <li><a class="dropdown-item" href="Views/dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
                 <?php endif; ?>
             </ul>

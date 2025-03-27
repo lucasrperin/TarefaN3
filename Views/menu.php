@@ -41,7 +41,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
 
     <div class="row justify-content-center g-3 mt-3">
       <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
-        <!-- Conversão (sempre visível) -->
+        <!-- Conversão -->
         <div class="col-12 col-md-3 max-three">
           <div class="tile" onclick="location.href='conversao.php';">
             <i class="fa-solid fa-right-left"></i>
@@ -56,6 +56,13 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
           <div class="tile" onclick="location.href='escutas.php';">
             <i class="fa-solid fa-headphones"></i>
             <h5>Escutas</h5>
+          </div>
+        </div>
+        <!-- Folga -->
+        <div class="col-12 col-md-3 max-three">
+          <div class="tile" onclick="location.href='folga.php';">
+            <i class="fa-solid fa-umbrella-beach"></i>
+            <h5>Folgas</h5>
           </div>
         </div>
         <!-- Incidentes -->
@@ -100,14 +107,6 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
           <div class="tile" onclick="location.href='dashboard.php';">
             <i class="fa-solid fa-calculator"></i>
             <h5>Totalizadores</h5>
-          </div>
-        </div>
-
-        <!-- Nível 3 -->
-        <div class="col-12 col-md-3 max-three">
-          <div class="tile" onclick="location.href='folga.php';">
-            <i class="fa-solid fa-umbrella-beach"></i>
-            <h5>Folgas</h5>
           </div>
         </div>
       <?php endif; ?>

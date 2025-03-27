@@ -71,29 +71,33 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
 </head>
 
 <body>
-<!-- Carregue primeiro o jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 
 <nav class="navbar navbar-dark bg-dark">
   <div class="container d-flex justify-content-between align-items-center">
-    <!-- Botão Hamburguer com Dropdown -->
     <div class="dropdown">
-      <button class="navbar-toggler" type="button" id="menuDropdown" data-toggle="dropdown" aria-expanded="false">
+      <button class="navbar-toggler" type="button" data-bs-toggle="dropdown">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-        <!-- Aqui você pode colocar as opções do menu -->
+      <ul class="dropdown-menu dropdown-menu-dark">
+        <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
+        <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
+        <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
+        <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
+        <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
       </ul>
     </div>
     <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
     <a href="menu.php" class="btn btn-danger">
-      <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
+      <i class="fa-solid fa-arrow-left me-2"></i>Voltar
     </a>
   </div>
 </nav>
 
+<!-- Carregue primeiro o jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <div class="container mt-4">
   <!-- Linha para Ranking e Totalizador por Plugin -->
   <div class="row mb-4">
