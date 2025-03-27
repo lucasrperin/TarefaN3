@@ -35,7 +35,7 @@
 
 /* Scroll para ranking */
 .ranking-scroll {
-    height: 200px;
+    height: 150px;
     max-height: auto; /* Ajuste conforme necessário */
     overflow-y: auto;
 }
@@ -60,7 +60,7 @@
 
   /* Scroll para Acessso de usuario */
 .access-scroll {
-    height: 98%;
+    height: 290px;
     overflow-y: auto;
 }
 

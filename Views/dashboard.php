@@ -84,7 +84,7 @@ $stmt_filtro->execute();
 $resultado_filtrado = $stmt_filtro->get_result();
 
 // Consulta para obter todos os usuários para a seção "Acessos aos Usuários"
-$sql_usuarios = "SELECT Id, Nome FROM TB_USUARIO WHERE CARGO = 'User' ORDER BY Nome";
+$sql_usuarios = "SELECT Id, Nome FROM TB_USUARIO WHERE CARGO in ('User', 'Conversor') ORDER BY Nome";
 $stmt_usuarios_acessos = $conn->prepare($sql_usuarios);
 $stmt_usuarios_acessos->execute();
 $resultado_usuarios_acessos = $stmt_usuarios_acessos->get_result();
