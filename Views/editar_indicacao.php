@@ -6,7 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id        = $_POST['id'];
     $plugin_id = $_POST['plugin_id'];
     $data      = $_POST['data'];
-    $cnpj      = $_POST['cnpj'];
+    $cnpj      = $_POST['editar_cnpj'];
     $serial    = $_POST['serial'];
     $contato   = $_POST['contato'];
     $fone      = $_POST['fone'];

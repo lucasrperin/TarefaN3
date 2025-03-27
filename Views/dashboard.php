@@ -11,12 +11,12 @@ $usuario_id = $_SESSION['usuario_id'];
 
 // Ranking de média por analista (apenas para exibição, sem links)
 $sql_ranking = "SELECT 
-                    a.idAtendente, 
-                    u.Nome as usuario_nome, 
-                    AVG(a.Nota) as mediaNotas
+                  a.idAtendente, 
+                  u.Nome as usuario_nome, 
+                  AVG(a.Nota) as mediaNotas
                 FROM TB_ANALISES a
                 JOIN TB_USUARIO u ON a.idAtendente = u.Id
-                WHERE a.Nota is not null";
+                WHERE a.idStatus = 1";
 
 // Filtros por data
 if (!empty($_GET['data_inicio'])) {
@@ -50,7 +50,7 @@ $sql_media_geral = "SELECT
                             ROUND(AVG(a.Nota), 2) AS mediaNotas
                         FROM TB_ANALISES a
                         JOIN TB_USUARIO u ON a.idAtendente = u.Id
-                        WHERE a.Nota IS NOT NULL";
+                        WHERE a.idStatus = 1";
                         // Filtros por data
                         if (!empty($_GET['data_inicio'])) {
                             $sql_media_geral .= " AND a.Hora_ini >= '{$_GET['data_inicio']}'";
@@ -95,16 +95,14 @@ $stmt_usuarios_dropdown->execute();
 $resultado_usuarios_dropdown = $stmt_usuarios_dropdown->get_result();
 
 // Consulta para obter a média de notas por analista e mês para o gráfico
-$sql_grafico = "SELECT 
-                    usu.Nome AS Nome,
-                    DATE_FORMAT(tas.Hora_ini, '%Y-%m') AS Mes,
-                    AVG(tas.Nota) AS MediaNota
-                FROM 
-                    TB_ANALISES tas
-                LEFT JOIN 
-                    TB_USUARIO usu ON usu.Id = tas.idAtendente
+$sql_grafico = "SELECT  
+                  usu.Nome as Nome, 
+                  DATE_FORMAT(tas.Hora_ini, '%Y-%m') AS Mes,
+                  AVG(tas.Nota) as MediaNota
+                FROM TB_ANALISES tas
+                JOIN TB_USUARIO usu ON tas.idAtendente = usu.Id
                 WHERE 
-                    tas.Nota IS NOT NULL";
+                    tas.idStatus = 1";
 if (!empty($_GET['data_inicio'])) {
     $sql_grafico .= " AND tas.Hora_ini >= '{$_GET['data_inicio']}'";
 }
@@ -153,12 +151,10 @@ $resultado_grafico = $stmt_grafico->get_result();
           <span class="navbar-toggler-icon"></span>
         </button>
         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-            <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
-            <li><a class="dropdown-item" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
-            <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
-            <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
-            <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-1"></i>Indicações</a></li>
-            <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
+          <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversão</a></li>
+          <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+          <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
+          <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
         </ul>
       </div>
       <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>

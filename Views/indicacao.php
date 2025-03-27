@@ -76,7 +76,15 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- Fonte personalizada -->
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Carregue o jQuery e o Inputmask bundle (que já contém tudo necessário) no head -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/inputmask/5.0.8/inputmask.bundle.min.js"></script>
+
+
 </head>
+
 
 <body>
 
@@ -126,10 +134,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
   </div>
 </nav>
 
-<!-- Carregue primeiro o jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <div class="container mt-4">
   <!-- Linha para Ranking e Totalizador por Plugin -->
   <div class="row mb-4">
@@ -351,7 +356,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
             <div class="col-md-6">
               <div class="form-group">
                 <label for="cnpj">CNPJ</label>
-                <input type="text" class="form-control" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00" required>
+                <input type="text" class="form-control" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00" maxlength="18" required>
               </div>
             </div>
             <div class="col-md-6">
@@ -443,7 +448,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
               <div class="col-md-6">
                 <div class="form-group">
                   <label for="editar_cnpj">CNPJ</label>
-                  <input type="text" class="form-control" id="editar_cnpj" name="cnpj" required>
+                  <input type="text" class="form-control" id="editar_cnpj" name="editar_cnpj" maxlength="18" required>
                 </div>
               </div>
               <div class="col-md-6">
@@ -634,13 +639,53 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
   </script>
 
 <script>
-  $(document).ready(function(){
-    // Aplica a máscara de CNPJ com placeholder
-    $('#cnpj').inputmask("99.999.999/9999-99", {
-      "placeholder": "00.000.000/0000-00"
+document.addEventListener("DOMContentLoaded", function(){
+  // Seleciona os inputs com id "cnpj" e "editar_cnpj"
+  var cnpjInputs = document.querySelectorAll("#cnpj, #editar_cnpj");
+  
+  cnpjInputs.forEach(function(input) {
+    // Aplica a máscara enquanto o usuário digita
+    input.addEventListener("input", function(e) {
+      var v = e.target.value.replace(/\D/g, "");
+      // Formata conforme o padrão: 00.000.000/0000-00 (18 caracteres)
+      v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+      v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+      v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+      v = v.replace(/(\d{4})(\d)/, "$1-$2");
+      e.target.value = v;
+    });
+    
+    // Ao perder o foco, verifica se o valor tem 18 caracteres
+    input.addEventListener("blur", function(e) {
+      var formattedValue = e.target.value;
+      var errorSpanId = e.target.id + "-error";
+      var errorSpan = document.getElementById(errorSpanId);
+      
+      if (formattedValue.length !== 18) {
+        // Se não existir o elemento de erro, cria um e o insere após o input
+        if (!errorSpan) {
+          errorSpan = document.createElement("span");
+          errorSpan.id = errorSpanId;
+          errorSpan.style.color = "red";
+          errorSpan.style.fontSize = "0.9em";
+          e.target.parentNode.appendChild(errorSpan);
+        }
+        errorSpan.textContent = "CNPJ inválido. Revise e tente novamente!";
+        
+        // Após 2 segundos, se o valor ainda for inválido, força o foco de volta ao campo
+        setTimeout(function(){
+          if(e.target.value.length !== 18) {
+            e.target.focus();
+          }
+          errorSpan.textContent = "";
+        }, 3000);
+      }
     });
   });
+});
 </script>
+
+
 
   <script>
    // Função para popular o modal de edição com os dados recebidos
@@ -679,13 +724,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
 
     $('#modalEditarIndicacao').modal('show');
   }
-
-
   </script>
-
-  <!-- Máscara CNPJ -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/inputmask/5.0.8/jquery.inputmask.min.js"></script>
 
 </body>
 </html>
