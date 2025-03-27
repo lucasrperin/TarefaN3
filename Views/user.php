@@ -289,16 +289,14 @@ if ($result_ranking) {
                         }
                       ?>
                         <!-- Linha clicável para exibir a justificativa -->
-                        <tr
-                          class="clickable"
-                          data-justificativa="<?php echo htmlspecialchars($analise['justificativa'], ENT_QUOTES, 'UTF-8'); ?>"
-                          onclick="mostrarJustificativaModal(this.getAttribute('data-justificativa'))">
-                          <td><?php echo $analise['Descricao']; ?></td>
-                          <td><?php echo $analise['numeroFicha'] ?? '-'; ?></td>
-                          <td><?php echo $analise['Hora_ini']; ?></td>
-                          <td class="<?php echo $classeNota; ?>">
-                            <?php echo $nota; ?>
-                          </td>
+                        <tr class="clickable"
+                            data-justificativa="<?php echo htmlspecialchars($analise['justificativa'], ENT_QUOTES, 'UTF-8'); ?>"
+                            data-usuario="<?php echo htmlspecialchars($analise['Usuario'], ENT_QUOTES, 'UTF-8'); ?>"
+                            onclick="mostrarJustificativaModal(this.getAttribute('data-justificativa'), this.getAttribute('data-usuario'))">
+                            <td><?php echo $analise['Descricao']; ?></td>
+                            <td><?php echo $analise['numeroFicha'] ?? '-'; ?></td>
+                            <td><?php echo $analise['Hora_ini']; ?></td>
+                            <td class="<?php echo $classeNota; ?>"><?php echo $nota; ?></td>
                         </tr>
                       <?php endforeach; ?>
                     </tbody>
@@ -324,7 +322,7 @@ if ($result_ranking) {
                     Justificativa da Nota
                   </h5>
                   <small class="text-muted">
-                    Atribuído por: <?php echo $analise['Usuario']; ?>
+                    Atribuído por: <span id="modalUsuario"></span>
                   </small>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
@@ -389,11 +387,11 @@ if ($result_ranking) {
     <!-- Bootstrap Bundle com Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      function mostrarJustificativaModal(justificativa) {
-        console.log("Justificativa:", justificativa);
+      function mostrarJustificativaModal(justificativa, usuario) {
         // Insere a justificativa no corpo do modal
-        document.getElementById("justificativaModalBody").innerText =
-          justificativa;
+        document.getElementById("justificativaModalBody").innerText = justificativa;
+        // Atualiza o campo de usuário no modal
+        document.getElementById("modalUsuario").innerText = usuario;
         // Cria a instância do modal e exibe-o
         var modalElement = document.getElementById("justificativaModal");
         var modal = new bootstrap.Modal(modalElement);

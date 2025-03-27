@@ -200,6 +200,34 @@ CREATE TABLE TB_PLUGIN (
     nome VARCHAR(100) NOT NULL
 );
 
+INSERT INTO TB_PLUGIN (nome) VALUES ('ClippCheff');
+INSERT INTO TB_PLUGIN (nome) VALUES ('ClippService');
+INSERT INTO TB_PLUGIN (nome) VALUES ('ClippFarma');
+INSERT INTO TB_PLUGIN (nome) VALUES ('Service MEI');
+INSERT INTO TB_PLUGIN (nome) VALUES ('Licença Adicional ClippMei (5 usuários)');
+INSERT INTO TB_PLUGIN (nome) VALUES ('Licença Adicional ClippPro 1 usuário');
+INSERT INTO TB_PLUGIN (nome) VALUES ('Licença Adicional ClippPro 2 usuários');
+INSERT INTO TB_PLUGIN (nome) VALUES ('Licença Adicional ClippPro 3 usuários');
+INSERT INTO TB_PLUGIN (nome) VALUES ('Licença Adicional ClippPro 4 usuários');
+INSERT INTO TB_PLUGIN (nome) VALUES ('Licença Adicional ClippPro 5 usuários');
+INSERT INTO TB_PLUGIN (nome) VALUES ('Licença Adicional ClippPro a partir de 6 usuários');
+INSERT INTO TB_PLUGIN (nome) VALUES ('eCommerce C4 (500 itens)');
+INSERT INTO TB_PLUGIN (nome) VALUES ('eCommerce C4 (1.000 itens)');
+INSERT INTO TB_PLUGIN (nome) VALUES ('eCommerce C4 (1.500 itens)');
+INSERT INTO TB_PLUGIN (nome) VALUES ('ZPOS');
+INSERT INTO TB_PLUGIN (nome) VALUES ('ZWeb - Cadastro de grades');
+INSERT INTO TB_PLUGIN (nome) VALUES ('ZWeb - Pré-venda gerencial');
+INSERT INTO TB_PLUGIN (nome) VALUES ('ZWeb - Ecommerce próprio');
+INSERT INTO TB_PLUGIN (nome) VALUES ('ZWeb - Integrações com marketplaces');
+INSERT INTO TB_PLUGIN (nome) VALUES ('ZWeb - OS e NFSe');
+INSERT INTO TB_PLUGIN (nome) VALUES ('ZWeb - Retaguarda offline');
+INSERT INTO TB_PLUGIN (nome) VALUES ('ZWeb - Tabela de Preços');
+INSERT INTO TB_PLUGIN (nome) VALUES ('ZWeb - Sintegra e SPED');
+INSERT INTO TB_PLUGIN (nome) VALUES ('Imendes');
+INSERT INTO TB_PLUGIN (nome) VALUES ('BRBackup');
+INSERT INTO TB_PLUGIN (nome) VALUES ('Shipay');
+
+
 CREATE TABLE IF NOT EXISTS TB_INDICACAO (
     id INT AUTO_INCREMENT PRIMARY KEY,
     plugin_id INT NOT NULL,       -- Referência ao plugin na TB_PLUGIN
@@ -210,6 +238,8 @@ CREATE TABLE IF NOT EXISTS TB_INDICACAO (
     fone VARCHAR(20),
     user_id INT NOT NULL,         -- Referência ao usuário que cadastrou a indicação (TB_USUARIO)
     status ENUM('Faturado', 'Pendente', 'Cancelado') NOT NULL DEFAULT 'Pendente',
+    vlr_total numeric(18,4),
+    n_venda int,
     FOREIGN KEY (plugin_id) REFERENCES TB_PLUGIN(id),
     FOREIGN KEY (user_id) REFERENCES TB_USUARIO(id)
 );
