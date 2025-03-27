@@ -40,9 +40,17 @@ while($row = mysqli_fetch_assoc($resultRanking)) {
     $ranking[] = $row;
 }
 
+$sqlFaturamento = "SELECT SUM(vlr_total) AS total_faturamento FROM TB_INDICACAO WHERE status = 'Faturado'";
+$resultFaturamento = mysqli_query($conn, $sqlFaturamento);
+$rowFaturamento = mysqli_fetch_assoc($resultFaturamento);
+$totalFaturamento = $rowFaturamento['total_faturamento'] ? $rowFaturamento['total_faturamento'] : 0;
+
 // Consulta para o totalizador por plugin
 $sqlPluginsCount = "
-  SELECT p.nome AS plugin_nome, COUNT(i.id) AS total_indicacoes
+  SELECT 
+    p.nome AS plugin_nome, 
+    COUNT(i.id) AS total_indicacoes, 
+    SUM(CASE WHEN i.status = 'Faturado' THEN i.vlr_total ELSE 0 END) AS total_faturado
   FROM TB_INDICACAO i
   JOIN TB_PLUGIN p ON i.plugin_id = p.id
   GROUP BY p.id
@@ -125,70 +133,93 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
 <div class="container mt-4">
   <!-- Linha para Ranking e Totalizador por Plugin -->
   <div class="row mb-4">
-    <!-- Ranking de Indicações -->
-    <div class="col-md-3">
-      <div class="card card-ranking">
-        <div class="card-header text-center">Ranking de Indicações</div>
-        <div class="card-body">
-          <?php if (count($ranking) > 0): ?>
-            <div class="ranking-scroll">
-              <ul class="list-group">
-                <?php foreach ($ranking as $index => $rank): ?>
-                  <li class="list-group-item d-flex align-items-center justify-content-between">
-                    <span class="ranking-name">
-                      <?php
-                        if ($index == 0) {
-                          echo "🥇 ";
-                        } elseif ($index == 1) {
-                          echo "🥈 ";
-                        } elseif ($index == 2) {
-                          echo "🥉 ";
-                        } else {
-                          echo ($index + 1) . "º ";
-                        }
-                        echo $rank['usuario_nome'];
-                      ?>
-                    </span>
-                    <span class="badge bg-primary rounded-pill ml-auto">
-                      <?php echo $rank['total_indicacoes']; ?>
-                    </span>
-                  </li>
-                <?php endforeach; ?>
-              </ul>
-            </div>
-          <?php else: ?>
-            <p>Nenhum ranking disponível.</p>
-          <?php endif; ?>
-        </div>
-      </div>
-    </div>
-    <!-- Totalizador por Plugin -->
-    <div class="col-md-3">
-      <div class="card">
-        <div class="card-header text-center">Total por Plugin</div>
-        <div class="card-body">
-          <?php if (count($pluginsCount) > 0): ?>
-            <div class="ranking-scroll">
-              <ul class="list-group">
-                <?php foreach ($pluginsCount as $pc): ?>
-                  <li class="list-group-item d-flex align-items-center justify-content-between">
-                    <span class="ranking-name">
-                      <?php echo $pc['plugin_nome']; ?>
-                    </span>
-                    <span class="badge bg-primary rounded-pill ml-auto">
-                      <?php echo $pc['total_indicacoes']; ?>
-                    </span>
-                  </li>
-                <?php endforeach; ?>
-              </ul>
-            </div>
-          <?php else: ?>
-            <p>Nenhum plugin encontrado.</p>
-          <?php endif; ?>
-        </div>
+  <!-- Ranking de Indicações -->
+  <div class="col-md-4">
+    <div class="card card-ranking">
+      <div class="card-header text-center">Ranking de Indicações</div>
+      <div class="card-body">
+        <?php if (count($ranking) > 0): ?>
+          <div class="ranking-scroll">
+            <ul class="list-group">
+              <?php foreach ($ranking as $index => $rank): ?>
+                <li class="list-group-item d-flex align-items-center justify-content-between">
+                  <span class="ranking-name">
+                    <?php
+                      if ($index == 0) {
+                        echo "🥇 ";
+                      } elseif ($index == 1) {
+                        echo "🥈 ";
+                      } elseif ($index == 2) {
+                        echo "🥉 ";
+                      } else {
+                        echo ($index + 1) . "º ";
+                      }
+                      echo $rank['usuario_nome'];
+                    ?>
+                  </span>
+                  <span class="badge bg-primary rounded-pill ml-auto">
+                    <?php echo $rank['total_indicacoes']; ?>
+                  </span>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          </div>
+        <?php else: ?>
+          <p>Nenhum ranking disponível.</p>
+        <?php endif; ?>
       </div>
     </div>
   </div>
+
+<!-- Totalizador por Plugin -->
+<div class="col-md-4">
+  <div class="card">
+    <div class="card-header text-center">Total por Plugin</div>
+    <div class="card-body">
+      <?php if (count($pluginsCount) > 0): ?>
+        <!-- Caso queira rolagem, envolva a tabela em uma div com altura fixa -->
+        <div class="ranking-scroll" style="max-height: 250px; overflow-y: auto;">
+          <table class="table table-bordered table-sm">
+            <thead>
+              <tr>
+                <th>Plugin</th>
+                <th>Quantidade</th>
+                <th>Faturado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php foreach ($pluginsCount as $pc): ?>
+                <tr>
+                  <td><?php echo $pc['plugin_nome']; ?></td>
+                  <td class="text-center"><?php echo $pc['total_indicacoes']; ?></td>
+                  <td class="text-end">
+                    R$ <?php echo number_format($pc['total_faturado'], 2, ',', '.'); ?>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            </tbody>
+          </table>
+        </div>
+      <?php else: ?>
+        <p>Nenhum plugin encontrado.</p>
+      <?php endif; ?>
+    </div>
+  </div>
+</div>
+
+
+
+  <!-- Total de Faturamento -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header text-center">Total de Faturamento</div>
+      <div class="card-body text-center">
+        <h4><?php echo "R$ " . number_format($totalFaturamento, 2, ',', '.'); ?></h4>
+      </div>
+    </div>
+  </div>
+</div>
+
 
   <!-- Card com a lista de indicações -->
   <div class="card shadow mb-4">
