@@ -388,26 +388,42 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
     <div class="container d-flex justify-content-between align-items-center">
         <!-- Botão Hamburguer com Dropdown -->
         <div class="dropdown">
-            <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-            <?php if ($cargo === 'Conversor'): ?>  <!-- Verifica o cargo do usuário -->
-              <li><a class="dropdown-item" href="user.php"><i class="fa-solid fa-chart-line me-2"></i>Analises</a></li>
+          <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <span class="navbar-toggler-icon"></span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-dark">
+            <?php if ($cargo === 'Admin'): ?>
+              <li><a class="dropdown-item" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
             <?php endif; ?>
-            <?php if ($cargo === 'Admin'): ?>  <!-- Verifica o cargo do usuário -->
-              <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+
+            <?php if ($cargo === 'Admin'): ?>
+              <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
+            <?php endif; ?>
+
+            <?php if ($cargo === 'Admin'): ?>
               <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
-              <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
             <?php endif; ?>
-            <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>  <!-- Verifica o cargo do usuário -->
+
+            <?php if ($cargo === 'Admin' || $cargo === 'Conversor' || $cargo === 'User'): ?>
+              <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-1"></i>Indicações</a></li>
+            <?php endif; ?>
+
+            <?php if ($cargo === 'User' || $cargo === 'Conversor'): ?>
+              <li><a class="dropdown-item" href="user.php"><i class="fa-solid fa-chalkboard-user me-1"></i>Meu Painel</a></li>
+            <?php endif; ?>
+
+            <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>
               <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
             <?php endif; ?>
-            </ul>
+
+            <?php if ($cargo === 'Admin'): ?>
+              <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
+            <?php endif; ?>
+          </ul>
         </div>
         <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
         <a href="menu.php" class="btn btn-danger">
-            <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
+          <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
         </a>
     </div>
 </nav>
