@@ -109,6 +109,13 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
             <h5>Totalizadores</h5>
           </div>
         </div>
+        <!-- Usuários -->
+        <div class="col-12 col-md-3 max-three">
+          <div class="tile" onclick="location.href='usuarios.php';">
+            <i class="fa-solid fa-users-gear"></i>
+            <h5>Usuários</h5>
+          </div>
+        </div>
       <?php endif; ?>
     </div>
   </div>

@@ -390,7 +390,6 @@ document.addEventListener("DOMContentLoaded", function () {
             </a>
           <ul class="dropdown-menu dropdown-menu-dark">
             <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalCadastrarClassi">Classificação</a></li>
-            <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalCadastrarUser">Usuário</a></li>
           </ul>
         </div>
       </div>
@@ -480,38 +479,6 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
         <div class="d-flex justify-content-end">
           <button type="submit" class="btn btn-primary">Registrar Escuta</button>
-          <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Fechar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Cadastrar Usuário -->
-<div class="modal fade" id="modalCadastrarUser" tabindex="-1" aria-labelledby="modalCadastrarLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content p-4">
-      <h5 class="modal-title mb-3" id="modalCadastrarLabel">Cadastrar Novo Usuário</h5>
-      <form method="POST" action="cadastrar_usuario.php">
-        <div class="row mb-2">
-          <div class="col-md-6 mb-3">
-            <label for="email" class="form-label">E-mail</label>
-            <input type="email" class="form-control" id="email" name="email" required>
-          </div>
-          <div class="col-md-6 mb-3">
-            <label for="name" class="form-label">Nome</label>
-            <input type="text" class="form-control" id="name" name="nome" maxlength="50" required>
-          </div>
-        </div>
-
-        <div class="row mb-2">
-          <div class="col-md-6 mb-3">
-            <label for="senha" class="form-label">Senha</label>
-            <input type="password" class="form-control" id="senha" name="senha" required>
-          </div>
-        </div>
-        <div class="d-flex justify-content-end">
-          <button type="submit" class="btn btn-primary">Cadastrar</button>
           <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Fechar</button>
         </div>
       </form>

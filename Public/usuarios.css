@@ -1,0 +1,54 @@
+/* Caso o CSS de modais não esteja no usuarios.css, inclua aqui um exemplo básico */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    background-color: rgba(0,0,0,0.4);
+}
+.modal-content {
+    background-color: #fff;
+    margin: 10% auto; 
+    padding: 20px;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 4px;
+}
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.close:hover,
+.close:focus {
+    color: #000;
+}
+
+/* Tabelas */
+.table {
+    background-color: white;
+  }
+  .table th {
+    text-align: center;
+    vertical-align: middle;
+  }
+  .table td {
+    text-align: center;
+    vertical-align: middle;
+  }
+  .tabelaEstilizada {
+    border-collapse: separate;
+    border-spacing: 0 2px;
+  }
+  .tabelaEstilizada tbody tr {
+    border-radius: 5px;
+    overflow: hidden;
+    font-family: 'Nunito', sans-serif;
+  }

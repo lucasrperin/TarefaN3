@@ -1,46 +1,35 @@
 <?php
+// salvar_usuario.php
 include '../Config/Database.php';
-session_start();
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Recupera e sanitiza os dados do formulário
+    $nome     = mysqli_real_escape_string($conn, $_POST['Nome']);
+    $email    = mysqli_real_escape_string($conn, $_POST['Email']);
+    $senha    = mysqli_real_escape_string($conn, $_POST['Senha']);
+    $cargo    = mysqli_real_escape_string($conn, $_POST['Cargo']); // Novo campo cargo
+    $idEquipe = intval($_POST['idEquipe']);
+    $idNivel  = intval($_POST['idNivel']);
 
-// Apenas Admin pode cadastrar
-if (!isset($_SESSION['cargo']) || $_SESSION['cargo'] !== 'Admin') {
-    header("Location: ../login.php");
-    exit;
-}
+    // Insere o usuário na TB_USUARIO (o campo Cargo é informado pelo formulário)
+    $sqlUsuario = "INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) 
+                   VALUES ('$nome', '$email', '$senha', '$cargo')";
+    
+    if (mysqli_query($conn, $sqlUsuario)) {
+        $lastId = mysqli_insert_id($conn);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'];
-    $nome = ($_POST['nome']);
-    $senha = ($_POST['senha']);
-    $cargo = 'User';
+        // Insere o vínculo na tabela TB_EQUIPE_NIVEL_ANALISTA
+        $sqlVinculo = "INSERT INTO TB_EQUIPE_NIVEL_ANALISTA (idUsuario, idEquipe, idNivel) 
+                       VALUES ($lastId, $idEquipe, $idNivel)";
+        mysqli_query($conn, $sqlVinculo);
 
-        // Verifica se o email já existe na base
-        $checkStmt = $conn->prepare("SELECT id FROM TB_USUARIO WHERE Email = ?");
-        $checkStmt->bind_param("s", $email);
-        $checkStmt->execute();
-        $result = $checkStmt->get_result();
-
-        if ($result->num_rows > 0) {
-            $conn->close();
-            header("Location: escutas.php?success=6");
-            exit();
-        }
-        $checkStmt->close();
-
-        $stmt = $conn->prepare("INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("ssss", $nome, $email, $senha, $cargo);
-        if ($stmt->execute()) {
-            $_SESSION['success'] = "Usuário registrado com sucesso.";
-        } else {
-            header("Location: escutas.php?success=6");
-        }
-        $stmt->close();
+        header("Location: usuarios.php");
+        exit();
+    } else {
+        echo "Erro ao cadastrar usuário: " . mysqli_error($conn);
     }
-
-    $conn->close();
-    header("Location: escutas.php?success=1");
+} else {
+    header("Location: usuarios.php");
     exit();
+}
 ?>
