@@ -127,3 +127,16 @@ body {
   border: 1px solid #ced4daa2;           /* texto escuro */
   border-left: none;        /* remove a linha divisória entre o select e o botão */
 }
+
+  td.sobrepor {
+    max-width: 100px; /* ajuste o valor conforme necessário */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  td.sobrepor2 {
+    max-width: 100px; /* ajuste o valor conforme necessário */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }

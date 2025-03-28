@@ -76,12 +76,8 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- Fonte personalizada -->
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Carregue o jQuery e o Inputmask bundle (que já contém tudo necessário) no head -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/inputmask/5.0.8/inputmask.bundle.min.js"></script>
-
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </head>
 
@@ -176,43 +172,41 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
     </div>
   </div>
 
-<!-- Totalizador por Plugin -->
-<div class="col-md-4">
-  <div class="card">
-    <div class="card-header text-center">Total por Plugin</div>
-    <div class="card-body">
-      <?php if (count($pluginsCount) > 0): ?>
-        <!-- Caso queira rolagem, envolva a tabela em uma div com altura fixa -->
-        <div class="ranking-scroll" style="max-height: 250px; overflow-y: auto;">
-          <table class="table table-bordered table-sm">
-            <thead>
-              <tr>
-                <th>Plugin</th>
-                <th>Quantidade</th>
-                <th>Faturado</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($pluginsCount as $pc): ?>
+  <!-- Totalizador por Plugin -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header text-center">Total por Plugin</div>
+      <div class="card-body">
+        <?php if (count($pluginsCount) > 0): ?>
+          <!-- Caso queira rolagem, envolva a tabela em uma div com altura fixa -->
+          <div class="ranking-scroll" style="max-height: 250px; overflow-y: auto;">
+            <table class="table table-bordered table-sm">
+              <thead>
                 <tr>
-                  <td><?php echo $pc['plugin_nome']; ?></td>
-                  <td class="text-center"><?php echo $pc['total_indicacoes']; ?></td>
-                  <td class="text-end">
-                    R$ <?php echo number_format($pc['total_faturado'], 2, ',', '.'); ?>
-                  </td>
+                  <th>Plugin</th>
+                  <th>Quantidade</th>
+                  <th>Faturado</th>
                 </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div>
-      <?php else: ?>
-        <p>Nenhum plugin encontrado.</p>
-      <?php endif; ?>
+              </thead>
+              <tbody>
+                <?php foreach ($pluginsCount as $pc): ?>
+                  <tr>
+                    <td class="sobrepor2"><?php echo $pc['plugin_nome']; ?></td>
+                    <td class="text-center"><?php echo $pc['total_indicacoes']; ?></td>
+                    <td class="text-center">
+                      R$ <?php echo number_format($pc['total_faturado'], 2, ',', '.'); ?>
+                    </td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+          </div>
+        <?php else: ?>
+          <p>Nenhum plugin encontrado.</p>
+        <?php endif; ?>
+      </div>
     </div>
   </div>
-</div>
-
-
 
   <!-- Total de Faturamento -->
   <div class="col-md-4">
@@ -253,7 +247,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
           <tbody>
             <?php while($row = mysqli_fetch_assoc($result)): ?> 
               <tr>
-                <td><?= $row['plugin_nome'] ?></td>
+                <td class="sobrepor"><?= $row['plugin_nome'] ?></td>
                 <td><?= date('d/m/Y', strtotime($row['data'])) ?></td>
                 <td><?= $row['cnpj'] ?></td>
                 <td><?= $row['serial'] ?></td>
