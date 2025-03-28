@@ -11,48 +11,53 @@ body {
   margin-bottom: 20px;
 }
 
-/* Cards */
-.card {
-  border-radius: 10px; /* Bordas arredondadas */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  margin-bottom: 20px;
-}
-
-/* Card Ranking */
+/* Remove qualquer largura máxima que limite o card do Ranking */
 .card-ranking {
-  max-width: 310px;
-  margin: 0 auto;
+  max-width: none;
 }
 
+/* ----------------------------------
+   Força a mesma altura para TODOS os 3 cards
+   ---------------------------------- */
+.card-fixed-height {
+  /* Altura fixa para cada card */
+  height: 225px !important;  /* Ajuste conforme desejar */
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px; /* Caso queira manter espaçamento entre cards */
+}
+.card-fixed-height .card-header {
+  /* Impede que o header cresça junto com o body */
+  flex: 0 0 auto;
+}
+.card-fixed-height .card-body {
+  flex: 1;           /* Ocupa todo o espaço vertical restante */
+  overflow-y: auto;  /* Rolagem se o conteúdo exceder 300px */
+}
+
+/* Barra de rolagem personalizada no card-body */
+.card-fixed-height .card-body::-webkit-scrollbar {
+  width: 8px;
+}
+.card-fixed-height .card-body::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 10px;
+}
+.card-fixed-height .card-body::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+
+/* Ajustes gerais de hover e badge */
 .list-group-item:hover {
   background-color: #f8f9fa;
 }
-
 .badge {
   font-size: 0.7rem;
   padding: 5px 10px;
   font-weight: bold;
 }
 
-/* Scroll para ranking */
-.ranking-scroll {
-  height: 100px;
-  overflow-y: auto;
-}
-
-/* Personalização do scrollbar (Chrome, Edge, Safari) */
-.ranking-scroll::-webkit-scrollbar {
-  width: 8px;
-}
-.ranking-scroll::-webkit-scrollbar-thumb {
-  background: #888; 
-  border-radius: 10px;
-}
-.ranking-scroll::-webkit-scrollbar-thumb:hover {
-  background: #555; 
-}
-
-/* Ranking name: quebra de linha e ellipsis */
+/* Ranking name: evita quebra de linha e exibe reticências */
 .ranking-name {
   white-space: nowrap;
   overflow: hidden;
@@ -63,12 +68,10 @@ body {
 .btn {
   border-radius: 0;
 }
-
 .btn-primary {
   background-color: #007bff;
   border-color: #007bff;
 }
-
 .btn-secondary {
   background-color: #6c757d;
   border-color: #6c757d;
@@ -78,65 +81,48 @@ body {
 .modal .form-control {
   border-radius: 4px;
 }
-  
-.list-group-item .badge {
-  font-size: 0.7rem;
-  padding: 5px 10px;
-  font-weight: bold;
-  margin-left: 10px; /* Adiciona espaço entre o nome e a badge */
-}
-  
+
+/* Tabelas */
 .table {
   background-color: white;
 }
-
 .table th {
-    text-align: center;
-    vertical-align: middle;
+  text-align: center;
+  vertical-align: middle;
 }
-
 .table td {
-    text-align: center;
-    vertical-align: middle;
+  text-align: center;
+  vertical-align: middle;
 }
-
 .tabelaEstilizada {
-    border-collapse: separate;
-    border-spacing: 0 2px;
+  border-collapse: separate;
+  border-spacing: 0 2px;
 }
-
 .tabelaEstilizada tbody tr {
-    border-radius: 5px;
-    overflow: hidden;
-    font-family: 'Nunito', sans-serif;
+  border-radius: 5px;
+  overflow: hidden;
+  font-family: 'Nunito', sans-serif;
 }
 
-/* Remove o canto arredondado da direita do select */
+/* Ajustes no input-group */
 .input-group .form-select {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
 }
-
-/* Remove o canto arredondado da esquerda do botão 
-   e deixa o fundo branco (por padrão, .btn-outline-secondary é transparente) */
 .input-group .btn-outline-secondary {
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
-  background-color: #fff;   /* fundo branco */
-  color: #8a8989;   
-  border: 1px solid #ced4daa2;           /* texto escuro */
-  border-left: none;        /* remove a linha divisória entre o select e o botão */
+  background-color: #fff;
+  color: #8a8989;
+  border: 1px solid #ced4daa2;
+  border-left: none;
 }
 
-  td.sobrepor {
-    max-width: 100px; /* ajuste o valor conforme necessário */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  td.sobrepor2 {
-    max-width: 100px; /* ajuste o valor conforme necessário */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+/* Limitar largura de células com textos longos */
+td.sobrepor,
+td.sobrepor2 {
+  max-width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
