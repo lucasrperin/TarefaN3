@@ -253,3 +253,33 @@ CREATE TABLE TB_FOLGA (
   quantidade_dias INT NOT NULL,
   justificativa TEXT
 );
+
+CREATE TABLE IF NOT EXISTS TB_EQUIPE (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    descricao varchar(100)
+);
+
+INSERT INTO TB_EQUIPE (descricao) VALUES ('Linha Clipp');
+INSERT INTO TB_EQUIPE (descricao) VALUES ('Linha Small');
+
+
+CREATE TABLE IF NOT EXISTS TB_NIVEL (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    descricao varchar(100)
+);
+
+INSERT INTO TB_NIVEL (descricao) VALUES ('Treinamento');
+INSERT INTO TB_NIVEL (descricao) VALUES ('Nível 1');
+INSERT INTO TB_NIVEL (descricao) VALUES ('Nível 2');
+INSERT INTO TB_NIVEL (descricao) VALUES ('Exclusivo');
+INSERT INTO TB_NIVEL (descricao) VALUES ('Nível 3');
+INSERT INTO TB_NIVEL (descricao) VALUES ('Comercial');
+
+CREATE TABLE IF NOT EXISTS TB_EQUIPE_NIVEL_ANALISTA (
+    idUsuario int,
+    idEquipe int,
+    idNivel int,
+    FOREIGN KEY (idUsuario) REFERENCES TB_USUARIO(id),
+    FOREIGN KEY (idEquipe) REFERENCES TB_EQUIPE(id),
+    FOREIGN KEY (idNivel) REFERENCES TB_NIVEL(id)
+);
