@@ -126,7 +126,14 @@ $resultFolga = $conn->query($sqlListarFolga);
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- CSS customizado -->
-  <link rel="stylesheet" href="folga.css">
+  <link rel="stylesheet" href="../Public/folga.css">
+  
+  <!-- Estilos inline para o badge (totalizadores) -->
+  <style>
+    .badge-colab-center {
+      /* Este estilo agora será utilizado em folga.css; se preferir, remova-o daqui */
+    }
+  </style>
 </head>
 <body>
 <nav class="navbar navbar-dark bg-dark">
@@ -151,9 +158,10 @@ $resultFolga = $conn->query($sqlListarFolga);
     </a>
   </div>
 </nav>
+
 <div class="container my-5">
   <!-- Layout com duas colunas: Calendário (col-md-9) e Painel de Detalhes (col-md-3) -->
-  <div class="row">
+  <div class="row calendario-detalhes">
     <div class="col-md-9">
       <div id="calendar"></div>
     </div>
@@ -170,13 +178,13 @@ $resultFolga = $conn->query($sqlListarFolga);
     </div>
   </div>
   
-  <h1 class="mb-4 mt-5">Controle de Férias e Folgas</h1>
   <!-- Botão para abrir modal de cadastro -->
   <div class="d-flex justify-content-end mb-3">
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">
       <i class="fa-solid fa-plus-circle me-2"></i> Cadastrar
     </button>
   </div>
+  
   <!-- Modal de cadastro -->
   <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -237,7 +245,8 @@ $resultFolga = $conn->query($sqlListarFolga);
       </div>
     </div>
   </div>
-  <!-- Modal de Edição (update em editar_folga.php) -->
+  
+  <!-- Modal de Edição -->
   <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content shadow">
@@ -297,6 +306,7 @@ $resultFolga = $conn->query($sqlListarFolga);
       </div>
     </div>
   </div>
+  
   <!-- Listagem dos registros -->
   <div class="row g-4">
     <!-- Card de Férias -->
@@ -427,152 +437,158 @@ $resultFolga = $conn->query($sqlListarFolga);
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-// Função para formatar data de YYYY-MM-DD para DD/MM/YYYY
-function formatDate(dateStr) {
-  var parts = dateStr.split('-');
-  return parts[2] + '/' + parts[1] + '/' + parts[0];
-}
-
-// Função para atualizar o painel de detalhes para uma data específica
-function updateSidePanel(dayStr) {
-  var details = document.getElementById('details');
-  var formattedDate = formatDate(dayStr);
-  details.innerHTML = '<h5>' + formattedDate + '</h5><hr>';
-  if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
-    aggregator[dayStr].forEach(function(item) {
-      details.innerHTML += '<p>' + item.nome + ' (' + item.tipo + ')</p>';
-    });
-  } else {
-    details.innerHTML += '<p>Nenhum evento agendado.</p>';
+  // Função para formatar data de YYYY-MM-DD para DD/MM/YYYY
+  function formatDate(dateStr) {
+    var parts = dateStr.split('-');
+    return parts[2] + '/' + parts[1] + '/' + parts[0];
   }
-}
 
-// Passa o array aggregator do PHP para o JavaScript
-var aggregator = <?php echo json_encode($aggregator); ?>;
-console.log('Aggregator:', aggregator);
-
-// Inicializa o FullCalendar com locale em pt-br e centralização do conteúdo
-document.addEventListener('DOMContentLoaded', function() {
-  var calendarEl = document.getElementById('calendar');
-  if (!calendarEl) {
-    console.error("Elemento 'calendar' não encontrado!");
-    return;
+  // Atualiza o painel de detalhes para uma data específica
+  function updateSidePanel(dayStr) {
+    var details = document.getElementById('details');
+    var formattedDate = formatDate(dayStr);
+    details.innerHTML = '<h5>' + formattedDate + '</h5><hr>';
+    if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
+      aggregator[dayStr].forEach(function(item) {
+        details.innerHTML += '<p>' + item.nome + ' (' + item.tipo + ')</p>';
+      });
+    } else {
+      details.innerHTML += '<p>Nenhum evento agendado.</p>';
+    }
   }
-  var calendar = new FullCalendar.Calendar(calendarEl, {
-    locale: 'pt-br',
-    initialView: 'dayGridMonth',
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: ''
-    },
-    height: 400,
-    dayCellDidMount: function(info) {
+
+  // Passa o array aggregator do PHP para o JavaScript
+  var aggregator = <?php echo json_encode($aggregator); ?>;
+  console.log('Aggregator:', aggregator);
+
+  // Inicializa o FullCalendar com timeZone configurado para "local"
+  document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) {
+      console.error("Elemento 'calendar' não encontrado!");
+      return;
+    }
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      locale: 'pt-br',
+      timeZone: 'local',
+      initialView: 'dayGridMonth',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: ''
+      },
+      height: 350,
+      expandRows: true,
+      dayCellDidMount: function(info) {
   var dayStr = info.date.toISOString().split('T')[0];
-  // Se houver colaboradores nesse dia, cria o badge
-  if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
-    // Destaca a célula
-    info.el.style.backgroundColor = '#E2F0D9';
-    // Cria o badge com classes do Bootstrap + classe de centralização
-    var badge = document.createElement('span');
-    badge.classList.add('badge', 'bg-primary', 'badge-colab-center');
-    badge.textContent = aggregator[dayStr].length;
-    // Adiciona ao elemento
-    info.el.appendChild(badge);
+  var dayFrame = info.el.querySelector('.fc-daygrid-day-frame');
+  if (dayFrame) {
+    dayFrame.style.position = 'relative';
+    if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
+      // Destaca a célula
+      dayFrame.style.backgroundColor = '#E2F0D9';
+
+      // Cria e adiciona o badge
+      var badge = document.createElement('span');
+      badge.classList.add('badge', 'bg-primary', 'badge-colab-center');
+      badge.textContent = aggregator[dayStr].length;
+      dayFrame.appendChild(badge);
+
+      // Evento de clique
+      dayFrame.addEventListener('click', function() {
+        updateSidePanel(dayStr);
+      });
+    }
   }
-  // Evento de clique
-  info.el.addEventListener('click', function() {
-    updateSidePanel(dayStr);
-  });
 }
+    });
+    calendar.render();
+
+    // Atualiza o painel de detalhes com os dados do dia atual
+    var todayStr = new Date().toISOString().split('T')[0];
+    updateSidePanel(todayStr);
   });
-  calendar.render();
 
-  // Atualiza o painel de detalhes com os dados do dia atual
-  var todayStr = new Date().toISOString().split('T')[0];
-  updateSidePanel(todayStr);
-});
+  let calendarInstance = null;
+  let calendarEditInstance = null;
 
-let calendarInstance = null;
-let calendarEditInstance = null;
-
-// Inicializa o Flatpickr para o modal de cadastro
-const modalCadastro = document.getElementById('modalCadastro');
-modalCadastro.addEventListener('shown.bs.modal', function () {
-  if (!calendarInstance) {
-    calendarInstance = flatpickr('#calendarioInline', {
-      mode: 'range',
-      inline: true,
-      dateFormat: 'Y-m-d',
-      showMonths: 2,
-      onChange: function(selectedDates, dateStr, instance) {
-        if (selectedDates.length === 2) {
-          document.getElementById('data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
-          document.getElementById('data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
+  // Inicializa o Flatpickr para o modal de cadastro
+  const modalCadastro = document.getElementById('modalCadastro');
+  modalCadastro.addEventListener('shown.bs.modal', function () {
+    if (!calendarInstance) {
+      calendarInstance = flatpickr('#calendarioInline', {
+        mode: 'range',
+        inline: true,
+        dateFormat: 'Y-m-d',
+        showMonths: 2,
+        onChange: function(selectedDates, dateStr, instance) {
+          if (selectedDates.length === 2) {
+            document.getElementById('data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
+            document.getElementById('data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
+          }
         }
-      }
-    });
-  } else {
-    calendarInstance.redraw();
-  }
-});
-
-// Exibe/oculta o campo de justificativa conforme o tipo selecionado
-const tipoSelect = document.getElementById('tipo');
-const justificativaGroup = document.getElementById('justificativaGroup');
-tipoSelect.addEventListener('change', function() {
-  justificativaGroup.style.display = (tipoSelect.value === 'Folga') ? 'block' : 'none';
-});
-
-// Inicializa o Flatpickr para o modal de edição
-const modalEditar = document.getElementById('modalEditar');
-modalEditar.addEventListener('shown.bs.modal', function() {
-  if (!calendarEditInstance) {
-    calendarEditInstance = flatpickr('#calendarioInlineEdit', {
-      mode: 'range',
-      inline: true,
-      dateFormat: 'Y-m-d',
-      showMonths: 2,
-      onChange: function(selectedDates, dateStr, instance) {
-        if (selectedDates.length === 2) {
-          document.getElementById('edit_data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
-          document.getElementById('edit_data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
-        }
-      }
-    });
-  } else {
-    calendarEditInstance.redraw();
-  }
-});
-
-// Preenche o modal de edição com os dados do evento selecionado
-document.querySelectorAll('.editar-btn').forEach(btn => {
-  btn.addEventListener('click', function() {
-    const id = this.getAttribute('data-id');
-    const usuarioId = this.getAttribute('data-usuarioid');
-    const tipo = this.getAttribute('data-tipo');
-    const dataInicio = this.getAttribute('data-inicio');
-    const dataFim = this.getAttribute('data-fim');
-    const justificativa = this.getAttribute('data-justificativa') || '';
-
-    document.getElementById('edit_id').value = id;
-    document.getElementById('edit_usuario_id').value = usuarioId;
-    document.getElementById('edit_tipo').value = tipo;
-    document.getElementById('edit_data_inicio').value = dataInicio;
-    document.getElementById('edit_data_fim').value = dataFim;
-    document.getElementById('edit_justificativa').value = justificativa;
-
-    document.getElementById('justificativaGroupEdit').style.display = (tipo === 'Folga') ? 'block' : 'none';
-
-    if (calendarEditInstance) {
-      if (dataInicio && dataFim) {
-        calendarEditInstance.setDate([dataInicio, dataFim], true);
-      } else {
-        calendarEditInstance.clear();
-      }
+      });
+    } else {
+      calendarInstance.redraw();
     }
   });
-});
+
+  // Exibe/oculta o campo de justificativa conforme o tipo selecionado
+  const tipoSelect = document.getElementById('tipo');
+  const justificativaGroup = document.getElementById('justificativaGroup');
+  tipoSelect.addEventListener('change', function() {
+    justificativaGroup.style.display = (tipoSelect.value === 'Folga') ? 'block' : 'none';
+  });
+
+  // Inicializa o Flatpickr para o modal de edição
+  const modalEditar = document.getElementById('modalEditar');
+  modalEditar.addEventListener('shown.bs.modal', function() {
+    if (!calendarEditInstance) {
+      calendarEditInstance = flatpickr('#calendarioInlineEdit', {
+        mode: 'range',
+        inline: true,
+        dateFormat: 'Y-m-d',
+        showMonths: 2,
+        onChange: function(selectedDates, dateStr, instance) {
+          if (selectedDates.length === 2) {
+            document.getElementById('edit_data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
+            document.getElementById('edit_data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
+          }
+        }
+      });
+    } else {
+      calendarEditInstance.redraw();
+    }
+  });
+
+  // Preenche o modal de edição com os dados do evento selecionado
+  document.querySelectorAll('.editar-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const id = this.getAttribute('data-id');
+      const usuarioId = this.getAttribute('data-usuarioid');
+      const tipo = this.getAttribute('data-tipo');
+      const dataInicio = this.getAttribute('data-inicio');
+      const dataFim = this.getAttribute('data-fim');
+      const justificativa = this.getAttribute('data-justificativa') || '';
+
+      document.getElementById('edit_id').value = id;
+      document.getElementById('edit_usuario_id').value = usuarioId;
+      document.getElementById('edit_tipo').value = tipo;
+      document.getElementById('edit_data_inicio').value = dataInicio;
+      document.getElementById('edit_data_fim').value = dataFim;
+      document.getElementById('edit_justificativa').value = justificativa;
+
+      document.getElementById('justificativaGroupEdit').style.display = (tipo === 'Folga') ? 'block' : 'none';
+
+      if (calendarEditInstance) {
+        if (dataInicio && dataFim) {
+          calendarEditInstance.setDate([dataInicio, dataFim], true);
+        } else {
+          calendarEditInstance.clear();
+        }
+      }
+    });
+  });
 </script>
 </body>
 </html>
