@@ -1,38 +1,62 @@
 <?php
 // folga.php
-include '../Config/Database.php';  // Inclui a conexão em $conn
+include '../Config/Database.php';
 session_start();
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// 1) Carrega a lista de usuários para o SELECT de cadastro
+// ===================== AGRUPANDO REGISTROS POR DIA =====================
+$sql = "
+    SELECT f.id, 
+           u.Nome AS nome_colaborador, 
+           f.data_inicio, 
+           f.data_fim, 
+           f.tipo 
+      FROM TB_FOLGA f
+      JOIN TB_USUARIO u ON f.usuario_id = u.Id
+  ORDER BY f.data_inicio
+";
+$result = $conn->query($sql);
+$aggregator = [];
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $start = strtotime($row['data_inicio']);
+        $end   = strtotime($row['data_fim']);
+        for ($d = $start; $d <= $end; $d += 86400) {
+            $dayStr = date('Y-m-d', $d);
+            $aggregator[$dayStr][] = [
+                'nome' => $row['nome_colaborador'],
+                'tipo' => $row['tipo']
+            ];
+        }
+    }
+}
+
+// ===================== CARREGA USUÁRIOS PARA O SELECT =====================
 $sqlUsuarios = "SELECT Id, Nome FROM TB_USUARIO ORDER BY Nome";
 $resultUsuarios = $conn->query($sqlUsuarios);
 if (!$resultUsuarios) {
     die("Erro ao buscar usuários: " . $conn->error);
 }
 
-// 2) Processa o formulário de CADASTRO (POST) e redireciona (PRG)
+// ===================== PROCESSA CADASTRO (POST) =====================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['acao'] === 'cadastrar') {
     $usuario_id    = $_POST['usuario_id']    ?? '';
     $tipo          = $_POST['tipo']          ?? '';
     $data_inicio   = $_POST['data_inicio']   ?? '';
     $data_fim      = $_POST['data_fim']      ?? '';
-    $justificativa = $_POST['justificativa'] ?? '';  // pode ser vazio se for Férias
+    $justificativa = $_POST['justificativa'] ?? '';
 
     if (!empty($data_inicio) && !empty($data_fim)) {
         $dtInicio = strtotime($data_inicio);
         $dtFim    = strtotime($data_fim);
         if ($dtInicio !== false && $dtFim !== false && $dtFim >= $dtInicio) {
-            // +1 para incluir o dia de início
             $diffSegundos    = $dtFim - $dtInicio;
             $quantidade_dias = floor($diffSegundos / 86400) + 1;
         } else {
             $quantidade_dias = 0;
         }
-
-        // Se a quantidade de dias for válida, insere
         if ($quantidade_dias >= 1) {
             $sqlInsert = "INSERT INTO TB_FOLGA 
                             (usuario_id, tipo, data_inicio, data_fim, quantidade_dias, justificativa)
@@ -54,12 +78,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
             }
         }
     }
-    // Redireciona para evitar reenvio do formulário ao atualizar
     header("Location: folga.php");
     exit();
 }
 
-// 3) Lista os registros separadamente para Férias e Folga
+// ===================== CONSULTAS PARA LISTAGEM (Tabelas) =====================
 $sqlListarFerias = "
     SELECT f.id,
            f.usuario_id,
@@ -88,28 +111,22 @@ $sqlListarFolga = "
   ORDER BY f.id DESC
 ";
 $resultFolga = $conn->query($sqlListarFolga);
-
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <title>Controle de Férias e Folgas</title>
-
   <!-- Bootstrap 5 CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
-
+  <!-- FullCalendar CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
   <!-- Flatpickr CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-
-  <!-- Ícones Font Awesome (opcional) -->
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
-  <style>
-    .flatpickr-calendar {
-      z-index: 9999;
-    }
-  </style>
+  <!-- CSS customizado -->
+  <link rel="stylesheet" href="folga.css">
 </head>
 <body>
 <nav class="navbar navbar-dark bg-dark">
@@ -134,15 +151,31 @@ $resultFolga = $conn->query($sqlListarFolga);
   </div>
 </nav>
 <div class="container my-5">
-  <h1 class="mb-4">Controle de Férias e Folgas</h1>
-
-  <!-- Botão que abre o modal de cadastro -->
+  <!-- Layout com duas colunas: Calendário (col-md-9) e Painel de Detalhes (col-md-3) -->
+  <div class="row">
+    <div class="col-md-9">
+      <div id="calendar"></div>
+    </div>
+    <div class="col-md-3">
+      <!-- Painel de Detalhes como card Bootstrap -->
+      <div id="sidePanel" class="card shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">Detalhes do Dia</h5>
+        </div>
+        <div class="card-body" id="details">
+          <!-- Atualizado via JS: informações do dia atual -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <h1 class="mb-4 mt-5">Controle de Férias e Folgas</h1>
+  <!-- Botão para abrir modal de cadastro -->
   <div class="d-flex justify-content-end mb-3">
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">
       <i class="fa-solid fa-plus-circle me-2"></i> Cadastrar
     </button>
   </div>
-
   <!-- Modal de cadastro -->
   <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -154,20 +187,16 @@ $resultFolga = $conn->query($sqlListarFolga);
         <form method="post" action="">
           <input type="hidden" name="acao" value="cadastrar">
           <div class="modal-body">
-            <!-- Linha para Colaborador e Tipo -->
             <div class="row mb-3">
               <div class="col-md-6">
                 <label for="usuario_id" class="form-label fw-semibold">Colaborador:</label>
                 <select class="form-select" name="usuario_id" id="usuario_id" required>
                   <option value="">Selecione</option>
                   <?php
-                  // Reposiciona o ponteiro do $resultUsuarios para listar novamente
                   $resultUsuarios->data_seek(0);
                   while($rowU = $resultUsuarios->fetch_assoc()):
                   ?>
-                    <option value="<?php echo $rowU['Id']; ?>">
-                      <?php echo $rowU['Nome']; ?>
-                    </option>
+                    <option value="<?php echo $rowU['Id']; ?>"><?php echo $rowU['Nome']; ?></option>
                   <?php endwhile; ?>
                 </select>
               </div>
@@ -179,8 +208,7 @@ $resultFolga = $conn->query($sqlListarFolga);
                 </select>
               </div>
             </div>
-
-            <!-- Calendário -->
+            <!-- Calendário para seleção de período -->
             <div class="row mb-3">
               <div class="col text-center">
                 <label class="form-label fw-semibold">Selecione o período:</label>
@@ -191,16 +219,13 @@ $resultFolga = $conn->query($sqlListarFolga);
                 <div id="calendarioInline" class="border rounded p-2"></div>
               </div>
             </div>
-
-            <!-- Inputs ocultos para enviar as datas -->
+            <!-- Inputs ocultos para datas -->
             <input type="hidden" name="data_inicio" id="data_inicio">
             <input type="hidden" name="data_fim" id="data_fim">
-
-            <!-- Campo Justificativa (exibido somente se tipo == Folga) -->
+            <!-- Campo Justificativa (para Folga) -->
             <div class="row mb-3" id="justificativaGroup" style="display: none;">
               <label for="justificativa" class="form-label fw-semibold">Justificativa:</label>
-              <textarea class="form-control" name="justificativa" id="justificativa" rows="3"
-                placeholder="Descreva a justificativa da folga"></textarea>
+              <textarea class="form-control" name="justificativa" id="justificativa" rows="3" placeholder="Descreva a justificativa da folga"></textarea>
             </div>
           </div>
           <div class="modal-footer">
@@ -211,8 +236,7 @@ $resultFolga = $conn->query($sqlListarFolga);
       </div>
     </div>
   </div>
-
-  <!-- Modal de Edição (toda a lógica do modal está aqui, mas o update é feito em editar_folga.php) -->
+  <!-- Modal de Edição (update em editar_folga.php) -->
   <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content shadow">
@@ -220,16 +244,13 @@ $resultFolga = $conn->query($sqlListarFolga);
           <h5 class="modal-title" id="modalEditarLabel">Editar Folga/Férias</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
-        <!-- Form que envia para editar_folga.php -->
         <form method="post" action="editar_folga.php">
           <div class="modal-body">
             <input type="hidden" name="id" id="edit_id">
-            <!-- Linha para Colaborador e Tipo -->
             <div class="row mb-3">
               <div class="col-md-6">
                 <label for="edit_usuario_id" class="form-label fw-semibold">Colaborador:</label>
                 <?php
-                  // Buscando novamente a lista de usuários
                   $sqlUsuarios2 = "SELECT Id, Nome FROM TB_USUARIO ORDER BY Nome";
                   $resultUsuarios2 = $conn->query($sqlUsuarios2);
                 ?>
@@ -248,7 +269,6 @@ $resultFolga = $conn->query($sqlListarFolga);
                 </select>
               </div>
             </div>
-
             <!-- Calendário de edição -->
             <div class="row mb-3">
               <div class="col text-center">
@@ -262,8 +282,7 @@ $resultFolga = $conn->query($sqlListarFolga);
             </div>
             <input type="hidden" name="data_inicio" id="edit_data_inicio">
             <input type="hidden" name="data_fim" id="edit_data_fim">
-
-            <!-- Campo Justificativa (exibido somente se tipo == Folga) -->
+            <!-- Campo Justificativa para edição -->
             <div class="row mb-3" id="justificativaGroupEdit" style="display: none;">
               <label for="edit_justificativa" class="form-label fw-semibold">Justificativa:</label>
               <textarea class="form-control" name="justificativa" id="edit_justificativa" rows="3"></textarea>
@@ -277,8 +296,7 @@ $resultFolga = $conn->query($sqlListarFolga);
       </div>
     </div>
   </div>
-
-  <!-- Listagem dos registros lado a lado -->
+  <!-- Listagem dos registros -->
   <div class="row g-4">
     <!-- Card de Férias -->
     <div class="col-md-6">
@@ -306,32 +324,27 @@ $resultFolga = $conn->query($sqlListarFolga);
                     <td><?php echo date("d/m/Y", strtotime($row['data_fim'])); ?></td>
                     <td><?php echo $row['quantidade_dias']; ?></td>
                     <td>
-                        <div class="d-flex flex-column align-items-start">
-                            <!-- Botão Editar -->
-                            <button 
-                            class="btn btn-sm btn-outline-primary editar-btn" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#modalEditar"
-                            data-id="<?php echo $row['id']; ?>"
-                            data-usuarioid="<?php echo $row['usuario_id']; ?>"  
-                            data-tipo="Férias"
-                            data-inicio="<?php echo $row['data_inicio']; ?>"
-                            data-fim="<?php echo $row['data_fim']; ?>"
-                            data-justificativa=""
-                            >
-                            <i class="fa-solid fa-pen"></i>
-                            </button>
-
-                            <!-- Botão Excluir -->
-                            <a 
-                            href="deletar_folga.php?id=<?php echo $row['id']; ?>" 
-                            class="btn btn-sm btn-outline-danger"
-                            onclick="return confirm('Confirma a exclusão?');"
-                            >
-                            <i class="fa-solid fa-trash"></i>
-                            </a>
-                        </div>
-                        </td>
+                      <div class="d-flex flex-column align-items-start">
+                        <button 
+                          class="btn btn-sm btn-outline-primary editar-btn" 
+                          data-bs-toggle="modal" 
+                          data-bs-target="#modalEditar"
+                          data-id="<?php echo $row['id']; ?>"
+                          data-usuarioid="<?php echo $row['usuario_id']; ?>"  
+                          data-tipo="Férias"
+                          data-inicio="<?php echo $row['data_inicio']; ?>"
+                          data-fim="<?php echo $row['data_fim']; ?>"
+                          data-justificativa="">
+                          <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <a 
+                          href="deletar_folga.php?id=<?php echo $row['id']; ?>" 
+                          class="btn btn-sm btn-outline-danger"
+                          onclick="return confirm('Confirma a exclusão?');">
+                          <i class="fa-solid fa-trash"></i>
+                        </a>
+                      </div>
+                    </td>
                   </tr>
                 <?php endwhile; ?>
               <?php else: ?>
@@ -344,7 +357,6 @@ $resultFolga = $conn->query($sqlListarFolga);
         </div>
       </div>
     </div>
-
     <!-- Card de Folga -->
     <div class="col-md-6">
       <div class="card shadow-sm">
@@ -373,28 +385,24 @@ $resultFolga = $conn->query($sqlListarFolga);
                     <td><?php echo $row['quantidade_dias']; ?></td>
                     <td><?php echo nl2br($row['justificativa'] ?? ''); ?></td>
                     <td>
-                      <!-- Botão Editar -->
-                      <div class="d-flex flex-column align-items-start"> 
-                      
-                                <button 
-                                class="btn btn-sm btn-outline-primary editar-btn"
-                                data-bs-toggle="modal" 
-                                data-bs-target="#modalEditar"
-                                data-id="<?php echo $row['id']; ?>"
-                                data-usuarioid="<?php echo $row['usuario_id']; ?>" 
-                                data-tipo="Folga"
-                                data-inicio="<?php echo $row['data_inicio']; ?>"
-                                data-fim="<?php echo $row['data_fim']; ?>"
-                                data-justificativa="<?php echo $row['justificativa']; ?>">
-                                <i class="fa-solid fa-pen"></i>
-                                </button>
-
-                      <!-- Botão Excluir -->
-                      <a href="deletar_folga.php?id=<?php echo $row['id']; ?>" 
-                         class="btn btn-sm btn-outline-danger"
-                         onclick="return confirm('Confirma a exclusão?');">
-                        <i class="fa-solid fa-trash"></i>
-                      </a>
+                      <div class="d-flex flex-column align-items-start">
+                        <button 
+                          class="btn btn-sm btn-outline-primary editar-btn"
+                          data-bs-toggle="modal" 
+                          data-bs-target="#modalEditar"
+                          data-id="<?php echo $row['id']; ?>"
+                          data-usuarioid="<?php echo $row['usuario_id']; ?>" 
+                          data-tipo="Folga"
+                          data-inicio="<?php echo $row['data_inicio']; ?>"
+                          data-fim="<?php echo $row['data_fim']; ?>"
+                          data-justificativa="<?php echo $row['justificativa']; ?>">
+                          <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <a href="deletar_folga.php?id=<?php echo $row['id']; ?>" 
+                           class="btn btn-sm btn-outline-danger"
+                           onclick="return confirm('Confirma a exclusão?');">
+                          <i class="fa-solid fa-trash"></i>
+                        </a>
                       </div>
                     </td>
                   </tr>
@@ -412,98 +420,149 @@ $resultFolga = $conn->query($sqlListarFolga);
   </div>
 </div>
 
-<!-- Bootstrap 5 JS (com Popper) -->
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Flatpickr JS -->
+<!-- FullCalendar JS para versão 6 -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-  let calendarInstance = null;
-  let calendarEditInstance = null;
+// Função para formatar data de YYYY-MM-DD para DD/MM/YYYY
+function formatDate(dateStr) {
+  var parts = dateStr.split('-');
+  return parts[2] + '/' + parts[1] + '/' + parts[0];
+}
 
-  // Inicializa o Flatpickr ao mostrar o modal de CADASTRO
-  const modalCadastro = document.getElementById('modalCadastro');
-  modalCadastro.addEventListener('shown.bs.modal', function () {
-    if (!calendarInstance) {
-      calendarInstance = flatpickr('#calendarioInline', {
-        mode: 'range',
-        inline: true,
-        dateFormat: 'Y-m-d',
-        showMonths: 2,
-        onChange: function(selectedDates, dateStr, instance) {
-          if (selectedDates.length === 2) {
-            document.getElementById('data_inicio').value = 
-              instance.formatDate(selectedDates[0], 'Y-m-d');
-            document.getElementById('data_fim').value = 
-              instance.formatDate(selectedDates[1], 'Y-m-d');
-          }
+// Função para atualizar o painel de detalhes para uma data específica
+function updateSidePanel(dayStr) {
+  var details = document.getElementById('details');
+  var formattedDate = formatDate(dayStr);
+  details.innerHTML = '<h5>' + formattedDate + '</h5><hr>';
+  if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
+    aggregator[dayStr].forEach(function(item) {
+      details.innerHTML += '<p>' + item.nome + ' (' + item.tipo + ')</p>';
+    });
+  } else {
+    details.innerHTML += '<p>Nenhum evento agendado.</p>';
+  }
+}
+
+// Passa o array aggregator do PHP para o JavaScript
+var aggregator = <?php echo json_encode($aggregator); ?>;
+console.log('Aggregator:', aggregator);
+
+// Inicializa o FullCalendar com locale em pt-br e centralização do conteúdo
+document.addEventListener('DOMContentLoaded', function() {
+  var calendarEl = document.getElementById('calendar');
+  if (!calendarEl) {
+    console.error("Elemento 'calendar' não encontrado!");
+    return;
+  }
+  var calendar = new FullCalendar.Calendar(calendarEl, {
+    locale: 'pt-br',
+    initialView: 'dayGridMonth',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: ''
+    },
+    height: 400,
+    dayCellDidMount: function(info) {
+  var dayStr = info.date.toISOString().split('T')[0];
+  // Se houver colaboradores nesse dia, cria o badge
+  if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
+    // Destaca a célula
+    info.el.style.backgroundColor = '#E2F0D9';
+    // Cria o badge com classes do Bootstrap + classe de centralização
+    var badge = document.createElement('span');
+    badge.classList.add('badge', 'bg-primary', 'badge-colab-center');
+    badge.textContent = aggregator[dayStr].length;
+    // Adiciona ao elemento
+    info.el.appendChild(badge);
+  }
+  // Evento de clique
+  info.el.addEventListener('click', function() {
+    updateSidePanel(dayStr);
+  });
+}
+  });
+  calendar.render();
+
+  // Atualiza o painel de detalhes com os dados do dia atual
+  var todayStr = new Date().toISOString().split('T')[0];
+  updateSidePanel(todayStr);
+});
+
+let calendarInstance = null;
+let calendarEditInstance = null;
+
+// Inicializa o Flatpickr para o modal de cadastro
+const modalCadastro = document.getElementById('modalCadastro');
+modalCadastro.addEventListener('shown.bs.modal', function () {
+  if (!calendarInstance) {
+    calendarInstance = flatpickr('#calendarioInline', {
+      mode: 'range',
+      inline: true,
+      dateFormat: 'Y-m-d',
+      showMonths: 2,
+      onChange: function(selectedDates, dateStr, instance) {
+        if (selectedDates.length === 2) {
+          document.getElementById('data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
+          document.getElementById('data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
         }
-      });
-    } else {
-      calendarInstance.redraw();
-    }
-  });
+      }
+    });
+  } else {
+    calendarInstance.redraw();
+  }
+});
 
-  // Mostrar/ocultar campo Justificativa conforme o tipo (no CADASTRO)
-  const tipoSelect = document.getElementById('tipo');
-  const justificativaGroup = document.getElementById('justificativaGroup');
-  tipoSelect.addEventListener('change', function() {
-    if (tipoSelect.value === 'Folga') {
-      justificativaGroup.style.display = 'block';
-    } else {
-      justificativaGroup.style.display = 'none';
-    }
-  });
+// Exibe/oculta o campo de justificativa conforme o tipo selecionado
+const tipoSelect = document.getElementById('tipo');
+const justificativaGroup = document.getElementById('justificativaGroup');
+tipoSelect.addEventListener('change', function() {
+  justificativaGroup.style.display = (tipoSelect.value === 'Folga') ? 'block' : 'none';
+});
 
-  // ------------------ MODAL DE EDIÇÃO --------------------
-  // Instancia do Flatpickr para edição
-  const modalEditar = document.getElementById('modalEditar');
-  modalEditar.addEventListener('shown.bs.modal', function() {
-    if (!calendarEditInstance) {
-      calendarEditInstance = flatpickr('#calendarioInlineEdit', {
-        mode: 'range',
-        inline: true,
-        dateFormat: 'Y-m-d',
-        showMonths: 2,
-        onChange: function(selectedDates, dateStr, instance) {
-          if (selectedDates.length === 2) {
-            document.getElementById('edit_data_inicio').value =
-              instance.formatDate(selectedDates[0], 'Y-m-d');
-            document.getElementById('edit_data_fim').value =
-              instance.formatDate(selectedDates[1], 'Y-m-d');
-          }
+// Inicializa o Flatpickr para o modal de edição
+const modalEditar = document.getElementById('modalEditar');
+modalEditar.addEventListener('shown.bs.modal', function() {
+  if (!calendarEditInstance) {
+    calendarEditInstance = flatpickr('#calendarioInlineEdit', {
+      mode: 'range',
+      inline: true,
+      dateFormat: 'Y-m-d',
+      showMonths: 2,
+      onChange: function(selectedDates, dateStr, instance) {
+        if (selectedDates.length === 2) {
+          document.getElementById('edit_data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
+          document.getElementById('edit_data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
         }
-      });
-    } else {
-      calendarEditInstance.redraw();
-    }
-  });
+      }
+    });
+  } else {
+    calendarEditInstance.redraw();
+  }
+});
 
- // Ao clicar em Editar, preenchemos o modal com os valores do registro
-// Ao clicar em Editar, preenchemos o modal com os valores do registro
+// Preenche o modal de edição com os dados do evento selecionado
 document.querySelectorAll('.editar-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     const id = this.getAttribute('data-id');
-    const usuarioId = this.getAttribute('data-usuarioid'); // Pega o valor do usuário gravado na TB_FOLGA
+    const usuarioId = this.getAttribute('data-usuarioid');
     const tipo = this.getAttribute('data-tipo');
     const dataInicio = this.getAttribute('data-inicio');
     const dataFim = this.getAttribute('data-fim');
     const justificativa = this.getAttribute('data-justificativa') || '';
 
     document.getElementById('edit_id').value = id;
-    document.getElementById('edit_usuario_id').value = usuarioId; // Preenche o select com o usuário correto
+    document.getElementById('edit_usuario_id').value = usuarioId;
     document.getElementById('edit_tipo').value = tipo;
     document.getElementById('edit_data_inicio').value = dataInicio;
     document.getElementById('edit_data_fim').value = dataFim;
     document.getElementById('edit_justificativa').value = justificativa;
 
-    // Ajusta exibição do campo justificativa se necessário
-    if (tipo === 'Folga') {
-      document.getElementById('justificativaGroupEdit').style.display = 'block';
-    } else {
-      document.getElementById('justificativaGroupEdit').style.display = 'none';
-    }
+    document.getElementById('justificativaGroupEdit').style.display = (tipo === 'Folga') ? 'block' : 'none';
 
-    // Atualiza o Flatpickr do modal de edição, se já inicializado
     if (calendarEditInstance) {
       if (dataInicio && dataFim) {
         calendarEditInstance.setDate([dataInicio, dataFim], true);
@@ -513,7 +572,6 @@ document.querySelectorAll('.editar-btn').forEach(btn => {
     }
   });
 });
-
 </script>
 </body>
 </html>

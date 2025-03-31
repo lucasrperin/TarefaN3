@@ -1,0 +1,70 @@
+/* folga.css */
+
+/* Garante que o Flatpickr fique acima de outros elementos */
+.flatpickr-calendar {
+    z-index: 9999;
+  }
+  
+  /* Calendário: ocupa toda a largura da coluna */
+  #calendar {
+    width: 100%;
+  }
+  
+  /* --- Sobrescrita do layout padrão do FullCalendar no modo dayGridMonth --- */
+  
+  /* 1) Cada célula do calendário */
+  .fc-daygrid-day-frame {
+    position: relative !important; /* Necessário para o posicionamento absoluto do badge */
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 100% !important;
+    /* Remove qualquer padding/margem padrão */
+    padding: 0 !important;
+  }
+  
+  /* 2) O "top" da célula, que contém o número do dia */
+  .fc-daygrid-day-top {
+    /* Força o uso de flex e centraliza horizontal e verticalmente */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* 3) O próprio número do dia */
+  .fc-daygrid-day-number {
+    /* Remove offsets padrão do FC */
+    margin: 0 !important;
+    padding: 0 !important;
+    font-weight: 600;
+    text-align: center !important;
+  }
+  
+  /* --- Estilização do badge de totalizador (caso use posicionamento absoluto) --- */
+  .badge-colab-center {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+  }
+  
+  /* Painel de detalhes (card do Bootstrap) */
+  #sidePanel {
+    border: 1px solid #ccc;
+    padding: 0;
+    height: 400px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+  }
+  
+  /* Limita a altura interna do card para rolagem */
+  #sidePanel .card-body {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
