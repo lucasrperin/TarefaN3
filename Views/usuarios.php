@@ -1,6 +1,10 @@
 <?php
+session_start();
 // index.php
 include '../Config/Database.php';
+
+$usuario_id = $_SESSION['usuario_id'];
+$cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 
 // Consulta para obter os usuários com vínculo (equipe e nível)
 $query = "SELECT
@@ -52,11 +56,31 @@ while($row = mysqli_fetch_assoc($resultN)) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container d-flex justify-content-between align-items-center">
+      <!-- Botão Hamburguer com Dropdown -->
+      <div class="dropdown">
+        <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
+          <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversão</a></li>
+          <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+          <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
+          <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
+        </ul>
+      </div>
+      <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
+      <a href="menu.php" class="btn btn-danger">
+        <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
+      </a>
+    </div>
+  </nav>
 <div class="container my-4">
     <h1 class="mb-4">Controle de Usuários</h1>
     <!-- Botão para abrir o modal de cadastro -->
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">
-      <i class="fa-solid fa-plus me-1"></i> Cadastrar Novo Usuário
+      <i class="fa-solid fa-plus me-1"></i> Cadastrar
     </button>
     <table class="table table-striped table-bordered tabelaEstilizada">
       <thead class="table-dark">
