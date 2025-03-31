@@ -327,7 +327,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         </div>
                         <div class="d-flex justify-content-center gap-2">
                             <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-                            <a href="index.php" class="btn btn-secondary btn-sm">Limpar Filtros</a>
+                            <a href="index.php?data_inicio=&data_fim=" class="btn btn-secondary btn-sm">Limpar Filtros</a>
                         </div>
                     </form>
                 </div>
