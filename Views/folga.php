@@ -480,26 +480,27 @@ $resultFolga = $conn->query($sqlListarFolga);
   if (dayFrame) {
     dayFrame.style.position = 'relative';
     if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
-      // Destaca a célula
       dayFrame.style.backgroundColor = '#E2F0D9';
-
-      // Cria e adiciona o badge
       var badge = document.createElement('span');
       badge.classList.add('badge', 'bg-primary', 'badge-colab-center');
       badge.textContent = aggregator[dayStr].length;
       dayFrame.appendChild(badge);
-
-      // Evento de clique
-      dayFrame.addEventListener('click', function() {
-        updateSidePanel(dayStr);
-      });
     }
+    // Adiciona sempre o evento de clique para atualizar o painel
+    dayFrame.addEventListener('click', function() {
+      // Remove a classe 'selected-day' de todos os dias
+      document.querySelectorAll('.fc-daygrid-day-frame.selected-day').forEach(function(cell) {
+        cell.classList.remove('selected-day');
+      });
+      // Adiciona a classe ao dia clicado
+      dayFrame.classList.add('selected-day');
+      updateSidePanel(dayStr);
+    });
   }
 }
     });
     calendar.render();
 
-    // Atualiza o painel de detalhes com os dados do dia atual
     var todayStr = new Date().toISOString().split('T')[0];
     updateSidePanel(todayStr);
   });

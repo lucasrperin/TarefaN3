@@ -64,3 +64,8 @@
 .row.calendario-detalhes {
     margin-bottom: 20px;  /* ajuste conforme desejado */
   }
+  /* Destaca o dia selecionado no calendário */
+.fc-daygrid-day-frame.selected-day {
+    outline: 2px solid #FF9800; /* cor laranja, ajuste conforme preferir */
+  }
+  
