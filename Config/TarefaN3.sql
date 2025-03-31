@@ -261,6 +261,7 @@ CREATE TABLE IF NOT EXISTS TB_EQUIPE (
 
 INSERT INTO TB_EQUIPE (descricao) VALUES ('Linha Clipp');
 INSERT INTO TB_EQUIPE (descricao) VALUES ('Linha Small');
+INSERT INTO TB_EQUIPE (descricao) VALUES ('Todos');
 
 
 CREATE TABLE IF NOT EXISTS TB_NIVEL (
@@ -274,6 +275,9 @@ INSERT INTO TB_NIVEL (descricao) VALUES ('Nível 2');
 INSERT INTO TB_NIVEL (descricao) VALUES ('Exclusivo');
 INSERT INTO TB_NIVEL (descricao) VALUES ('Nível 3');
 INSERT INTO TB_NIVEL (descricao) VALUES ('Comercial');
+INSERT INTO TB_NIVEL (descricao) VALUES ('Supervisão');
+INSERT INTO TB_NIVEL (descricao) VALUES ('Gestão');
+INSERT INTO TB_NIVEL (descricao) VALUES ('Conversão');
 
 CREATE TABLE IF NOT EXISTS TB_EQUIPE_NIVEL_ANALISTA (
     idUsuario int,
