@@ -11,6 +11,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $idEquipe = intval($_POST['idEquipe']);
     $idNivel  = intval($_POST['idNivel']);
 
+
+    // Verifica se o email já existe
+    $sqlCheck = "SELECT * FROM TB_USUARIO WHERE Email = '$email'";
+    $resultCheck = mysqli_query($conn, $sqlCheck);
+    if(mysqli_num_rows($resultCheck) > 0){
+         header("Location: usuarios.php?error=1");
+         exit();
+    }
+
     // Insere o usuário na TB_USUARIO (o campo Cargo é informado pelo formulário)
     $sqlUsuario = "INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) 
                    VALUES ('$nome', '$email', '$senha', '$cargo')";
@@ -23,13 +32,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                        VALUES ($lastId, $idEquipe, $idNivel)";
         mysqli_query($conn, $sqlVinculo);
 
-        header("Location: usuarios.php");
+        header("Location: usuarios.php?success=1");
         exit();
     } else {
         echo "Erro ao cadastrar usuário: " . mysqli_error($conn);
     }
 } else {
-    header("Location: usuarios.php");
+    header("Location: usuarios.php?success=4");
     exit();
 }
 ?>

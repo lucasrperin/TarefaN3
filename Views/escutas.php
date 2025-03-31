@@ -224,6 +224,7 @@ if ($percentMetaGeral > 100) {
         <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-1"></i>Indicações</a></li>
         <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
         <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
+        <li><a class="dropdown-item" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
       </ul>
     </div>
     <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
@@ -374,8 +375,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   </div> <!-- fim row -->
 </div> <!-- fim container -->
-
-
 
 <!-- Seção: Escutas por Analista -->
 <div class="container mt-4">

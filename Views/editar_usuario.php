@@ -11,6 +11,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $idEquipe = intval($_POST['idEquipe']);
     $idNivel  = intval($_POST['idNivel']);
 
+    // Verifica se o email já existe para outro usuário
+    $sqlCheckEmail = "SELECT * FROM TB_USUARIO WHERE Email = '$email' AND Id != $id";
+    $resultEmail = mysqli_query($conn, $sqlCheckEmail);
+    if(mysqli_num_rows($resultEmail) > 0){
+         header("Location: usuarios.php?error=1");
+         exit();
+    }
     // Atualiza os dados do usuário; a senha é atualizada somente se preenchida
     if (!empty($senha)) {
         $sqlUsuario = "UPDATE TB_USUARIO 
@@ -39,13 +46,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             mysqli_query($conn, $sqlVinculo);
         }
 
-        header("Location: usuarios.php");
+        header("Location: usuarios.php?success=2");
         exit();
     } else {
         echo "Erro ao atualizar usuário: " . mysqli_error($conn);
     }
 } else {
-    header("Location: usuarios.php");
+    header("Location: usuarios.php?success=4");
     exit();
 }
 ?>

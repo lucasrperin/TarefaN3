@@ -151,10 +151,13 @@ $resultado_grafico = $stmt_grafico->get_result();
           <span class="navbar-toggler-icon"></span>
         </button>
         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-          <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversão</a></li>
-          <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
-          <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
-          <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
+            <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
+            <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+            <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
+            <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
+            <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-1"></i>Indicações</a></li>
+            <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
+            <li><a class="dropdown-item" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
         </ul>
       </div>
       <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
@@ -252,13 +255,13 @@ $resultado_grafico = $stmt_grafico->get_result();
 
       <!-- Coluna Central: Gráfico -->
     <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-header text-center">Evolução da Média de Notas dos Analistas (Mensal)</div>
-                    <div class="card-body mt-4">
-                        <canvas id="graficoNotas"></canvas>
-                    </div>
+        <div class="card h-100">
+            <div class="card-header text-center">Evolução da Média de Notas dos Analistas (Mensal)</div>
+                <div class="card-body mt-4">
+                    <canvas id="graficoNotas"></canvas>
                 </div>
             </div>
+        </div>
 
       <!-- Coluna Direita: Acessos aos Usuários -->
         <div class="col-md-3">

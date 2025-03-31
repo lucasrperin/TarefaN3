@@ -12,13 +12,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Exclui o usuário da tabela TB_USUARIO
     $sqlUsuario = "DELETE FROM TB_USUARIO WHERE Id = $id";
     if (mysqli_query($conn, $sqlUsuario)) {
-        header("Location: usuarios.php");
+        header("Location: usuarios.php?success=3");
         exit();
     } else {
         echo "Erro ao excluir usuário: " . mysqli_error($conn);
     }
 } else {
-    header("Location: usuarios.php");
+    header("Location: usuarios.php?success=4");
     exit();
 }
 ?>
