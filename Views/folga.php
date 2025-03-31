@@ -128,12 +128,7 @@ $resultFolga = $conn->query($sqlListarFolga);
   <!-- CSS customizado -->
   <link rel="stylesheet" href="../Public/folga.css">
   
-  <!-- Estilos inline para o badge (totalizadores) -->
-  <style>
-    .badge-colab-center {
-      /* Este estilo agora será utilizado em folga.css; se preferir, remova-o daqui */
-    }
-  </style>
+
 </head>
 <body>
 <nav class="navbar navbar-dark bg-dark">
