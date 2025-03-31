@@ -54,6 +54,8 @@ while($row = mysqli_fetch_assoc($resultN)) {
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
   <nav class="navbar navbar-dark bg-dark">
@@ -96,7 +98,6 @@ while($row = mysqli_fetch_assoc($resultN)) {
       </div>
     </div>
   </div>
-
 
   <script>
     //Toast para mensagem de sucesso e erro
@@ -147,14 +148,31 @@ while($row = mysqli_fetch_assoc($resultN)) {
     });
   </script>
 
+  <!-- Função de pesquisa nas tabelas-->
+  <script>
+      $(document).ready(function(){
+        $("#searchInput").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          // Para cada linha em todas as tabelas com a classe 'tabelaEstilizada'
+          $(".tabelaEstilizada tbody tr").filter(function() {
+            // Se o texto da linha conter o valor da pesquisa (ignorando maiúsculas/minúsculas), mostra a linha; caso contrário, oculta
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+          });
+        });
+      });
+  </script>
+  
   <div class="container mt-4">
     <div class="card shadow mb-4">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h1 class="mb-0">Controle de Usuários</h1>
-        <!-- Botão para abrir o modal de cadastro -->
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">
-          <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
-        </button>
+        <div class="d-flex justify-content-end gap-2">
+          <input type="text" id="searchInput" class="form-control ms-2" style="max-width: 200px;" placeholder="Pesquisar...">
+          <!-- Botão para abrir o modal de cadastro -->
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">
+            <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
+          </button>
+        </div>
       </div>
       <div class="card-body">
         <div class="table-responsive access-scroll">
@@ -208,156 +226,154 @@ while($row = mysqli_fetch_assoc($resultN)) {
   </div>
 
   <!-- Modal de Cadastro -->
-<div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-       <div class="modal-header">
-         <h5 class="modal-title" id="modalCadastroLabel">Novo Usuário</h5>
-         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-       </div>
-       <form action="cadastrar_usuario.php" method="post">
+  <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalCadastroLabel">Novo Usuário</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="cadastrar_usuario.php" method="post">
+            <div class="modal-body">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="nome_cad" class="form-label">Nome:</label>
+                  <input type="text" name="Nome" id="nome_cad" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="equipe_cad" class="form-label">Equipe:</label>
+                  <select name="idEquipe" id="equipe_cad" class="form-select">
+                    <?php foreach($equipes as $equipe): ?>
+                      <option value="<?= $equipe['id'] ?>"><?= $equipe['descricao'] ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="email_cad" class="form-label">Email:</label>
+                  <input type="email" name="Email" id="email_cad" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="senha_cad" class="form-label">Senha:</label>
+                  <input type="password" name="Senha" id="senha_cad" class="form-control" required>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="nivel_cad" class="form-label">Nível:</label>
+                  <select name="idNivel" id="nivel_cad" class="form-select">
+                    <?php foreach($niveis as $nivel): ?>
+                      <option value="<?= $nivel['id'] ?>"><?= $nivel['descricao'] ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="cargo_cad" class="form-label">Cargo:</label>
+                  <select name="Cargo" id="cargo_cad" class="form-select" required>
+                    <option value="Admin">Admin</option>
+                    <option value="Comercial">Comercial</option>
+                    <option value="Conversor">Conversor</option>
+                    <option value="User">User</option>
+                    <option value="Viewer">Viewer</option>
+                  </select>
+                </div>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <input type="submit" value="Cadastrar" class="btn btn-primary">
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Edição -->
+  <div class="modal fade" id="modalEditar" tabindex="-1" role="dialog" aria-labelledby="modalEditarLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEditarLabel">Editar Usuário</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="editar_usuario.php" method="post">
           <div class="modal-body">
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="nome_cad" class="form-label">Nome:</label>
-                <input type="text" name="Nome" id="nome_cad" class="form-control" required>
+              <input type="hidden" name="id" id="editar_id">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="nome_edit" class="form-label">Nome:</label>
+                  <input type="text" name="Nome" id="nome_edit" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="equipe_edit" class="form-label">Equipe:</label>
+                  <select name="idEquipe" id="equipe_edit" class="form-select">
+                    <?php foreach($equipes as $equipe): ?>
+                      <option value="<?= $equipe['id'] ?>"><?= $equipe['descricao'] ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
               </div>
-              <div class="col-md-6 mb-3">
-                <label for="equipe_cad" class="form-label">Equipe:</label>
-                <select name="idEquipe" id="equipe_cad" class="form-select">
-                  <?php foreach($equipes as $equipe): ?>
-                    <option value="<?= $equipe['id'] ?>"><?= $equipe['descricao'] ?></option>
-                  <?php endforeach; ?>
-                </select>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="email_edit" class="form-label">Email:</label>
+                  <input type="email" name="Email" id="email_edit" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="senha_edit" class="form-label">Senha:</label>
+                  <input type="password" name="Senha" id="senha_edit" class="form-control" placeholder="Preencha para alterar">
+                </div>
               </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="email_cad" class="form-label">Email:</label>
-                <input type="email" name="Email" id="email_cad" class="form-control" required>
+              <div class="row">
+                
+                <div class="col-md-6 mb-3">
+                  <label for="nivel_edit" class="form-label">Nível:</label>
+                  <select name="idNivel" id="nivel_edit" class="form-select">
+                    <?php foreach($niveis as $nivel): ?>
+                      <option value="<?= $nivel['id'] ?>"><?= $nivel['descricao'] ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="edit_cargo_cad" class="form-label">Cargo:</label>
+                  <select name="Cargo" id="edit_cargo_cad" class="form-select" required>
+                    <option value="Admin">Admin</option>
+                    <option value="Comercial">Comercial</option>
+                    <option value="Conversor">Conversor</option>
+                    <option value="User">User</option>
+                    <option value="Viewer">Viewer</option>
+                  </select>
+                </div>
               </div>
-              <div class="col-md-6 mb-3">
-                <label for="senha_cad" class="form-label">Senha:</label>
-                <input type="password" name="Senha" id="senha_cad" class="form-control" required>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="nivel_cad" class="form-label">Nível:</label>
-                <select name="idNivel" id="nivel_cad" class="form-select">
-                  <?php foreach($niveis as $nivel): ?>
-                    <option value="<?= $nivel['id'] ?>"><?= $nivel['descricao'] ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="cargo_cad" class="form-label">Cargo:</label>
-                <select name="Cargo" id="cargo_cad" class="form-select" required>
-                  <option value="Admin">Admin</option>
-                  <option value="Comercial">Comercial</option>
-                  <option value="Conversor">Conversor</option>
-                  <option value="User">User</option>
-                  <option value="Viewer">Viewer</option>
-                </select>
-              </div>
-            </div>
-         </div>
-         <div class="modal-footer">
-           <input type="submit" value="Cadastrar" class="btn btn-primary">
-         </div>
-       </form>
+          </div>
+          <div class="modal-footer">
+            <input type="submit" value="Salvar" class="btn btn-primary">
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Modal de Edição -->
-<div class="modal fade" id="modalEditar" tabindex="-1" role="dialog" aria-labelledby="modalEditarLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-       <div class="modal-header">
-         <h5 class="modal-title" id="modalEditarLabel">Editar Usuário</h5>
-         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-       </div>
-       <form action="editar_usuario.php" method="post">
-         <div class="modal-body">
-            <input type="hidden" name="id" id="editar_id">
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="nome_edit" class="form-label">Nome:</label>
-                <input type="text" name="Nome" id="nome_edit" class="form-control" required>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="equipe_edit" class="form-label">Equipe:</label>
-                <select name="idEquipe" id="equipe_edit" class="form-select">
-                  <?php foreach($equipes as $equipe): ?>
-                    <option value="<?= $equipe['id'] ?>"><?= $equipe['descricao'] ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="email_edit" class="form-label">Email:</label>
-                <input type="email" name="Email" id="email_edit" class="form-control" required>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="senha_edit" class="form-label">Senha:</label>
-                <input type="password" name="Senha" id="senha_edit" class="form-control" placeholder="Preencha para alterar">
-              </div>
-            </div>
-            <div class="row">
-              
-              <div class="col-md-6 mb-3">
-                <label for="nivel_edit" class="form-label">Nível:</label>
-                <select name="idNivel" id="nivel_edit" class="form-select">
-                  <?php foreach($niveis as $nivel): ?>
-                    <option value="<?= $nivel['id'] ?>"><?= $nivel['descricao'] ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="edit_cargo_cad" class="form-label">Cargo:</label>
-                <select name="Cargo" id="edit_cargo_cad" class="form-select" required>
-                  <option value="Admin">Admin</option>
-                  <option value="Comercial">Comercial</option>
-                  <option value="Conversor">Conversor</option>
-                  <option value="User">User</option>
-                  <option value="Viewer">Viewer</option>
-                </select>
-              </div>
-            </div>
-         </div>
-         <div class="modal-footer">
-           <input type="submit" value="Salvar" class="btn btn-primary">
-         </div>
-       </form>
+  <!-- Modal de Exclusão -->
+  <div class="modal fade" id="modalExcluir" tabindex="-1" aria-labelledby="modalExcluirLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalExcluirLabel">Excluir Usuário</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="deletar_usuario.php" method="post">
+          <div class="modal-body">
+              <input type="hidden" name="id" id="excluir_id">
+              <p>Tem certeza que deseja excluir o usuário <strong id="excluir_nome"></strong>?</p>
+          </div>
+          <div class="modal-footer mb-0">
+            <input type="submit" value="Excluir" class="btn btn-danger">
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Modal de Exclusão -->
-<div class="modal fade" id="modalExcluir" tabindex="-1" aria-labelledby="modalExcluirLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-       <div class="modal-header">
-         <h5 class="modal-title" id="modalExcluirLabel">Excluir Usuário</h5>
-         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-       </div>
-       <form action="deletar_usuario.php" method="post">
-         <div class="modal-body">
-            <input type="hidden" name="id" id="excluir_id">
-            <p>Tem certeza que deseja excluir o usuário <strong id="excluir_nome"></strong>?</p>
-         </div>
-         <div class="modal-footer mb-0">
-           <input type="submit" value="Excluir" class="btn btn-danger">
-         </div>
-       </form>
-    </div>
-  </div>
-</div>
-
-<!-- Scripts necessários -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 // Preenche e abre o modal de edição
     function editarUser(id, nome, email, idEquipe, idNivel, cargo) {

@@ -137,3 +137,20 @@ tbody a.btn-remove:hover {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  .access-scroll {
+    height: 500px;
+    overflow-y: auto;
+  }
+  
+  /* Personalização do scrollbar (Chrome, Edge, Safari) */
+  .access-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+  .access-scroll::-webkit-scrollbar-thumb {
+    background: #888; 
+    border-radius: 10px;
+  }
+  .access-scroll::-webkit-scrollbar-thumb:hover {
+    background: #555; 
+  }

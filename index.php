@@ -328,7 +328,9 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
     <div class="col-4 text-end">
         <?php if ($cargo === 'Admin'): ?>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">Cadastrar</button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">
+                <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
+            </button>
         <?php endif; ?>
     </div>
   </div>
@@ -338,7 +340,7 @@ document.addEventListener("DOMContentLoaded", function () {
 <div class="container mt-4">
   <div class="card shadow-sm">
     <div class="card-body">
-      <div class="table-responsive">
+      <div class="table-responsive access-scroll">
         <table id="tabelaAnalises" class="table table-bordered table-striped table-hover align-middle">
           <thead class="table-dark">
             <tr>
