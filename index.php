@@ -231,6 +231,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <li><a class="dropdown-item" href="Views/incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
                 <li><a class="dropdown-item" href="Views/indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a></li>
                 <li><a class="dropdown-item" href="Views/dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
+                <li><a class="dropdown-item" href="Views/usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
                 <?php endif; ?>
             </ul>
         </div>

@@ -156,6 +156,7 @@ if ($result_ranking) {
 
               <?php if ($cargo === 'Admin'): ?>
                 <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
+                <li><a class="dropdown-item" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
               <?php endif; ?>
               
             </ul>

@@ -56,7 +56,7 @@ while($row = mysqli_fetch_assoc($resultN)) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-<nav class="navbar navbar-dark bg-dark">
+  <nav class="navbar navbar-dark bg-dark">
     <div class="container d-flex justify-content-between align-items-center">
       <!-- Botão Hamburguer com Dropdown -->
       <div class="dropdown">
@@ -66,8 +66,11 @@ while($row = mysqli_fetch_assoc($resultN)) {
         <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
           <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversão</a></li>
           <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+          <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
           <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
+          <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a></li>
           <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
+          <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
         </ul>
       </div>
       <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
@@ -76,57 +79,133 @@ while($row = mysqli_fetch_assoc($resultN)) {
       </a>
     </div>
   </nav>
-<div class="container my-4">
-    <h1 class="mb-4">Controle de Usuários</h1>
-    <!-- Botão para abrir o modal de cadastro -->
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">
-      <i class="fa-solid fa-plus me-1"></i> Cadastrar
-    </button>
-    <table class="table table-striped table-bordered tabelaEstilizada">
-      <thead class="table-dark">
-        <tr>
-            <th>Nome</th>
-            <th>Email</th>
-            <th>Cargo</th>
-            <th>Equipe</th>
-            <th>Nível</th>
-            <th>Ações</th>
-        </tr>
-        </thead>
-        <tbody>
-        <?php if($result && mysqli_num_rows($result) > 0): ?>
-          <?php while($user = mysqli_fetch_assoc($result)): ?>
-            <tr>
-              <td><?= $user['Nome'] ?></td>
-              <td><?= $user['Email'] ?></td>
-              <td><?= $user['Cargo'] ?></td>
-              <td><?= $user['EquipeDescricao'] ?></td>
-              <td><?= $user['NivelDescricao'] ?></td>
-              <td>
-                <button type="button" title="Editar" class="btn btn-outline-primary btn-sm" 
-                  onclick="editarUser('<?= $user['Id'] ?>', 
-                                        '<?= addslashes($user['Nome']) ?>', 
-                                        '<?= addslashes($user['Email']) ?>', 
-                                        '<?= $user['idEquipe'] ?>', 
-                                        '<?= $user['idNivel'] ?>', 
-                                        '<?= $user['Cargo'] ?>')">
-                  <i class="fa-solid fa-pen"></i>
-                </button>
-                <button class="btn btn-outline-danger btn-sm" 
-                    onclick="modalExcluir('<?= $user['Id'] ?>', '<?= addslashes($user['Nome']) ?>')">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
-              </td>
-            </tr>
-          <?php endwhile; ?>
-        <?php else: ?>
-          <tr>
-            <td colspan="6" class="text-center">Nenhum usuário encontrado.</td>
-          </tr>
-        <?php endif; ?>
-      </tbody>
-    </table>
-</div>
+
+  <!-- Container do Toast no canto superior direito -->
+  <div class="toast-container">
+      <div id="toastSucesso" class="toast">
+          <div class="toast-body">
+              <i class="fa-solid fa-check-circle"></i> <span id="toastMensagem"></span>
+          </div>
+      </div>
+  </div>
+  <!-- Toast de Erro -->
+  <div class="toast-container"> 
+    <div id="toastErro" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-body">
+        <i class="fa-solid fa-exclamation-triangle"></i> <span id="toastMensagemErro"></span>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    //Toast para mensagem de sucesso e erro
+    document.addEventListener("DOMContentLoaded", function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const success = urlParams.get("success");
+      const error = urlParams.get("error");
+
+      if (success) {
+          let mensagem = "";
+          switch (success) {
+              case "1":
+                  mensagem = "Usuário cadastrado com sucesso!";
+                  break;
+              case "2":
+                  mensagem = "Usuário editado com sucesso!";
+                  break;
+              case "3":
+                  mensagem = "Usuário excluído com sucesso!";
+                  break;
+              case "4":
+                  mensagem = "Erro ao cadastrar usuário, verifique!";
+                  break;
+          }
+          if (mensagem) {
+              document.getElementById("toastMensagem").textContent = mensagem;
+              var toastEl = document.getElementById("toastSucesso");
+              var toast = new bootstrap.Toast(toastEl, { delay: 2200 });
+              toast.show();
+          }
+      }
+      
+      if (error) {
+          let mensagem = "";
+          switch (error) {
+              case "1":
+                mensagem = "E-mail já cadastrado!";
+                break;
+          }
+          if (mensagem) {
+              // Exibe um toast de erro
+              document.getElementById("toastMensagemErro").textContent = mensagem;
+              var toastElErro = document.getElementById("toastErro");
+              var toastErro = new bootstrap.Toast(toastElErro, { delay: 2200 });
+              toastErro.show();
+          }
+      }
+    });
+  </script>
+
+  <div class="container mt-4">
+    <div class="card shadow mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h1 class="mb-0">Controle de Usuários</h1>
+        <!-- Botão para abrir o modal de cadastro -->
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">
+          <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive access-scroll">
+          <table class="table table-striped table-bordered tabelaEstilizada ">
+            <thead class="table-dark">
+              <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Cargo</th>
+                <th>Equipe</th>
+                <th>Nível</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php if($result && mysqli_num_rows($result) > 0): ?>
+                <?php while($user = mysqli_fetch_assoc($result)): ?>
+                  <tr>
+                    <td><?= $user['Nome'] ?></td>
+                    <td><?= $user['Email'] ?></td>
+                    <td><?= $user['Cargo'] ?></td>
+                    <td><?= $user['EquipeDescricao'] ?></td>
+                    <td><?= $user['NivelDescricao'] ?></td>
+                    <td>
+                      <button type="button" title="Editar" class="btn btn-outline-primary btn-sm" 
+                        onclick="editarUser('<?= $user['Id'] ?>', 
+                                              '<?= addslashes($user['Nome']) ?>', 
+                                              '<?= addslashes($user['Email']) ?>', 
+                                              '<?= $user['idEquipe'] ?>', 
+                                              '<?= $user['idNivel'] ?>', 
+                                              '<?= $user['Cargo'] ?>')">
+                        <i class="fa-solid fa-pen"></i>
+                      </button>
+                      <button class="btn btn-outline-danger btn-sm" 
+                          onclick="modalExcluir('<?= $user['Id'] ?>', '<?= addslashes($user['Nome']) ?>')">
+                          <i class="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                <?php endwhile; ?>
+              <?php else: ?>
+                <tr>
+                  <td colspan="6" class="text-center">Nenhum usuário encontrado.</td>
+                </tr>
+              <?php endif; ?>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal de Cadastro -->
 <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
@@ -137,49 +216,54 @@ while($row = mysqli_fetch_assoc($resultN)) {
          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
        </div>
        <form action="cadastrar_usuario.php" method="post">
-         <div class="modal-body">
-            <div class="mb-3">
-              <label for="nome_cad" class="form-label">Nome:</label>
-              <input type="text" name="Nome" id="nome_cad" class="form-control" required>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="nome_cad" class="form-label">Nome:</label>
+                <input type="text" name="Nome" id="nome_cad" class="form-control" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="equipe_cad" class="form-label">Equipe:</label>
+                <select name="idEquipe" id="equipe_cad" class="form-select">
+                  <?php foreach($equipes as $equipe): ?>
+                    <option value="<?= $equipe['id'] ?>"><?= $equipe['descricao'] ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="email_cad" class="form-label">Email:</label>
-              <input type="email" name="Email" id="email_cad" class="form-control" required>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="email_cad" class="form-label">Email:</label>
+                <input type="email" name="Email" id="email_cad" class="form-control" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="senha_cad" class="form-label">Senha:</label>
+                <input type="password" name="Senha" id="senha_cad" class="form-control" required>
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="senha_cad" class="form-label">Senha:</label>
-              <input type="password" name="Senha" id="senha_cad" class="form-control" required>
-            </div>
-            <div class="mb-3">
-              <label for="equipe_cad" class="form-label">Equipe:</label>
-              <select name="idEquipe" id="equipe_cad" class="form-select">
-                <?php foreach($equipes as $equipe): ?>
-                  <option value="<?= $equipe['id'] ?>"><?= $equipe['descricao'] ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label for="nivel_cad" class="form-label">Nível:</label>
-              <select name="idNivel" id="nivel_cad" class="form-select">
-                <?php foreach($niveis as $nivel): ?>
-                  <option value="<?= $nivel['id'] ?>"><?= $nivel['descricao'] ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label for="cargo_cad" class="form-label">Cargo:</label>
-              <select name="Cargo" id="cargo_cad" class="form-select" required>
-                <option value="Admin">Admin</option>
-                <option value="Comercial">Comercial</option>
-                <option value="Conversor">Conversor</option>
-                <option value="User">User</option>
-                <option value="Viewer">Viewer</option>
-              </select>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="nivel_cad" class="form-label">Nível:</label>
+                <select name="idNivel" id="nivel_cad" class="form-select">
+                  <?php foreach($niveis as $nivel): ?>
+                    <option value="<?= $nivel['id'] ?>"><?= $nivel['descricao'] ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="cargo_cad" class="form-label">Cargo:</label>
+                <select name="Cargo" id="cargo_cad" class="form-select" required>
+                  <option value="Admin">Admin</option>
+                  <option value="Comercial">Comercial</option>
+                  <option value="Conversor">Conversor</option>
+                  <option value="User">User</option>
+                  <option value="Viewer">Viewer</option>
+                </select>
+              </div>
             </div>
          </div>
          <div class="modal-footer">
            <input type="submit" value="Cadastrar" class="btn btn-primary">
-           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
          </div>
        </form>
     </div>
@@ -197,48 +281,54 @@ while($row = mysqli_fetch_assoc($resultN)) {
        <form action="editar_usuario.php" method="post">
          <div class="modal-body">
             <input type="hidden" name="id" id="editar_id">
-            <div class="mb-3">
-              <label for="nome_edit" class="form-label">Nome:</label>
-              <input type="text" name="Nome" id="nome_edit" class="form-control" required>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="nome_edit" class="form-label">Nome:</label>
+                <input type="text" name="Nome" id="nome_edit" class="form-control" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="equipe_edit" class="form-label">Equipe:</label>
+                <select name="idEquipe" id="equipe_edit" class="form-select">
+                  <?php foreach($equipes as $equipe): ?>
+                    <option value="<?= $equipe['id'] ?>"><?= $equipe['descricao'] ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="email_edit" class="form-label">Email:</label>
-              <input type="email" name="Email" id="email_edit" class="form-control" required>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="email_edit" class="form-label">Email:</label>
+                <input type="email" name="Email" id="email_edit" class="form-control" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="senha_edit" class="form-label">Senha:</label>
+                <input type="password" name="Senha" id="senha_edit" class="form-control" placeholder="Preencha para alterar">
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="senha_edit" class="form-label">Senha:</label>
-              <input type="password" name="Senha" id="senha_edit" class="form-control" placeholder="Preencha para alterar">
-            </div>
-            <div class="mb-3">
-              <label for="equipe_edit" class="form-label">Equipe:</label>
-              <select name="idEquipe" id="equipe_edit" class="form-select">
-                <?php foreach($equipes as $equipe): ?>
-                  <option value="<?= $equipe['id'] ?>"><?= $equipe['descricao'] ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label for="nivel_edit" class="form-label">Nível:</label>
-              <select name="idNivel" id="nivel_edit" class="form-select">
-                <?php foreach($niveis as $nivel): ?>
-                  <option value="<?= $nivel['id'] ?>"><?= $nivel['descricao'] ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label for="edit_cargo_cad" class="form-label">Cargo:</label>
-              <select name="Cargo" id="edit_cargo_cad" class="form-select" required>
-                <option value="Admin">Admin</option>
-                <option value="Comercial">Comercial</option>
-                <option value="Conversor">Conversor</option>
-                <option value="User">User</option>
-                <option value="Viewer">Viewer</option>
-              </select>
+            <div class="row">
+              
+              <div class="col-md-6 mb-3">
+                <label for="nivel_edit" class="form-label">Nível:</label>
+                <select name="idNivel" id="nivel_edit" class="form-select">
+                  <?php foreach($niveis as $nivel): ?>
+                    <option value="<?= $nivel['id'] ?>"><?= $nivel['descricao'] ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="edit_cargo_cad" class="form-label">Cargo:</label>
+                <select name="Cargo" id="edit_cargo_cad" class="form-select" required>
+                  <option value="Admin">Admin</option>
+                  <option value="Comercial">Comercial</option>
+                  <option value="Conversor">Conversor</option>
+                  <option value="User">User</option>
+                  <option value="Viewer">Viewer</option>
+                </select>
+              </div>
             </div>
          </div>
          <div class="modal-footer">
-           <input type="submit" value="Atualizar" class="btn btn-primary">
-           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+           <input type="submit" value="Salvar" class="btn btn-primary">
          </div>
        </form>
     </div>
@@ -258,9 +348,8 @@ while($row = mysqli_fetch_assoc($resultN)) {
             <input type="hidden" name="id" id="excluir_id">
             <p>Tem certeza que deseja excluir o usuário <strong id="excluir_nome"></strong>?</p>
          </div>
-         <div class="modal-footer">
+         <div class="modal-footer mb-0">
            <input type="submit" value="Excluir" class="btn btn-danger">
-           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
          </div>
        </form>
     </div>
@@ -285,6 +374,8 @@ while($row = mysqli_fetch_assoc($resultN)) {
     function modalExcluir(id, nome) {
         document.getElementById('excluir_id').value = id;
         document.getElementById('excluir_nome').textContent = nome;
+
+        $('#modalExcluir').modal('show');
     }
     // Fecha o modal ao clicar fora do conteúdo
     window.onclick = function(event) {

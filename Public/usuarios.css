@@ -35,20 +35,88 @@
 .table {
     background-color: white;
   }
-  .table th {
-    text-align: center;
-    vertical-align: middle;
-  }
-  .table td {
-    text-align: center;
-    vertical-align: middle;
-  }
-  .tabelaEstilizada {
-    border-collapse: separate;
-    border-spacing: 0 2px;
-  }
-  .tabelaEstilizada tbody tr {
-    border-radius: 5px;
-    overflow: hidden;
-    font-family: 'Nunito', sans-serif;
-  }
+
+.table th {
+  text-align: center;
+  vertical-align: middle;
+}
+.table td {
+  text-align: center;
+  vertical-align: middle;
+}
+.tabelaEstilizada {
+  border-collapse: separate;
+  border-spacing: 0 2px;
+}
+.tabelaEstilizada tbody tr {
+  border-radius: 5px;
+  overflow: hidden;
+  font-family: 'Nunito', sans-serif;
+}
+
+.access-scroll {
+  height: 500px;
+  overflow-y: auto;
+}
+
+/* Personalização do scrollbar (Chrome, Edge, Safari) */
+.access-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.access-scroll::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 10px;
+}
+.access-scroll::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+
+/* Estilo do Toast */
+.toast-container {
+  position: fixed!important;
+  top: 0;
+  right: 0;
+  z-index: 1050; /* Garantir que o toast esteja acima de outros elementos */
+  padding: 10px;
+  display: flex; /* Para evitar que o toast tente expandir */
+  flex-direction: column; /* Para que os toasts fiquem empilhados, se houver mais de um */
+  align-items: flex-end; /* Garante que os toasts fiquem alinhados à direita */
+}
+
+.toast {
+  width: fit-content !important;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  background-color: #28a745;
+  color: white;
+  width: auto; /* Faz o toast ocupar apenas o espaço necessário */
+  max-width: 30px; /* Limite para não ficar muito grande */
+}
+
+.toast.show {
+  display: flex;
+  opacity: 1;
+  background-color: #28a745;
+  color: white;
+}
+
+.toast-body {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px; /* Reduz o espaçamento interno */
+  font-size: 16px;
+  white-space: nowrap; /* Impede que o texto quebre em múltiplas linhas */
+  flex-grow: 1; /* Garante que o conteúdo ocupe só o espaço necessário */
+}
+
+.toast-body i {
+  margin-right: 10px;
+  font-size: 25px;
+  flex-shrink: 0; /* Evita que o ícone encolha */
+}
+
+#toastMensagem {
+  display: inline; /* Garante que o texto não ocupe espaço extra */
+  flex-grow: 0; /* Faz o texto ocupar apenas o espaço necessário */
+}

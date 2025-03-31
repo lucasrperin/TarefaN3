@@ -93,22 +93,38 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
           <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
             <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
           <?php endif; ?>
+
           <?php if ($cargo === 'Admin'): ?>
             <li><a class="dropdown-item" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
-            <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
-            <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
-            <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
           <?php endif; ?>
+
+          <?php if ($cargo === 'Admin'): ?>
+            <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
+          <?php endif; ?>
+
+          <?php if ($cargo === 'Admin'): ?>  
+            <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
+          <?php endif; ?>
+
           <?php if ($cargo === 'User' || $cargo === 'Conversor'): ?>
             <li><a class="dropdown-item" href="user.php"><i class="fa-solid fa-chalkboard-user me-1"></i>Meu Painel</a></li>
           <?php endif; ?>
+
           <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>
             <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
+          <?php endif; ?>
+
+          <?php if ($cargo === 'Admin'): ?>
+            <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
+          <?php endif; ?>
+
+          <?php if ($cargo === 'Admin'): ?>
+            <li><a class="dropdown-item" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
           <?php endif; ?>
         </ul>
       </div>
     <?php endif; ?>
-    <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
+    <span class="text-white">Bem-vindo(a), <?php echo $_SESSION['usuario_nome']; ?>!</span>
     <a href="menu.php" class="btn btn-danger">
       <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
     </a>

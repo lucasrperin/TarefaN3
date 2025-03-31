@@ -79,11 +79,12 @@ $resultWeb = $conn->query($sqlWeb);
       </button>
       <ul class="dropdown-menu dropdown-menu-dark">
         <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
-        <li><a class="dropdown-item" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+        <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
         <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
         <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-1"></i>Indicações</a></li>
         <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
         <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
+        <li><a class="dropdown-item" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
       </ul>
     </div>
     <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
@@ -120,7 +121,7 @@ $resultWeb = $conn->query($sqlWeb);
           }
       }, 3000);
     </script>
-<?php endif; ?>
+  <?php endif; ?>
 
   <!-- PAINEL COM TOTALIZADORES E GRÁFICO (altura fixa) -->
   <div class="row mb-4 align-items-stretch" style="height: 250px;">
@@ -203,174 +204,170 @@ $resultWeb = $conn->query($sqlWeb);
     </button>
   </div>
 
- <!-- MODAL DE CADASTRO -->
-<div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form action="cadastrar_incidente.php" method="post">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalCadastroLabel">Cadastrar Incidente</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-        </div>
-        <div class="modal-body">
-          <!-- Linha: Sistema | Gravidade -->
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="sistema" class="form-label">Sistema</label>
-              <select class="form-select" id="sistema" name="sistema" required>
-                <option value="">Selecione o sistema</option>
-                <option value="ClippPRO">ClippPRO (Desktop)</option>
-                <option value="ZWEB">ZWEB (Web)</option>
-                <option value="Clipp360">Clipp360 (Web)</option>
-                <option value="ClippFácil">ClippFácil (Web)</option>
-                <option value="Conversor">Conversor (Web)</option>
-              </select>
+  <!-- MODAL DE CADASTRO -->
+  <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form action="cadastrar_incidente.php" method="post">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalCadastroLabel">Cadastrar Incidente</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Linha: Sistema | Gravidade -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="sistema" class="form-label">Sistema</label>
+                <select class="form-select" id="sistema" name="sistema" required>
+                  <option value="">Selecione o sistema</option>
+                  <option value="ClippPRO">ClippPRO (Desktop)</option>
+                  <option value="ZWEB">ZWEB (Web)</option>
+                  <option value="Clipp360">Clipp360 (Web)</option>
+                  <option value="ClippFácil">ClippFácil (Web)</option>
+                  <option value="Conversor">Conversor (Web)</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="gravidade" class="form-label">Gravidade</label>
+                <select class="form-select" id="gravidade" name="gravidade" required>
+                  <option value="">Selecione a gravidade</option>
+                  <option value="Moderado">Moderado</option>
+                  <option value="Grave">Grave</option>
+                  <option value="Gravissimo">Gravissimo</option>
+                </select>
+              </div>
             </div>
-            <div class="col-md-6">
-              <label for="gravidade" class="form-label">Gravidade</label>
-              <select class="form-select" id="gravidade" name="gravidade" required>
-                <option value="">Selecione a gravidade</option>
-                <option value="Moderado">Moderado</option>
-                <option value="Grave">Grave</option>
-                <option value="Gravissimo">Gravissimo</option>
-              </select>
+
+            <!-- Linha inteira: Descrição do Problema -->
+            <div class="row mb-3">
+              <div class="col-12">
+                <label for="problema" class="form-label">Descrição do Problema</label>
+                <textarea class="form-control" id="problema" name="problema" rows="3" required></textarea>
+              </div>
+            </div>
+
+            <!-- Linha: Horário de Início | Horário de Término -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="hora_inicio" class="form-label">Horário de Início</label>
+                <input type="datetime-local" class="form-control" id="hora_inicio" name="hora_inicio" required>
+              </div>
+              <div class="col-md-6">
+                <label for="hora_fim" class="form-label">Horário de Término</label>
+                <input type="datetime-local" class="form-control" id="hora_fim" name="hora_fim" required>
+              </div>
+            </div>
+
+            <!-- Linha: Tempo Total (calculado) | Tipo de Indisponibilidade -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="tempo_total" class="form-label">Tempo Total (calculado)</label>
+                <input type="text" class="form-control" id="tempo_total" name="tempo_total" readonly>
+              </div>
+              <div class="col-md-6">
+                <label for="indisponibilidade" class="form-label">Tipo de Indisponibilidade</label>
+                <select class="form-select" id="indisponibilidade" name="indisponibilidade" required>
+                  <option value="">Selecione</option>
+                  <option value="Total">Total</option>
+                  <option value="Parcial">Parcial</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          <!-- Linha inteira: Descrição do Problema -->
-          <div class="row mb-3">
-            <div class="col-12">
-              <label for="problema" class="form-label">Descrição do Problema</label>
-              <textarea class="form-control" id="problema" name="problema" rows="3" required></textarea>
-            </div>
+          <!-- Rodapé do Modal -->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Gravar</button>
           </div>
-
-          <!-- Linha: Horário de Início | Horário de Término -->
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="hora_inicio" class="form-label">Horário de Início</label>
-              <input type="datetime-local" class="form-control" id="hora_inicio" name="hora_inicio" required>
-            </div>
-            <div class="col-md-6">
-              <label for="hora_fim" class="form-label">Horário de Término</label>
-              <input type="datetime-local" class="form-control" id="hora_fim" name="hora_fim" required>
-            </div>
-          </div>
-
-          <!-- Linha: Tempo Total (calculado) | Tipo de Indisponibilidade -->
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="tempo_total" class="form-label">Tempo Total (calculado)</label>
-              <input type="text" class="form-control" id="tempo_total" name="tempo_total" readonly>
-            </div>
-            <div class="col-md-6">
-              <label for="indisponibilidade" class="form-label">Tipo de Indisponibilidade</label>
-              <select class="form-select" id="indisponibilidade" name="indisponibilidade" required>
-                <option value="">Selecione</option>
-                <option value="Total">Total</option>
-                <option value="Parcial">Parcial</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Rodapé do Modal -->
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-          <button type="submit" class="btn btn-primary">Gravar</button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
-</div>
 
+  <!-- MODAL DE EDIÇÃO (inicialmente oculto) -->
+  <div class="modal fade" id="modalEdicao" tabindex="-1" aria-labelledby="modalEdicaoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form action="editar_incidente.php" method="post" id="formEdicao">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalEdicaoLabel">Editar Incidente</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Campo oculto para o ID -->
+            <input type="hidden" name="id" id="edit_id">
 
-
-<!-- MODAL DE EDIÇÃO (inicialmente oculto) -->
-<div class="modal fade" id="modalEdicao" tabindex="-1" aria-labelledby="modalEdicaoLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form action="editar_incidente.php" method="post" id="formEdicao">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalEdicaoLabel">Editar Incidente</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-        </div>
-        <div class="modal-body">
-          <!-- Campo oculto para o ID -->
-          <input type="hidden" name="id" id="edit_id">
-
-          <!-- Linha: Sistema | Gravidade -->
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="edit_sistema" class="form-label">Sistema</label>
-              <select class="form-select" name="sistema" id="edit_sistema" required>
-                <option value="">Selecione o sistema</option>
-                <option value="ClippPRO">ClippPRO (Desktop)</option>
-                <option value="ZWEB">ZWEB (Web)</option>
-                <option value="Clipp360">Clipp360 (Web)</option>
-                <option value="ClippFácil">ClippFácil (Web)</option>
-                <option value="Conversor">Conversor (Web)</option>
-              </select>
+            <!-- Linha: Sistema | Gravidade -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="edit_sistema" class="form-label">Sistema</label>
+                <select class="form-select" name="sistema" id="edit_sistema" required>
+                  <option value="">Selecione o sistema</option>
+                  <option value="ClippPRO">ClippPRO (Desktop)</option>
+                  <option value="ZWEB">ZWEB (Web)</option>
+                  <option value="Clipp360">Clipp360 (Web)</option>
+                  <option value="ClippFácil">ClippFácil (Web)</option>
+                  <option value="Conversor">Conversor (Web)</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_gravidade" class="form-label">Gravidade</label>
+                <select class="form-select" name="gravidade" id="edit_gravidade" required>
+                  <option value="">Selecione a gravidade</option>
+                  <option value="Moderado">Moderado</option>
+                  <option value="Grave">Grave</option>
+                  <option value="Gravissimo">Gravissimo</option>
+                </select>
+              </div>
             </div>
-            <div class="col-md-6">
-              <label for="edit_gravidade" class="form-label">Gravidade</label>
-              <select class="form-select" name="gravidade" id="edit_gravidade" required>
-                <option value="">Selecione a gravidade</option>
-                <option value="Moderado">Moderado</option>
-                <option value="Grave">Grave</option>
-                <option value="Gravissimo">Gravissimo</option>
-              </select>
+
+            <!-- Linha inteira: Descrição do Problema -->
+            <div class="row mb-3">
+              <div class="col-12">
+                <label for="edit_problema" class="form-label">Descrição do Problema</label>
+                <textarea class="form-control" name="problema" id="edit_problema" rows="3" required></textarea>
+              </div>
+            </div>
+
+            <!-- Linha: Horário de Início | Horário de Término -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="edit_hora_inicio" class="form-label">Horário de Início</label>
+                <input type="datetime-local" class="form-control" name="hora_inicio" id="edit_hora_inicio" required>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_hora_fim" class="form-label">Horário de Término</label>
+                <input type="datetime-local" class="form-control" name="hora_fim" id="edit_hora_fim" required>
+              </div>
+            </div>
+
+            <!-- Linha: Tempo Total (calculado) | Tipo de Indisponibilidade -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="edit_tempo_total" class="form-label">Tempo Total (calculado)</label>
+                <input type="text" class="form-control" name="tempo_total" id="edit_tempo_total" readonly>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_indisponibilidade" class="form-label">Tipo de Indisponibilidade</label>
+                <select class="form-select" name="indisponibilidade" id="edit_indisponibilidade" required>
+                  <option value="">Selecione</option>
+                  <option value="Total">Total</option>
+                  <option value="Parcial">Parcial</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          <!-- Linha inteira: Descrição do Problema -->
-          <div class="row mb-3">
-            <div class="col-12">
-              <label for="edit_problema" class="form-label">Descrição do Problema</label>
-              <textarea class="form-control" name="problema" id="edit_problema" rows="3" required></textarea>
-            </div>
+          <!-- Rodapé do Modal -->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            <button type="submit" class="btn btn-primary">Atualizar</button>
           </div>
-
-          <!-- Linha: Horário de Início | Horário de Término -->
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="edit_hora_inicio" class="form-label">Horário de Início</label>
-              <input type="datetime-local" class="form-control" name="hora_inicio" id="edit_hora_inicio" required>
-            </div>
-            <div class="col-md-6">
-              <label for="edit_hora_fim" class="form-label">Horário de Término</label>
-              <input type="datetime-local" class="form-control" name="hora_fim" id="edit_hora_fim" required>
-            </div>
-          </div>
-
-          <!-- Linha: Tempo Total (calculado) | Tipo de Indisponibilidade -->
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="edit_tempo_total" class="form-label">Tempo Total (calculado)</label>
-              <input type="text" class="form-control" name="tempo_total" id="edit_tempo_total" readonly>
-            </div>
-            <div class="col-md-6">
-              <label for="edit_indisponibilidade" class="form-label">Tipo de Indisponibilidade</label>
-              <select class="form-select" name="indisponibilidade" id="edit_indisponibilidade" required>
-                <option value="">Selecione</option>
-                <option value="Total">Total</option>
-                <option value="Parcial">Parcial</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Rodapé do Modal -->
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-          <button type="submit" class="btn btn-primary">Atualizar</button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
-</div>
-
-
   <!-- TABELAS DE INCIDENTES -->
   <div class="row">
     <!-- Incidentes Desktop -->
@@ -395,53 +392,53 @@ $resultWeb = $conn->query($sqlWeb);
                   </tr>
                 </thead>
                 <tbody>
-                <?php while($row = $resultDesktop->fetch_assoc()):
-                                $gravidadeClass = '';
-                                if($row['gravidade'] == 'Moderado'){
-                                    $gravidadeClass = 'badge-moderado';
-                                } elseif($row['gravidade'] == 'Grave'){
-                                    $gravidadeClass = 'badge-grave';
-                                } elseif($row['gravidade'] == 'Gravissimo'){
-                                    $gravidadeClass = 'badge-gravissimo';
-                                }
-                                ?>
-                                <tr>
-                                <td><?= $row['sistema'] ?></td>
-                                <td>
-                                    <span class="badge <?= $gravidadeClass ?>">
-                                    <?= $row['gravidade'] ?>
-                                    </span>
-                                </td>
-                                <td class="sobrepor"><?= $row['problema'] ?></td>
-                                <td><?= date('d/m/Y H:i:s', strtotime($row['hora_inicio'])) ?></td>
-                                <td><?= date('d/m/Y H:i:s', strtotime($row['hora_fim'])) ?></td>
-                                <td><?= $row['tempo_total'] ?></td>
-                                <td>
-                                    <!-- Botão Editar -->
-                                    <a href="javascript:void(0);" 
-                                              class="btn btn-sm btn-primary me-1"
-                                              onclick="openEditModal(
-                                                '<?= $row['id'] ?>',
-                                                '<?= $row['sistema'] ?>',
-                                                '<?= $row['gravidade'] ?>',
-                                                '<?= htmlspecialchars($row['problema'], ENT_QUOTES) ?>',
-                                                '<?= date('Y-m-d\TH:i', strtotime($row['hora_inicio'])) ?>',
-                                                '<?= date('Y-m-d\TH:i', strtotime($row['hora_fim'])) ?>',
-                                                '<?= $row['tempo_total'] ?>',
-                                                '<?= $row['indisponibilidade'] ?>'
-                                              );">
-                                              <i class="bi bi-pencil"></i>
-                                            </a>
+                  <?php while($row = $resultDesktop->fetch_assoc()):
+                    $gravidadeClass = '';
+                    if($row['gravidade'] == 'Moderado'){
+                        $gravidadeClass = 'badge-moderado';
+                    } elseif($row['gravidade'] == 'Grave'){
+                        $gravidadeClass = 'badge-grave';
+                    } elseif($row['gravidade'] == 'Gravissimo'){
+                        $gravidadeClass = 'badge-gravissimo';
+                    }
+                    ?>
+                    <tr>
+                    <td><?= $row['sistema'] ?></td>
+                    <td>
+                        <span class="badge <?= $gravidadeClass ?>">
+                        <?= $row['gravidade'] ?>
+                        </span>
+                    </td>
+                    <td class="sobrepor"><?= $row['problema'] ?></td>
+                    <td><?= date('d/m/Y H:i:s', strtotime($row['hora_inicio'])) ?></td>
+                    <td><?= date('d/m/Y H:i:s', strtotime($row['hora_fim'])) ?></td>
+                    <td><?= $row['tempo_total'] ?></td>
+                    <td>
+                        <!-- Botão Editar -->
+                        <a href="javascript:void(0);" 
+                                  class="btn btn-sm btn-primary me-1"
+                                  onclick="openEditModal(
+                                    '<?= $row['id'] ?>',
+                                    '<?= $row['sistema'] ?>',
+                                    '<?= $row['gravidade'] ?>',
+                                    '<?= htmlspecialchars($row['problema'], ENT_QUOTES) ?>',
+                                    '<?= date('Y-m-d\TH:i', strtotime($row['hora_inicio'])) ?>',
+                                    '<?= date('Y-m-d\TH:i', strtotime($row['hora_fim'])) ?>',
+                                    '<?= $row['tempo_total'] ?>',
+                                    '<?= $row['indisponibilidade'] ?>'
+                                  );">
+                                  <i class="bi bi-pencil"></i>
+                                </a>
 
-                                    <!-- Botão Excluir -->
-                                    <a href="deletar_incidente.php?id=<?= $row['id'] ?>"
-                                    class="btn btn-sm btn-danger"
-                                    onclick="return confirm('Tem certeza que deseja excluir este incidente?');">
-                                    <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
-                                </tr>
-                                <?php endwhile; ?>
+                        <!-- Botão Excluir -->
+                        <a href="deletar_incidente.php?id=<?= $row['id'] ?>"
+                        class="btn btn-sm btn-danger"
+                        onclick="return confirm('Tem certeza que deseja excluir este incidente?');">
+                        <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
+                    </tr>
+                  <?php endwhile; ?>
                 </tbody>
               </table>
             </div>
