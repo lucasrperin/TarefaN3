@@ -17,6 +17,23 @@ $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 $data_inicio = isset($_GET['data_inicio']) ? $_GET['data_inicio'] : '';
 $data_fim    = isset($_GET['data_fim']) ? $_GET['data_fim'] : '';
 
+// Captura os parâmetros do filtro ou define o mês atual por padrão na primeira carga
+// Captura os parâmetros do filtro ou define o mês atual por padrão
+if (isset($_GET['data_inicio']) && isset($_GET['data_fim'])) {
+    if ($_GET['data_inicio'] === '' && $_GET['data_fim'] === '') {
+        // sem filtro, mostra tudo
+        $data_inicio = '';
+        $data_fim = '';
+    } else {
+        $data_inicio = $_GET['data_inicio'];
+        $data_fim = $_GET['data_fim'];
+    }
+} else {
+    // Padrão: Primeiro e último dia do mês atual
+    $data_inicio = date('Y-m-01');
+    $data_fim = date('Y-m-t');
+}
+
 // Monta a query base, SEC_TO_TIME converte em segundos para o cálculo da média
 $sql = "SELECT
             tas.Id as Codigo,
