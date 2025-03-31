@@ -79,6 +79,8 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- JQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
@@ -95,7 +97,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
           <?php endif; ?>
 
           <?php if ($cargo === 'Admin'): ?>
-            <li><a class="dropdown-item" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+            <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
           <?php endif; ?>
 
           <?php if ($cargo === 'Admin'): ?>
@@ -212,16 +214,33 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
     </div>
   </div><!-- /row dos 3 cartões -->
 
+
+  <!-- Função de pesquisa nas tabelas-->
+  <script>
+      $(document).ready(function(){
+        $("#searchInput").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          // Para cada linha em todas as tabelas com a classe 'tabelaEstilizada'
+          $(".tabelaEstilizada tbody tr").filter(function() {
+            // Se o texto da linha conter o valor da pesquisa (ignorando maiúsculas/minúsculas), mostra a linha; caso contrário, oculta
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+          });
+        });
+      });
+  </script>
   <!-- Card com a lista de indicações -->
   <div class="card shadow mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h4 class="mb-0">Indicações de Plugins</h4>
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovaIndicacao">
-        Cadastrar
-      </button>
+      <div class="d-flex justify-content-end gap-2">
+        <input type="text" id="searchInput" class="form-control ms-2" style="max-width: 200px;" placeholder="Pesquisar...">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovaIndicacao">
+          <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
+        </button>
+      </div>
     </div>
     <div class="card-body">
-      <div class="table-responsive">
+      <div class="table-responsive access-scroll">
         <table class="table table-striped table-bordered tabelaEstilizada">
           <thead class="thead-dark">
             <tr>
@@ -248,6 +267,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                 <td><?php echo $row['usuario_nome']; ?></td>
                 <td><?php echo $row['status']; ?></td>
                 <td class="text-center">
+                <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $row['user_id'] == $usuario_id): ?>
                   <div class="d-flex flex-row align-items-center gap-1">
                     <button type="button" 
                             class="btn btn-outline-primary btn-sm"
@@ -273,6 +293,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                       <i class="fa-sharp fa-solid fa-trash"></i>
                     </a>
                   </div>
+                <?php endif; ?>
                 </td>
               </tr>
             <?php endwhile; ?>
@@ -368,7 +389,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
           </div>
         </div><!-- /modal-body -->
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Cadastrar Indicação</button>
+          <button type="submit" class="btn btn-primary">Cadastrar</button>
         </div>
       </form>
     </div>
@@ -484,7 +505,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
           <?php endif; ?>
         </div><!-- /modal-body -->
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+          <button type="submit" class="btn btn-primary">Salvar</button>
         </div>
       </form>
     </div>

@@ -135,7 +135,7 @@ if ($result_ranking) {
               <?php endif; ?>
 
               <?php if ($cargo === 'Admin'): ?>
-                <li><a class="dropdown-item" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+                <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
               <?php endif; ?>
 
               <?php if ($cargo === 'Admin'): ?>

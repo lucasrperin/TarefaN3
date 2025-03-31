@@ -393,7 +393,7 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
           </button>
           <ul class="dropdown-menu dropdown-menu-dark">
             <?php if ($cargo === 'Admin'): ?>
-              <li><a class="dropdown-item" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+              <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
             <?php endif; ?>
 
             <?php if ($cargo === 'Admin'): ?>
