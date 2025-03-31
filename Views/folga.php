@@ -127,13 +127,6 @@ $resultFolga = $conn->query($sqlListarFolga);
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- CSS customizado -->
   <link rel="stylesheet" href="../Public/folga.css">
-  
-  <!-- Estilos inline para o badge (totalizadores) -->
-  <style>
-    .badge-colab-center {
-      /* Este estilo agora será utilizado em folga.css; se preferir, remova-o daqui */
-    }
-  </style>
 </head>
 <body>
 <nav class="navbar navbar-dark bg-dark">
@@ -160,7 +153,7 @@ $resultFolga = $conn->query($sqlListarFolga);
 </nav>
 
 <div class="container my-5">
-  <!-- Layout com duas colunas: Calendário (col-md-9) e Painel de Detalhes (col-md-3) -->
+  <!-- Linha que agrupa Calendário e Painel de Detalhes -->
   <div class="row calendario-detalhes">
     <div class="col-md-9">
       <div id="calendar"></div>
@@ -172,7 +165,7 @@ $resultFolga = $conn->query($sqlListarFolga);
           <h5 class="mb-0">Detalhes do Dia</h5>
         </div>
         <div class="card-body" id="details">
-          <!-- Atualizado via JS: informações do dia atual -->
+          <!-- Atualizado via JS -->
         </div>
       </div>
     </div>
@@ -225,6 +218,7 @@ $resultFolga = $conn->query($sqlListarFolga);
             </div>
             <div class="row justify-content-center mb-3">
               <div class="col-auto">
+                <!-- Certifique-se de ter apenas UM elemento com ID "calendarioInline" -->
                 <div id="calendarioInline" class="border rounded p-2"></div>
               </div>
             </div>
@@ -480,31 +474,29 @@ $resultFolga = $conn->query($sqlListarFolga);
       height: 350,
       expandRows: true,
       dayCellDidMount: function(info) {
-  var dayStr = info.date.toISOString().split('T')[0];
-  var dayFrame = info.el.querySelector('.fc-daygrid-day-frame');
-  if (dayFrame) {
-    dayFrame.style.position = 'relative';
-    if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
-      // Destaca a célula
-      dayFrame.style.backgroundColor = '#E2F0D9';
-
-      // Cria e adiciona o badge
-      var badge = document.createElement('span');
-      badge.classList.add('badge', 'bg-primary', 'badge-colab-center');
-      badge.textContent = aggregator[dayStr].length;
-      dayFrame.appendChild(badge);
-
-      // Evento de clique
-      dayFrame.addEventListener('click', function() {
-        updateSidePanel(dayStr);
-      });
-    }
-  }
-}
+        var dayStr = info.date.toISOString().split('T')[0];
+        var dayFrame = info.el.querySelector('.fc-daygrid-day-frame');
+        if (dayFrame) {
+          dayFrame.style.position = 'relative';
+          if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
+            dayFrame.style.backgroundColor = '#E2F0D9';
+            var badge = document.createElement('span');
+            badge.classList.add('badge', 'bg-primary', 'badge-colab-center');
+            badge.textContent = aggregator[dayStr].length;
+            dayFrame.appendChild(badge);
+          }
+          dayFrame.addEventListener('click', function() {
+            document.querySelectorAll('.fc-daygrid-day-frame.selected-day').forEach(function(cell) {
+              cell.classList.remove('selected-day');
+            });
+            dayFrame.classList.add('selected-day');
+            updateSidePanel(dayStr);
+          });
+        }
+      }
     });
     calendar.render();
 
-    // Atualiza o painel de detalhes com os dados do dia atual
     var todayStr = new Date().toISOString().split('T')[0];
     updateSidePanel(todayStr);
   });
@@ -521,15 +513,50 @@ $resultFolga = $conn->query($sqlListarFolga);
         inline: true,
         dateFormat: 'Y-m-d',
         showMonths: 2,
+        onDayCreate: function(dateObj, dateStr, instance, dayElem) {
+          // Se dateObj não for um objeto Date, não faz nada
+          if (!dateObj || typeof dateObj.getFullYear !== 'function') {
+            console.warn("onDayCreate: dateObj inválido:", dateObj);
+            return;
+          }
+          let dayFormatted = instance.formatDate(dateObj, 'Y-m-d');
+          if (aggregator[dayFormatted] && aggregator[dayFormatted].length > 0) {
+            dayElem.classList.add("used-day");
+          }
+        },
         onChange: function(selectedDates, dateStr, instance) {
+          let conflict = false;
+          let conflictDays = [];
+          if (selectedDates.length === 2) {
+            let start = new Date(selectedDates[0]);
+            let end = new Date(selectedDates[1]);
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+              let dayFormatted = instance.formatDate(d, 'Y-m-d');
+              if (aggregator[dayFormatted] && aggregator[dayFormatted].length > 0) {
+                conflict = true;
+                conflictDays.push(dayFormatted);
+              }
+            }
+          }
+          let notificationElem = document.getElementById('conflictNotification');
+          if (conflict) {
+            if (!notificationElem) {
+              notificationElem = document.createElement('div');
+              notificationElem.id = 'conflictNotification';
+              notificationElem.className = 'alert alert-warning mt-2';
+              instance.calendarContainer.parentNode.insertBefore(notificationElem, instance.calendarContainer.nextSibling);
+            }
+            notificationElem.innerText = 'Já há colaboradores com folga/férias nos dias: ' + 
+  conflictDays.map(function(day) { return day.split('-')[2]; }).join(', ');
+          } else if (notificationElem) {
+            notificationElem.parentNode.removeChild(notificationElem);
+          }
           if (selectedDates.length === 2) {
             document.getElementById('data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
             document.getElementById('data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
           }
         }
       });
-    } else {
-      calendarInstance.redraw();
     }
   });
 
@@ -556,8 +583,6 @@ $resultFolga = $conn->query($sqlListarFolga);
           }
         }
       });
-    } else {
-      calendarEditInstance.redraw();
     }
   });
 

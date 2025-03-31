@@ -8,30 +8,36 @@
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   padding: 15px;
-  height: 350px;  
+  height: 350px;
 }
 
-/* Define altura fixa e remove scroll do calendário */
+/* Calendário com altura fixa de 350px e sem scroll */
 #calendar {
   height: 350px;
   overflow: hidden;
 }
 
-/* Cada célula do FullCalendar: garantimos posição relativa e altura mínima */
+/* Painel de Detalhes com a mesma altura */
+#sidePanel {
+  height: 350px;
+  overflow-y: auto;
+}
+
+/* Cada célula do FullCalendar: posição relativa e altura mínima */
 .fc-daygrid-day-frame {
   position: relative;
-  min-height: 80px; /* Ajuste esse valor se necessário para criar espaço na parte inferior */
+  min-height: 80px;
 }
 
 /* Badge para totalizadores, posicionado no centro inferior da célula */
 .badge-colab-center {
   position: absolute;
-  bottom: 2px;              /* Distância do rodapé da célula */
-  left: 50%;                /* Centralizado horizontalmente */
+  bottom: 2px;
+  left: 50%;
   transform: translateX(-50%);
-  width: 1.2rem;            /* Tamanho do badge */
+  width: 1.2rem;
   height: 1.2rem;
-  border-radius: 50%;       /* Forma circular */
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -39,6 +45,11 @@
   background-color: #0d6efd;
   color: #fff;
   z-index: 10;
+}
+
+/* Destaca os dias já em uso no calendário do modal (Flatpickr) */
+.used-day {
+  background-color: rgba(255, 0, 0, 0.2) !important;
 }
 
 /* Cabeçalho do painel de detalhes */
@@ -57,10 +68,14 @@
   color: #333;
 }
 
-/* Borda leve para as células do FullCalendar */
-.fc .fc-daygrid-day {
-  border: 1px solid #ddd;
-}
+/* Espaçamento inferior para a linha do calendário */
 .row.calendario-detalhes {
-    margin-bottom: 20px;  /* ajuste conforme desejado */
+    margin-bottom: 20px;
+  }
+/* Destaque para o dia selecionado (opcional) */
+.fc-daygrid-day-frame.selected-day {
+    outline: 2px solid #FF9800;
+  }
+  .used-day {
+    background-color: rgba(255, 0, 0, 0.2) !important;
   }
