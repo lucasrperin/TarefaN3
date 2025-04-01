@@ -62,10 +62,14 @@
   font-weight: bold;
 }
 
-/* Título do FullCalendar */
-.fc .fc-toolbar-title {
-  font-size: 1rem;
-  color: #333;
+.fc-toolbar-title a {
+  text-decoration: none !important;
+  color: inherit !important;
+  pointer-events: none;
+  cursor: default;
+}
+.fc-toolbar-title {
+  text-transform: uppercase;
 }
 
 /* Espaçamento inferior para a linha do calendário */
@@ -78,4 +82,16 @@
   }
   .used-day {
     background-color: rgba(255, 0, 0, 0.2) !important;
+  }
+  .fc-col-header-cell a {
+    text-decoration: none !important;
+    color: inherit !important;
+    pointer-events: none;
+    cursor: default;
+  }
+  .fc-daygrid-day a {
+    text-decoration: none !important;
+    color: inherit !important;
+    pointer-events: none;
+    cursor: default;
   }

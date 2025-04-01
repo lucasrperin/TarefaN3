@@ -153,23 +153,24 @@ $resultFolga = $conn->query($sqlListarFolga);
 </nav>
 
 <div class="container my-5">
-  <!-- Linha que agrupa Calendário e Painel de Detalhes -->
-  <div class="row calendario-detalhes">
-    <div class="col-md-9">
-      <div id="calendar"></div>
-    </div>
-    <div class="col-md-3">
-      <!-- Painel de Detalhes como card Bootstrap -->
-      <div id="sidePanel" class="card shadow-sm">
-        <div class="card-header">
-          <h5 class="mb-0">Detalhes do Dia</h5>
-        </div>
-        <div class="card-body" id="details">
-          <!-- Atualizado via JS -->
-        </div>
+<!-- Linha que agrupa Calendário e Painel de Detalhes -->
+<div class="row calendario-detalhes mb-4">
+  <div class="col-md-9">
+    <div id="calendar" class="p-3 bg-light rounded shadow-sm"></div>
+  </div>
+  <div class="col-md-3">
+    <div id="sidePanel" class="card shadow-sm border-0">
+      <div class="card-header bg-secondary text-white rounded-top">
+        <h5 class="mb-0">Detalhes do Dia</h5>
+      </div>
+      <div class="card-body" id="details">
+        <!-- Conteúdo atualizado via JS -->
       </div>
     </div>
   </div>
+</div>
+
+
   
   <!-- Botão para abrir modal de cadastro -->
   <div class="d-flex justify-content-end mb-3">
@@ -455,51 +456,59 @@ $resultFolga = $conn->query($sqlListarFolga);
   var aggregator = <?php echo json_encode($aggregator); ?>;
   console.log('Aggregator:', aggregator);
 
-  // Inicializa o FullCalendar com timeZone configurado para "local"
-  document.addEventListener('DOMContentLoaded', function() {
-    var calendarEl = document.getElementById('calendar');
-    if (!calendarEl) {
-      console.error("Elemento 'calendar' não encontrado!");
-      return;
-    }
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-      locale: 'pt-br',
-      timeZone: 'local',
-      initialView: 'dayGridMonth',
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: ''
-      },
-      height: 350,
-      expandRows: true,
-      dayCellDidMount: function(info) {
-        var dayStr = info.date.toISOString().split('T')[0];
-        var dayFrame = info.el.querySelector('.fc-daygrid-day-frame');
-        if (dayFrame) {
-          dayFrame.style.position = 'relative';
-          if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
-            dayFrame.style.backgroundColor = '#E2F0D9';
-            var badge = document.createElement('span');
-            badge.classList.add('badge', 'bg-primary', 'badge-colab-center');
-            badge.textContent = aggregator[dayStr].length;
-            dayFrame.appendChild(badge);
-          }
-          dayFrame.addEventListener('click', function() {
-            document.querySelectorAll('.fc-daygrid-day-frame.selected-day').forEach(function(cell) {
-              cell.classList.remove('selected-day');
-            });
-            dayFrame.classList.add('selected-day');
-            updateSidePanel(dayStr);
-          });
+// Inicializa o FullCalendar com timeZone configurado para "local"
+document.addEventListener('DOMContentLoaded', function() {
+  var calendarEl = document.getElementById('calendar');
+  if (!calendarEl) {
+    console.error("Elemento 'calendar' não encontrado!");
+    return;
+  }
+  var calendar = new FullCalendar.Calendar(calendarEl, {
+    locale: 'pt-br',
+    timeZone: 'local',
+    initialView: 'dayGridMonth',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: ''
+    },
+    buttonText: {
+    today: 'Hoje'
+  },
+    height: 350,
+    expandRows: true,
+    // Personaliza os cabeçalhos dos dias da semana: remove o ponto e deixa em maiúsculas
+    dayHeaderContent: function(arg) {
+      return arg.text.toUpperCase().replace(/\./g, '');
+    },
+    dayCellDidMount: function(info) {
+      var dayStr = info.date.toISOString().split('T')[0];
+      var dayFrame = info.el.querySelector('.fc-daygrid-day-frame');
+      if (dayFrame) {
+        dayFrame.style.position = 'relative';
+        if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
+          dayFrame.style.backgroundColor = '#E2F0D9';
+          var badge = document.createElement('span');
+          badge.classList.add('badge', 'bg-primary', 'badge-colab-center');
+          badge.textContent = aggregator[dayStr].length;
+          dayFrame.appendChild(badge);
         }
+        dayFrame.addEventListener('click', function() {
+          document.querySelectorAll('.fc-daygrid-day-frame.selected-day').forEach(function(cell) {
+            cell.classList.remove('selected-day');
+          });
+          dayFrame.classList.add('selected-day');
+          updateSidePanel(dayStr);
+        });
       }
-    });
-    calendar.render();
-
-    var todayStr = new Date().toISOString().split('T')[0];
-    updateSidePanel(todayStr);
+    }
   });
+  calendar.render();
+
+  var todayStr = new Date().toISOString().split('T')[0];
+  updateSidePanel(todayStr);
+});
+
 
   let calendarInstance = null;
   let calendarEditInstance = null;
