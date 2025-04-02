@@ -23,24 +23,21 @@ if (isset($_GET['data_fim']) && !empty($_GET['data_fim'])) {
     $dataFim = $_GET['data_fim'];
 }
 
-$dataFilterCondition = "";
-
-// Se NENHUMA data for informada, filtra pelo mês/ano atual
+// Cria uma condição de data que será utilizada em todas as consultas
 if (empty($dataInicio) && empty($dataFim)) {
-    $dataFilterCondition = " AND MONTH(e.data_escuta) = MONTH(CURRENT_DATE())
-                             AND YEAR(e.data_escuta) = YEAR(CURRENT_DATE()) ";
+    // Sem filtro, usa mês/ano atual
+    $dataCondition = "MONTH(e.data_escuta) = MONTH(CURRENT_DATE()) AND YEAR(e.data_escuta) = YEAR(CURRENT_DATE())";
 } else {
-    // Se tiver dataInicio ou dataFim, aplica a lógica do intervalo
     if (!empty($dataInicio) && empty($dataFim)) {
-        $dataFilterCondition = " AND DATE(e.data_escuta) >= '" . $conn->real_escape_string($dataInicio) . "' ";
+        $dataCondition = "DATE(e.data_escuta) >= '" . $conn->real_escape_string($dataInicio) . "'";
     } else if (empty($dataInicio) && !empty($dataFim)) {
-        $dataFilterCondition = " AND DATE(e.data_escuta) <= '" . $conn->real_escape_string($dataFim) . "' ";
-    } else if (!empty($dataInicio) && !empty($dataFim)) {
-        $dataFilterCondition = " AND DATE(e.data_escuta) BETWEEN '" . $conn->real_escape_string($dataInicio) . "' 
-                                                        AND '" . $conn->real_escape_string($dataFim) . "' ";
+        $dataCondition = "DATE(e.data_escuta) <= '" . $conn->real_escape_string($dataFim) . "'";
+    } else { // ambos preenchidos
+        $dataCondition = "DATE(e.data_escuta) BETWEEN '" . $conn->real_escape_string($dataInicio) . "' AND '" . $conn->real_escape_string($dataFim) . "'";
     }
 }
 
+$dataFilterCondition = " AND " . $dataCondition;
 
 // -------------------------------------------------------------------
 // Consulta os usuários (analistas) que possuem escutas registradas
@@ -67,8 +64,7 @@ $queryUsers = "SELECT
               FROM TB_USUARIO u
               WHERE (u.cargo = 'User' OR u.id IN (17, 18))
                 AND u.id NOT IN (8)
-              ORDER BY u.nome
-";
+              ORDER BY u.nome";
 $resultUsers = $conn->query($queryUsers);
 if ($resultUsers) {
     while ($row = $resultUsers->fetch_assoc()) {
@@ -77,7 +73,7 @@ if ($resultUsers) {
     $resultUsers->free();
 }
 
-// Recupera os usuários com cargo "User" (para modal de cadastro) que não possuem 5 analises
+// Recupera os usuários com cargo "User" (para modal de cadastro) que não possuem 5 análises
 $userscadastro = [];
 $queryUsersCad = "SELECT 
                     u.id,
@@ -86,14 +82,12 @@ $queryUsersCad = "SELECT
                   FROM TB_USUARIO u
                   LEFT JOIN TB_ESCUTAS e 
                     ON e.user_id = u.id 
-                    AND MONTH(e.data_escuta) = MONTH(CURRENT_DATE())
-                    AND YEAR(e.data_escuta) = YEAR(CURRENT_DATE())
+                    AND ($dataCondition)
                   WHERE (u.cargo = 'User' OR u.id IN (17, 18))
                     AND u.id NOT IN (8)
                   GROUP BY u.id
                   HAVING faltantes > 0
-                  ORDER BY u.nome
-                  ";
+                  ORDER BY u.nome";
 $resultUsersCad = $conn->query($queryUsersCad);
 if ($resultUsersCad) {
     while ($row = $resultUsersCad->fetch_assoc()) {
@@ -104,7 +98,7 @@ if ($resultUsersCad) {
 
 // Recupera as classificações (para modal de cadastro)
 $classis = [];
-$queryClassi = "SELECT id, descricao FROM TB_CLASSIFICACAO where id <> 1";
+$queryClassi = "SELECT id, descricao FROM TB_CLASSIFICACAO WHERE id <> 1";
 $resultClassi = $conn->query($queryClassi);
 if ($resultClassi) {
     while ($row = $resultClassi->fetch_assoc()) {
@@ -161,8 +155,7 @@ $sqlEscutasFaltantes = "SELECT
 FROM TB_USUARIO u
 LEFT JOIN TB_ESCUTAS e 
   ON e.user_id = u.id 
-  AND MONTH(e.data_escuta) = MONTH(CURRENT_DATE())
-  AND YEAR(e.data_escuta) = YEAR(CURRENT_DATE())
+  AND ($dataCondition)
 WHERE (u.cargo = 'User' OR u.id IN (17, 18))
   AND u.id NOT IN (8)
 GROUP BY u.id
@@ -452,7 +445,7 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
 
         <div class="row mb-2">
-          <div class="col-md-6 mb-3">
+          <div class="col-md-4 mb-3">
             <label for="tipo_escuta" class="form-label">Escuta Positiva</label>
             <select name="positivo" id="tipo_escuta" class="form-select">
               <option value="">Selecione...</option>
@@ -460,11 +453,17 @@ document.addEventListener("DOMContentLoaded", function () {
               <option value="Nao">Nao</option>
             </select>
           </div>
-          <div class="col-md-6 mb-3">
+          <div class="col-md-4 mb-3">
+            <label for="solicita_ava" class="form-label">Solicitou Avaliação</label>
+            <select name="avaliacao" id="solicita_ava" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="Sim">Sim</option>
+              <option value="Nao">Nao</option>
+            </select>
+          </div>
+          <div class="col-md-4 mb-3">
             <label for="cad_data_escuta" class="form-label">Data da Escuta</label>
-            <input type="date" name="data_escuta" id="cad_data_escuta" 
-                   class="form-control" required 
-                   value="<?= date('Y-m-d'); ?>">
+            <input type="date" name="data_escuta" id="cad_data_escuta" class="form-control" required value="<?= date('Y-m-d'); ?>">
           </div>
         </div>
 

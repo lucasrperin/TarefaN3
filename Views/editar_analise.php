@@ -23,6 +23,7 @@ if (isset($_POST['id_editar'])) {
                               idStatus = ?, 
                               Hora_ini = ?, 
                               Hora_fim = ?, 
+                              Total_hora = TIMEDIFF(?, ?),
                               Nota = ?, 
                               justificativa = ? 
                             WHERE Id = ?");
@@ -30,7 +31,7 @@ if (isset($_POST['id_editar'])) {
     // Supondo que:
     // - Descricao, Hora_ini, Hora_fim, justificativa são strings (s)
     // - idSituacao, idAtendente, idSistema, idStatus, Nota, Id são inteiros (i)
-    $stmt->bind_param("siiiissisi", $descricao, $situacao, $atendente, $sistema, $status, $hora_ini, $hora_fim, $nota, $justificativa, $id);
+    $stmt->bind_param("siiiissssisi", $descricao, $situacao, $atendente, $sistema, $status, $hora_ini, $hora_fim, $hora_fim, $hora_ini, $nota, $justificativa, $id);
     
     if ($stmt->execute()) {
         // Atualização realizada com sucesso
