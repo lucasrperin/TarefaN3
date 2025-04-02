@@ -1,11 +1,13 @@
 <?php 
-session_start();
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['usuario_id'])) {
-    $_SESSION['usuario_id'] = $_POST['usuario_id'];
-    header("Location: user.php");
-    exit();
-}
 require '../Config/Database.php';
+
+session_start();
+
+// Verifica se o usuário está logado; se não, redireciona para o login
+if (!isset($_SESSION['usuario_id'])) {
+    header("Location: login.php");
+    exit();
+  }
 
 $usuario_id = $_SESSION['usuario_id'];
 

@@ -1,7 +1,13 @@
 <?php
-session_start();
-// index.php
 include '../Config/Database.php';
+
+session_start();
+
+// Verifica se o usuário está logado; se não, redireciona para o login
+if (!isset($_SESSION['usuario_id'])) {
+  header("Location: login.php");
+  exit();
+}
 
 $usuario_id = $_SESSION['usuario_id'];
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
