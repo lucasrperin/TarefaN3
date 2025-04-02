@@ -213,6 +213,8 @@ $stmtGrafico->close();
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- JQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   
   <link rel="icon" href="Public\Image\icone2.png" type="image/png">
 </head>
@@ -232,7 +234,7 @@ $stmtGrafico->close();
     </div>
     <span class="text-white">Escutas de <?php echo $usuario_nome; ?></span>
     <a href="escutas.php" class="btn btn-danger">
-      <i class="fa-solid fa-arrow-left me-2"></i>Voltar
+      <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
     </a>
   </div>
 </nav>
@@ -284,7 +286,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <ul class="list-group scroll-container">
               <?php foreach($classificacaoTotalizadores as $item): ?>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <?= htmlspecialchars($item['descricao']); ?>
+                  <span class="sobreporTot"><?= htmlspecialchars($item['descricao']); ?></span>
                   <span class="badge bg-primary rounded-pill"><?= $item['total']; ?></span>
                 </li>
               <?php endforeach; ?>
@@ -295,7 +297,7 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
       </div>
 
-      <!-- Card: Percentual de Avaliações -->
+      <!-- Card: Percentual de Avaliação Positiva -->
       <div class="card mt-3">
         <span data-bs-toggle="tooltip" data-bs-html="true" title="🟩 Sim <br>🟥 Não">
           <div class="card-body">
@@ -396,11 +398,11 @@ document.addEventListener("DOMContentLoaded", function () {
   </div> <!-- fim row -->
 
   <!-- Histórico de Escutas (Tabela) -->
-  <h3 class="mb-4 mt-4">Histórico de Escutas - <?php echo $usuario_nome; ?></h3>
+  <h3 class="mb-4 mt-4">Histórico de Escutas</h3>
   <div class="card">
     <div class="card-body">
-      <div class="table-responsive">
-      <table class="table table-bordered tabelaEstilizada">
+      <div class="table-responsive scroll-containerTB">
+      <table class="table table-bordered tabelaEstilizada ">
           <thead class="table-light align-items-center">
             <tr>
               <th width="7%">Data da Escuta</th>
@@ -419,7 +421,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <tr>
                   <td><?php echo date('d/m/Y', strtotime($escuta['data_escuta'])); ?></td>
                   <td><?php echo $escuta['usuario_nome']; ?></td>
-                  <td><?php echo $escuta['classificacao']; ?></td>
+                  <td class="sobrepor"><?php echo $escuta['classificacao']; ?></td>
                   <td><?php echo $escuta['P_N']; ?></td>
                   <td><?php echo $escuta['solicitaAva']; ?></td>
                   <td class="sobrepor"><?php echo $escuta['transcricao']; ?></td>
@@ -463,105 +465,129 @@ document.addEventListener("DOMContentLoaded", function () {
   </div>
 </div>
 
-<!-- Modal Editar Escuta -->
-<div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content p-4">
-      <h5 class="modal-title mb-3" id="modalEditarLabel">Editar Escuta</h5>
-      <form method="POST" action="editar_escuta.php">
-        <input type="hidden" name="id" id="edit_id">
-        <div class="row mb-2">
-          <div class="col-md-6 mb-3">
-            <div class="mb-3">
-              <label for="edit_user_id" class="form-label">Selecione o Usuário</label>
-              <select name="user_id" id="edit_user_id" class="form-select" required>
-                <option value="">Escolha o usuário</option>
-                <?php foreach($users as $user): ?>
-                  <option value="<?php echo $user['id']; ?>"><?php echo $user['nome']; ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-          </div>
-          <div class="col-md-6 mb-3">
-            <div class="mb-3">
-              <label for="edit_cad_classi_id" class="form-label">Classificação</label>
-              <select name="edit_classi_id" id="edit_cad_classi_id" class="form-select">
-                <option value="1">Sem Classificação</option>
-                <?php foreach($classis as $classi): ?>
-                  <option value="<?php echo $classi['id']; ?>"><?php echo $classi['descricao']; ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-          </div>
+  <!-- Modal Editar Escuta -->
+  <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEditarLabel">Editar Escuta</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+        <form method="POST" action="editar_escuta.php">
+          <div class="modal-body">
+            <input type="hidden" name="id" id="edit_id">
+            <div class="row mb-2">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="edit_user_id" class="form-label">Selecione o Usuário</label>
+                  <select name="user_id" id="edit_user_id" class="form-select" required>
+                    <option value="">Escolha o usuário</option>
+                    <?php foreach($users as $user): ?>
+                      <option value="<?php echo $user['id']; ?>"><?php echo $user['nome']; ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label for="edit_cad_classi_id" class="form-label">Classificação</label>
+                <div class="input-group mt-0">
+                  <select name="edit_classi_id" id="edit_cad_classi_id" class="form-control">
+                    <option value="1">Sem Classificação</option>
+                    <?php foreach($classis as $classi): ?>
+                      <option value="<?php echo $classi['id']; ?>"><?php echo $classi['descricao']; ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                  <button class="btn btn-outline-secondary" type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#novoClassiCollapse"
+                            aria-expanded="false"
+                            aria-controls="novoClassiCollapse">
+                      <i class="fa-solid fa-plus"></i>
+                  </button>
+                </div>
+                <!-- Span para exibir a mensagem customizada -->
+                <span id="msgClassificacao" class="d-none" style="color: green; display: block; margin-top: 5px;">
+                  <i class="fa-solid fa-check"></i> Classificação cadastrada com sucesso!
+                </span>
+              </div>
+            </div>
 
-        <div class="row mb-2">
-          <div class="col-md-4 mb-3">
-            <div class="mb-3">
-              <label for="edit_tipo_escuta" class="form-label">Escuta Positiva</label>
-              <select name="edit_positivo" id="edit_tipo_escuta" class="form-select">
-                <option value="">Selecione...</option>
-                <option value="Sim">Sim</option>
-                <option value="Nao">Nao</option>
-              </select>
+            <div class="collapse mb-3" id="novoClassiCollapse">
+              <div class="card card-body">
+                <div class="form-group">
+                  <label for="novo_classificacao">Nova Classificação</label>
+                  <input type="text" class="form-control" id="novo_classificacao" placeholder="Informe a nova classificação">
+                </div>
+                <button type="button" class="btn btn-primary mt-1" id="btnCadastrarClassificacao">Salvar Classificação</button>
+              </div>
             </div>
-          </div>
-          <div class="col-md-4 mb-3">
-            <label for="edit_solicita_ava" class="form-label">Solicitou Avaliação</label>
-            <select name="edit_avaliacao" id="edit_solicita_ava" class="form-select" required>
-              <option value="">Selecione...</option>
-              <option value="Sim">Sim</option>
-              <option value="Nao">Nao</option>
-            </select>
-          </div>
-          <div class="col-md-4 mb-3">
-            <div class="mb-3">
-              <label for="edit_data_escuta" class="form-label">Data da Escuta</label>
-              <input type="date" name="data_escuta" id="edit_data_escuta" class="form-control" required>
-            </div>
-          </div>
-        </div>
 
-        <div class="mb-3">
-          <label for="edit_transcricao" class="form-label">Transcrição da Ligação</label>
-          <textarea name="transcricao" id="edit_transcricao" class="form-control" rows="4" required></textarea>
-        </div>
-        <div class="mb-3">
-          <label for="edit_feedback" class="form-label">Feedback / Ajustes</label>
-          <textarea name="feedback" id="edit_feedback" class="form-control" rows="2"></textarea>
-        </div>
-        <div class="d-flex justify-content-end">
-          <button type="submit" class="btn btn-primary">Salvar Alterações</button>
-          <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Fechar</button>
-        </div>
-      </form>
+            <div class="row mb-2">
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="edit_tipo_escuta" class="form-label">Escuta Positiva</label>
+                  <select name="edit_positivo" id="edit_tipo_escuta" class="form-select">
+                    <option value="">Selecione...</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Nao">Nao</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label for="edit_solicita_ava" class="form-label">Solicitou Avaliação</label>
+                <select name="edit_avaliacao" id="edit_solicita_ava" class="form-select" required>
+                  <option value="">Selecione...</option>
+                  <option value="Sim">Sim</option>
+                  <option value="Nao">Nao</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="edit_data_escuta" class="form-label">Data da Escuta</label>
+                  <input type="date" name="data_escuta" id="edit_data_escuta" class="form-control" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="edit_transcricao" class="form-label">Transcrição da Ligação</label>
+              <textarea name="transcricao" id="edit_transcricao" class="form-control" rows="4" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="edit_feedback" class="form-label">Feedback / Ajustes</label>
+              <textarea name="feedback" id="edit_feedback" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </div>
-
-<!-- Modal Excluir Escuta -->
-<div class="modal fade" id="modalExcluir" tabindex="-1" aria-labelledby="modalExcluirLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content p-4">
-      <h5 class="modal-title mb-3" id="modalExcluirLabel">Confirmar Exclusão</h5>
-      <form method="POST" action="deletar_escuta.php">
-        <input type="hidden" name="id" id="delete_id">
-        <input type="hidden" name="user_id" id="delete_user_id">
-        <p>Tem certeza que deseja excluir esta escuta?</p>
-        <div class="d-flex justify-content-end">
-          <button type="submit" class="btn btn-danger">Sim, excluir</button>
-          <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Cancelar</button>
+  <!-- Modal Excluir Escuta -->
+  <div class="modal fade" id="modalExcluir" tabindex="-1" aria-labelledby="modalExcluirLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalExcluirLabel">Confirmar Exclusão</h5>
         </div>
-      </form>
+        <div class="modal-body">
+          <form method="POST" action="deletar_escuta.php">
+            <input type="hidden" name="id" id="delete_id">
+            <input type="hidden" name="user_id" id="delete_user_id">
+            <p>Tem certeza que deseja excluir esta escuta?</p>
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-danger">Sim, excluir</button>
+              <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Script para montar o gráfico Chart.js -->
-<script>
+  <!-- Script para montar o gráfico Chart.js -->
+  <script>
   // Arrays com dados do PHP
   const meses = <?php echo json_encode($meses); ?>;               // ex: ["2023-01","2023-02"]
   const posMensal = <?php echo json_encode($positivosMensais); ?>; 
@@ -597,7 +623,53 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
+</script> 
 
+<script>
+  // Script AJAX modificado para usar o span em vez do alert
+  $(document).ready(function(){
+      $('#btnCadastrarClassificacao').click(function(){
+          var novaClassificacao = $('#novo_classificacao').val().trim();
+          if(novaClassificacao === ''){
+              $('#msgClassificacao').html('<span style="color:red;"><i class="fa-solid fa-xmark"></i> Informe a nova classificação.</span>').removeClass('d-none');
+              setTimeout(function(){
+                  $('#msgClassificacao').addClass('d-none');
+              }, 2500);
+              return;
+          }
+          $.ajax({
+              url: 'cadastrar_classificacao.php',
+              type: 'POST',
+              data: { descricao: novaClassificacao },
+              dataType: 'json',
+              success: function(resp){
+                  if(resp.duplicate === true) {
+                      $('#msgClassificacao').html('<span style="color:orange;"><i class="fa-solid fa-exclamation-triangle"></i> ' + resp.message + '</span>').removeClass('d-none');
+                      $('#edit_cad_classi_id').val(resp.id);
+                  } else if(resp.id) {
+                      $('#edit_cad_classi_id').append('<option value="' + resp.id + '">' + resp.descricao + '</option>');
+                      $('#edit_cad_classi_id').val(resp.id);
+                      $('#msgClassificacao').html('<i class="fa-solid fa-check"></i> Classificação cadastrada com sucesso!').removeClass('d-none');
+                  } else {
+                      $('#msgClassificacao').html('<span style="color:red;"><i class="fa-solid fa-xmark"></i> Erro: ' + resp.message + '</span>').removeClass('d-none');
+                  }
+                  setTimeout(function(){
+                      $('#msgClassificacao').addClass('d-none');
+                  }, 2500);
+                  $('#novo_classificacao').val('');
+                  $('#novoClassiCollapse').collapse('hide');
+              },
+              error: function(jqXHR, textStatus, errorThrown){
+                  $('#msgClassificacao').html('<span style="color:red;"><i class="fa-solid fa-xmark"></i> Erro na requisição: ' + errorThrown + '</span>').removeClass('d-none');
+                  setTimeout(function(){
+                      $('#msgClassificacao').addClass('d-none');
+                  }, 2500);
+              }
+          });
+      });
+  });
+  </script>
+  <script>
   // Preenche Modal Editar
   function preencherModalEditar(id, user_id, classi_id, P_N, data_escuta, transcricao, feedback, solicitaAva) {
     document.getElementById('edit_id').value = id;
@@ -616,5 +688,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('delete_user_id').value = user_id;
   }
 </script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

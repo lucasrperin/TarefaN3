@@ -1,41 +1,53 @@
 <?php
-include '../Config/Database.php';
-session_start();
-
-error_reporting(E_ALL);
+if (ob_get_length()) {
+    ob_end_clean();
+}
 ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
-// Apenas Admin pode cadastrar
+session_start();
+// Apenas Admin pode cadastrar classificação
 if (!isset($_SESSION['cargo']) || $_SESSION['cargo'] !== 'Admin') {
-    header("Location: ../login.php");
-    exit;
+    header('Content-Type: application/json');
+    echo json_encode(array("message" => "Acesso negado."));
+    exit();
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $descricao = $_POST['descricao'];
-        // Verifica se o email já existe na base
-        $checkStmt = $conn->prepare("SELECT id FROM TB_CLASSIFICACAO WHERE descricao = ?");
-        $checkStmt->bind_param("s", $descricao);
-        $checkStmt->execute();
-        $result = $checkStmt->get_result();
+require '../Config/Database.php';
 
-        if ($result->num_rows > 0) {
-            $_SESSION['error'] = "Classificação já cadastrada.";
-            header("Location: escutas.php");
-            exit;
-        }
-        $checkStmt->close();
+header('Content-Type: application/json');
 
-        $stmt = $conn->prepare("INSERT INTO TB_CLASSIFICACAO (descricao) VALUES (?)");
-        $stmt->bind_param("s", $descricao);
-        if ($stmt->execute()) {
-            $_SESSION['success'] = "Classificação registrada com sucesso.";
-        } else {
-            $_SESSION['error'] = "Erro ao registrar a classificação. Tente novamente.";
-        }
-        $stmt->close();
-    }
-    $conn->close();
-    header("Location: escutas.php?success=5");
+if (!isset($_POST['descricao'])) {
+    echo json_encode(array("message" => "Descrição da classificação não informada."));
     exit();
+}
+
+$descricao = mysqli_real_escape_string($conn, trim($_POST['descricao']));
+if (empty($descricao)) {
+    echo json_encode(array("message" => "Descrição da classificação não informada."));
+    exit();
+}
+
+// Verifica se já existe uma classificação com o mesmo nome (comparação case-insensitive e removendo espaços extras)
+$sqlCheck = "SELECT id, descricao FROM TB_CLASSIFICACAO WHERE LOWER(TRIM(descricao)) = LOWER(TRIM('$descricao'))";
+$resultCheck = mysqli_query($conn, $sqlCheck);
+if ($resultCheck && mysqli_num_rows($resultCheck) > 0) {
+    $row = mysqli_fetch_assoc($resultCheck);
+    echo json_encode(array(
+        "duplicate" => true,
+        "message" => "Classificação já cadastrada.",
+        "id" => $row['id'],
+        "descricao" => $row['descricao']
+    ));
+    exit();
+}
+
+$sql = "INSERT INTO TB_CLASSIFICACAO (descricao) VALUES ('$descricao')";
+if (mysqli_query($conn, $sql)) {
+    $id = mysqli_insert_id($conn);
+    echo json_encode(array("duplicate" => false, "id" => $id, "descricao" => $descricao));
+} else {
+    echo json_encode(array("message" => "Erro ao cadastrar classificação: " . mysqli_error($conn)));
+}
+exit();
 ?>

@@ -209,6 +209,9 @@ if ($percentMetaGeral > 100) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Ícones Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- JQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Ícones Font Awesome -->
     <link rel="icon" href="Public/Image/icone2.png" type="image/png">
 </head>
 <body>
@@ -383,16 +386,8 @@ document.addEventListener("DOMContentLoaded", function () {
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h3 class="mb-0">Escutas por Analista</h3>
     <div class="d-flex justify-content-between align-items-center gap-2">
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrar">Inserir Escuta</button>
-        <div class="dropdown dropEstilizado">
-          <a class="btn btn-primary"  data-bs-toggle="dropdown">
-              Cadastrar<i class="fa-solid fa-caret-down ms-2"></i>
-            </a>
-          <ul class="dropdown-menu dropdown-menu-dark">
-            <li><a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modalCadastrarClassi">Classificação</a></li>
-          </ul>
-        </div>
-      </div>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrar"><i class="fa-solid fa-plus-circle me-1"></i>Cadastrar</button>
+    </div>
   </div>
 
   <div class="row">
@@ -427,90 +422,164 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <!-- Modal Cadastrar Nova Escuta -->
 <div class="modal fade" id="modalCadastrar" tabindex="-1" aria-labelledby="modalCadastrarLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content p-4">
-      <h5 class="modal-title mb-3" id="modalCadastrarLabel">Cadastrar Nova Escuta</h5>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCadastrarLabel">Nova Escuta</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
       <form method="POST" action="cadastrar_escuta.php">
-        <div class="row mb-2">
-          <div class="col-md-6 mb-3">
-            <label for="cad_user_id" class="form-label">Selecione o Usuário</label>
-            <select name="user_id" id="cad_user_id" class="form-select" required>
-              <option value="">Escolha o usuário</option>
-              <?php foreach($userscadastro as $usercad): ?>
-                <option value="<?= $usercad['id']; ?>"><?= htmlspecialchars($usercad['nome']); ?></option>
-              <?php endforeach; ?>
-            </select>
+        <div class="modal-body">
+          <div class="row mb-2 mt-2">
+            <div class="col-md-6 mb-3">
+              <label for="cad_user_id" class="form-label">Selecione o Usuário</label>
+              <select name="user_id" id="cad_user_id" class="form-select" required>
+                <option value="">Escolha o usuário</option>
+                <?php foreach($userscadastro as $usercad): ?>
+                  <option value="<?= $usercad['id']; ?>"><?= htmlspecialchars($usercad['nome']); ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="cad_classi_id" class="form-label">Classificação</label>
+              <div class="input-group mt-0">
+                <select name="classi_id" id="cad_classi_id" class="form-control">
+                  <option value="1">Sem Classificação</option>
+                  <?php foreach($classis as $classi): ?>
+                    <option value="<?= $classi['id']; ?>"><?= htmlspecialchars($classi['descricao']); ?></option>
+                  <?php endforeach; ?>
+                </select>
+                <button class="btn btn-outline-secondary" type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#novoClassiCollapse"
+                        aria-expanded="false"
+                        aria-controls="novoClassiCollapse">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
+              <!-- Span para exibir a mensagem customizada -->
+              <span id="msgClassificacao" class="d-none" style="color: green; display: block; margin-top: 5px;">
+                <i class="fa-solid fa-check"></i> Classificação cadastrada com sucesso!
+              </span>
+            </div>
           </div>
-          <div class="col-md-6 mb-3">
-            <label for="cad_classi_id" class="form-label">Classificação</label>
-            <select name="classi_id" id="cad_classi_id" class="form-select">
-              <option value="1">Sem Classificação</option>
-              <?php foreach($classis as $classi): ?>
-                <option value="<?= $classi['id']; ?>"><?= htmlspecialchars($classi['descricao']); ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-        </div>
+        
 
-        <div class="row mb-2">
-          <div class="col-md-4 mb-3">
-            <label for="tipo_escuta" class="form-label">Escuta Positiva</label>
-            <select name="positivo" id="tipo_escuta" class="form-select">
-              <option value="">Selecione...</option>
-              <option value="Sim">Sim</option>
-              <option value="Nao">Nao</option>
-            </select>
+          <div class="collapse mb-3" id="novoClassiCollapse">
+            <div class="card card-body">
+              <div class="form-group">
+                <label for="novo_classificacao">Nova Classificação</label>
+                <input type="text" class="form-control" id="novo_classificacao" placeholder="Informe a nova classificação">
+              </div>
+              <button type="button" class="btn btn-primary mt-1" id="btnCadastrarClassificacao">Salvar Classificação</button>
+            </div>
           </div>
-          <div class="col-md-4 mb-3">
-            <label for="solicita_ava" class="form-label">Solicitou Avaliação</label> 
-            <select name="avaliacao" id="solicita_ava" class="form-select" required>
-              <option value="">Selecione...</option>
-              <option value="Sim">Sim</option>
-              <option value="Nao">Nao</option>
-            </select>
+        
+          <div class="row mb-2">
+            <div class="col-md-4 mb-3">
+              <label for="tipo_escuta" class="form-label">Escuta Positiva</label>
+              <select name="positivo" id="tipo_escuta" class="form-select">
+                <option value="">Selecione...</option>
+                <option value="Sim">Sim</option>
+                <option value="Nao">Nao</option>
+              </select>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="solicita_ava" class="form-label">Solicitou Avaliação</label> 
+              <select name="avaliacao" id="solicita_ava" class="form-select" required>
+                <option value="">Selecione...</option>
+                <option value="Sim">Sim</option>
+                <option value="Nao">Nao</option>
+              </select>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="cad_data_escuta" class="form-label">Data da Escuta</label>
+              <input type="date" name="data_escuta" id="cad_data_escuta" class="form-control" required value="<?= date('Y-m-d'); ?>">
+            </div>
           </div>
-          <div class="col-md-4 mb-3">
-            <label for="cad_data_escuta" class="form-label">Data da Escuta</label>
-            <input type="date" name="data_escuta" id="cad_data_escuta" class="form-control" required value="<?= date('Y-m-d'); ?>">
-          </div>
-        </div>
 
-        <div class="mb-3">
-          <label for="cad_transcricao" class="form-label">Transcrição da Ligação</label>
-          <textarea name="transcricao" id="cad_transcricao" class="form-control" rows="4" required></textarea>
-        </div>
-        <div class="mb-3">
-          <label for="cad_feedback" class="form-label">Feedback / Ajustes</label>
-          <textarea name="feedback" id="cad_feedback" class="form-control" rows="2"></textarea>
-        </div>
-        <div class="d-flex justify-content-end">
-          <button type="submit" class="btn btn-primary">Registrar Escuta</button>
-          <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Fechar</button>
+          <div class="mb-3">
+            <label for="cad_transcricao" class="form-label">Transcrição da Ligação</label>
+            <textarea name="transcricao" id="cad_transcricao" class="form-control" rows="4" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="cad_feedback" class="form-label">Feedback / Ajustes</label>
+            <textarea name="feedback" id="cad_feedback" class="form-control" rows="2"></textarea>
+          </div>
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary">Registrar Escuta</button>
+          </div>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- Modal Cadastrar CLassificação -->
-<div class="modal fade" id="modalCadastrarClassi" tabindex="-1" aria-labelledby="modalCadastrarLabel" aria-hidden="true">
-  <div class="modal-dialog modal-sm">
-    <div class="modal-content p-4">
-      <h5 class="modal-title mb-3" id="modalCadastrarLabel">Cadastrar Classificação</h5>
-      <form method="POST" action="cadastrar_classificacao.php">
-        <div class="row mb-2">
-          <div class="col-md-12 mb-3">
-            <label for="descricao" class="form-label">Classificação</label>
-            <input type="text" class="form-control" id="descricao" name="descricao" required>
+  <!-- Modal Cadastrar CLassificação -->
+  <div class="modal fade" id="modalCadastrarClassi" tabindex="-1" aria-labelledby="modalCadastrarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content p-4">
+        <h5 class="modal-title mb-3" id="modalCadastrarLabel">Cadastrar Classificação</h5>
+        <form method="POST" action="cadastrar_classificacao.php">
+          <div class="row mb-2">
+            <div class="col-md-12 mb-3">
+              <label for="descricao" class="form-label">Classificação</label>
+              <input type="text" class="form-control" id="descricao" name="descricao" required>
+            </div>
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary">Cadastrar</button>
           </div>
-        <div class="d-flex justify-content-end">
-          <button type="submit" class="btn btn-primary">Cadastrar</button>
-          <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Fechar</button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   </div>
-</div>
+
+  <!-- Script AJAX para cadastrar a nova classificação -->
+  <script>
+
+  $(document).ready(function(){
+      $('#btnCadastrarClassificacao').click(function(){
+          var novaClassificacao = $('#novo_classificacao').val().trim();
+          if(novaClassificacao === ''){
+              $('#msgClassificacao').html('<span style="color:red;"><i class="fa-solid fa-xmark"></i> Informe a nova classificação.</span>').removeClass('d-none');
+              setTimeout(function(){
+                  $('#msgClassificacao').addClass('d-none');
+              }, 2500);
+              return;
+          }
+          $.ajax({
+              url: 'cadastrar_classificacao.php',
+              type: 'POST',
+              data: { descricao: novaClassificacao },
+              dataType: 'json',
+              success: function(resp){
+                  if(resp.duplicate === true) {
+                      $('#msgClassificacao').html('<span style="color:orange;"><i class="fa-solid fa-exclamation-triangle"></i> ' + resp.message + '</span>').removeClass('d-none');
+                      $('#cad_classi_id').val(resp.id);
+                  } else if(resp.id) {
+                      $('#cad_classi_id').append('<option value="' + resp.id + '">' + resp.descricao + '</option>');
+                      $('#cad_classi_id').val(resp.id);
+                      $('#msgClassificacao').html('<i class="fa-solid fa-check"></i> Classificação cadastrada com sucesso!').removeClass('d-none');
+                  } else {
+                      $('#msgClassificacao').html('<span style="color:red;"><i class="fa-solid fa-xmark"></i> Erro: ' + resp.message + '</span>').removeClass('d-none');
+                  }
+                  setTimeout(function(){
+                      $('#msgClassificacao').addClass('d-none');
+                  }, 2500);
+                  $('#novo_classificacao').val('');
+                  $('#novoClassiCollapse').collapse('hide');
+              },
+              error: function(jqXHR, textStatus, errorThrown){
+                  $('#msgClassificacao').html('<span style="color:red;"><i class="fa-solid fa-xmark"></i> Erro na requisição: ' + errorThrown + '</span>').removeClass('d-none');
+                  setTimeout(function(){
+                      $('#msgClassificacao').addClass('d-none');
+                  }, 2500);
+              }
+          });
+      });
+  });
+
+  </script>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>

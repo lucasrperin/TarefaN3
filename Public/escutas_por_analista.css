@@ -1,6 +1,18 @@
 .scroll-container {
-  max-height: 200px !important; /* ajuste a altura conforme necessário */
+  max-height: 100px !important; /* ajuste a altura conforme necessário */
   overflow-y: auto;
+}
+
+/* Personalização do scrollbar (Chrome, Edge, Safari) */
+.scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+.scroll-container::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 10px;
+}
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #555; 
 }
 
 /* Estilo do Toast */
@@ -83,4 +95,43 @@ td.sobrepor {
     border-radius: 5px;
     overflow: hidden;
     font-family: 'Nunito', sans-serif;
+}
+
+/* Ajustes no input-group */
+.input-group .form-select {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+.input-group .btn-outline-secondary {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  background-color: #fff;
+  color: #8a8989;
+  border: 1px solid #ced4daa2;
+  border-left: none;
+}
+
+.sobreporTot {
+  max-width: 200px; /* ajuste conforme necessário */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
+
+.scroll-containerTB {
+  max-height: 500px !important; /* ajuste a altura conforme necessário */
+  overflow-y: auto;
+}
+
+/* Personalização do scrollbar (Chrome, Edge, Safari) */
+.scroll-containerTB::-webkit-scrollbar {
+  width: 8px;
+}
+.scroll-containerTB::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 10px;
+}
+.scroll-containerTB::-webkit-scrollbar-thumb:hover {
+  background: #555; 
 }

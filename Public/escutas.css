@@ -53,18 +53,16 @@
   flex-grow: 0; /* Faz o texto ocupar apenas o espaço necessário */
 }
 
-/* Sobrescreve a cor de fundo e a cor do texto do dropdown-menu-dark */
-.dropEstilizado .dropdown-menu.dropdown-menu-dark {
-  background-color: #ffffff !important; /* fundo branco */
+/* Ajustes no input-group */
+.input-group .form-select {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
 }
-
-.dropEstilizado .dropdown-menu.dropdown-menu-dark .dropdown-item {
-  color: #000 !important;
-}
-
-/* Ao passar o mouse, os itens ficam com fundo azul e texto branco */
-.dropEstilizado .dropdown-menu.dropdown-menu-dark .dropdown-item:hover,
-.dropEstilizado .dropdown-menu.dropdown-menu-dark .dropdown-item:focus {
-  background-color: #0d6efd; /* cor azul padrão do Bootstrap */
-  color: #ffffff !important;
+.input-group .btn-outline-secondary {
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  background-color: #fff;
+  color: #8a8989;
+  border: 1px solid #ced4daa2;
+  border-left: none;
 }
