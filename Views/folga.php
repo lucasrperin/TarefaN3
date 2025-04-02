@@ -6,18 +6,45 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// ===================== AGRUPANDO REGISTROS POR DIA =====================
-$sql = "
-    SELECT f.id, 
-           u.Nome AS nome_colaborador, 
-           f.data_inicio, 
-           f.data_fim, 
-           f.tipo 
-      FROM TB_FOLGA f
-      JOIN TB_USUARIO u ON f.usuario_id = u.Id
-  ORDER BY f.data_inicio
-";
+// ===================== RECEBE FILTROS (GET) =====================
+$idEquipeFilter = isset($_GET['idEquipe']) ? $_GET['idEquipe'] : 'Todos';
+$idNivelFilter = isset($_GET['idNivel']) ? $_GET['idNivel'] : 'Todos';
+
+// ===================== CARREGA OPÇÕES DE FILTRO =====================
+// Carrega as equipes
+$sqlEquipes = "SELECT * FROM TB_EQUIPE ORDER BY descricao";
+$resultEquipes = $conn->query($sqlEquipes);
+if (!$resultEquipes) {
+    die("Erro ao buscar equipes: " . $conn->error);
+}
+// Carrega os níveis
+$sqlNiveis = "SELECT * FROM TB_NIVEL ORDER BY descricao";
+$resultNiveis = $conn->query($sqlNiveis);
+if (!$resultNiveis) {
+    die("Erro ao buscar níveis: " . $conn->error);
+}
+
+// ===================== QUERY PRINCIPAL PARA O CALENDÁRIO (Aggregador) =====================
+$sql = "SELECT f.id, u.Nome AS nome_colaborador, f.data_inicio, f.data_fim, f.tipo
+        FROM TB_FOLGA f
+        JOIN TB_USUARIO u ON f.usuario_id = u.Id";
+$conditions = [];
+// Se algum filtro for aplicado, faz join com TB_EQUIPE_NIVEL_ANALISTA
+if ($idEquipeFilter != 'Todos' || $idNivelFilter != 'Todos') {
+    $sql .= " JOIN TB_EQUIPE_NIVEL_ANALISTA eva ON u.Id = eva.idUsuario";
+}
+if ($idEquipeFilter != 'Todos') {
+    $conditions[] = "eva.idEquipe = " . intval($idEquipeFilter);
+}
+if ($idNivelFilter != 'Todos') {
+    $conditions[] = "eva.idNivel = " . intval($idNivelFilter);
+}
+if (!empty($conditions)) {
+    $sql .= " WHERE " . implode(" AND ", $conditions);
+}
+$sql .= " ORDER BY f.data_inicio";
 $result = $conn->query($sql);
+
 $aggregator = [];
 if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
@@ -33,8 +60,22 @@ if ($result && $result->num_rows > 0) {
     }
 }
 
-// ===================== CARREGA USUÁRIOS PARA O SELECT =====================
-$sqlUsuarios = "SELECT Id, Nome FROM TB_USUARIO ORDER BY Nome";
+// ===================== CONSULTA PARA COLABORADORES (para os selects) =====================
+// Se houver filtro, retorna apenas os colaboradores que atendem à equipe e nível
+if ($idEquipeFilter != 'Todos' || $idNivelFilter != 'Todos') {
+    $sqlUsuarios = "SELECT u.Id, u.Nome FROM TB_USUARIO u
+                     JOIN TB_EQUIPE_NIVEL_ANALISTA eva ON u.Id = eva.idUsuario
+                     WHERE 1";
+    if ($idEquipeFilter != 'Todos') {
+        $sqlUsuarios .= " AND eva.idEquipe = " . intval($idEquipeFilter);
+    }
+    if ($idNivelFilter != 'Todos') {
+        $sqlUsuarios .= " AND eva.idNivel = " . intval($idNivelFilter);
+    }
+    $sqlUsuarios .= " ORDER BY u.Nome";
+} else {
+    $sqlUsuarios = "SELECT Id, Nome FROM TB_USUARIO ORDER BY Nome";
+}
 $resultUsuarios = $conn->query($sqlUsuarios);
 if (!$resultUsuarios) {
     die("Erro ao buscar usuários: " . $conn->error);
@@ -83,33 +124,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
 }
 
 // ===================== CONSULTAS PARA LISTAGEM (Tabelas) =====================
-$sqlListarFerias = "
-    SELECT f.id,
-           f.usuario_id,
-           u.Nome AS nome_colaborador,
-           f.data_inicio,
-           f.data_fim,
-           f.quantidade_dias
-      FROM TB_FOLGA f
-      JOIN TB_USUARIO u ON f.usuario_id = u.Id
-     WHERE f.tipo = 'Férias'
-  ORDER BY f.id DESC
-";
+// Para Férias
+$sqlListarFerias = "SELECT f.id, f.usuario_id, u.Nome AS nome_colaborador, f.data_inicio, f.data_fim, f.quantidade_dias
+                    FROM TB_FOLGA f
+                    JOIN TB_USUARIO u ON f.usuario_id = u.Id";
+$conditionsFerias = ["f.tipo = 'Férias'"];
+if ($idEquipeFilter != 'Todos' || $idNivelFilter != 'Todos') {
+    $sqlListarFerias .= " JOIN TB_EQUIPE_NIVEL_ANALISTA eva ON u.Id = eva.idUsuario";
+}
+if ($idEquipeFilter != 'Todos') {
+    $conditionsFerias[] = "eva.idEquipe = " . intval($idEquipeFilter);
+}
+if ($idNivelFilter != 'Todos') {
+    $conditionsFerias[] = "eva.idNivel = " . intval($idNivelFilter);
+}
+if (!empty($conditionsFerias)) {
+    $sqlListarFerias .= " WHERE " . implode(" AND ", $conditionsFerias);
+}
+$sqlListarFerias .= " ORDER BY f.id DESC";
 $resultFerias = $conn->query($sqlListarFerias);
 
-$sqlListarFolga = "
-    SELECT f.id,
-           f.usuario_id,
-           u.Nome AS nome_colaborador,
-           f.data_inicio,
-           f.data_fim,
-           f.quantidade_dias,
-           f.justificativa
-      FROM TB_FOLGA f
-      JOIN TB_USUARIO u ON f.usuario_id = u.Id
-     WHERE f.tipo = 'Folga'
-  ORDER BY f.id DESC
-";
+// Para Folga
+$sqlListarFolga = "SELECT f.id, f.usuario_id, u.Nome AS nome_colaborador, f.data_inicio, f.data_fim, f.quantidade_dias, f.justificativa
+                   FROM TB_FOLGA f
+                   JOIN TB_USUARIO u ON f.usuario_id = u.Id";
+$conditionsFolga = ["f.tipo = 'Folga'"];
+if ($idEquipeFilter != 'Todos' || $idNivelFilter != 'Todos') {
+    $sqlListarFolga .= " JOIN TB_EQUIPE_NIVEL_ANALISTA eva ON u.Id = eva.idUsuario";
+}
+if ($idEquipeFilter != 'Todos') {
+    $conditionsFolga[] = "eva.idEquipe = " . intval($idEquipeFilter);
+}
+if ($idNivelFilter != 'Todos') {
+    $conditionsFolga[] = "eva.idNivel = " . intval($idNivelFilter);
+}
+if (!empty($conditionsFolga)) {
+    $sqlListarFolga .= " WHERE " . implode(" AND ", $conditionsFolga);
+}
+$sqlListarFolga .= " ORDER BY f.id DESC";
 $resultFolga = $conn->query($sqlListarFolga);
 ?>
 <!DOCTYPE html>
@@ -153,32 +205,64 @@ $resultFolga = $conn->query($sqlListarFolga);
 </nav>
 
 <div class="container my-5">
-<!-- Linha que agrupa Calendário e Painel de Detalhes -->
-<div class="row calendario-detalhes mb-4">
-  <div class="col-md-9">
-    <div id="calendar" class="p-3 bg-light rounded shadow-sm"></div>
+  <!-- Formulário de filtro -->
+  <form method="GET" class="filter mb-4">
+  <div class="row g-3 justify-content-center">
+    <div class="col-auto">
+      <label for="idEquipe" class="form-label fw-semibold">Equipe:</label>
+      <select class="form-select" name="idEquipe" id="idEquipe">
+        <option value="Todos">Todos</option>
+        <?php while($equipe = $resultEquipes->fetch_assoc()): ?>
+          <option value="<?php echo $equipe['id']; ?>" <?php echo ($idEquipeFilter == $equipe['id']) ? 'selected' : ''; ?>>
+            <?php echo $equipe['descricao']; ?>
+          </option>
+        <?php endwhile; ?>
+      </select>
+    </div>
+    <div class="col-auto">
+      <label for="idNivel" class="form-label fw-semibold">Nível:</label>
+      <select class="form-select" name="idNivel" id="idNivel">
+        <option value="Todos">Todos</option>
+        <?php while($nivel = $resultNiveis->fetch_assoc()): ?>
+          <option value="<?php echo $nivel['id']; ?>" <?php echo ($idNivelFilter == $nivel['id']) ? 'selected' : ''; ?>>
+            <?php echo $nivel['descricao']; ?>
+          </option>
+        <?php endwhile; ?>
+      </select>
+    </div>
+    <div class="col-auto align-self-end">
+      <button type="submit" class="btn btn-primary">Filtrar</button>
+    </div>
+    <div class="col-auto align-self-end">
+      <a href="folga.php" class="btn btn-secondary">Limpar Filtros</a>
+    </div>
   </div>
-  <div class="col-md-3">
-    <div id="sidePanel" class="card shadow-sm border-0">
-      <div class="card-header bg-secondary text-white rounded-top">
-        <h5 class="mb-0">Detalhes do Dia</h5>
-      </div>
-      <div class="card-body" id="details">
-        <!-- Conteúdo atualizado via JS -->
+</form>
+
+  <!-- Linha que agrupa Calendário e Painel de Detalhes -->
+  <div class="row calendario-detalhes mb-4">
+    <div class="col-md-9">
+      <div id="calendar" class="p-3 bg-light rounded shadow-sm"></div>
+    </div>
+    <div class="col-md-3">
+      <div id="sidePanel" class="card shadow-sm border-0">
+        <div class="card-header bg-secondary text-white rounded-top">
+          <h5 class="mb-0">Detalhes do Dia</h5>
+        </div>
+        <div class="card-body" id="details">
+          <!-- Conteúdo atualizado via JS -->
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-
-  
   <!-- Botão para abrir modal de cadastro -->
   <div class="d-flex justify-content-end mb-3">
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">
       <i class="fa-solid fa-plus-circle me-2"></i> Cadastrar
     </button>
   </div>
-  
+
   <!-- Modal de cadastro -->
   <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -219,7 +303,6 @@ $resultFolga = $conn->query($sqlListarFolga);
             </div>
             <div class="row justify-content-center mb-3">
               <div class="col-auto">
-                <!-- Certifique-se de ter apenas UM elemento com ID "calendarioInline" -->
                 <div id="calendarioInline" class="border rounded p-2"></div>
               </div>
             </div>
@@ -240,7 +323,7 @@ $resultFolga = $conn->query($sqlListarFolga);
       </div>
     </div>
   </div>
-  
+
   <!-- Modal de Edição -->
   <div class="modal fade" id="modalEditar" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -256,7 +339,21 @@ $resultFolga = $conn->query($sqlListarFolga);
               <div class="col-md-6">
                 <label for="edit_usuario_id" class="form-label fw-semibold">Colaborador:</label>
                 <?php
-                  $sqlUsuarios2 = "SELECT Id, Nome FROM TB_USUARIO ORDER BY Nome";
+                  // Para o modal de edição, também aplicamos o filtro de colaboradores
+                  if ($idEquipeFilter != 'Todos' || $idNivelFilter != 'Todos') {
+                      $sqlUsuarios2 = "SELECT u.Id, u.Nome FROM TB_USUARIO u
+                                        JOIN TB_EQUIPE_NIVEL_ANALISTA eva ON u.Id = eva.idUsuario
+                                        WHERE 1";
+                      if ($idEquipeFilter != 'Todos') {
+                          $sqlUsuarios2 .= " AND eva.idEquipe = " . intval($idEquipeFilter);
+                      }
+                      if ($idNivelFilter != 'Todos') {
+                          $sqlUsuarios2 .= " AND eva.idNivel = " . intval($idNivelFilter);
+                      }
+                      $sqlUsuarios2 .= " ORDER BY u.Nome";
+                  } else {
+                      $sqlUsuarios2 = "SELECT Id, Nome FROM TB_USUARIO ORDER BY Nome";
+                  }
                   $resultUsuarios2 = $conn->query($sqlUsuarios2);
                 ?>
                 <select class="form-select" name="usuario_id" id="edit_usuario_id" required>
@@ -301,7 +398,7 @@ $resultFolga = $conn->query($sqlListarFolga);
       </div>
     </div>
   </div>
-  
+
   <!-- Listagem dos registros -->
   <div class="row g-4">
     <!-- Card de Férias -->
@@ -456,206 +553,199 @@ $resultFolga = $conn->query($sqlListarFolga);
   var aggregator = <?php echo json_encode($aggregator); ?>;
   console.log('Aggregator:', aggregator);
 
-// Inicializa o FullCalendar com timeZone configurado para "local"
-document.addEventListener('DOMContentLoaded', function() {
-  var calendarEl = document.getElementById('calendar');
-  if (!calendarEl) {
-    console.error("Elemento 'calendar' não encontrado!");
-    return;
-  }
-  var calendar = new FullCalendar.Calendar(calendarEl, {
-    locale: 'pt-br',
-    timeZone: 'local',
-    initialView: 'dayGridMonth',
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: ''
-    },
-    buttonText: {
-    today: 'Hoje'
-  },
-    height: 350,
-    expandRows: true,
-    // Personaliza os cabeçalhos dos dias da semana: remove o ponto e deixa em maiúsculas
-    dayHeaderContent: function(arg) {
-      return arg.text.toUpperCase().replace(/\./g, '');
-    },
-    dayCellDidMount: function(info) {
-      var dayStr = info.date.toISOString().split('T')[0];
-      var dayFrame = info.el.querySelector('.fc-daygrid-day-frame');
-      if (dayFrame) {
-        dayFrame.style.position = 'relative';
-        if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
-          dayFrame.style.backgroundColor = '#E2F0D9';
-          var badge = document.createElement('span');
-          badge.classList.add('badge', 'bg-primary', 'badge-colab-center');
-          badge.textContent = aggregator[dayStr].length;
-          dayFrame.appendChild(badge);
-        }
-        dayFrame.addEventListener('click', function() {
-          document.querySelectorAll('.fc-daygrid-day-frame.selected-day').forEach(function(cell) {
-            cell.classList.remove('selected-day');
-          });
-          dayFrame.classList.add('selected-day');
-          updateSidePanel(dayStr);
-        });
-      }
+  // Inicializa o FullCalendar com timeZone configurado para "local"
+  document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) {
+      console.error("Elemento 'calendar' não encontrado!");
+      return;
     }
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      locale: 'pt-br',
+      timeZone: 'local',
+      initialView: 'dayGridMonth',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: ''
+      },
+      buttonText: {
+        today: 'Hoje'
+      },
+      height: 350,
+      expandRows: true,
+      // Personaliza os cabeçalhos dos dias da semana: remove o ponto e deixa em maiúsculas
+      dayHeaderContent: function(arg) {
+        return arg.text.toUpperCase().replace(/\./g, '');
+      },
+      dayCellDidMount: function(info) {
+        var dayStr = info.date.toISOString().split('T')[0];
+        var dayFrame = info.el.querySelector('.fc-daygrid-day-frame');
+        if (dayFrame) {
+          dayFrame.style.position = 'relative';
+          if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
+            dayFrame.style.backgroundColor = '#E2F0D9';
+            var badge = document.createElement('span');
+            badge.classList.add('badge', 'bg-primary', 'badge-colab-center');
+            badge.textContent = aggregator[dayStr].length;
+            dayFrame.appendChild(badge);
+          }
+          dayFrame.addEventListener('click', function() {
+            document.querySelectorAll('.fc-daygrid-day-frame.selected-day').forEach(function(cell) {
+              cell.classList.remove('selected-day');
+            });
+            dayFrame.classList.add('selected-day');
+            updateSidePanel(dayStr);
+          });
+        }
+      }
+    });
+    calendar.render();
+
+    var todayStr = new Date().toISOString().split('T')[0];
+    updateSidePanel(todayStr);
   });
-  calendar.render();
-
-  var todayStr = new Date().toISOString().split('T')[0];
-  updateSidePanel(todayStr);
-});
-
 
   let calendarInstance = null;
   let calendarEditInstance = null;
 
   // Inicializa o Flatpickr para o modal de cadastro
-const modalCadastro = document.getElementById('modalCadastro');
-modalCadastro.addEventListener('shown.bs.modal', function () {
-  if (!calendarInstance) {
-    calendarInstance = flatpickr('#calendarioInline', {
-      mode: 'range',
-      inline: true,
-      dateFormat: 'Y-m-d',
-      showMonths: 2,
-      onDayCreate: function(dateObj, dateStr, instance, dayElem) {
-        // Verifica se dateObj é um objeto Date
-        if (!dateObj || typeof dateObj.getFullYear !== 'function') {
-          console.warn("onDayCreate: dateObj inválido:", dateObj);
-          return;
-        }
-        // Extrai os 10 primeiros caracteres (YYYY-MM-DD)
-        let cleanDate = dateStr.slice(0, 10);
-        if (aggregator[cleanDate] && aggregator[cleanDate].length > 0) {
-          dayElem.classList.add("used-day");
-        }
-      },
-      onChange: function(selectedDates, dateStr, instance) {
-        let conflict = false;
-        let conflictDays = [];
-        if (selectedDates.length === 2) {
-          let start = new Date(selectedDates[0]);
-          let end = new Date(selectedDates[1]);
-          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            let dayFormatted = instance.formatDate(d, 'Y-m-d');
-            if (aggregator[dayFormatted] && aggregator[dayFormatted].length > 0) {
-              conflict = true;
-              conflictDays.push(dayFormatted);
+  const modalCadastro = document.getElementById('modalCadastro');
+  modalCadastro.addEventListener('shown.bs.modal', function () {
+    if (!calendarInstance) {
+      calendarInstance = flatpickr('#calendarioInline', {
+        mode: 'range',
+        inline: true,
+        dateFormat: 'Y-m-d',
+        showMonths: 2,
+        onDayCreate: function(dateObj, dateStr, instance, dayElem) {
+          if (!dateObj || typeof dateObj.getFullYear !== 'function') {
+            console.warn("onDayCreate: dateObj inválido:", dateObj);
+            return;
+          }
+          let cleanDate = dateStr.slice(0, 10);
+          if (aggregator[cleanDate] && aggregator[cleanDate].length > 0) {
+            dayElem.classList.add("used-day");
+          }
+        },
+        onChange: function(selectedDates, dateStr, instance) {
+          let conflict = false;
+          let conflictDays = [];
+          if (selectedDates.length === 2) {
+            let start = new Date(selectedDates[0]);
+            let end = new Date(selectedDates[1]);
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+              let dayFormatted = instance.formatDate(d, 'Y-m-d');
+              if (aggregator[dayFormatted] && aggregator[dayFormatted].length > 0) {
+                conflict = true;
+                conflictDays.push(dayFormatted);
+              }
             }
           }
-        }
-        let notificationElem = document.getElementById('conflictNotification');
-        if (conflict) {
-          if (!notificationElem) {
-            notificationElem = document.createElement('div');
-            notificationElem.id = 'conflictNotification';
-            notificationElem.className = 'alert alert-warning mt-2';
-            instance.calendarContainer.parentNode.insertBefore(notificationElem, instance.calendarContainer.nextSibling);
-          }
-          // Exibe somente o dia (terceiro componente) de cada data conflitante
-          notificationElem.innerText = 'Já há colaboradores com folga/férias nos dias: ' + 
-            conflictDays.map(function(day) { return day.split('-')[2]; }).join(', ');
-        } else if (notificationElem) {
-          notificationElem.parentNode.removeChild(notificationElem);
-        }
-        if (selectedDates.length === 2) {
-          document.getElementById('data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
-          document.getElementById('data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
-        }
-      }
-    });
-  }
-});
-
-// Ouvinte para exibir/ocultar o campo de justificativa conforme o tipo selecionado no modal de cadastro
-const tipoSelect = document.getElementById('tipo');
-const justificativaGroup = document.getElementById('justificativaGroup');
-tipoSelect.addEventListener('change', function() {
-  justificativaGroup.style.display = (tipoSelect.value === 'Folga') ? 'block' : 'none';
-});
-
-// Inicializa o Flatpickr para o modal de edição
-const modalEditar = document.getElementById('modalEditar');
-modalEditar.addEventListener('shown.bs.modal', function() {
-  if (!calendarEditInstance) {
-    calendarEditInstance = flatpickr('#calendarioInlineEdit', {
-      mode: 'range',
-      inline: true,
-      dateFormat: 'Y-m-d',
-      showMonths: 2,
-      onChange: function(selectedDates, dateStr, instance) {
-        let conflict = false;
-        let conflictDays = [];
-        if (selectedDates.length === 2) {
-          let start = new Date(selectedDates[0]);
-          let end = new Date(selectedDates[1]);
-          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            let dayFormatted = instance.formatDate(d, 'Y-m-d');
-            if (aggregator[dayFormatted] && aggregator[dayFormatted].length > 0) {
-              conflict = true;
-              conflictDays.push(dayFormatted);
+          let notificationElem = document.getElementById('conflictNotification');
+          if (conflict) {
+            if (!notificationElem) {
+              notificationElem = document.createElement('div');
+              notificationElem.id = 'conflictNotification';
+              notificationElem.className = 'alert alert-warning mt-2';
+              instance.calendarContainer.parentNode.insertBefore(notificationElem, instance.calendarContainer.nextSibling);
             }
+            notificationElem.innerText = 'Já há colaboradores com folga/férias nos dias: ' + 
+              conflictDays.map(function(day) { return day.split('-')[2]; }).join(', ');
+          } else if (notificationElem) {
+            notificationElem.parentNode.removeChild(notificationElem);
+          }
+          if (selectedDates.length === 2) {
+            document.getElementById('data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
+            document.getElementById('data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
           }
         }
-        let notificationElem = document.getElementById('editConflictNotification');
-        if (conflict) {
-          if (!notificationElem) {
-            notificationElem = document.createElement('div');
-            notificationElem.id = 'editConflictNotification';
-            notificationElem.className = 'alert alert-warning mt-2';
-            instance.calendarContainer.parentNode.insertBefore(notificationElem, instance.calendarContainer.nextSibling);
-          }
-          // Exibe somente o dia (terceiro componente) de cada data conflitante
-          notificationElem.innerText = 'Já há colaboradores com folga/férias nos dias: ' +
-            conflictDays.map(function(day) { return day.split('-')[2]; }).join(', ');
-        } else if (notificationElem) {
-          notificationElem.parentNode.removeChild(notificationElem);
-        }
-        if (selectedDates.length === 2) {
-          document.getElementById('edit_data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
-          document.getElementById('edit_data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
-        }
-      }
-    });
-  } else {
-    calendarEditInstance.redraw();
-  }
-});
-
-// Preenche o modal de edição com os dados do evento selecionado e atualiza a visibilidade do campo justificativa
-document.querySelectorAll('.editar-btn').forEach(btn => {
-  btn.addEventListener('click', function() {
-    const id = this.getAttribute('data-id');
-    const usuarioId = this.getAttribute('data-usuarioid');
-    const tipo = this.getAttribute('data-tipo');
-    const dataInicio = this.getAttribute('data-inicio');
-    const dataFim = this.getAttribute('data-fim');
-    const justificativa = this.getAttribute('data-justificativa') || '';
-
-    document.getElementById('edit_id').value = id;
-    document.getElementById('edit_usuario_id').value = usuarioId;
-    document.getElementById('edit_tipo').value = tipo;
-    document.getElementById('edit_data_inicio').value = dataInicio;
-    document.getElementById('edit_data_fim').value = dataFim;
-    document.getElementById('edit_justificativa').value = justificativa;
-
-    // Exibe ou oculta o campo de justificativa com base no tipo
-    document.getElementById('justificativaGroupEdit').style.display = (tipo === 'Folga') ? 'block' : 'none';
-
-    if (calendarEditInstance) {
-      if (dataInicio && dataFim) {
-        calendarEditInstance.setDate([dataInicio, dataFim], true);
-      } else {
-        calendarEditInstance.clear();
-      }
+      });
     }
   });
-});
 
+  // Ouvinte para exibir/ocultar o campo de justificativa conforme o tipo selecionado no modal de cadastro
+  const tipoSelect = document.getElementById('tipo');
+  const justificativaGroup = document.getElementById('justificativaGroup');
+  tipoSelect.addEventListener('change', function() {
+    justificativaGroup.style.display = (tipoSelect.value === 'Folga') ? 'block' : 'none';
+  });
+
+  // Inicializa o Flatpickr para o modal de edição
+  const modalEditar = document.getElementById('modalEditar');
+  modalEditar.addEventListener('shown.bs.modal', function() {
+    if (!calendarEditInstance) {
+      calendarEditInstance = flatpickr('#calendarioInlineEdit', {
+        mode: 'range',
+        inline: true,
+        dateFormat: 'Y-m-d',
+        showMonths: 2,
+        onChange: function(selectedDates, dateStr, instance) {
+          let conflict = false;
+          let conflictDays = [];
+          if (selectedDates.length === 2) {
+            let start = new Date(selectedDates[0]);
+            let end = new Date(selectedDates[1]);
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+              let dayFormatted = instance.formatDate(d, 'Y-m-d');
+              if (aggregator[dayFormatted] && aggregator[dayFormatted].length > 0) {
+                conflict = true;
+                conflictDays.push(dayFormatted);
+              }
+            }
+          }
+          let notificationElem = document.getElementById('editConflictNotification');
+          if (conflict) {
+            if (!notificationElem) {
+              notificationElem = document.createElement('div');
+              notificationElem.id = 'editConflictNotification';
+              notificationElem.className = 'alert alert-warning mt-2';
+              instance.calendarContainer.parentNode.insertBefore(notificationElem, instance.calendarContainer.nextSibling);
+            }
+            notificationElem.innerText = 'Já há colaboradores com folga/férias nos dias: ' +
+              conflictDays.map(function(day) { return day.split('-')[2]; }).join(', ');
+          } else if (notificationElem) {
+            notificationElem.parentNode.removeChild(notificationElem);
+          }
+          if (selectedDates.length === 2) {
+            document.getElementById('edit_data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
+            document.getElementById('edit_data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
+          }
+        }
+      });
+    } else {
+      calendarEditInstance.redraw();
+    }
+  });
+
+  // Preenche o modal de edição com os dados do evento selecionado e atualiza a visibilidade do campo justificativa
+  document.querySelectorAll('.editar-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const id = this.getAttribute('data-id');
+      const usuarioId = this.getAttribute('data-usuarioid');
+      const tipo = this.getAttribute('data-tipo');
+      const dataInicio = this.getAttribute('data-inicio');
+      const dataFim = this.getAttribute('data-fim');
+      const justificativa = this.getAttribute('data-justificativa') || '';
+
+      document.getElementById('edit_id').value = id;
+      document.getElementById('edit_usuario_id').value = usuarioId;
+      document.getElementById('edit_tipo').value = tipo;
+      document.getElementById('edit_data_inicio').value = dataInicio;
+      document.getElementById('edit_data_fim').value = dataFim;
+      document.getElementById('edit_justificativa').value = justificativa;
+
+      document.getElementById('justificativaGroupEdit').style.display = (tipo === 'Folga') ? 'block' : 'none';
+
+      if (calendarEditInstance) {
+        if (dataInicio && dataFim) {
+          calendarEditInstance.setDate([dataInicio, dataFim], true);
+        } else {
+          calendarEditInstance.clear();
+        }
+      }
+    });
+  });
 </script>
 </body>
 </html>
