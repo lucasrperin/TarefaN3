@@ -19,9 +19,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $positivo    = ($_POST['edit_positivo']);
     $transcricao = trim($_POST['transcricao']);
     $feedback    = trim($_POST['feedback']);
+    $avaliacao    = ($_POST['edit_avaliacao']);
 
-    $stmt = $conn->prepare("UPDATE TB_ESCUTAS SET user_id = ?, classi_id = ?, data_escuta = ?, transcricao = ?, feedback = ?, P_N = ? WHERE id = ?");
-    $stmt->bind_param("iissssi", $user_id, $classificacao, $data_escuta, $transcricao,  $feedback,  $positivo, $id);
+    $stmt = $conn->prepare("UPDATE TB_ESCUTAS SET user_id = ?, classi_id = ?, data_escuta = ?, transcricao = ?, feedback = ?, P_N = ?, solicitaAva = ? WHERE id = ?");
+    $stmt->bind_param("iisssssi", $user_id, $classificacao, $data_escuta, $transcricao, $feedback, $positivo, $avaliacao, $id);
     if ($stmt->execute()) {
         $_SESSION['success'] = "Escuta atualizada com sucesso.";
     } else {

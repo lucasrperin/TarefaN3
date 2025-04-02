@@ -18,11 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $positivo    = ($_POST['positivo']);
     $transcricao = trim($_POST['transcricao']);
     $feedback    = trim($_POST['feedback']);
+    $avaliacao   = ($_POST['avaliacao']);
     $admin_id    = $_SESSION['usuario_id']; // ID do Admin logado
 
     
-        $stmt = $conn->prepare("INSERT INTO TB_ESCUTAS (user_id, admin_id, classi_id, data_escuta, transcricao, feedback, P_N) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("iiissss", $user_id, $admin_id, $classificacao, $data_escuta, $transcricao, $feedback, $positivo);
+        $stmt = $conn->prepare("INSERT INTO TB_ESCUTAS (user_id, admin_id, classi_id, data_escuta, transcricao, feedback, P_N, solicitaAva) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("iiisssss", $user_id, $admin_id, $classificacao, $data_escuta, $transcricao, $feedback, $positivo, $avaliacao);
         if ($stmt->execute()) {
             $_SESSION['success'] = "Escuta registrada com sucesso.";
         } else {

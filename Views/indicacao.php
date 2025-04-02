@@ -234,9 +234,11 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
       <h4 class="mb-0">Indicações de Plugins</h4>
       <div class="d-flex justify-content-end gap-2">
         <input type="text" id="searchInput" class="form-control ms-2" style="max-width: 200px;" placeholder="Pesquisar...">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovaIndicacao">
-          <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
-        </button>
+        <?php if ($cargo === 'Admin' || $cargo === 'User' || $cargo === 'Conversor'): ?>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovaIndicacao">
+            <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
+          </button>
+        <?php endif; ?>
       </div>
     </div>
     <div class="card-body">

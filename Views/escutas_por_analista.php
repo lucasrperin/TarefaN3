@@ -143,6 +143,29 @@ $neg_count = (int)$evaluation['neg_count'];
 $total_count = (int)$evaluation['total_count'];
 $percent_positive = $total_count > 0 ? ($pos_count / $total_count) * 100 : 0;
 $percent_negative = $total_count > 0 ? ($neg_count / $total_count) * 100 : 0;
+/* ------------------------------
+   Totalizador: Percentual de Solicitação Avaliações (SIM x NAO)
+------------------------------ */
+$stmtEvalAva = $conn->prepare("
+    SELECT 
+        SUM(CASE WHEN solicitaAva = 'Sim' THEN 1 ELSE 0 END) AS pos_count_ava,
+        SUM(CASE WHEN solicitaAva = 'Nao' THEN 1 ELSE 0 END) AS neg_count_ava,
+        COUNT(*) AS total_count_ava
+    FROM TB_ESCUTAS e
+    WHERE e.user_id = ?
+    $dataFilterCondition
+");
+$stmtEvalAva->bind_param("i", $user_id);
+$stmtEvalAva->execute();
+$resultEvalAva = $stmtEvalAva->get_result();
+$evaluationAva = $resultEvalAva->fetch_assoc();
+$stmtEvalAva->close();
+
+$pos_count_ava = (int)$evaluationAva['pos_count_ava'];
+$neg_count_ava = (int)$evaluationAva['neg_count_ava'];
+$total_count_ava = (int)$evaluationAva['total_count_ava'];
+$percent_positive_ava = $total_count_ava > 0 ? ($pos_count_ava / $total_count_ava) * 100 : 0;
+$percent_negative_ava = $total_count_ava > 0 ? ($neg_count_ava / $total_count_ava) * 100 : 0;
 
 // ------------------- Gráfico Mensal (Positivas x Negativas) -------------------
 /*
@@ -274,27 +297,62 @@ document.addEventListener("DOMContentLoaded", function () {
 
       <!-- Card: Percentual de Avaliações -->
       <div class="card mt-3">
-        <div class="card-body">
-          <h5 class="card-title">Percentual de Avaliações</h5>
-          <?php if($total_count > 0): ?>
-            <div class="progress" style="height: 15px;">
-              <div class="progress-bar bg-success" role="progressbar" 
-                   style="width: <?= round($percent_positive); ?>%;" 
-                   aria-valuenow="<?= round($percent_positive); ?>" aria-valuemin="0" aria-valuemax="100">
-                <?= round($percent_positive); ?>%
+        <span data-bs-toggle="tooltip" data-bs-html="true" title="🟩 Sim <br>🟥 Não">
+          <div class="card-body">
+            <h5 class="card-title">Taxa de Avaliação Positiva</h5>
+            <?php if($total_count > 0): ?>
+              <div class="progress" style="height: 15px;">
+                <div class="progress-bar bg-success" role="progressbar" 
+                    style="width: <?= round($percent_positive); ?>%;" 
+                    aria-valuenow="<?= round($percent_positive); ?>" aria-valuemin="0" aria-valuemax="100">
+                  <?= round($percent_positive); ?>%
+                </div>
+                <div class="progress-bar bg-danger" role="progressbar" 
+                    style="width: <?= round($percent_negative); ?>%;" 
+                    aria-valuenow="<?= round($percent_negative); ?>" aria-valuemin="0" aria-valuemax="100">
+                  <?= round($percent_negative); ?>%
+                </div>
               </div>
-              <div class="progress-bar bg-danger" role="progressbar" 
-                   style="width: <?= round($percent_negative); ?>%;" 
-                   aria-valuenow="<?= round($percent_negative); ?>" aria-valuemin="0" aria-valuemax="100">
-                <?= round($percent_negative); ?>%
+            <?php else: ?>
+              <p>Nenhuma avaliação registrada neste período.</p>
+            <?php endif; ?>
+          </div>
+        </span>
+      </div>
+      <!-- Card: Percentual de Avaliações -->
+      <div class="card mt-3">
+        <span data-bs-toggle="tooltip" data-bs-html="true" title="🟩 Sim <br>🟥 Não">
+          <div class="card-body">
+            <h5 class="card-title">Taxa Solicitação de Avaliação</h5>
+            <?php if($total_count_ava > 0): ?>
+              <div class="progress" style="height: 15px;">
+                <div class="progress-bar bg-success" role="progressbar" 
+                    style="width: <?= round($percent_positive_ava); ?>%;" 
+                    aria-valuenow="<?= round($percent_positive_ava); ?>" aria-valuemin="0" aria-valuemax="100">
+                  <?= round($percent_positive_ava); ?>%
+                </div>
+                <div class="progress-bar bg-danger" role="progressbar" 
+                    style="width: <?= round($percent_negative_ava); ?>%;" 
+                    aria-valuenow="<?= round($percent_negative_ava); ?>" aria-valuemin="0" aria-valuemax="100">
+                  <?= round($percent_negative_ava); ?>%
+                </div>
               </div>
-            </div>
-          <?php else: ?>
-            <p>Nenhuma avaliação registrada neste período.</p>
-          <?php endif; ?>
-        </div>
+            <?php else: ?>
+              <p>Nenhuma avaliação registrada neste período.</p>
+            <?php endif; ?>
+          </div>
+        </span>
       </div>
     </div>
+    <!-- Código para exibir e remover a mensagem/aviso -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+      });
+    </script>
 
     <!-- Coluna 2: Evolução Mensal (Gráfico) -->
     <div class="col-md-6 d-flex flex-column">
@@ -349,6 +407,7 @@ document.addEventListener("DOMContentLoaded", function () {
               <th width="10%">Usuário</th>
               <th width="12%">Classificação</th>
               <th width="3%">Positivo</th>
+              <th width="3%">Solic. Avaliação</th>
               <th width="17%">Transcrição</th>
               <th width="17%">Feedback</th>
               <th width="5%">Ações</th>
@@ -362,6 +421,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   <td><?php echo $escuta['usuario_nome']; ?></td>
                   <td><?php echo $escuta['classificacao']; ?></td>
                   <td><?php echo $escuta['P_N']; ?></td>
+                  <td><?php echo $escuta['solicitaAva']; ?></td>
                   <td class="sobrepor"><?php echo $escuta['transcricao']; ?></td>
                   <td class="sobrepor"><?php echo $escuta['feedback']; ?></td>
                   <td>
@@ -376,7 +436,8 @@ document.addEventListener("DOMContentLoaded", function () {
                               <?php echo htmlspecialchars(json_encode($escuta['P_N']), ENT_QUOTES, 'UTF-8'); ?>,
                               <?php echo htmlspecialchars(json_encode(date('Y-m-d', strtotime($escuta['data_escuta']))), ENT_QUOTES, 'UTF-8'); ?>,
                               <?php echo htmlspecialchars(json_encode($escuta['transcricao']), ENT_QUOTES, 'UTF-8'); ?>,
-                              <?php echo htmlspecialchars(json_encode($escuta['feedback']), ENT_QUOTES, 'UTF-8'); ?>
+                              <?php echo htmlspecialchars(json_encode($escuta['feedback']), ENT_QUOTES, 'UTF-8'); ?>,
+                              <?php echo htmlspecialchars(json_encode($escuta['solicitaAva']), ENT_QUOTES, 'UTF-8'); ?>
                             )">
                       <i class="fa-solid fa-pen"></i>
                     </button>
@@ -435,7 +496,7 @@ document.addEventListener("DOMContentLoaded", function () {
         </div>
 
         <div class="row mb-2">
-          <div class="col-md-6 mb-3">
+          <div class="col-md-4 mb-3">
             <div class="mb-3">
               <label for="edit_tipo_escuta" class="form-label">Escuta Positiva</label>
               <select name="edit_positivo" id="edit_tipo_escuta" class="form-select">
@@ -445,7 +506,15 @@ document.addEventListener("DOMContentLoaded", function () {
               </select>
             </div>
           </div>
-          <div class="col-md-6 mb-3">
+          <div class="col-md-4 mb-3">
+            <label for="edit_solicita_ava" class="form-label">Solicitou Avaliação</label>
+            <select name="edit_avaliacao" id="edit_solicita_ava" class="form-select" required>
+              <option value="">Selecione...</option>
+              <option value="Sim">Sim</option>
+              <option value="Nao">Nao</option>
+            </select>
+          </div>
+          <div class="col-md-4 mb-3">
             <div class="mb-3">
               <label for="edit_data_escuta" class="form-label">Data da Escuta</label>
               <input type="date" name="data_escuta" id="edit_data_escuta" class="form-control" required>
@@ -530,7 +599,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Preenche Modal Editar
-  function preencherModalEditar(id, user_id, classi_id, P_N, data_escuta, transcricao, feedback) {
+  function preencherModalEditar(id, user_id, classi_id, P_N, data_escuta, transcricao, feedback, solicitaAva) {
     document.getElementById('edit_id').value = id;
     document.getElementById('edit_user_id').value = user_id;
     document.getElementById('edit_cad_classi_id').value = classi_id;
@@ -538,6 +607,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById('edit_data_escuta').value = data_escuta;
     document.getElementById('edit_transcricao').value = transcricao;
     document.getElementById('edit_feedback').value = feedback;
+    document.getElementById('edit_solicita_ava').value = solicitaAva;
   }
 
   // Preenche Modal Excluir
