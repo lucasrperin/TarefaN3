@@ -8,6 +8,10 @@ if (!isset($_SESSION['usuario_id'])) {
   exit();
 }
 
+// Definir o cargo do usuário (supondo que ele esteja armazenado na sessão, com a chave "Cargo")
+$usuario_id = $_SESSION['usuario_id'];
+$cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -84,6 +88,7 @@ $resultWeb = $conn->query($sqlWeb);
         <span class="navbar-toggler-icon"></span>
       </button>
       <ul class="dropdown-menu dropdown-menu-dark">
+      <?php if ($cargo === 'Admin'): ?>
         <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
         <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
         <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
@@ -91,6 +96,12 @@ $resultWeb = $conn->query($sqlWeb);
         <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
         <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
         <li><a class="dropdown-item" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
+        <?php endif; ?>
+        <?php if ($cargo === 'Viewer'): ?>
+        <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
+        <li><a class="dropdown-item" href="user.php"><i class="fa-solid fa-chalkboard-user me-2"></i>Meu Painel</a></li>
+        <?php endif; ?>
+
       </ul>
     </div>
     <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>

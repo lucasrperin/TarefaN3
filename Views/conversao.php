@@ -406,7 +406,7 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
               <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
             <?php endif; ?>
 
-            <?php if ($cargo === 'Admin'): ?>
+            <?php if ($cargo === 'Admin'  || $cargo === 'Viewer'): ?>
               <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
             <?php endif; ?>
 
@@ -414,11 +414,11 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
               <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-1"></i>Indicações</a></li>
             <?php endif; ?>
 
-            <?php if ($cargo === 'User' || $cargo === 'Conversor'): ?>
+            <?php if ($cargo === 'User' || $cargo === 'Conversor'  || $cargo === 'Viewer'): ?>
               <li><a class="dropdown-item" href="user.php"><i class="fa-solid fa-chalkboard-user me-1"></i>Meu Painel</a></li>
             <?php endif; ?>
 
-            <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>
+            <?php if ($cargo === 'Admin'): ?>
               <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
             <?php endif; ?>
 
