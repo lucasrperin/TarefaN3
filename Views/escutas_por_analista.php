@@ -507,7 +507,7 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
           </div>
           <div class="col-md-4 mb-3">
-            <label for="edit_solicita_ava" class="form-label">Solicitou Avaliação</label>
+            <label for="edit_solicita_ava" class="form-label">Solicitou Avaliação</label required>
             <select name="edit_avaliacao" id="edit_solicita_ava" class="form-select">
               <option value="">Selecione...</option>
               <option value="Sim">Sim</option>

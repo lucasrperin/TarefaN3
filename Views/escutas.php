@@ -454,8 +454,8 @@ document.addEventListener("DOMContentLoaded", function () {
             </select>
           </div>
           <div class="col-md-4 mb-3">
-            <label for="solicita_ava" class="form-label">Solicitou Avaliação</label>
-            <select name="avaliacao" id="solicita_ava" class="form-select">
+            <label for="solicita_ava" class="form-label">Solicitou Avaliação</label> 
+            <select name="avaliacao" id="solicita_ava" class="form-select" required>
               <option value="">Selecione...</option>
               <option value="Sim">Sim</option>
               <option value="Nao">Nao</option>
