@@ -514,115 +514,148 @@ document.addEventListener('DOMContentLoaded', function() {
   let calendarEditInstance = null;
 
   // Inicializa o Flatpickr para o modal de cadastro
-  const modalCadastro = document.getElementById('modalCadastro');
-  modalCadastro.addEventListener('shown.bs.modal', function () {
-    if (!calendarInstance) {
-      calendarInstance = flatpickr('#calendarioInline', {
-        mode: 'range',
-        inline: true,
-        dateFormat: 'Y-m-d',
-        showMonths: 2,
-        onDayCreate: function(dateObj, dateStr, instance, dayElem) {
-          // Se dateObj não for um objeto Date, não faz nada
-          if (!dateObj || typeof dateObj.getFullYear !== 'function') {
-            console.warn("onDayCreate: dateObj inválido:", dateObj);
-            return;
-          }
-          let dayFormatted = instance.formatDate(dateObj, 'Y-m-d');
-          if (aggregator[dayFormatted] && aggregator[dayFormatted].length > 0) {
-            dayElem.classList.add("used-day");
-          }
-        },
-        onChange: function(selectedDates, dateStr, instance) {
-          let conflict = false;
-          let conflictDays = [];
-          if (selectedDates.length === 2) {
-            let start = new Date(selectedDates[0]);
-            let end = new Date(selectedDates[1]);
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-              let dayFormatted = instance.formatDate(d, 'Y-m-d');
-              if (aggregator[dayFormatted] && aggregator[dayFormatted].length > 0) {
-                conflict = true;
-                conflictDays.push(dayFormatted);
-              }
+const modalCadastro = document.getElementById('modalCadastro');
+modalCadastro.addEventListener('shown.bs.modal', function () {
+  if (!calendarInstance) {
+    calendarInstance = flatpickr('#calendarioInline', {
+      mode: 'range',
+      inline: true,
+      dateFormat: 'Y-m-d',
+      showMonths: 2,
+      onDayCreate: function(dateObj, dateStr, instance, dayElem) {
+        // Verifica se dateObj é um objeto Date
+        if (!dateObj || typeof dateObj.getFullYear !== 'function') {
+          console.warn("onDayCreate: dateObj inválido:", dateObj);
+          return;
+        }
+        // Extrai os 10 primeiros caracteres (YYYY-MM-DD)
+        let cleanDate = dateStr.slice(0, 10);
+        if (aggregator[cleanDate] && aggregator[cleanDate].length > 0) {
+          dayElem.classList.add("used-day");
+        }
+      },
+      onChange: function(selectedDates, dateStr, instance) {
+        let conflict = false;
+        let conflictDays = [];
+        if (selectedDates.length === 2) {
+          let start = new Date(selectedDates[0]);
+          let end = new Date(selectedDates[1]);
+          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            let dayFormatted = instance.formatDate(d, 'Y-m-d');
+            if (aggregator[dayFormatted] && aggregator[dayFormatted].length > 0) {
+              conflict = true;
+              conflictDays.push(dayFormatted);
             }
           }
-          let notificationElem = document.getElementById('conflictNotification');
-          if (conflict) {
-            if (!notificationElem) {
-              notificationElem = document.createElement('div');
-              notificationElem.id = 'conflictNotification';
-              notificationElem.className = 'alert alert-warning mt-2';
-              instance.calendarContainer.parentNode.insertBefore(notificationElem, instance.calendarContainer.nextSibling);
-            }
-            notificationElem.innerText = 'Já há colaboradores com folga/férias nos dias: ' + 
-  conflictDays.map(function(day) { return day.split('-')[2]; }).join(', ');
-          } else if (notificationElem) {
-            notificationElem.parentNode.removeChild(notificationElem);
-          }
-          if (selectedDates.length === 2) {
-            document.getElementById('data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
-            document.getElementById('data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
-          }
         }
-      });
-    }
-  });
-
-  // Exibe/oculta o campo de justificativa conforme o tipo selecionado
-  const tipoSelect = document.getElementById('tipo');
-  const justificativaGroup = document.getElementById('justificativaGroup');
-  tipoSelect.addEventListener('change', function() {
-    justificativaGroup.style.display = (tipoSelect.value === 'Folga') ? 'block' : 'none';
-  });
-
-  // Inicializa o Flatpickr para o modal de edição
-  const modalEditar = document.getElementById('modalEditar');
-  modalEditar.addEventListener('shown.bs.modal', function() {
-    if (!calendarEditInstance) {
-      calendarEditInstance = flatpickr('#calendarioInlineEdit', {
-        mode: 'range',
-        inline: true,
-        dateFormat: 'Y-m-d',
-        showMonths: 2,
-        onChange: function(selectedDates, dateStr, instance) {
-          if (selectedDates.length === 2) {
-            document.getElementById('edit_data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
-            document.getElementById('edit_data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
+        let notificationElem = document.getElementById('conflictNotification');
+        if (conflict) {
+          if (!notificationElem) {
+            notificationElem = document.createElement('div');
+            notificationElem.id = 'conflictNotification';
+            notificationElem.className = 'alert alert-warning mt-2';
+            instance.calendarContainer.parentNode.insertBefore(notificationElem, instance.calendarContainer.nextSibling);
           }
+          // Exibe somente o dia (terceiro componente) de cada data conflitante
+          notificationElem.innerText = 'Já há colaboradores com folga/férias nos dias: ' + 
+            conflictDays.map(function(day) { return day.split('-')[2]; }).join(', ');
+        } else if (notificationElem) {
+          notificationElem.parentNode.removeChild(notificationElem);
         }
-      });
-    }
-  });
-
-  // Preenche o modal de edição com os dados do evento selecionado
-  document.querySelectorAll('.editar-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const id = this.getAttribute('data-id');
-      const usuarioId = this.getAttribute('data-usuarioid');
-      const tipo = this.getAttribute('data-tipo');
-      const dataInicio = this.getAttribute('data-inicio');
-      const dataFim = this.getAttribute('data-fim');
-      const justificativa = this.getAttribute('data-justificativa') || '';
-
-      document.getElementById('edit_id').value = id;
-      document.getElementById('edit_usuario_id').value = usuarioId;
-      document.getElementById('edit_tipo').value = tipo;
-      document.getElementById('edit_data_inicio').value = dataInicio;
-      document.getElementById('edit_data_fim').value = dataFim;
-      document.getElementById('edit_justificativa').value = justificativa;
-
-      document.getElementById('justificativaGroupEdit').style.display = (tipo === 'Folga') ? 'block' : 'none';
-
-      if (calendarEditInstance) {
-        if (dataInicio && dataFim) {
-          calendarEditInstance.setDate([dataInicio, dataFim], true);
-        } else {
-          calendarEditInstance.clear();
+        if (selectedDates.length === 2) {
+          document.getElementById('data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
+          document.getElementById('data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
         }
       }
     });
+  }
+});
+
+// Ouvinte para exibir/ocultar o campo de justificativa conforme o tipo selecionado no modal de cadastro
+const tipoSelect = document.getElementById('tipo');
+const justificativaGroup = document.getElementById('justificativaGroup');
+tipoSelect.addEventListener('change', function() {
+  justificativaGroup.style.display = (tipoSelect.value === 'Folga') ? 'block' : 'none';
+});
+
+// Inicializa o Flatpickr para o modal de edição
+const modalEditar = document.getElementById('modalEditar');
+modalEditar.addEventListener('shown.bs.modal', function() {
+  if (!calendarEditInstance) {
+    calendarEditInstance = flatpickr('#calendarioInlineEdit', {
+      mode: 'range',
+      inline: true,
+      dateFormat: 'Y-m-d',
+      showMonths: 2,
+      onChange: function(selectedDates, dateStr, instance) {
+        let conflict = false;
+        let conflictDays = [];
+        if (selectedDates.length === 2) {
+          let start = new Date(selectedDates[0]);
+          let end = new Date(selectedDates[1]);
+          for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            let dayFormatted = instance.formatDate(d, 'Y-m-d');
+            if (aggregator[dayFormatted] && aggregator[dayFormatted].length > 0) {
+              conflict = true;
+              conflictDays.push(dayFormatted);
+            }
+          }
+        }
+        let notificationElem = document.getElementById('editConflictNotification');
+        if (conflict) {
+          if (!notificationElem) {
+            notificationElem = document.createElement('div');
+            notificationElem.id = 'editConflictNotification';
+            notificationElem.className = 'alert alert-warning mt-2';
+            instance.calendarContainer.parentNode.insertBefore(notificationElem, instance.calendarContainer.nextSibling);
+          }
+          // Exibe somente o dia (terceiro componente) de cada data conflitante
+          notificationElem.innerText = 'Já há colaboradores com folga/férias nos dias: ' +
+            conflictDays.map(function(day) { return day.split('-')[2]; }).join(', ');
+        } else if (notificationElem) {
+          notificationElem.parentNode.removeChild(notificationElem);
+        }
+        if (selectedDates.length === 2) {
+          document.getElementById('edit_data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
+          document.getElementById('edit_data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
+        }
+      }
+    });
+  } else {
+    calendarEditInstance.redraw();
+  }
+});
+
+// Preenche o modal de edição com os dados do evento selecionado e atualiza a visibilidade do campo justificativa
+document.querySelectorAll('.editar-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const id = this.getAttribute('data-id');
+    const usuarioId = this.getAttribute('data-usuarioid');
+    const tipo = this.getAttribute('data-tipo');
+    const dataInicio = this.getAttribute('data-inicio');
+    const dataFim = this.getAttribute('data-fim');
+    const justificativa = this.getAttribute('data-justificativa') || '';
+
+    document.getElementById('edit_id').value = id;
+    document.getElementById('edit_usuario_id').value = usuarioId;
+    document.getElementById('edit_tipo').value = tipo;
+    document.getElementById('edit_data_inicio').value = dataInicio;
+    document.getElementById('edit_data_fim').value = dataFim;
+    document.getElementById('edit_justificativa').value = justificativa;
+
+    // Exibe ou oculta o campo de justificativa com base no tipo
+    document.getElementById('justificativaGroupEdit').style.display = (tipo === 'Folga') ? 'block' : 'none';
+
+    if (calendarEditInstance) {
+      if (dataInicio && dataFim) {
+        calendarEditInstance.setDate([dataInicio, dataFim], true);
+      } else {
+        calendarEditInstance.clear();
+      }
+    }
   });
+});
+
 </script>
 </body>
 </html>
