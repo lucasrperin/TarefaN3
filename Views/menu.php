@@ -47,7 +47,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
     <!-- Botão Sair alinhado à direita -->
 
     <div class="row justify-content-center g-3 mt-3">
-      <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
+      <?php if ($cargo === 'Admin' || $cargo === 'Conversor'|| $cargo === 'Viewer'): ?>
         <!-- Conversão -->
         <div class="col-12 col-md-3 max-three">
           <div class="tile" onclick="location.href='conversao.php';">
@@ -80,6 +80,15 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
           </div>
         </div>
       <?php endif; ?>
+      <?php if ($cargo === 'Viewer'): ?>
+        <!-- Incidentes -->
+        <div class="col-12 col-md-3 max-three">
+          <div class="tile" onclick="location.href='incidente.php';">
+            <i class="fa-solid fa-exclamation-triangle"></i>
+            <h5>Incidentes</h5>
+          </div>
+        </div>
+      <?php endif; ?>
 
       <?php if ($cargo === 'Admin' || $cargo === 'User' || $cargo === 'Conversor' || $cargo === 'Comercial'): ?>
         <!-- Indicações -->
@@ -91,7 +100,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
         </div>
       <?php endif; ?>
 
-      <?php if ($cargo === 'User' || $cargo === 'Conversor'): ?>
+      <?php if ($cargo === 'User' || $cargo === 'Conversor' || $cargo === 'Viewer'): ?>
         <!-- Meu Painel -->
         <div class="col-12 col-md-3 max-three">
           <div class="tile" onclick="location.href='user.php';">

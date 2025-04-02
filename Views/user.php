@@ -132,7 +132,7 @@ if ($result_ranking) {
               <span class="navbar-toggler-icon"></span>
             </button>
             <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-              <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
+              <?php if ($cargo === 'Admin' || $cargo === 'Conversor'  || $cargo === 'Viewer'): ?>
                 <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
               <?php endif; ?>
 
@@ -144,7 +144,7 @@ if ($result_ranking) {
                 <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
               <?php endif; ?>
 
-              <?php if ($cargo === 'Admin'): ?>
+              <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>
                 <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
               <?php endif; ?>
 
@@ -152,7 +152,7 @@ if ($result_ranking) {
                 <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a></li>
               <?php endif; ?>
 
-              <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>
+              <?php if ($cargo === 'Admin'): ?>
                 <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
               <?php endif; ?>
 
