@@ -1,8 +1,10 @@
 <?php
 session_start();
+
+// Verifica se o usuário está logado; se não, redireciona para o login
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: ../Login.php");
-    exit();
+  header("Location: login.php");
+  exit();
 }
 
 require '../Config/Database.php';

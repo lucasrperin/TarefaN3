@@ -1,14 +1,15 @@
 <?php 
 session_start();
 
+// Verifica se o usuário está logado; se não, redireciona para o login
+if (!isset($_SESSION['usuario_id'])) {
+  header("Location: login.php");
+  exit();
+}
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['usuario_id'])) {
-    $_SESSION['usuario_id'] = $_POST['usuario_id'];
-    header("Location: user.php");
-    exit();
-}
 require '../Config/Database.php';
 
 $usuario_id = $_SESSION['usuario_id'];
