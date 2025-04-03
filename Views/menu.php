@@ -56,7 +56,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
         </div>
       </div>
     </nav>
-    <div class="hero-content container text-center">
+    <div class="hero-content container text-center mt-0">
       <h1 class="hero-title">Painel de Controle</h1>
       <p class="hero-subtitle">Gerencie suas operações de forma simples e moderna.</p>
     </div>
