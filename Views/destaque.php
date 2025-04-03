@@ -150,26 +150,64 @@ if ($resultTotalizadores && $resultTotalizadores->num_rows > 0) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <!-- Ícones personalizados -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"> 
+  <!-- Fonte personalizada -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
   <!-- CSS externo -->
   <link rel="stylesheet" href="../Public/destaque.css">
 </head>
 <body>
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container d-flex justify-content-between align-items-center">
-        <div class="dropdown">
-          <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+  <!-- Navbar -->
+  <nav class="navbar navbar-dark bg-dark">
+      <div class="container d-flex justify-content-between align-items-center">
+        <!-- Botão Hamburguer com Dropdown -->
+          <div class="dropdown">
+            <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
               <span class="navbar-toggler-icon"></span>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-            <!-- Itens do menu -->
-          </ul>
-        </div>
-        <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
+              <?php if ($cargo === 'Admin' || $cargo === 'Conversor'  || $cargo === 'Viewer'): ?>
+                <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
+              <?php endif; ?>
+
+              <?php if ($cargo === 'Admin'): ?>
+                <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+              <?php endif; ?>
+
+              <?php if ($cargo === 'Admin'): ?>
+                <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
+              <?php endif; ?>
+
+              <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>
+                <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
+              <?php endif; ?>
+
+              <?php if ($cargo === 'Admin' || $cargo === 'Conversor' || $cargo === 'User'): ?>
+                <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a></li>
+              <?php endif; ?>
+
+              <?php if ($cargo === 'Admin'): ?>
+                <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
+              <?php endif; ?>
+
+              <?php if ($cargo === 'Admin'): ?>
+                <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
+                <li><a class="dropdown-item" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
+              <?php endif; ?>
+              
+            </ul>
+          </div>
+
+        <span class="text-white">
+          Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!
+        </span>
         <a href="menu.php" class="btn btn-danger">
           <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
         </a>
-    </div>
-</nav>
+      </div>
+    </nav>
 <div class="container my-4">
     <!-- Ranking no topo com totalizador de estrelas por critério à direita -->
     <div class="row section-spacing">
