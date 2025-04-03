@@ -32,3 +32,29 @@
       max-height: 300px;
       overflow-y: auto;
   }
+
+  /* Tabelas */
+.table {
+  background-color: white;
+  border: 1px solid #ced4daa2; /* ajuste a cor e espessura conforme necessário */
+}
+.table th {
+  text-align: center;
+  vertical-align: middle;
+  border: 1px solid #ced4daa2; /* ajuste a cor e espessura conforme necessário */
+}
+.table td {
+  text-align: center;
+  vertical-align: middle;
+  border: 1px solid #ced4daa2; /* ajuste a cor e espessura conforme necessário */
+}
+.tabelaEstilizada {
+  border-collapse: separate;
+  border-spacing: 0 0px;
+
+}
+.tabelaEstilizada tbody tr {
+  border-radius: 5px;
+  overflow: hidden;
+  font-family: 'Nunito', sans-serif;
+}

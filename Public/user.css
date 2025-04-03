@@ -160,7 +160,7 @@ body {
     cursor: pointer;
 }
 
-/* Ranking com rolagem */
+/* Tabelas com rolagem */
 .table-scroll {
     /* Forçar uma altura menor que o conteúdo total para ver o scroll */
     height: 300px;         
