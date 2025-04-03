@@ -5,35 +5,88 @@
     box-sizing: border-box;
 }
 
-/* Corpo da página */
+/* Fundo com gradiente suave e ambiente corporativo */
 body {
-    background-color: #f4f4f9;
+    background: linear-gradient(135deg, #4b79a1, #283e51);
+    font-family: 'Montserrat', sans-serif;
+    min-height: 100vh;
     display: flex;
-    justify-content: center;
     align-items: center;
-    height: 100vh;
+    justify-content: center;
 }
 
 /* Container do login */
-.login-container {
-    background-color: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.login-wrapper {
     width: 100%;
-    max-width: 350px;
+    max-width: 400px;
+    padding: 20px;
 }
 
-/* Melhorias no formulário */
+/* Card de login moderno */
+.login-card {
+    background-color: rgba(255, 255, 255, 0.98);
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    animation: fadeIn 0.8s ease;
+}
+
+/* Animação de fadeIn */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Logo */
+.light-logo {
+    display: block;
+    margin: 0 auto 20px auto;
+}
+
+/* Títulos e subtítulos do login */
+.login-title {
+    font-size: 2rem;
+    color: #283e51;
+    margin-bottom: 10px;
+}
+.login-subtitle {
+    font-size: 1rem;
+    color: #4b79a1;
+    margin-bottom: 30px;
+}
+
+/* Estilização dos elementos do formulário */
 .form-label {
-    font-weight: bold;
+    font-weight: 600;
+    color: #283e51;
+    margin-bottom: 5px;
+    display: block;
 }
-
 .form-control {
-    border-radius: 6px;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 10px;
+}
+.btn-primary {
+    background-color: #4b79a1;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    padding: 10px;
+}
+.btn-primary:hover {
+    background-color: #3a6381;
 }
 
-.btn {
-    border-radius: 6px;
-    font-size: 16px;
+/* Alertas */
+.alert {
+    margin-top: 15px;
 }

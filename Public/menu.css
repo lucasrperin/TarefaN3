@@ -1,71 +1,98 @@
 /* menu.css */
 
-/* Global */
+/* Global Styles */
 body {
-  background-color: #f9f9f9;
+  background-color: #f0f2f5;
   font-family: 'Montserrat', sans-serif;
   margin: 0;
+  padding: 0;
+}
+
+/* Hero Header */
+.hero-header {
+  background: linear-gradient(135deg, #4b79a1, #283e51);
+  color: #fff;
+  padding: 2rem 0;
+  position: relative;
+}
+.hero-header .navbar {
+  background: transparent;
+  box-shadow: none;
+  padding: 1rem 0;
+}
+.hero-header .navbar-brand img {
+  max-height: 50px;
+}
+.hero-content {
+  margin-top: 2rem;
+  text-align: center;
+}
+.hero-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.hero-subtitle {
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+/* Menu Container */
+.menu-container {
+  margin-top: 2rem;
   padding-bottom: 2rem;
 }
 
-/* Navbar: fundo preto, texto centralizado e botão de logout vermelho */
-.navbar {
-  background-color: #000 !important;
-}
-
-
-/* Cards modernos */
-.card-modern {
-  border: none;
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  margin-bottom: 1.5rem;
-}
-.card-modern .card-header {
+/* Menu Cards */
+.menu-card {
   background-color: #fff;
-  border-bottom: 1px solid #e0e0e0;
-  font-size: 1.2rem;
-  font-weight: 600;
-  padding: 1rem;
-  color: #333;
-}
-.card-modern .card-body {
-  background-color: #fff;
-  padding: 1.5rem;
-}
-
-/* Tiles: agora com fundo azul suave */
-.tile {
-  background-color: #e3f2fd;
-  border: 1px solid #c5d8f2;
-  color: #333;
-  border-radius: 8px;
-  height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 2rem 1rem;
   text-align: center;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   cursor: pointer;
 }
-.tile:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+.menu-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
 }
-.tile i {
+.menu-icon {
+  background-color: #e3f2fd;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+.menu-icon i {
   font-size: 1.8rem;
-  margin-bottom: 8px;
-  color: #555;
+  color: #007bff;
 }
-.tile h5 {
+.menu-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
   margin: 0;
+}
+
+/* Navbar Text */
+.navbar-nav .nav-link {
   font-size: 1rem;
   font-weight: 600;
 }
 
-/* Botão de logout já estilizado pelo Bootstrap (btn-danger) */
-.btn-danger {
-  font-weight: 600;
+/* Responsive Adjustments */
+@media (max-width: 576px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+}
+.light-logo {
+  filter: brightness(0) invert(1);
 }

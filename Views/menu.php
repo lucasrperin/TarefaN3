@@ -20,7 +20,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Página de Boas-Vindas</title>
+  <title>Painel N3 - Dashboard Moderno</title>
   <!-- Estilos customizados -->
   <link rel="stylesheet" href="../Public/menu.css">
   <!-- Bootstrap 5.3 -->
@@ -31,129 +31,148 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-
-<!-- Navbar com fundo preto, texto centralizado e botão vermelho -->
-<nav class="navbar navbar-dark bg-dark">
-  <div class="container position-relative">
-    <!-- Placeholder à esquerda para equilíbrio -->
-    <div class="d-none d-sm-block" style="width: 75px;"></div>
-
-    <!-- Texto de boas-vindas centralizado -->
-    <span class="navbar-text position-absolute top-50 start-50 translate-middle text-white">
-      Bem-vindo(a), <?php echo $_SESSION['usuario_nome']; ?>!
-    </span>
-
-    <!-- Botão de logout à direita -->
-    <div>
-      <a href="logout.php" class="btn btn-danger">
-        <i class="fa-solid" style="font-size: 0.8em;"></i> Sair
-      </a>
-    </div>
-  </div>
-</nav>
-
-<div class="container">
-  <div class="row">
-    <!-- Card: Colaboradores -->
-    <div class="col-12 mt-3">
-      <div class="card card-modern">
-        <div class="card-header">
-          Colaboradores
-        </div>
-        <div class="card-body">
-          <div class="row g-3">
-            <?php if ($cargo === 'Admin' || $cargo === 'Conversor' || $cargo === 'Viewer'): ?>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-              <div class="tile" onclick="location.href='conversao.php';">
-                <i class="fa-solid fa-right-left"></i>
-                <h5>Conversões</h5>
-              </div>
-            </div>
-            <?php endif; ?>
-
-            <?php if ($cargo === 'Admin' || $cargo === 'Conversor' || $cargo === 'User' || $cargo === 'Comercial'): ?>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-              <div class="tile" onclick="location.href='indicacao.php';">
-                <i class="fa-solid fa-hand-holding-dollar"></i>
-                <h5>Indicações</h5>
-              </div>
-            </div>
-            <?php endif; ?>
-
-            <?php if ($cargo === 'Admin'): ?>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-              <div class="tile" onclick="location.href='../index.php';">
-                <i class="fa-solid fa-layer-group"></i>
-                <h5>Nível 3</h5>
-              </div>
-            </div>
-            <?php endif; ?>
-          </div>
+  <!-- Hero Header -->
+  <header class="hero-header">
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container">
+        <!-- Logo inserido no lugar do texto "Painel N3" -->
+        <a class="light-logo" href="#">
+          <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu" aria-controls="navbarMenu" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarMenu">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <span class="nav-link">Bem-vindo(a), <?php echo htmlspecialchars($usuario_nome, ENT_QUOTES, 'UTF-8'); ?>!</span>
+            </li>
+            <li class="nav-item">
+              <a href="logout.php" class="nav-link btn btn-danger text-white ms-2">
+                <i class="fa-solid fa-right-from-bracket me-1"></i>Sair
+              </a>
+            </li>
+          </ul>
         </div>
       </div>
+    </nav>
+    <div class="hero-content container text-center">
+      <h1 class="hero-title">Painel de Controle</h1>
+      <p class="hero-subtitle">Gerencie suas operações de forma simples e moderna.</p>
     </div>
+  </header>
 
-    <!-- Card: Gestão -->
-    <div class="col-12">
-      <div class="card card-modern">
-        <div class="card-header">
-          Gestão
-        </div>
-        <div class="card-body">
-          <div class="row g-3">
-            <?php if ($cargo === 'Admin'): ?>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-              <div class="tile" onclick="location.href='escutas.php';">
-                <i class="fa-solid fa-headphones"></i>
-                <h5>Escutas</h5>
-              </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-              <div class="tile" onclick="location.href='folga.php';">
-                <i class="fa-solid fa-umbrella-beach"></i>
-                <h5>Folgas</h5>
-              </div>
-            </div>
-            <?php endif; ?>
-
-            <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-              <div class="tile" onclick="location.href='incidente.php';">
-                <i class="fa-solid fa-exclamation-triangle"></i>
-                <h5>Incidentes</h5>
-              </div>
-            </div>
-            <?php endif; ?>
-
-            <?php if ($cargo === 'Admin'): ?>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-              <div class="tile" onclick="location.href='dashboard.php';">
-                <i class="fa-solid fa-calculator"></i>
-                <h5>Totalizadores</h5>
-              </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-              <div class="tile" onclick="location.href='usuarios.php';">
-                <i class="fa-solid fa-users-gear"></i>
-                <h5>Usuários</h5>
-              </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-              <div class="tile" onclick="location.href='destaque.php';">
-                <i class="fa-solid fa-ranking-star"></i>
-                <h5>Destaques</h5>
-              </div>
-            </div>
-            <?php endif; ?>
+  <!-- Área principal com os cards de menu -->
+  <main class="container menu-container mt-5">
+    <div class="row g-4">
+      <?php if($cargo==='Admin' || $cargo==='Conversor' || $cargo==='Viewer'): ?>
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="menu-card" onclick="location.href='conversao.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-right-left"></i>
           </div>
+          <h5 class="menu-title">Conversões</h5>
         </div>
       </div>
+      <?php endif; ?>
+
+      <?php if($cargo==='Admin' || $cargo==='Conversor' || $cargo==='User' || $cargo==='Comercial'): ?>
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="menu-card" onclick="location.href='indicacao.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+          </div>
+          <h5 class="menu-title">Indicações</h5>
+        </div>
+      </div>
+      <?php endif; ?>
+
+      <?php if($cargo==='Admin'): ?>
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="menu-card" onclick="location.href='../index.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-layer-group"></i>
+          </div>
+          <h5 class="menu-title">Nível 3</h5>
+        </div>
+      </div>
+      <?php endif; ?>
+
+      <?php if($cargo==='Admin'): ?>
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="menu-card" onclick="location.href='escutas.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-headphones"></i>
+          </div>
+          <h5 class="menu-title">Escutas</h5>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="menu-card" onclick="location.href='folga.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-umbrella-beach"></i>
+          </div>
+          <h5 class="menu-title">Folgas</h5>
+        </div>
+      </div>
+      <?php endif; ?>
+
+      <?php if($cargo==='Admin' || $cargo==='Viewer'): ?>
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="menu-card" onclick="location.href='incidente.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-exclamation-triangle"></i>
+          </div>
+          <h5 class="menu-title">Incidentes</h5>
+        </div>
+      </div>
+      <?php endif; ?>
+      
+
+
+      <?php if($cargo==='User' || $cargo==='Conversor'): ?>
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="menu-card" onclick="location.href='user.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-users-rectangle"></i>
+          </div>
+          <h5 class="menu-title">Meu Painel</h5>
+        </div>
+      </div>
+      
+      <?php endif; ?>
+
+      <?php if($cargo==='Admin'): ?>
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="menu-card" onclick="location.href='dashboard.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-calculator"></i>
+          </div>
+          <h5 class="menu-title">Totalizadores</h5>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="menu-card" onclick="location.href='usuarios.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-users-gear"></i>
+          </div>
+          <h5 class="menu-title">Usuários</h5>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="menu-card" onclick="location.href='destaque.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-ranking-star"></i>
+          </div>
+          <h5 class="menu-title">Destaques</h5>
+        </div>
+      </div>
+      
+      <?php endif; ?>
     </div>
+  </main>
 
-  </div>
-</div>
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
