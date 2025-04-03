@@ -9,8 +9,9 @@ if (!isset($_SESSION['usuario_id'])) {
 
 require '../Config/Database.php';
 
-// Definir o cargo do usuário (supondo que ele esteja armazenado na sessão, com a chave "Cargo")
-$usuario_id = $_SESSION['usuario_id'];
+// Se um usuário foi passado via GET, use-o; caso contrário, use o usuário logado
+$usuario_id = isset($_GET['usuario_id']) ? intval($_GET['usuario_id']) : $_SESSION['usuario_id'];
+
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 
 // Consulta para obter análises (incluindo o campo Nota) do usuário logado
@@ -262,8 +263,8 @@ if ($result_ranking) {
             </div>
             <div class="card-body">
               <?php if ($totalAnalises > 0): ?>
-                <div class="table-responsive">
-                  <table class="table table-striped mt-0">
+                <div class="table-responsive table-scroll">
+                  <table class="table table-striped mt-0 ">
                     <thead>
                       <tr>
                         <th>Descrição</th>
@@ -350,7 +351,7 @@ if ($result_ranking) {
             </div>
             <div class="card-body">
               <?php if ($totalFichas > 0): ?>
-                <div class="table-responsive">
+                <div class="table-responsive table-scroll">
                   <table class="table table-striped mt-0">
                     <thead>
                       <tr>

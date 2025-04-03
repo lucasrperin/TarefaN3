@@ -275,9 +275,9 @@ $resultado_grafico = $stmt_grafico->get_result();
                             <?php while ($user = $resultado_usuarios_acessos->fetch_assoc()): ?>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span><?php echo $user['Nome']; ?></span>
-                                <form method="post" action="dashboard.php" style="margin: 0;" target="_blank">
+                                <form method="post" action="user.php" style="margin: 0;" target="_blank">
                                     <input type="hidden" name="usuario_id" value="<?php echo $user['Id']; ?>">
-                                    <button type="submit" class="btn btn-primary btn-sm ">Acessar</button>
+                                    <a href="user.php?usuario_id=<?php echo $user['Id']; ?>" target="_blank" class="btn btn-primary btn-sm">Acessar</a>
                                 </form>
                                 </li>
                             <?php endwhile; ?>
