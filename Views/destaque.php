@@ -154,9 +154,10 @@ if ($resultTotalizadores && $resultTotalizadores->num_rows > 0) {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"> 
   <!-- Fonte personalizada -->
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-
   <!-- CSS externo -->
   <link rel="stylesheet" href="../Public/destaque.css">
+  <!-- JQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
   <!-- Navbar -->
@@ -270,8 +271,12 @@ if ($resultTotalizadores && $resultTotalizadores->num_rows > 0) {
     
     <!-- Seção de Avaliação de Usuário -->
     <div class="card-header d-flex align-items-center mb-4">
-  <h4 class="mb-0 me-3">Avaliação de Colaborador</h4>
-  <div class="ms-auto d-flex justify-content-end gap-2">
+      <h4 class="mb-0 me-3">Avaliação de Colaborador</h4>
+      <div class="ms-auto d-flex justify-content-end gap-2">
+        <!-- Botão de Filtro -->
+        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
+          <i class="fa-solid fa-filter"></i>
+        </button>
         <?php if ($cargo === 'Admin' || $cargo === 'User' || $cargo === 'Conversor'): ?>
           <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#avaliacaoModal">
             <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
@@ -280,6 +285,94 @@ if ($resultTotalizadores && $resultTotalizadores->num_rows > 0) {
       </div>
     </div>
     
+    <!-- Modal de Filtro -->
+    <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="filterModalLabel">Filtrar Avaliações</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-6">
+                <!-- Campo para selecionar a coluna -->
+                <div class="mb-3">
+                  <label for="filterColumn" class="form-label">Coluna</label>
+                  <select class="form-select" id="filterColumn">
+                    <option value="0">Colaborador</option>
+                    <option value="1">Indicador</option>
+                    <option value="3">Trimestre</option>
+                    <option value="4">Data</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <!-- Campo para inserir o termo de busca -->
+                <div class="mb-3">
+                  <label for="filterValue" class="form-label">Buscar por</label>
+                  <input type="text" class="form-control" id="filterValue" placeholder="Digite o valor a buscar">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="clearFilter">Limpar Filtro</button>
+            <button type="button" class="btn btn-primary" id="applyFilter">Filtrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Evento para aplicar o filtro
+      document.getElementById('applyFilter').addEventListener('click', function(){
+        var colIndex = parseInt(document.getElementById('filterColumn').value);
+        var filterText = document.getElementById('filterValue').value.toLowerCase();
+        var tableRows = document.querySelectorAll('.tabelaEstilizada tbody tr');
+
+        tableRows.forEach(function(row) {
+          // Seleciona a célula com base no índice da coluna
+          var cellText = row.cells[colIndex].innerText.toLowerCase();
+          // Se a célula contém o texto buscado, exibe a linha; caso contrário, oculta
+          if(cellText.indexOf(filterText) > -1){
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+
+        // Fecha o modal após aplicar o filtro
+        var filterModalEl = document.getElementById('filterModal');
+        var modalInstance = bootstrap.Modal.getInstance(filterModalEl);
+        modalInstance.hide();
+      });
+
+      // Evento para limpar o filtro e exibir todas as linhas
+      document.getElementById('clearFilter').addEventListener('click', function(){
+        document.getElementById('filterValue').value = '';
+        var tableRows = document.querySelectorAll('.tabelaEstilizada tbody tr');
+        tableRows.forEach(function(row) {
+          row.style.display = '';
+        });
+      });
+    </script>
+
+
+
+    <!-- Função de pesquisa nas tabelas-->
+    <script>
+        $(document).ready(function(){
+          $("#searchInput").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            // Para cada linha em todas as tabelas com a classe 'tabelaEstilizada'
+            $(".tabelaEstilizada tbody tr").filter(function() {
+              // Se o texto da linha conter o valor da pesquisa (ignorando maiúsculas/minúsculas), mostra a linha; caso contrário, oculta
+              $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+            });
+          });
+        });
+    </script>
     <!-- Accordion de Avaliações Registradas (exibido em tabela) -->
     <div class="accordion section-spacing" id="accordionAvaliacoes">
       <div class="accordion-item">
@@ -289,6 +382,9 @@ if ($resultTotalizadores && $resultTotalizadores->num_rows > 0) {
           </button>
         </h2>
         <div id="collapseAvaliacoes" class="accordion-collapse collapse" aria-labelledby="headingAvaliacoes" data-bs-parent="#accordionAvaliacoes">
+          <div class="d-flex justify-content-end mt-2 me-3">
+            <input type="text" id="searchInput" class="form-control ms-2" style="max-width: 200px;" placeholder="Pesquisar...">
+          </div>
           <div class="accordion-body limitar-altura-avaliacoes">
             <?php if(count($avaliacoes) > 0): ?>
               <table class="table table-bordered tabelaEstilizada">
