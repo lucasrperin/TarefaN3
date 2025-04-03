@@ -1,35 +1,71 @@
+/* menu.css */
+
+/* Global */
 body {
-    background-color: #f5f5f5;
-    font-family: 'Montserrat', sans-serif;
-  }
-  .welcome-msg {
-    color: #333;
-    font-size: 2rem;
-    font-weight: 600;
-  }
-  .tile {
-    background-color: #1976d2;
-    color: #fff;
-    border-radius: 8px;
-    height: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    text-align: center;
-    transition: transform 0.2s ease;
-    cursor: pointer;
-  }
-  .tile:hover {
-    transform: scale(1.05);
-  }
-  .tile i {
-    font-size: 1.8rem;
-    margin-bottom: 6px;
-  }
-  .tile h5 {
-    margin: 0;
-    font-size: 1rem;
-  }
-  
-  
+  background-color: #f9f9f9;
+  font-family: 'Montserrat', sans-serif;
+  margin: 0;
+  padding-bottom: 2rem;
+}
+
+/* Navbar: fundo preto, texto centralizado e botão de logout vermelho */
+.navbar {
+  background-color: #000 !important;
+}
+
+
+/* Cards modernos */
+.card-modern {
+  border: none;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-bottom: 1.5rem;
+}
+.card-modern .card-header {
+  background-color: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 1rem;
+  color: #333;
+}
+.card-modern .card-body {
+  background-color: #fff;
+  padding: 1.5rem;
+}
+
+/* Tiles: agora com fundo azul suave */
+.tile {
+  background-color: #e3f2fd;
+  border: 1px solid #c5d8f2;
+  color: #333;
+  border-radius: 8px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+.tile:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+.tile i {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  color: #555;
+}
+.tile h5 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Botão de logout já estilizado pelo Bootstrap (btn-danger) */
+.btn-danger {
+  font-weight: 600;
+}
