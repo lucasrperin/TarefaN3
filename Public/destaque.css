@@ -1,0 +1,34 @@
+.star-rating {
+    direction: rtl;
+    display: inline-block;
+    font-size: 1.5rem;
+  }
+  .star-rating input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+  .star-rating label {
+    color: #ddd;
+    cursor: pointer;
+  }
+  .star-rating input[type="radio"]:checked ~ label {
+    color: #f7d106;
+  }
+  .star-rating label:hover,
+  .star-rating label:hover ~ label {
+    color: #f7d106;
+  }
+  /* Ranking card */
+  .card-ranking {
+      margin-top: 20px;
+  }
+  .header-blue {
+      background-color: #3f51b5;
+      color: #fff;
+  }
+  .ranking-scroll {
+      max-height: 300px;
+      overflow-y: auto;
+  }

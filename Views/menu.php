@@ -132,6 +132,13 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
             <h5>Usuários</h5>
           </div>
         </div>
+         <!-- Destaques -->
+         <div class="col-12 col-md-3 max-three">
+          <div class="tile" onclick="location.href='destaque.php';">
+            <i class="fa-solid fa-ranking-star"></i>
+            <h5>Destaques</h5>
+          </div>
+        </div>
       <?php endif; ?>
     </div>
   </div>

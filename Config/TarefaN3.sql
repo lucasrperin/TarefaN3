@@ -288,3 +288,45 @@ CREATE TABLE IF NOT EXISTS TB_EQUIPE_NIVEL_ANALISTA (
     FOREIGN KEY (idEquipe) REFERENCES TB_EQUIPE(id),
     FOREIGN KEY (idNivel) REFERENCES TB_NIVEL(id)
 );
+
+CREATE TABLE TB_CRITERIOS (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    peso DECIMAL(5,2) NOT NULL
+);
+
+-- Indicadores para todos os níveis (Grupo ALL)
+INSERT INTO TB_CRITERIOS (nome, peso) VALUES
+('boa_relacao_colegas', 1.0),
+('participacao_novos_projetos', 1.0),
+('engajamento_supervisao', 1.0),
+('uso_celular', -1.0),
+('engajamento_cultura', 1.0),
+('pontualidade', -1.0),
+('criacao_novos_projetos', 1.0);
+
+-- Indicadores para Nível 1, Nível 2 e Exclusivo
+INSERT INTO TB_CRITERIOS (nome, peso) VALUES
+('elogios_atendimento_externo', 1.0),
+('nota_1_plausivel', -1.0);
+
+-- Indicadores para Nível 3
+INSERT INTO TB_CRITERIOS (nome, peso) VALUES
+('elogio_interno_auxilio', 1.0),
+('retorno_analise', -1.0);
+
+-- Indicadores para Conversão
+INSERT INTO TB_CRITERIOS (nome, peso) VALUES
+('elogio_atendimento_externo_conversao', 1.0),
+('retorno_conversao', -1.0);
+
+CREATE TABLE TB_AVALIACOES (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id INT NOT NULL,
+    trimestre VARCHAR(25) NOT NULL,
+    criterio INT NOT NULL,
+    valor INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES TB_USUARIO(Id),
+    FOREIGN KEY (criterio) REFERENCES TB_CRITERIOS(id)
+);
