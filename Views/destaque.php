@@ -11,14 +11,33 @@ $usuario_id = $_SESSION['usuario_id'];
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 
 // Carrega todos os critérios da TB_CRITERIOS para montar um mapa: nome => id
-$sqlCriteria = "SELECT id, nome FROM TB_CRITERIOS";
+$sqlCriteria = "SELECT id, nome, peso FROM TB_CRITERIOS";
 $resultCriteria = $conn->query($sqlCriteria);
 $criteriaMap = [];
+$pesosMap = [];
 if ($resultCriteria && $resultCriteria->num_rows > 0) {
     while ($row = $resultCriteria->fetch_assoc()) {
         $criteriaMap[$row['nome']] = $row['id'];
+        $pesosMap[$row['id']] = $row['peso'];
     }
 }
+
+// Array de nomes amigáveis para os indicadores
+$friendlyNames = [
+    'boa_relacao_colegas' => 'Boa Relação com Colegas',
+    'participacao_novos_projetos' => 'Participação Novos Projetos',
+    'engajamento_supervisao' => 'Engajamento Supervisão',
+    'uso_celular' => 'Uso do Celular',
+    'engajamento_cultura' => 'Engajamento Cultura',
+    'pontualidade' => 'Pontualidade',
+    'criacao_novos_projetos' => 'Criação Novos Projetos',
+    'elogios_atendimento_externo' => 'Elogios de Atendimento Externo',
+    'nota_1_plausivel' => 'Nota 1 Plausível',
+    'elogio_interno_auxilio' => 'Elogio Interno de Auxílio',
+    'retorno_analise' => 'Retorno de Análise',
+    'elogio_atendimento_externo_conversao' => 'Elogio de Atendimento Externo',
+    'retorno_conversao' => 'Retorno de Conversão'
+];
 
 // Consulta para carregar os usuários com seu nível
 $sql = "SELECT u.Id, u.Nome, 
@@ -50,7 +69,7 @@ $indicadoresNivel1 = [
     isset($criteriaMap['nota_1_plausivel']) ? $criteriaMap['nota_1_plausivel'] : 0 => 'Nota 1 Plausível'
 ];
 $indicadoresNivel3 = [
-    isset($criteriaMap['elogio_interno_auxilio']) ? $criteriaMap['elogio_interno_auxilio'] : 0 => 'Elogio Interno de Auxilio',
+    isset($criteriaMap['elogio_interno_auxilio']) ? $criteriaMap['elogio_interno_auxilio'] : 0 => 'Elogio Interno de Auxílio',
     isset($criteriaMap['retorno_analise']) ? $criteriaMap['retorno_analise'] : 0 => 'Retorno de Análise'
 ];
 $indicadoresConversao = [
@@ -89,6 +108,7 @@ SELECT
     a.criterio,
     c.nome as criterio_nome,
     a.valor,
+    c.peso as criterio_peso,
     a.created_at
 FROM TB_AVALIACOES a
 JOIN TB_USUARIO u ON a.usuario_id = u.Id
@@ -112,31 +132,67 @@ if ($resultAvaliacoes && $resultAvaliacoes->num_rows > 0) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-  <!-- CSS externo minimalista -->
+ 
+  <!-- Ícones personalizados -->
+  <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    /> 
+  <!-- CSS externo -->
   <link rel="stylesheet" href="../Public/destaque.css">
-  <!-- Font Awesome e Google Fonts se necessário -->
 </head>
 <body>
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container d-flex justify-content-between align-items-center">
+  <!-- Navbar -->
+  <nav class="navbar navbar-dark bg-dark">
+      <div class="container d-flex justify-content-between align-items-center">
         <!-- Botão Hamburguer com Dropdown -->
-        <div class="dropdown">
-          <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <div class="dropdown">
+            <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
               <span class="navbar-toggler-icon"></span>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-dark">
-            <!-- Itens do menu -->
-          </ul>
-        </div>
-        <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
+              <?php if ($cargo === 'Admin' || $cargo === 'Conversor'  || $cargo === 'Viewer'): ?>
+                <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
+              <?php endif; ?>
+
+              <?php if ($cargo === 'Admin'): ?>
+                <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+              <?php endif; ?>
+
+              <?php if ($cargo === 'Admin'): ?>
+                <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
+              <?php endif; ?>
+
+              <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>
+                <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
+              <?php endif; ?>
+
+              <?php if ($cargo === 'Admin' || $cargo === 'Conversor' || $cargo === 'User'): ?>
+                <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a></li>
+              <?php endif; ?>
+
+              <?php if ($cargo === 'Admin'): ?>
+                <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
+              <?php endif; ?>
+
+              <?php if ($cargo === 'Admin'): ?>
+                <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
+                <li><a class="dropdown-item" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
+              <?php endif; ?>
+              
+            </ul>
+          </div>
+
+        <span class="text-white">
+          Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!
+        </span>
         <a href="menu.php" class="btn btn-danger">
           <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
         </a>
-    </div>
-</nav>
-
+      </div>
+    </nav>
 <div class="container my-4">
-    <!-- Card do Ranking no topo -->
+    <!-- Ranking no topo -->
     <div class="card text-center card-ranking flex-grow-1 mb-5">
         <div class="card-header header-blue text-center">Ranking</div>
         <div class="card-body">  
@@ -172,9 +228,9 @@ if ($resultAvaliacoes && $resultAvaliacoes->num_rows > 0) {
         </div>
     </div>
     
-    <!-- Seção de Avaliação de Usuário com botão "Cadastrar" e Accordion de avaliações -->
+    <!-- Seção de Avaliação de Usuário -->
     <div class="card-header d-flex justify-content-between align-items-center mb-4">
-      <h4 class="mb-0">Avaliação de Usuário</h4>
+      <h4 class="mb-0">Avaliação de Colaborador</h4>
       <div class="d-flex justify-content-end gap-2">
         <?php if ($cargo === 'Admin' || $cargo === 'User' || $cargo === 'Conversor'): ?>
           <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#avaliacaoModal">
@@ -184,7 +240,7 @@ if ($resultAvaliacoes && $resultAvaliacoes->num_rows > 0) {
       </div>
     </div>
     
-    <!-- Accordion de Avaliações Registradas -->
+    <!-- Accordion de Avaliações Registradas (exibido em tabela) -->
     <div class="accordion mb-5" id="accordionAvaliacoes">
       <div class="accordion-item">
         <h2 class="accordion-header" id="headingAvaliacoes">
@@ -195,16 +251,42 @@ if ($resultAvaliacoes && $resultAvaliacoes->num_rows > 0) {
         <div id="collapseAvaliacoes" class="accordion-collapse collapse" aria-labelledby="headingAvaliacoes" data-bs-parent="#accordionAvaliacoes">
           <div class="accordion-body">
             <?php if(count($avaliacoes) > 0): ?>
-              <ul class="list-group">
-                <?php foreach($avaliacoes as $av): ?>
-                  <li class="list-group-item">
-                    <strong><?php echo htmlspecialchars($av['usuario_nome']); ?></strong> - 
-                    <?php echo htmlspecialchars($av['criterio_nome']); ?>: 
-                    <?php echo $av['valor']; ?> (<?php echo $av['trimestre']; ?>) - 
-                    <small><?php echo $av['created_at']; ?></small>
-                  </li>
-                <?php endforeach; ?>
-              </ul>
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Colaborador</th>
+                    <th>Critério</th>
+                    <th>Avaliação</th>
+                    <th>Trimestre</th>
+                    <th>Data</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php foreach($avaliacoes as $av): 
+                    // Obter nome amigável do indicador
+                    $nomeIndicador = isset($friendlyNames[$av['criterio_nome']]) ? $friendlyNames[$av['criterio_nome']] : ucwords(str_replace('_', ' ', $av['criterio_nome']));
+                    // Renderizar estrelas: se o peso do critério for negativo, as estrelas serão em "lightcoral"
+                    $peso = isset($pesosMap[$av['criterio']]) ? $pesosMap[$av['criterio']] : 1;
+                    $corEstrela = ($peso < 0) ? "lightcoral" : "#f7d106";
+                    $estrelas = "";
+                    for($i=1; $i<=5; $i++){
+                        if($i <= $av['valor']){
+                            $estrelas .= '<i class="bi bi-star-fill" style="color: '.$corEstrela.';"></i>';
+                        } else {
+                            $estrelas .= '<i class="bi bi-star" style="color: '.$corEstrela.';"></i>';
+                        }
+                    }
+                  ?>
+                  <tr>
+                    <td><?php echo htmlspecialchars($av['usuario_nome']); ?></td>
+                    <td><?php echo htmlspecialchars($nomeIndicador); ?></td>
+                    <td><?php echo $estrelas; ?></td>
+                    <td><?php echo htmlspecialchars($av['trimestre']); ?></td>
+                    <td><?php echo $av['created_at']; ?></td>
+                  </tr>
+                  <?php endforeach; ?>
+                </tbody>
+              </table>
             <?php else: ?>
               <p>Nenhuma avaliação registrada.</p>
             <?php endif; ?>
@@ -266,7 +348,6 @@ if ($resultAvaliacoes && $resultAvaliacoes->num_rows > 0) {
         </div>
       </div>
     </div>
-    
 </div>
 
 <script>
