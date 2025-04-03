@@ -10,7 +10,7 @@ require '../Config/Database.php';
 $usuario_id = $_SESSION['usuario_id'];
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 
-// Carrega todos os critérios da TB_CRITERIOS para montar um mapa: nome => id
+// Carrega todos os critérios da TB_CRITERIOS para montar um mapa: nome => id e obter os pesos
 $sqlCriteria = "SELECT id, nome, peso FROM TB_CRITERIOS";
 $resultCriteria = $conn->query($sqlCriteria);
 $criteriaMap = [];
@@ -122,6 +122,24 @@ if ($resultAvaliacoes && $resultAvaliacoes->num_rows > 0) {
        $avaliacoes[] = $row;
     }
 }
+
+// Query para totalizador de estrelas por critério (soma dos valores por critério)
+$sqlTotalizadores = "
+SELECT 
+    c.nome as criterio_nome,
+    SUM(a.valor) as total_estrelas
+FROM TB_AVALIACOES a
+JOIN TB_CRITERIOS c ON a.criterio = c.id
+GROUP BY a.criterio
+ORDER BY c.nome
+";
+$resultTotalizadores = $conn->query($sqlTotalizadores);
+$totalizadores = [];
+if ($resultTotalizadores && $resultTotalizadores->num_rows > 0) {
+    while($row = $resultTotalizadores->fetch_assoc()){
+       $totalizadores[] = $row;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -132,104 +150,90 @@ if ($resultAvaliacoes && $resultAvaliacoes->num_rows > 0) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-  <!-- Ícones personalizados -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"> 
-  <!-- Fonte personalizada -->
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- CSS externo -->
   <link rel="stylesheet" href="../Public/destaque.css">
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-dark bg-dark">
-      <div class="container d-flex justify-content-between align-items-center">
-        <!-- Botão Hamburguer com Dropdown -->
-          <div class="dropdown">
-            <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div class="dropdown">
+          <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
               <span class="navbar-toggler-icon"></span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-              <?php if ($cargo === 'Admin' || $cargo === 'Conversor'  || $cargo === 'Viewer'): ?>
-                <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
-              <?php endif; ?>
-
-              <?php if ($cargo === 'Admin'): ?>
-                <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
-              <?php endif; ?>
-
-              <?php if ($cargo === 'Admin'): ?>
-                <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
-              <?php endif; ?>
-
-              <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>
-                <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
-              <?php endif; ?>
-
-              <?php if ($cargo === 'Admin' || $cargo === 'Conversor' || $cargo === 'User'): ?>
-                <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a></li>
-              <?php endif; ?>
-
-              <?php if ($cargo === 'Admin'): ?>
-                <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
-              <?php endif; ?>
-
-              <?php if ($cargo === 'Admin'): ?>
-                <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
-                <li><a class="dropdown-item" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
-              <?php endif; ?>
-              
-            </ul>
-          </div>
-
-        <span class="text-white">
-          Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!
-        </span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
+            <!-- Itens do menu -->
+          </ul>
+        </div>
+        <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
         <a href="menu.php" class="btn btn-danger">
           <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
         </a>
-      </div>
-    </nav>
+    </div>
+</nav>
 <div class="container my-4">
-    <!-- Ranking no topo -->
-    <div class="card text-center card-ranking flex-grow-1 mb-5">
-        <div class="card-header header-blue text-center">Ranking</div>
-        <div class="card-body">  
-            <?php if (count($ranking) > 0): ?>
-                <div class="ranking-scroll">
+    <!-- Ranking no topo com totalizador de estrelas por critério à direita -->
+    <div class="row section-spacing">
+      <div class="col-md-6">
+        <div class="card text-center card-ranking flex-grow-1 mb-4">
+            <div class="card-header header-blue text-center">Ranking</div>
+            <div class="card-body limitar-altura">  
+                <?php if (count($ranking) > 0): ?>
+                    <div class="ranking-scroll">
+                        <ul class="list-group">
+                            <?php foreach ($ranking as $index => $rank): ?>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span class="ranking-name">
+                                        <?php
+                                        if ($index == 0) {
+                                            echo "🥇 ";
+                                        } elseif ($index == 1) {
+                                            echo "🥈 ";
+                                        } elseif ($index == 2) {
+                                            echo "🥉 ";
+                                        } else {
+                                            echo ($index + 1) . "º ";
+                                        }
+                                        echo htmlspecialchars($rank['usuario_nome']);
+                                        ?>
+                                    </span>
+                                    <span class="badge bg-primary rounded-pill">
+                                        <?php echo number_format($rank['mediaNotas'], 2, ',', '.'); ?>
+                                    </span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php else: ?>
+                    <p>Nenhum ranking disponível.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card text-center card-ranking flex-grow-1 mb-4">
+            <div class="card-header header-blue text-center">Totalizador de Estrelas</div>
+            <div class="card-body limitar-altura">
+                <?php if(count($totalizadores) > 0): ?>
                     <ul class="list-group">
-                        <?php foreach ($ranking as $index => $rank): ?>
+                        <?php foreach($totalizadores as $tot): ?>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span class="ranking-name">
-                                    <?php
-                                    if ($index == 0) {
-                                        echo "🥇 ";
-                                    } elseif ($index == 1) {
-                                        echo "🥈 ";
-                                    } elseif ($index == 2) {
-                                        echo "🥉 ";
-                                    } else {
-                                        echo ($index + 1) . "º ";
-                                    }
-                                    echo htmlspecialchars($rank['usuario_nome']);
-                                    ?>
-                                </span>
-                                <span class="badge bg-primary rounded-pill">
-                                    <?php echo number_format($rank['mediaNotas'], 2, ',', '.'); ?>
-                                </span>
+                                <span><?php echo isset($friendlyNames[$tot['criterio_nome']]) ? $friendlyNames[$tot['criterio_nome']] : ucwords(str_replace('_', ' ', $tot['criterio_nome'])); ?></span>
+                                <span class="badge bg-secondary rounded-pill"><?php echo $tot['total_estrelas']; ?></span>
                             </li>
                         <?php endforeach; ?>
                     </ul>
-                </div>
-            <?php else: ?>
-                <p>Nenhum ranking disponível.</p>
-            <?php endif; ?>
+                <?php else: ?>
+                    <p>Nenhum totalizador disponível.</p>
+                <?php endif; ?>
+            </div>
         </div>
+      </div>
     </div>
     
     <!-- Seção de Avaliação de Usuário -->
-    <div class="card-header d-flex justify-content-between align-items-center mb-4">
-      <h4 class="mb-0">Avaliação de Colaborador</h4>
-      <div class="d-flex justify-content-end gap-2">
+    <div class="card-header d-flex align-items-center mb-4">
+  <h4 class="mb-0 me-3">Avaliação de Colaborador</h4>
+  <div class="ms-auto d-flex justify-content-end gap-2">
         <?php if ($cargo === 'Admin' || $cargo === 'User' || $cargo === 'Conversor'): ?>
           <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#avaliacaoModal">
             <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
@@ -239,7 +243,7 @@ if ($resultAvaliacoes && $resultAvaliacoes->num_rows > 0) {
     </div>
     
     <!-- Accordion de Avaliações Registradas (exibido em tabela) -->
-    <div class="accordion mb-5" id="accordionAvaliacoes">
+    <div class="accordion section-spacing" id="accordionAvaliacoes">
       <div class="accordion-item">
         <h2 class="accordion-header" id="headingAvaliacoes">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAvaliacoes" aria-expanded="false" aria-controls="collapseAvaliacoes">
@@ -247,13 +251,13 @@ if ($resultAvaliacoes && $resultAvaliacoes->num_rows > 0) {
           </button>
         </h2>
         <div id="collapseAvaliacoes" class="accordion-collapse collapse" aria-labelledby="headingAvaliacoes" data-bs-parent="#accordionAvaliacoes">
-          <div class="accordion-body">
+          <div class="accordion-body limitar-altura-avaliacoes">
             <?php if(count($avaliacoes) > 0): ?>
               <table class="table table-bordered tabelaEstilizada">
                 <thead>
                   <tr>
                     <th>Colaborador</th>
-                    <th>Critério</th>
+                    <th>Indicador</th>
                     <th>Avaliação</th>
                     <th>Trimestre</th>
                     <th>Data</th>
@@ -261,9 +265,7 @@ if ($resultAvaliacoes && $resultAvaliacoes->num_rows > 0) {
                 </thead>
                 <tbody>
                   <?php foreach($avaliacoes as $av): 
-                    // Obter nome amigável do indicador
                     $nomeIndicador = isset($friendlyNames[$av['criterio_nome']]) ? $friendlyNames[$av['criterio_nome']] : ucwords(str_replace('_', ' ', $av['criterio_nome']));
-                    // Renderizar estrelas: se o peso do critério for negativo, as estrelas serão em "lightcoral"
                     $peso = isset($pesosMap[$av['criterio']]) ? $pesosMap[$av['criterio']] : 1;
                     $corEstrela = ($peso < 0) ? "lightcoral" : "#f7d106";
                     $estrelas = "";
@@ -280,7 +282,7 @@ if ($resultAvaliacoes && $resultAvaliacoes->num_rows > 0) {
                     <td><?php echo htmlspecialchars($nomeIndicador); ?></td>
                     <td><?php echo $estrelas; ?></td>
                     <td><?php echo htmlspecialchars($av['trimestre']); ?></td>
-                    <td><?php echo $av['created_at']; ?></td>
+                    <td><?php echo date('d/m/Y', strtotime($av['created_at'])); ?></td>
                   </tr>
                   <?php endforeach; ?>
                 </tbody>

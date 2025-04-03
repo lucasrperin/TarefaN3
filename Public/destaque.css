@@ -58,3 +58,11 @@
   overflow: hidden;
   font-family: 'Nunito', sans-serif;
 }
+.limitar-altura {
+  max-height: 185px; /* ou o valor de sua preferência */
+  overflow-y: auto;
+}
+.limitar-altura-avaliacoes {
+  max-height: 450px; /* ou o valor de sua preferência */
+  overflow-y: auto;
+}
