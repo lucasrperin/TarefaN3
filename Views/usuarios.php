@@ -247,7 +247,7 @@ while ($row = mysqli_fetch_assoc($resultN)) {
                 <div class="row">
                   <div class="col-md-6 mb-3">
                     <label for="equipe_cad" class="form-label">Equipe:</label>
-                    <select name="idEquipe" id="equipe_cad" class="form-select">
+                    <select name="idEquipe" id="equipe_cad" class="form-select" required>
                       <?php foreach($equipes as $equipe): ?>
                         <option value="<?= $equipe['id'] ?>"><?= $equipe['descricao'] ?></option>
                       <?php endforeach; ?>
@@ -314,7 +314,7 @@ while ($row = mysqli_fetch_assoc($resultN)) {
                 <div class="row">
                   <div class="col-md-6 mb-3">
                     <label for="equipe_edit" class="form-label">Equipe</label>
-                    <select name="idEquipe" id="equipe_edit" class="form-select">
+                    <select name="idEquipe" id="equipe_edit" class="form-select" required>
                       <?php foreach($equipes as $equipe): ?>
                         <option value="<?= $equipe['id'] ?>"><?= $equipe['descricao'] ?></option>
                       <?php endforeach; ?>
