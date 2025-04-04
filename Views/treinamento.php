@@ -13,23 +13,23 @@ $cargo        = $_SESSION['cargo'] ?? '';
 $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
 
 // ------------------------------------------------------------------
-// 1. Carregar lista de SISTEMAS
+// Carregar lista de SISTEMAS
 // ------------------------------------------------------------------
 $sistemaQuery  = "SELECT Id, Descricao FROM TB_SISTEMA ORDER BY Descricao";
 $sistemaResult = mysqli_query($conn, $sistemaQuery);
 $sistemas      = [];
 while ($row = mysqli_fetch_assoc($sistemaResult)) {
-  $sistemas[] = $row; // Ex: ['Id' => 1, 'Descricao' => 'Clipp 360']
+  $sistemas[] = $row;
 }
 
 // ------------------------------------------------------------------
-// 2. Carregar lista de USUÁRIOS (consultores)
+// Carregar lista de USUÁRIOS (consultores)
 // ------------------------------------------------------------------
 $consultorQuery  = "SELECT Id, Nome FROM TB_USUARIO ORDER BY Nome";
 $consultorResult = mysqli_query($conn, $consultorQuery);
 $consultores     = [];
 while ($row = mysqli_fetch_assoc($consultorResult)) {
-  $consultores[] = $row; // Ex: ['Id' => 1, 'Nome' => 'Lucas Perin']
+  $consultores[] = $row;
 }
 ?>
 <!DOCTYPE html>
@@ -52,7 +52,6 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
 
   <!-- FullCalendar tradução -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales-all.global.min.js"></script>
-
 </head>
 <body>
   <div class="d-flex-wrapper">
@@ -89,11 +88,11 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
       </div>
     </div>
 
-    <!-- Main Content -->
+    <!-- Main Content --> 
     <div class="w-100">
       <!-- Header -->
       <div class="header">
-        <h3>Agendamento de Treinamentos</h3>
+        <h3>Agendamentos</h3>
         <div class="user-info">
           <span>Bem-vindo(a), <?php echo htmlspecialchars($usuario_nome, ENT_QUOTES, 'UTF-8'); ?>!</span>
           <a href="logout.php" class="btn btn-danger">
@@ -107,11 +106,11 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         <div class="card mb-4">
           <div class="card-header d-flex justify-content-between align-items-center">
             <div>
-              <h4>Treinamentos</h4>
-              <small>Visualize e gerencie os treinamentos agendados</small>
+              <h4>Agenda</h4>
+              <small>Visualize e gerencie as Instalações, Treinamentos ou ambos</small>
             </div>
             <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#modalCadastroTreinamento">
-              <i class="fa-solid fa-plus me-1"></i> Novo Treinamento
+              <i class="fa-solid fa-plus me-1"></i> Novo Agendamento
             </button>
           </div>
           <div class="card-body">
@@ -121,37 +120,44 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         </div>
       </div>
 
-      <!-- Modal: Cadastro de Treinamento -->
+      <!-- Modal: Cadastro de Agendamento -->
+      <!-- Adicionamos `modal-lg` para aumentar largura -->
       <div class="modal fade" id="modalCadastroTreinamento" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg"> 
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalCadastroLabel">Novo Treinamento</h5>
+              <h5 class="modal-title" id="modalCadastroLabel">Novo Agendamento</h5>
               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <form action="cadastrar_treinamento.php" method="post">
               <div class="modal-body">
+                <!-- Linha 1: Data | Hora | Tipo -->
                 <div class="row">
-                  <!-- Data -->
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-4 mb-3">
                     <label for="data_treino" class="form-label">Data</label>
                     <input type="date" name="data" id="data_treino" class="form-control" required>
                   </div>
-                  <!-- Hora -->
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-4 mb-3">
                     <label for="hora_treino" class="form-label">Hora</label>
                     <input type="time" name="hora" id="hora_treino" class="form-control" required>
                   </div>
+                  <div class="col-md-4 mb-3">
+                    <label for="tipo_treino" class="form-label">Tipo</label>
+                    <select name="tipo" id="tipo_treino" class="form-select" required>
+                      <option value="TREINAMENTO">Treinamento</option>
+                      <option value="INSTALACAO">Instalação</option>
+                      <option value="AMBOS">Instalação + Treinamento</option>
+                    </select>
+                  </div>
                 </div>
 
+                <!-- Linha 2: Cliente | Sistema | Consultor -->
                 <div class="row">
-                  <!-- Cliente -->
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-4 mb-3">
                     <label for="cliente_treino" class="form-label">Cliente</label>
                     <input type="text" name="cliente" id="cliente_treino" class="form-control" required>
                   </div>
-                  <!-- Sistema -->
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-4 mb-3">
                     <label for="sistema_treino" class="form-label">Sistema</label>
                     <select name="sistema" id="sistema_treino" class="form-select" required>
                       <option value="">-- Selecione --</option>
@@ -162,11 +168,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
                       <?php endforeach; ?>
                     </select>
                   </div>
-                </div>
-
-                <div class="row">
-                  <!-- Consultor -->
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-4 mb-3">
                     <label for="consultor_treino" class="form-label">Consultor</label>
                     <select name="consultor" id="consultor_treino" class="form-select" required>
                       <option value="">-- Selecione --</option>
@@ -177,8 +179,19 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
                       <?php endforeach; ?>
                     </select>
                   </div>
-                  <!-- Status -->
-                  <div class="col-md-6 mb-3">
+                </div>
+
+                <!-- Linha 3: CNPJ/CPF | Serial | Status -->
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label for="cnpjcpf_treino" class="form-label">CNPJ/CPF</label>
+                    <input type="text" name="cnpjcpf" id="cnpjcpf_treino" class="form-control">
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label for="serial_treino" class="form-label">Serial</label>
+                    <input type="text" name="serial" id="serial_treino" class="form-control">
+                  </div>
+                  <div class="col-md-4 mb-3">
                     <label for="status_treino" class="form-label">Status</label>
                     <select name="status" id="status_treino" class="form-select">
                       <option value="PENDENTE">Pendente</option>
@@ -188,7 +201,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
                   </div>
                 </div>
 
-                <!-- Observações (2 colunas de largura) -->
+                <!-- Linha 4: Observações -->
                 <div class="row">
                   <div class="col-12 mb-3">
                     <label for="observacoes_treino" class="form-label">Observações</label>
@@ -205,39 +218,46 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         </div>
       </div>
 
-      <!-- Modal: Edição de Treinamento -->
+      <!-- Modal: Edição de Agendamento -->
       <div class="modal fade" id="modalEditarTreinamento" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <!-- Também adicionamos `modal-lg` aqui -->
+        <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalEditarLabel">Editar Treinamento</h5>
+              <h5 class="modal-title" id="modalEditarLabel">Editar Agendamento</h5>
               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <form action="editar_treinamento.php" method="post">
               <div class="modal-body">
                 <input type="hidden" name="id" id="edit_id">
 
+                <!-- Linha 1: Data | Hora | Tipo -->
                 <div class="row">
-                  <!-- Data -->
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-4 mb-3">
                     <label for="edit_data" class="form-label">Data</label>
                     <input type="date" name="data" id="edit_data" class="form-control" required>
                   </div>
-                  <!-- Hora -->
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-4 mb-3">
                     <label for="edit_hora" class="form-label">Hora</label>
                     <input type="time" name="hora" id="edit_hora" class="form-control" required>
                   </div>
+                  <div class="col-md-4 mb-3">
+                    <label for="edit_tipo" class="form-label">Tipo</label>
+                    <select name="tipo" id="edit_tipo" class="form-select" required>
+                      <option value="TREINAMENTO">Treinamento</option>
+                      <option value="INSTALACAO">Instalação</option>
+                      <option value="AMBOS">Instalação + Treinamento</option>
+                    </select>
+                  </div>
                 </div>
 
+                <!-- Linha 2: Cliente | Sistema | Consultor -->
                 <div class="row">
-                  <!-- Cliente -->
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-4 mb-3">
                     <label for="edit_cliente" class="form-label">Cliente</label>
                     <input type="text" name="cliente" id="edit_cliente" class="form-control" required>
                   </div>
-                  <!-- Sistema -->
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-4 mb-3">
                     <label for="edit_sistema" class="form-label">Sistema</label>
                     <select name="sistema" id="edit_sistema" class="form-select" required>
                       <?php foreach($sistemas as $sis): ?>
@@ -247,11 +267,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
                       <?php endforeach; ?>
                     </select>
                   </div>
-                </div>
-
-                <div class="row">
-                  <!-- Consultor -->
-                  <div class="col-md-6 mb-3">
+                  <div class="col-md-4 mb-3">
                     <label for="edit_consultor" class="form-label">Consultor</label>
                     <select name="consultor" id="edit_consultor" class="form-select" required>
                       <?php foreach($consultores as $cons): ?>
@@ -261,8 +277,19 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
                       <?php endforeach; ?>
                     </select>
                   </div>
-                  <!-- Status -->
-                  <div class="col-md-6 mb-3">
+                </div>
+
+                <!-- Linha 3: CNPJ/CPF | Serial | Status -->
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <label for="edit_cnpjcpf" class="form-label">CNPJ/CPF</label>
+                    <input type="text" name="cnpjcpf" id="edit_cnpjcpf" class="form-control">
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <label for="edit_serial" class="form-label">Serial</label>
+                    <input type="text" name="serial" id="edit_serial" class="form-control">
+                  </div>
+                  <div class="col-md-4 mb-3">
                     <label for="edit_status" class="form-label">Status</label>
                     <select name="status" id="edit_status" class="form-select">
                       <option value="PENDENTE">Pendente</option>
@@ -272,7 +299,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
                   </div>
                 </div>
 
-                <!-- Observações (2 colunas de largura) -->
+                <!-- Linha 4: Observações -->
                 <div class="row">
                   <div class="col-12 mb-3">
                     <label for="edit_observacoes" class="form-label">Observações</label>
@@ -294,13 +321,13 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="modalExcluirLabel">Excluir Treinamento</h5>
+              <h5 class="modal-title" id="modalExcluirLabel">Excluir Agendamento</h5>
               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
             </div>
             <form action="deletar_treinamento.php" method="post">
               <div class="modal-body">
                 <input type="hidden" name="id" id="excluir_id">
-                <p>Tem certeza que deseja excluir o treinamento <strong id="excluir_cliente"></strong>?</p>
+                <p>Tem certeza que deseja excluir o agendamento <strong id="excluir_cliente"></strong>?</p>
               </div>
               <div class="modal-footer">
                 <button type="submit" class="btn btn-danger">Excluir</button>
@@ -326,6 +353,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
       var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'pt-br',
+        nowIndicator: true,
         dayHeaderContent: function(arg) {
           return arg.text.toUpperCase();
         },
@@ -345,10 +373,13 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         events: 'fetch_treinamentos.php',
 
         eventClick: function(info) {
+          // Objeto do evento
           const eventObj = info.event;
 
+          // Preenche o ID do evento
           document.getElementById('edit_id').value = eventObj.id;
           
+          // Ajustar data/hora no formato correto
           let startDate = new Date(eventObj.start);
           let year  = startDate.getFullYear();
           let month = String(startDate.getMonth() + 1).padStart(2, '0');
@@ -362,8 +393,14 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
           document.getElementById('edit_sistema').value     = eventObj.extendedProps.sistema;
           document.getElementById('edit_consultor').value   = eventObj.extendedProps.consultor;
           document.getElementById('edit_status').value      = eventObj.extendedProps.status;
+          
+          // Novos campos:
+          document.getElementById('edit_tipo').value        = eventObj.extendedProps.tipo || 'TREINAMENTO';
+          document.getElementById('edit_cnpjcpf').value     = eventObj.extendedProps.cnpjcpf || '';
+          document.getElementById('edit_serial').value      = eventObj.extendedProps.serial || '';
           document.getElementById('edit_observacoes').value = eventObj.extendedProps.observacoes || '';
 
+          // Exibe modal
           let editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
           editModal.show();
         }

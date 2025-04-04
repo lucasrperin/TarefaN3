@@ -189,3 +189,42 @@ body {
   border: none !important;
   box-shadow: none !important;
 }
+/* Linha do “agora”: 3px, pontilhada em vermelho */
+.fc-now-indicator-line {
+  border-top: 3px dotted red !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* Triângulo do “agora”: aumenta dimensões e define cor */
+.fc-now-indicator-arrow {
+  border-top-width: 8px !important;
+  border-left-width: 8px !important;
+  border-right-width: 8px !important;
+  border-top-color: red !important;
+  box-shadow: none !important;
+}
+/* CANCELADO: mostrar riscado e opacidade menor */
+.fc-event.cancelado .fc-event-main {
+  text-decoration: line-through !important;
+  opacity: 0.7; /* ou 0.5, como preferir */
+}
+
+/* PENDENTE: pode colocar um destaque com borda piscando, ou só negrito */
+.fc-event.pendente .fc-event-main {
+  font-weight: 600; 
+  /* Exemplo: border ao redor do texto? Normalmente o FullCalendar 
+     não coloca border no .fc-event-main, mas sim no container do evento. 
+     Então, se quiser efeito no contêiner:
+  */
+  /* border: 2px dashed #000 !important; */
+}
+
+/* CONCLUIDO: pode usar itálico, sublinhado, qualquer estilo */
+.fc-event.concluido .fc-event-main {
+  font-style: italic;
+  /* ou um ícone usando "before" + content
+  content: "✔ " attr(title);
+   (Mas é mais fácil prefixar no "title" do fetch.)
+  */
+}
