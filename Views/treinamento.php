@@ -50,7 +50,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
 
-<!-- FullCalendar tradução -->
+  <!-- FullCalendar tradução -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales-all.global.min.js"></script>
 
 </head>
@@ -131,68 +131,72 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
             </div>
             <form action="cadastrar_treinamento.php" method="post">
               <div class="modal-body">
-                
-                <!-- Data -->
-                <div class="mb-3">
-                  <label for="data_treino" class="form-label">Data</label>
-                  <input type="date" name="data" id="data_treino" class="form-control" required>
+                <div class="row">
+                  <!-- Data -->
+                  <div class="col-md-6 mb-3">
+                    <label for="data_treino" class="form-label">Data</label>
+                    <input type="date" name="data" id="data_treino" class="form-control" required>
+                  </div>
+                  <!-- Hora -->
+                  <div class="col-md-6 mb-3">
+                    <label for="hora_treino" class="form-label">Hora</label>
+                    <input type="time" name="hora" id="hora_treino" class="form-control" required>
+                  </div>
                 </div>
 
-                <!-- Hora -->
-                <div class="mb-3">
-                  <label for="hora_treino" class="form-label">Hora</label>
-                  <input type="time" name="hora" id="hora_treino" class="form-control" required>
+                <div class="row">
+                  <!-- Cliente -->
+                  <div class="col-md-6 mb-3">
+                    <label for="cliente_treino" class="form-label">Cliente</label>
+                    <input type="text" name="cliente" id="cliente_treino" class="form-control" required>
+                  </div>
+                  <!-- Sistema -->
+                  <div class="col-md-6 mb-3">
+                    <label for="sistema_treino" class="form-label">Sistema</label>
+                    <select name="sistema" id="sistema_treino" class="form-select" required>
+                      <option value="">-- Selecione --</option>
+                      <?php foreach($sistemas as $sis): ?>
+                        <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
+                          <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
+                        </option>
+                      <?php endforeach; ?>
+                    </select>
+                  </div>
                 </div>
 
-                <!-- Cliente -->
-                <div class="mb-3">
-                  <label for="cliente_treino" class="form-label">Cliente</label>
-                  <input type="text" name="cliente" id="cliente_treino" class="form-control" required>
+                <div class="row">
+                  <!-- Consultor -->
+                  <div class="col-md-6 mb-3">
+                    <label for="consultor_treino" class="form-label">Consultor</label>
+                    <select name="consultor" id="consultor_treino" class="form-select" required>
+                      <option value="">-- Selecione --</option>
+                      <?php foreach($consultores as $cons): ?>
+                        <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
+                          <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
+                        </option>
+                      <?php endforeach; ?>
+                    </select>
+                  </div>
+                  <!-- Status -->
+                  <div class="col-md-6 mb-3">
+                    <label for="status_treino" class="form-label">Status</label>
+                    <select name="status" id="status_treino" class="form-select">
+                      <option value="PENDENTE">Pendente</option>
+                      <option value="CONCLUIDO">Concluído</option>
+                      <option value="CANCELADO">Cancelado</option>
+                    </select>
+                  </div>
                 </div>
 
-                <!-- Sistema (carregado da tabela TB_SISTEMA) -->
-                <div class="mb-3">
-                  <label for="sistema_treino" class="form-label">Sistema</label>
-                  <select name="sistema" id="sistema_treino" class="form-select" required>
-                    <option value="">-- Selecione --</option>
-                    <?php foreach($sistemas as $sis): ?>
-                      <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
-                        <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
-                      </option>
-                    <?php endforeach; ?>
-                  </select>
+                <!-- Observações (2 colunas de largura) -->
+                <div class="row">
+                  <div class="col-12 mb-3">
+                    <label for="observacoes_treino" class="form-label">Observações</label>
+                    <textarea name="observacoes" id="observacoes_treino" class="form-control" rows="3"></textarea>
+                  </div>
                 </div>
 
-                <!-- Consultor (carregado da tabela TB_USUARIO) -->
-                <div class="mb-3">
-                  <label for="consultor_treino" class="form-label">Consultor</label>
-                  <select name="consultor" id="consultor_treino" class="form-select" required>
-                    <option value="">-- Selecione --</option>
-                    <?php foreach($consultores as $cons): ?>
-                      <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
-                        <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
-                      </option>
-                    <?php endforeach; ?>
-                  </select>
-                </div>
-
-                <!-- Status -->
-                <div class="mb-3">
-                  <label for="status_treino" class="form-label">Status</label>
-                  <select name="status" id="status_treino" class="form-select">
-                    <option value="PENDENTE">Pendente</option>
-                    <option value="CONCLUIDO">Concluído</option>
-                    <option value="CANCELADO">Cancelado</option>
-                  </select>
-                </div>
-
-                <!-- Observações -->
-                <div class="mb-3">
-                  <label for="observacoes_treino" class="form-label">Observações</label>
-                  <textarea name="observacoes" id="observacoes_treino" class="form-control" rows="3"></textarea>
-                </div>
-
-              </div>
+              </div><!-- modal-body -->
               <div class="modal-footer">
                 <button type="submit" class="btn btn-custom">Cadastrar</button>
               </div>
@@ -211,68 +215,72 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
             </div>
             <form action="editar_treinamento.php" method="post">
               <div class="modal-body">
-                
                 <input type="hidden" name="id" id="edit_id">
 
-                <!-- Data -->
-                <div class="mb-3">
-                  <label for="edit_data" class="form-label">Data</label>
-                  <input type="date" name="data" id="edit_data" class="form-control" required>
+                <div class="row">
+                  <!-- Data -->
+                  <div class="col-md-6 mb-3">
+                    <label for="edit_data" class="form-label">Data</label>
+                    <input type="date" name="data" id="edit_data" class="form-control" required>
+                  </div>
+                  <!-- Hora -->
+                  <div class="col-md-6 mb-3">
+                    <label for="edit_hora" class="form-label">Hora</label>
+                    <input type="time" name="hora" id="edit_hora" class="form-control" required>
+                  </div>
                 </div>
 
-                <!-- Hora -->
-                <div class="mb-3">
-                  <label for="edit_hora" class="form-label">Hora</label>
-                  <input type="time" name="hora" id="edit_hora" class="form-control" required>
+                <div class="row">
+                  <!-- Cliente -->
+                  <div class="col-md-6 mb-3">
+                    <label for="edit_cliente" class="form-label">Cliente</label>
+                    <input type="text" name="cliente" id="edit_cliente" class="form-control" required>
+                  </div>
+                  <!-- Sistema -->
+                  <div class="col-md-6 mb-3">
+                    <label for="edit_sistema" class="form-label">Sistema</label>
+                    <select name="sistema" id="edit_sistema" class="form-select" required>
+                      <?php foreach($sistemas as $sis): ?>
+                        <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
+                          <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
+                        </option>
+                      <?php endforeach; ?>
+                    </select>
+                  </div>
                 </div>
 
-                <!-- Cliente -->
-                <div class="mb-3">
-                  <label for="edit_cliente" class="form-label">Cliente</label>
-                  <input type="text" name="cliente" id="edit_cliente" class="form-control" required>
+                <div class="row">
+                  <!-- Consultor -->
+                  <div class="col-md-6 mb-3">
+                    <label for="edit_consultor" class="form-label">Consultor</label>
+                    <select name="consultor" id="edit_consultor" class="form-select" required>
+                      <?php foreach($consultores as $cons): ?>
+                        <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
+                          <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
+                        </option>
+                      <?php endforeach; ?>
+                    </select>
+                  </div>
+                  <!-- Status -->
+                  <div class="col-md-6 mb-3">
+                    <label for="edit_status" class="form-label">Status</label>
+                    <select name="status" id="edit_status" class="form-select">
+                      <option value="PENDENTE">Pendente</option>
+                      <option value="CONCLUIDO">Concluído</option>
+                      <option value="CANCELADO">Cancelado</option>
+                    </select>
+                  </div>
                 </div>
 
-                <!-- Sistema (mesma lista de TB_SISTEMA) -->
-                <div class="mb-3">
-                  <label for="edit_sistema" class="form-label">Sistema</label>
-                  <select name="sistema" id="edit_sistema" class="form-select" required>
-                    <?php foreach($sistemas as $sis): ?>
-                      <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
-                        <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
-                      </option>
-                    <?php endforeach; ?>
-                  </select>
+                <!-- Observações (2 colunas de largura) -->
+                <div class="row">
+                  <div class="col-12 mb-3">
+                    <label for="edit_observacoes" class="form-label">Observações</label>
+                    <textarea name="observacoes" id="edit_observacoes" class="form-control" rows="3"></textarea>
+                  </div>
                 </div>
 
-                <!-- Consultor (mesma lista de TB_USUARIO) -->
-                <div class="mb-3">
-                  <label for="edit_consultor" class="form-label">Consultor</label>
-                  <select name="consultor" id="edit_consultor" class="form-select" required>
-                    <?php foreach($consultores as $cons): ?>
-                      <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
-                        <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
-                      </option>
-                    <?php endforeach; ?>
-                  </select>
-                </div>
-
-                <!-- Status -->
-                <div class="mb-3">
-                  <label for="edit_status" class="form-label">Status</label>
-                  <select name="status" id="edit_status" class="form-select">
-                    <option value="PENDENTE">Pendente</option>
-                    <option value="CONCLUIDO">Concluído</option>
-                    <option value="CANCELADO">Cancelado</option>
-                  </select>
-                </div>
-
-                <!-- Observações -->
-                <div class="mb-3">
-                  <label for="edit_observacoes" class="form-label">Observações</label>
-                  <textarea name="observacoes" id="edit_observacoes" class="form-control" rows="3"></textarea>
-                </div>
-
-              </div>
+              </div><!-- modal-body -->
               <div class="modal-footer">
                 <button type="submit" class="btn btn-custom">Salvar</button>
               </div>
@@ -316,36 +324,31 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
     document.addEventListener('DOMContentLoaded', function() {
       var calendarEl = document.getElementById('calendar');
       var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth', // visão mensal
+        initialView: 'dayGridMonth',
         locale: 'pt-br',
         dayHeaderContent: function(arg) {
-    // 'arg.date' é um objeto Date
-    // Formate e retorne apenas texto sem <a>
-    return arg.text.toUpperCase();
-  },
+          return arg.text.toUpperCase();
+        },
         headerToolbar: {
           left: 'prev,next today',
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
         buttonText: {
-      today:  'Hoje',
-      month:  'Mês',
-      week:   'Semana',
-      day:    'Dia'
-    },
-    allDayText: 'Dia inteiro',
+          today: 'Hoje',
+          month: 'Mês',
+          week: 'Semana',
+          day: 'Dia'
+        },
+        allDayText: 'Dia inteiro',
 
-        // Carrega eventos de fetch_treinamentos.php (JSON)
         events: 'fetch_treinamentos.php',
+
         eventClick: function(info) {
-          // Ao clicar em um evento, abre modal de edição
           const eventObj = info.event;
 
-          // Preenche ID do registro
           document.getElementById('edit_id').value = eventObj.id;
           
-          // Ajustar data/hora no formato correto (YYYY-MM-DD, HH:MM)
           let startDate = new Date(eventObj.start);
           let year  = startDate.getFullYear();
           let month = String(startDate.getMonth() + 1).padStart(2, '0');
@@ -353,16 +356,14 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
           let hours = String(startDate.getHours()).padStart(2, '0');
           let mins  = String(startDate.getMinutes()).padStart(2, '0');
 
-          document.getElementById('edit_data').value  = `${year}-${month}-${day}`;
-          document.getElementById('edit_hora').value  = `${hours}:${mins}`;
-          document.getElementById('edit_cliente').value    = eventObj.extendedProps.cliente;
-          // Sistema/Consultor/Status/Obs
-          document.getElementById('edit_sistema').value    = eventObj.extendedProps.sistema;
-          document.getElementById('edit_consultor').value  = eventObj.extendedProps.consultor;
-          document.getElementById('edit_status').value     = eventObj.extendedProps.status;
-          document.getElementById('edit_observacoes').value= eventObj.extendedProps.observacoes || '';
+          document.getElementById('edit_data').value        = `${year}-${month}-${day}`;
+          document.getElementById('edit_hora').value        = `${hours}:${mins}`;
+          document.getElementById('edit_cliente').value     = eventObj.extendedProps.cliente;
+          document.getElementById('edit_sistema').value     = eventObj.extendedProps.sistema;
+          document.getElementById('edit_consultor').value   = eventObj.extendedProps.consultor;
+          document.getElementById('edit_status').value      = eventObj.extendedProps.status;
+          document.getElementById('edit_observacoes').value = eventObj.extendedProps.observacoes || '';
 
-          // Abre modal de edição
           let editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
           editModal.show();
         }
@@ -370,7 +371,6 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
       calendar.render();
     });
 
-    // Função para abrir modal de exclusão
     function modalExcluir(id, cliente) {
       document.getElementById('excluir_id').value = id;
       document.getElementById('excluir_cliente').textContent = cliente;
