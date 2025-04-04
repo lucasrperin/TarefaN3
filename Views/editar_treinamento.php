@@ -1,5 +1,5 @@
 <?php
-include '../Config/Database.php';
+require '../Config/Database.php';
 session_start();
 
 if (!isset($_SESSION['usuario_id'])) {
@@ -10,22 +10,29 @@ if (!isset($_SESSION['usuario_id'])) {
 $id          = $_POST['id'];
 $data        = $_POST['data'];
 $hora        = $_POST['hora'];
+$tipo        = $_POST['tipo'];
+$cnpjcpf     = $_POST['cnpjcpf'];
 $cliente     = $_POST['cliente'];
 $sistema     = $_POST['sistema'];
 $consultor   = $_POST['consultor'];
+$serial      = $_POST['serial'];
 $status      = $_POST['status'];
 $observacoes = $_POST['observacoes'] ?? '';
 
 $query = "UPDATE TB_TREINAMENTOS
-          SET data = ?, hora = ?, cliente = ?, sistema = ?, consultor = ?, status = ?, observacoes = ?
+          SET data = ?, hora = ?, tipo = ?, cnpjcpf = ?, cliente = ?, sistema = ?, 
+              consultor = ?, serial = ?, status = ?, observacoes = ?
           WHERE id = ?";
 $stmt = mysqli_prepare($conn, $query);
-mysqli_stmt_bind_param($stmt, 'sssssssi',
+mysqli_stmt_bind_param($stmt, 'ssssssssssi',
   $data,
   $hora,
+  $tipo,
+  $cnpjcpf,
   $cliente,
   $sistema,
   $consultor,
+  $serial,
   $status,
   $observacoes,
   $id
