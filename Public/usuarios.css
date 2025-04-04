@@ -89,6 +89,15 @@ table tbody tr:hover {
   filter: brightness(0) invert(1);
 }
 
+/* Remova qualquer fundo no hover ou foco da logo */
+.light-logo:hover,
+.light-logo:focus {
+  background: transparent !important;
+  transform: none !important;
+  margin: 1 !important;
+  padding: 0 !important;
+}
+
 .access-scroll {
   height: 410px;
   overflow-y: auto;

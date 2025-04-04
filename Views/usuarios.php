@@ -62,7 +62,7 @@ while ($row = mysqli_fetch_assoc($resultN)) {
   <div class="d-flex-wrapper">
     <!-- Sidebar -->
     <div class="sidebar">
-      <a class="light-logo" href="menu.php">
+      <a class="light-logo" href="usuarios.php">
         <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
       </a>
       <nav class="nav flex-column">
