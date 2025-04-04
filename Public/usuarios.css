@@ -1,64 +1,98 @@
-/* Caso o CSS de modais não esteja no usuarios.css, inclua aqui um exemplo básico */
-.modal {
-    display: none; 
-    position: fixed; 
-    z-index: 1000; 
-    left: 0;
-    top: 0;
-    width: 100%; 
-    height: 100%; 
-    overflow: auto; 
-    background-color: rgba(0,0,0,0.4);
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #f0f2f5;
 }
-.modal-content {
-    background-color: #fff;
-    margin: 10% auto; 
-    padding: 20px;
-    border: 1px solid #888;
-    width: 90%;
-    max-width: 500px;
-    border-radius: 4px;
+.d-flex-wrapper {
+  display: flex;
+  min-height: 100vh;
 }
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
+/* Sidebar com as cores do menu */
+.sidebar {
+  background: linear-gradient(135deg, #4b79a1, #283e51);
+  min-width: 220px;
+  padding: 1.5rem;
+  color: #fff;
 }
-.close:hover,
-.close:focus {
-    color: #000;
+.sidebar a {
+  color: #fff;
+  display: block;
+  margin-bottom: 1rem;
 }
-
-/* Tabelas */
-.table {
-    background-color: white;
-  }
-
-.table th {
-  text-align: center;
-  vertical-align: middle;
+.sidebar a:hover, .sidebar a.active {
+  color: #fff;
+  background-color: #283e51;
+  border-radius: 4px;
+  padding: 0.5rem;
 }
-.table td {
-  text-align: center;
-  vertical-align: middle;
+/* Header com a mesma cor do menu */
+.header {
+  background: linear-gradient(135deg, #4b79a1, #283e51);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
 }
-.tabelaEstilizada {
-  border-collapse: separate;
-  border-spacing: 0 2px;
+.header .user-info span {
+  margin-right: 1rem;
 }
-.tabelaEstilizada tbody tr {
-  border-radius: 5px;
+/* Conteúdo principal */
+.content {
+  padding: 2rem;
+  flex-grow: 1;
+  background-color: #f1f3f5;
+}
+.card {
+  border: none;
+  border-radius: 8px;
   overflow: hidden;
-  font-family: 'Nunito', sans-serif;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.card-header {
+  background-color: #fff;
+  border-bottom: none;
+  padding: 1.5rem 1.75rem;
+}
+.card-header h4 {
+  margin: 0;
+  font-weight: 600;
+}
+.card-header small {
+  color: #6c757d;
+}
+.card-body {
+  background-color: #fff;
+  padding: 1.75rem;
+}
+table thead {
+  background-color: #283e51;
+  color: #fff;
+}
+table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+.btn-custom {
+  background-color: #283e51;
+  color: #fff;
+  border: none;
+}
+.btn-custom:hover {
+  background-color: #495057;
+}
+/* Estilos dos modais */
+.modal-header {
+  background-color: #283e51;
+  color: #fff;
+}
+
+.light-logo {
+  filter: brightness(0) invert(1);
 }
 
 .access-scroll {
-  height: 500px;
+  height: 410px;
   overflow-y: auto;
 }
-
 /* Personalização do scrollbar (Chrome, Edge, Safari) */
 .access-scroll::-webkit-scrollbar {
   width: 8px;
@@ -71,52 +105,36 @@
   background: #555; 
 }
 
-/* Estilo do Toast */
-.toast-container {
-  position: fixed!important;
-  top: 0;
-  right: 0;
-  z-index: 1050; /* Garantir que o toast esteja acima de outros elementos */
-  padding: 10px;
-  display: flex; /* Para evitar que o toast tente expandir */
-  flex-direction: column; /* Para que os toasts fiquem empilhados, se houver mais de um */
-  align-items: flex-end; /* Garante que os toasts fiquem alinhados à direita */
+/* Toast Container centered at the bottom */
+#toast-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1050;
 }
-
+/* Base style for the toast messages */
 .toast {
-  width: fit-content !important;
-  display: none;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
   opacity: 0;
-  transition: opacity 0.5s ease;
-  background-color: #28a745;
-  color: white;
-  width: auto; /* Faz o toast ocupar apenas o espaço necessário */
-  max-width: 30px; /* Limite para não ficar muito grande */
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  margin-bottom: 10px;
 }
-
+/* When toast is visible */
 .toast.show {
-  display: flex;
   opacity: 1;
-  background-color: #28a745;
-  color: white;
+  transform: translateY(0);
 }
-
-.toast-body {
-  display: flex;
-  align-items: center;
-  padding: 10px 15px; /* Reduz o espaçamento interno */
-  font-size: 16px;
-  white-space: nowrap; /* Impede que o texto quebre em múltiplas linhas */
-  flex-grow: 1; /* Garante que o conteúdo ocupe só o espaço necessário */
+/* Success Toast in green */
+.toast.success {
+  background-color: #27c03b;
 }
-
-.toast-body i {
-  margin-right: 10px;
-  font-size: 25px;
-  flex-shrink: 0; /* Evita que o ícone encolha */
-}
-
-#toastMensagem {
-  display: inline; /* Garante que o texto não ocupe espaço extra */
-  flex-grow: 0; /* Faz o texto ocupar apenas o espaço necessário */
+/* Error Toast in red */
+.toast.error {
+  background-color: #e74c3c;
 }
