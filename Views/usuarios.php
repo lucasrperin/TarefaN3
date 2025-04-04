@@ -13,18 +13,19 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
 
 // Consulta para obter os usuários com vínculo (equipe e nível)
 $query = "SELECT
-            u.Id, 
-            u.Nome, 
-            u.Email, 
-            ena.idEquipe, 
-            ena.idNivel,
+            u.Id,
+            u.Nome,
+            u.Email,
+            ena.idEquipe,
+            GROUP_CONCAT(ena.idNivel) AS niveis,
             u.Cargo,
             IFNULL(c.descricao, 'Não definido') AS EquipeDescricao,
-            IFNULL(n.descricao, 'Não definido') AS NivelDescricao
+            GROUP_CONCAT(n.descricao SEPARATOR ', ') AS NivelDescricao
           FROM TB_USUARIO u
           LEFT JOIN TB_EQUIPE_NIVEL_ANALISTA ena ON ena.idUsuario = u.Id
           LEFT JOIN TB_EQUIPE c ON ena.idEquipe = c.id
           LEFT JOIN TB_NIVEL n ON ena.idNivel = n.id
+          GROUP BY u.Id
           ORDER BY u.Id ASC";
 $result = mysqli_query($conn, $query);
 
@@ -67,15 +68,15 @@ while ($row = mysqli_fetch_assoc($resultN)) {
       </a>
       <nav class="nav flex-column">
         <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i> Home</a>
-        <a class="nav-link active" href="usuarios.php"><i class="fa-solid fa-users me-2"></i> Usuários</a>
         <a class="nav-link" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
+        <a class="nav-link" href="destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a></li>
         <a class="nav-link" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
         <a class="nav-link" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
         <a class="nav-link" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
         <a class="nav-link" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a></li>
         <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
         <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
-        <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
+        <a class="nav-link active" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
       </nav>
     </div>
     <!-- Minimalist Modern Toast Layout -->
@@ -139,6 +140,9 @@ while ($row = mysqli_fetch_assoc($resultN)) {
             case "1":
               msg = "Email já existe!";
               break;
+            case "2":
+              msg = "Não é possível excluir usuário que possui vínculos!";
+              break;
           }
           if (msg) showToast(msg, "error");
         }
@@ -177,11 +181,11 @@ while ($row = mysqli_fetch_assoc($resultN)) {
                 <thead>
                   <tr>
                     <th>Nome</th>
-                    <th>Email</th>
-                    <th>Cargo</th>
-                    <th>Equipe</th>
-                    <th>Nível</th>
-                    <th>Ações</th>
+                    <th style="width: 10%">Email</th>
+                    <th class="text-center">Cargo</th>
+                    <th class="text-center">Equipe</th>
+                    <th class="text-center">Nível</th>
+                    <th class="text-center">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -190,14 +194,14 @@ while ($row = mysqli_fetch_assoc($resultN)) {
                       <tr>
                         <td><?= $user['Nome'] ?></td>
                         <td><?= $user['Email'] ?></td>
-                        <td><?= $user['Cargo'] ?></td>
-                        <td><?= $user['EquipeDescricao'] ?></td>
-                        <td><?= $user['NivelDescricao'] ?></td>
-                        <td>
-                          <button type="button" class="btn btn-outline-primary btn-sm" 
-                            onclick="editarUser('<?= $user['Id'] ?>', '<?= addslashes($user['Nome']) ?>', '<?= addslashes($user['Email']) ?>', '<?= $user['idEquipe'] ?>', '<?= $user['idNivel'] ?>', '<?= $user['Cargo'] ?>')">
-                            <i class="fa-solid fa-pen"></i>
-                          </button>
+                        <td class="text-center"><?= $user['Cargo'] ?></td>
+                        <td class="text-center"><?= $user['EquipeDescricao'] ?></td>
+                        <td class="text-center sobrepor"><?= $user['NivelDescricao'] ?></td>
+                        <td class="text-center">
+                        <button type="button" class="btn btn-outline-primary btn-sm" 
+                          onclick="editarUser('<?= $user['Id'] ?>', '<?= addslashes($user['Nome']) ?>', '<?= addslashes($user['Email']) ?>', '<?= $user['idEquipe'] ?>', '<?= $user['niveis'] ?>', '<?= $user['Cargo'] ?>')">
+                          <i class="fa-solid fa-pen"></i>
+                        </button>
                           <button type="button" class="btn btn-outline-danger btn-sm" 
                             onclick="modalExcluir('<?= $user['Id'] ?>', '<?= addslashes($user['Nome']) ?>')">
                             <i class="fa-solid fa-trash"></i>
@@ -241,24 +245,16 @@ while ($row = mysqli_fetch_assoc($resultN)) {
                   </div>
                 </div>
                 <div class="row">
-                  <div class="col-md-4 mb-3">
-                    <label for="equipe_cad" class="form-label">Equipe</label>
+                  <div class="col-md-6 mb-3">
+                    <label for="equipe_cad" class="form-label">Equipe:</label>
                     <select name="idEquipe" id="equipe_cad" class="form-select">
                       <?php foreach($equipes as $equipe): ?>
                         <option value="<?= $equipe['id'] ?>"><?= $equipe['descricao'] ?></option>
                       <?php endforeach; ?>
                     </select>
                   </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="nivel_cad" class="form-label">Nível</label>
-                    <select name="idNivel" id="nivel_cad" class="form-select">
-                      <?php foreach($niveis as $nivel): ?>
-                        <option value="<?= $nivel['id'] ?>"><?= $nivel['descricao'] ?></option>
-                      <?php endforeach; ?>
-                    </select>
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="cargo_cad" class="form-label">Cargo</label>
+                  <div class="col-md-6 mb-3">
+                    <label for="cargo_cad" class="form-label">Cargo:</label>
                     <select name="Cargo" id="cargo_cad" class="form-select" required>
                       <option value="Admin">Admin</option>
                       <option value="Comercial">Comercial</option>
@@ -266,6 +262,20 @@ while ($row = mysqli_fetch_assoc($resultN)) {
                       <option value="User">User</option>
                       <option value="Viewer">Viewer</option>
                     </select>
+                  </div>
+                </div>
+                <!-- Checklist de Níveis em rows com máximo 3 itens -->
+                <div class="mb-3">
+                  <label class="form-label">Níveis:</label>
+                  <div id="cadastro-niveis-checklist" class="niveis-checklist">
+                    <?php foreach($niveis as $nivel): ?>
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="idNivel[]" value="<?= $nivel['id'] ?>" id="cad_nivel_<?= $nivel['id'] ?>">
+                        <label class="form-check-label" for="cad_nivel_<?= $nivel['id'] ?>">
+                          <?= $nivel['descricao'] ?>
+                        </label>
+                      </div>
+                    <?php endforeach; ?>
                   </div>
                 </div>
               </div>
@@ -302,7 +312,7 @@ while ($row = mysqli_fetch_assoc($resultN)) {
                   </div>
                 </div>
                 <div class="row">
-                  <div class="col-md-4 mb-3">
+                  <div class="col-md-6 mb-3">
                     <label for="equipe_edit" class="form-label">Equipe</label>
                     <select name="idEquipe" id="equipe_edit" class="form-select">
                       <?php foreach($equipes as $equipe): ?>
@@ -310,15 +320,7 @@ while ($row = mysqli_fetch_assoc($resultN)) {
                       <?php endforeach; ?>
                     </select>
                   </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="nivel_edit" class="form-label">Nível</label>
-                    <select name="idNivel" id="nivel_edit" class="form-select">
-                      <?php foreach($niveis as $nivel): ?>
-                        <option value="<?= $nivel['id'] ?>"><?= $nivel['descricao'] ?></option>
-                      <?php endforeach; ?>
-                    </select>
-                  </div>
-                  <div class="col-md-4 mb-3">
+                  <div class="col-md-6 mb-3">
                     <label for="edit_cargo_cad" class="form-label">Cargo</label>
                     <select name="Cargo" id="edit_cargo_cad" class="form-select" required>
                       <option value="Admin">Admin</option>
@@ -327,6 +329,20 @@ while ($row = mysqli_fetch_assoc($resultN)) {
                       <option value="User">User</option>
                       <option value="Viewer">Viewer</option>
                     </select>
+                  </div>
+                </div>
+                <!-- Checklist de Níveis (modificado para exibir no máximo 3 por row) -->
+                <div class="mb-3">
+                  <label class="form-label">Níveis:</label>
+                  <div id="edit-niveis-checklist" class="niveis-checklist">
+                    <?php foreach($niveis as $nivel): ?>
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="idNivel[]" value="<?= $nivel['id'] ?>" id="edit_nivel_<?= $nivel['id'] ?>">
+                        <label class="form-check-label" for="edit_nivel_<?= $nivel['id'] ?>">
+                          <?= $nivel['descricao'] ?>
+                        </label>
+                      </div>
+                    <?php endforeach; ?>
                   </div>
                 </div>
               </div>
@@ -371,16 +387,33 @@ while ($row = mysqli_fetch_assoc($resultN)) {
         });
       });
     });
-    function editarUser(id, nome, email, idEquipe, idNivel, cargo) {
-      document.getElementById('editar_id').value = id;
-      document.getElementById('nome_edit').value = nome;
-      document.getElementById('email_edit').value = email;
-      document.getElementById('equipe_edit').value = idEquipe;
-      document.getElementById('nivel_edit').value = idNivel;
-      document.getElementById('edit_cargo_cad').value = cargo;
-      new bootstrap.Modal(document.getElementById('modalEditar')).show();
+
+    function editarUser(id, nome, email, idEquipe, niveisUser, cargo) {
+    document.getElementById('editar_id').value = id;
+    document.getElementById('nome_edit').value = nome;
+    document.getElementById('email_edit').value = email;
+    document.getElementById('equipe_edit').value = idEquipe;
+    document.getElementById('edit_cargo_cad').value = cargo;
+    
+    // Desmarca todos os checkboxes
+    const checkboxes = document.querySelectorAll('#edit-niveis-checklist .form-check-input');
+    checkboxes.forEach(chk => chk.checked = false);
+    
+    // Se houver níveis associados, marque os checkboxes correspondentes
+    if (niveisUser) {
+      const niveisArray = niveisUser.split(',').map(item => item.trim());
+      niveisArray.forEach(function(nivelId) {
+        const checkbox = document.getElementById('edit_nivel_' + nivelId);
+        if (checkbox) {
+          checkbox.checked = true;
+        }
+      });
     }
-    function modalExcluir(id, nome) {
+    
+    new bootstrap.Modal(document.getElementById('modalEditar')).show();
+  }
+
+  function modalExcluir(id, nome) {
       document.getElementById('excluir_id').value = id;
       document.getElementById('excluir_nome').textContent = nome;
       new bootstrap.Modal(document.getElementById('modalExcluir')).show();

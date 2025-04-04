@@ -147,3 +147,20 @@ table tbody tr:hover {
 .toast.error {
   background-color: #e74c3c;
 }
+
+td.sobrepor {
+  max-width: 250px; /* ajuste o valor conforme necessário */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+ /* Estilo para organizar os checkboxes em linhas de 3 itens */
+ .niveis-checklist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.niveis-checklist .form-check {
+  flex: 0 0 calc(33.33% - 10px);
+}
