@@ -73,7 +73,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
         <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
         <!-- Item de Treinamentos ativo -->
-        <a class="nav-link active" href="treinamentos.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
+        <a class="nav-link active" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
       </nav>
     </div>
 

@@ -169,6 +169,18 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
       </div>
       
       <?php endif; ?>
+
+      <?php if($cargo==='Admin'): ?>
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="menu-card" onclick="location.href='treinamento.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <h5 class="menu-title">Treinamentos</h5>
+        </div>
+      </div>
+      
+      <?php endif; ?>
     </div>
   </main>
 
