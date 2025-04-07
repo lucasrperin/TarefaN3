@@ -59,7 +59,7 @@ while ($row = mysqli_fetch_assoc($resultN)) {
   <!-- CSS externo -->
   <link rel="stylesheet" href="../Public/usuarios.css">
 </head>
-<body>
+<body class="bg-light">
   <div class="d-flex-wrapper">
     <!-- Sidebar -->
     <div class="sidebar">
@@ -67,7 +67,7 @@ while ($row = mysqli_fetch_assoc($resultN)) {
         <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
       </a>
       <nav class="nav flex-column">
-        <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i> Home</a>
+        <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
         <a class="nav-link" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
         <a class="nav-link" href="destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a></li>
         <a class="nav-link" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>

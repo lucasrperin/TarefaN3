@@ -46,10 +46,8 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <!-- Seu CSS -->
   <link rel="stylesheet" href="../Public/treinamento.css">
-
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
-
   <!-- FullCalendar tradução -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales-all.global.min.js"></script>
 </head>
@@ -71,7 +69,6 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
         <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
         <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
-        <!-- Item de Treinamentos ativo -->
         <a class="nav-link active" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
       </nav>
     </div>
