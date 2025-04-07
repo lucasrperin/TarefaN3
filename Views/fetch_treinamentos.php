@@ -7,17 +7,19 @@ if (!isset($_SESSION['usuario_id'])) {
   exit();
 }
 
-$query = "SELECT * FROM TB_TREINAMENTOS";
+$query = "SELECT t.*, c.cnpjcpf, c.serial, c.cliente 
+          FROM TB_TREINAMENTOS t
+          JOIN TB_CLIENTES c ON t.cliente_id = c.id";
 $result = mysqli_query($conn, $query);
 
 $eventos = [];
 while ($row = mysqli_fetch_assoc($result)) {
 
-    // Define cor pelo tipo (Treinamento, Instalação ou Ambos)
-    $corFundo = '#3788d8'; 
+    // Define a cor conforme o tipo de agendamento
+    $corFundo = '#3788d8';
     switch ($row['tipo']) {
       case 'INSTALACAO':
-        $corFundo = '#f39c12'; // Exemplo
+        $corFundo = '#f39c12';
         break;
       case 'AMBOS':
         $corFundo = '#e74c3c';
@@ -28,11 +30,11 @@ while ($row = mysqli_fetch_assoc($result)) {
         break;
     }
 
-    // Define símbolo pelo status
+    // Define o símbolo do status
     $simboloStatus = '';
     switch ($row['status']) {
       case 'PENDENTE':
-        $simboloStatus = '⏳'; 
+        $simboloStatus = '⏳';
         break;
       case 'CANCELADO':
         $simboloStatus = '❌';
@@ -41,35 +43,29 @@ while ($row = mysqli_fetch_assoc($result)) {
         $simboloStatus = '✅';
         break;
       default:
-        $simboloStatus = ''; 
+        $simboloStatus = '';
         break;
     }
 
-    // Monta o título original
+    // Monta o título utilizando o nome do cliente (vindo da tabela TB_CLIENTES)
     $tituloOriginal = $row['cliente'] . " - " . $row['sistema'];
-
-    // Junta o símbolo com o título
-    // Ex: “⏳ João da Silva - Clipp 360”
     $titulo = $simboloStatus . ' ' . $tituloOriginal;
 
-    // Monta o evento
     $eventos[] = [
         'id'    => $row['id'],
         'title' => $titulo,
         'start' => $row['data'] . ' ' . $row['hora'],
-        
-        // Cor associada ao tipo
         'color' => $corFundo,
-        
         'extendedProps' => [
-          'tipo'        => $row['tipo'],
-          'status'      => $row['status'],
-          'cnpjcpf'     => $row['cnpjcpf'],
-          'cliente'     => $row['cliente'],
-          'sistema'     => $row['sistema'],
-          'consultor'   => $row['consultor'],
-          'serial'      => $row['serial'],
-          'observacoes' => $row['observacoes']
+            'duracao'     => $row['duracao'],
+            'tipo'        => $row['tipo'],
+            'status'      => $row['status'],
+            'cnpjcpf'     => $row['cnpjcpf'],
+            'cliente'     => $row['cliente'],
+            'sistema'     => $row['sistema'],
+            'consultor'   => $row['consultor'],
+            'serial'      => $row['serial'],
+            'observacoes' => $row['observacoes']
         ]
     ];
 }

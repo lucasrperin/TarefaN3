@@ -37,12 +37,10 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
 <head>
   <meta charset="UTF-8">
   <title>Painel N3 - Treinamentos</title>
-
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
- <!-- Bootstrap Bundle -->
+  <!-- Bootstrap Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- Google Fonts -->
@@ -89,16 +87,16 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
     </div>
     <!-- Toast para agendamentos próximos -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
-  <div id="toastAgendamento" class="toast text-bg-primary border-0" role="alert">
-    <div class="toast-body">
-      <div id="toastAgendamentoMensagem"></div>
-      <div class="mt-2 pt-2 border-top text-end">
-        <button id="btnReagendarToast" class="btn btn-light btn-sm">Reagendar</button>
-        <button type="button" class="btn btn-close btn-close-white btn-sm" data-bs-dismiss="toast"></button>
+      <div id="toastAgendamento" class="toast text-bg-primary border-0" role="alert">
+        <div class="toast-body">
+          <div id="toastAgendamentoMensagem"></div>
+          <div class="mt-2 pt-2 border-top text-end">
+            <button id="btnReagendarToast" class="btn btn-light btn-sm">Reagendar</button>
+            <button type="button" class="btn btn-close btn-close-white btn-sm" data-bs-dismiss="toast"></button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
     <!-- Main Content --> 
     <div class="w-100">
@@ -114,389 +112,432 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
       </div>
 
       <!-- Conteúdo -->
-      <div class="content container-fluid">
-        <div class="card mb-4">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <div>
-              <h4>Agenda</h4>
-              <small>Visualize e gerencie as Instalações, Treinamentos ou ambos</small>
-            </div>
-            <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#modalCadastroTreinamento">
-              <i class="fa-solid fa-plus me-1"></i> Novo Agendamento
-            </button>
-          </div>
-          <div class="card-body">
-            <!-- Calendário -->
-            <div id="calendar"></div>
-          </div>
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+          <h4>Agenda</h4>
+          <small>Visualize e gerencie as Instalações, Treinamentos ou ambos</small>
+        </div>
+        <div class="d-flex">
+          <a href="clientes.php" class="btn btn-custom me-2">
+            <i class="fa-solid fa-users me-1"></i> Clientes
+          </a>
+          <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#modalCadastroTreinamento">
+            <i class="fa-solid fa-plus me-1"></i> Novo Agendamento
+          </button>
         </div>
       </div>
 
-      <!-- Modal: Cadastro de Agendamento -->
-      <!-- Adicionamos `modal-lg` para aumentar largura -->
-      <div class="modal fade" id="modalCadastroTreinamento" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg"> 
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="modalCadastroLabel">Novo Agendamento</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-            </div>
-            <form action="cadastrar_treinamento.php" method="post">
-              <div class="modal-body">
-                <!-- Linha 1: Data | Hora | Tipo -->
-                <div class="row">
-                  <div class="col-md-4 mb-3">
-                    <label for="data_treino" class="form-label">Data</label>
-                    <input type="date" name="data" id="data_treino" class="form-control" required>
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="hora_treino" class="form-label">Hora</label>
-                    <input type="time" name="hora" id="hora_treino" class="form-control" required>
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="tipo_treino" class="form-label">Tipo</label>
-                    <select name="tipo" id="tipo_treino" class="form-select" required>
-                      <option value="TREINAMENTO">Treinamento</option>
-                      <option value="INSTALACAO">Instalação</option>
-                      <option value="AMBOS">Instalação + Treinamento</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Linha 2: Cliente | Sistema | Consultor -->
-                <div class="row">
-                  <div class="col-md-4 mb-3">
-                    <label for="cliente_treino" class="form-label">Cliente</label>
-                    <input type="text" name="cliente" id="cliente_treino" class="form-control" required>
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="sistema_treino" class="form-label">Sistema</label>
-                    <select name="sistema" id="sistema_treino" class="form-select" required>
-                      <option value="">-- Selecione --</option>
-                      <?php foreach($sistemas as $sis): ?>
-                        <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
-                          <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
-                        </option>
-                      <?php endforeach; ?>
-                    </select>
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="consultor_treino" class="form-label">Consultor</label>
-                    <select name="consultor" id="consultor_treino" class="form-select" required>
-                      <option value="">-- Selecione --</option>
-                      <?php foreach($consultores as $cons): ?>
-                        <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
-                          <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
-                        </option>
-                      <?php endforeach; ?>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Linha 3: CNPJ/CPF | Serial | Status -->
-                <div class="row">
-                  <div class="col-md-4 mb-3">
-                    <label for="cnpjcpf_treino" class="form-label">CNPJ/CPF</label>
-                    <input type="text" name="cnpjcpf" id="cnpjcpf_treino" class="form-control">
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="serial_treino" class="form-label">Serial</label>
-                    <input type="text" name="serial" id="serial_treino" class="form-control">
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="status_treino" class="form-label">Status</label>
-                    <select name="status" id="status_treino" class="form-select">
-                      <option value="PENDENTE">Pendente</option>
-                      <option value="CONCLUIDO">Concluído</option>
-                      <option value="CANCELADO">Cancelado</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Linha 4: Observações -->
-                <div class="row">
-                  <div class="col-12 mb-3">
-                    <label for="observacoes_treino" class="form-label">Observações</label>
-                    <textarea name="observacoes" id="observacoes_treino" class="form-control" rows="3"></textarea>
-                  </div>
-                </div>
-
-              </div><!-- modal-body -->
-              <div class="modal-footer">
-                <button type="submit" class="btn btn-custom">Cadastrar</button>
-              </div>
-            </form>
-          </div>
-        </div>
+      <div class="card-body">
+        <!-- Calendário -->
+        <div id="calendar"></div>
       </div>
+    </div>
+  </div>
 
-      <!-- Modal: Edição de Agendamento -->
-      <div class="modal fade" id="modalEditarTreinamento" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
-        <!-- Também adicionamos `modal-lg` aqui -->
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="modalEditarLabel">Editar Agendamento</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-            </div>
-            <form action="editar_treinamento.php" method="post">
-              <div class="modal-body">
-                <input type="hidden" name="id" id="edit_id">
-
-                <!-- Linha 1: Data | Hora | Tipo -->
-                <div class="row">
-                  <div class="col-md-4 mb-3">
-                    <label for="edit_data" class="form-label">Data</label>
-                    <input type="date" name="data" id="edit_data" class="form-control" required>
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="edit_hora" class="form-label">Hora</label>
-                    <input type="time" name="hora" id="edit_hora" class="form-control" required>
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="edit_tipo" class="form-label">Tipo</label>
-                    <select name="tipo" id="edit_tipo" class="form-select" required>
-                      <option value="TREINAMENTO">Treinamento</option>
-                      <option value="INSTALACAO">Instalação</option>
-                      <option value="AMBOS">Instalação + Treinamento</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Linha 2: Cliente | Sistema | Consultor -->
-                <div class="row">
-                  <div class="col-md-4 mb-3">
-                    <label for="edit_cliente" class="form-label">Cliente</label>
-                    <input type="text" name="cliente" id="edit_cliente" class="form-control" required>
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="edit_sistema" class="form-label">Sistema</label>
-                    <select name="sistema" id="edit_sistema" class="form-select" required>
-                      <?php foreach($sistemas as $sis): ?>
-                        <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
-                          <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
-                        </option>
-                      <?php endforeach; ?>
-                    </select>
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="edit_consultor" class="form-label">Consultor</label>
-                    <select name="consultor" id="edit_consultor" class="form-select" required>
-                      <?php foreach($consultores as $cons): ?>
-                        <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
-                          <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
-                        </option>
-                      <?php endforeach; ?>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Linha 3: CNPJ/CPF | Serial | Status -->
-                <div class="row">
-                  <div class="col-md-4 mb-3">
-                    <label for="edit_cnpjcpf" class="form-label">CNPJ/CPF</label>
-                    <input type="text" name="cnpjcpf" id="edit_cnpjcpf" class="form-control">
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="edit_serial" class="form-label">Serial</label>
-                    <input type="text" name="serial" id="edit_serial" class="form-control">
-                  </div>
-                  <div class="col-md-4 mb-3">
-                    <label for="edit_status" class="form-label">Status</label>
-                    <select name="status" id="edit_status" class="form-select">
-                      <option value="PENDENTE">Pendente</option>
-                      <option value="CONCLUIDO">Concluído</option>
-                      <option value="CANCELADO">Cancelado</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Linha 4: Observações -->
-                <div class="row">
-                  <div class="col-12 mb-3">
-                    <label for="edit_observacoes" class="form-label">Observações</label>
-                    <textarea name="observacoes" id="edit_observacoes" class="form-control" rows="3"></textarea>
-                  </div>
-                </div>
-
-              </div><!-- modal-body -->
-              <div class="modal-footer">
-                <button type="submit" class="btn btn-custom">Salvar</button>
-              </div>
-            </form>
-          </div>
-        </div>
+<!-- Modal: Cadastro de Agendamento -->
+<div class="modal fade" id="modalCadastroTreinamento" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg"> 
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCadastroLabel">Novo Agendamento</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
       </div>
-
-      <!-- Modal: Exclusão de Treinamento -->
-      <div class="modal fade" id="modalExcluirTreinamento" tabindex="-1" aria-labelledby="modalExcluirLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="modalExcluirLabel">Excluir Agendamento</h5>
-              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      <form action="cadastrar_treinamento.php" method="post">
+        <div class="modal-body">
+          <!-- Linha 1: Data | Hora | Tipo -->
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="data_treino" class="form-label">Data</label>
+              <input type="date" name="data" id="data_treino" class="form-control" required>
             </div>
-            <form action="deletar_treinamento.php" method="post">
-              <div class="modal-body">
-                <input type="hidden" name="id" id="excluir_id">
-                <p>Tem certeza que deseja excluir o agendamento <strong id="excluir_cliente"></strong>?</p>
-              </div>
-              <div class="modal-footer">
-                <button type="submit" class="btn btn-danger">Excluir</button>
-              </div>
-            </form>
+            <div class="col-md-4 mb-3">
+              <label for="hora_treino" class="form-label">Hora</label>
+              <input type="time" name="hora" id="hora_treino" class="form-control" required>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="tipo_treino" class="form-label">Tipo</label>
+              <select name="tipo" id="tipo_treino" class="form-select" required>
+                <option value="TREINAMENTO">Treinamento</option>
+                <option value="INSTALACAO">Instalação</option>
+                <option value="AMBOS">Instalação + Treinamento</option>
+              </select>
+            </div>
           </div>
+
+          <!-- Linha 2: Cliente (Pesquisa), Sistema, Consultor -->
+          <div class="row">
+            <div class="col-md-4 mb-3" style="position: relative;">
+              <label for="cliente_treino" class="form-label">Cliente</label>
+              <input type="text" name="cliente_nome" id="cliente_treino" class="form-control" placeholder="Pesquise por nome, CNPJ/CPF ou Serial" autocomplete="off" required>
+              <input type="hidden" name="cliente_id" id="cliente_id">
+              <div id="cliente_suggestions" class="list-group" style="position: absolute; width: 100%; z-index: 1000;"></div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="sistema_treino" class="form-label">Sistema</label>
+              <select name="sistema" id="sistema_treino" class="form-select" required>
+                <option value="">-- Selecione --</option>
+                <?php foreach($sistemas as $sis): ?>
+                  <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
+                    <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="consultor_treino" class="form-label">Consultor</label>
+              <select name="consultor" id="consultor_treino" class="form-select" required>
+                <option value="">-- Selecione --</option>
+                <?php foreach($consultores as $cons): ?>
+                  <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
+                    <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
+
+          <!-- Linha 3: Status -->
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="status_treino" class="form-label">Status</label>
+              <select name="status" id="status_treino" class="form-select">
+                <option value="PENDENTE">Pendente</option>
+                <option value="CONCLUIDO">Concluído</option>
+                <option value="CANCELADO">Cancelado</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Linha 4: Observações -->
+          <div class="row">
+            <div class="col-12 mb-3">
+              <label for="observacoes_treino" class="form-label">Observações</label>
+              <textarea name="observacoes" id="observacoes_treino" class="form-control" rows="3"></textarea>
+            </div>
+          </div>
+        </div><!-- modal-body -->
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-custom">Cadastrar</button>
         </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Edição de Agendamento -->
+<div class="modal fade" id="modalEditarTreinamento" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalEditarLabel">Editar Agendamento</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
       </div>
+      <form action="editar_treinamento.php" method="post">
+        <div class="modal-body">
+          <input type="hidden" name="id" id="edit_id">
+          <!-- Linha 1: Data | Hora | Tipo -->
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="edit_data" class="form-label">Data</label>
+              <input type="date" name="data" id="edit_data" class="form-control" required>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="edit_hora" class="form-label">Hora</label>
+              <input type="time" name="hora" id="edit_hora" class="form-control" required>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="edit_tipo" class="form-label">Tipo</label>
+              <select name="tipo" id="edit_tipo" class="form-select" required>
+                <option value="TREINAMENTO">Treinamento</option>
+                <option value="INSTALACAO">Instalação</option>
+                <option value="AMBOS">Instalação + Treinamento</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Linha 2: Cliente (Pesquisa), Sistema, Consultor -->
+          <div class="row">
+            <div class="col-md-4 mb-3" style="position: relative;">
+              <label for="edit_cliente" class="form-label">Cliente</label>
+              <!-- Removido o atributo readonly para permitir pesquisa -->
+              <input type="text" name="cliente_nome" id="edit_cliente" class="form-control" placeholder="Pesquise por nome, CNPJ/CPF ou Serial" autocomplete="off" required>
+              <input type="hidden" name="cliente_id" id="edit_cliente_id">
+              <div id="edit_cliente_suggestions" class="list-group" style="position: absolute; width: 100%; z-index: 1000;"></div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="edit_sistema" class="form-label">Sistema</label>
+              <select name="sistema" id="edit_sistema" class="form-select" required>
+                <?php foreach($sistemas as $sis): ?>
+                  <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
+                    <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="edit_consultor" class="form-label">Consultor</label>
+              <select name="consultor" id="edit_consultor" class="form-select" required>
+                <?php foreach($consultores as $cons): ?>
+                  <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
+                    <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+          </div>
+
+          <!-- Linha 3: Status -->
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="edit_status" class="form-label">Status</label>
+              <select name="status" id="edit_status" class="form-select">
+                <option value="PENDENTE">Pendente</option>
+                <option value="CONCLUIDO">Concluído</option>
+                <option value="CANCELADO">Cancelado</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Linha 4: Observações -->
+          <div class="row">
+            <div class="col-12 mb-3">
+              <label for="edit_observacoes" class="form-label">Observações</label>
+              <textarea name="observacoes" id="edit_observacoes" class="form-control" rows="3"></textarea>
+            </div>
+          </div>
+
+        </div><!-- modal-body -->
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-custom">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Exclusão de Treinamento -->
+<div class="modal fade" id="modalExcluirTreinamento" tabindex="-1" aria-labelledby="modalExcluirLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalExcluirLabel">Excluir Agendamento</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <form action="deletar_treinamento.php" method="post">
+        <div class="modal-body">
+          <input type="hidden" name="id" id="excluir_id">
+          <p>Tem certeza que deseja excluir o agendamento <strong id="excluir_cliente"></strong>?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-danger">Excluir</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
       
-    </div> <!-- / w-100 -->
-  </div> <!-- / d-flex-wrapper -->
+  </div> <!-- / w-100 -->
+</div> <!-- / d-flex-wrapper -->
 
-  <!-- Scripts JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Scripts JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
-  <!-- FullCalendar JS -->
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      locale: 'pt-br',
+      nowIndicator: true,
+      dayHeaderContent: function(arg) {
+        return arg.text.toUpperCase();
+      },
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
+      buttonText: {
+        today: 'Hoje',
+        month: 'Mês',
+        week: 'Semana',
+        day: 'Dia'
+      },
+      allDayText: 'Dia inteiro',
+      events: 'fetch_treinamentos.php',
+      eventClick: function(info) {
+        const eventObj = info.event;
+        document.getElementById('edit_id').value = eventObj.id;
+        
+        let startDate = new Date(eventObj.start);
+        let year  = startDate.getFullYear();
+        let month = String(startDate.getMonth() + 1).padStart(2, '0');
+        let day   = String(startDate.getDate()).padStart(2, '0');
+        let hours = String(startDate.getHours()).padStart(2, '0');
+        let mins  = String(startDate.getMinutes()).padStart(2, '0');
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      var calendarEl = document.getElementById('calendar');
-      var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        locale: 'pt-br',
-        nowIndicator: true,
-        dayHeaderContent: function(arg) {
-          return arg.text.toUpperCase();
-        },
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        buttonText: {
-          today: 'Hoje',
-          month: 'Mês',
-          week: 'Semana',
-          day: 'Dia'
-        },
-        allDayText: 'Dia inteiro',
+        document.getElementById('edit_data').value = `${year}-${month}-${day}`;
+        document.getElementById('edit_hora').value = `${hours}:${mins}`;
+        // Preenche os campos do cliente
+        document.getElementById('edit_cliente').value = eventObj.extendedProps.cliente;
+        document.getElementById('edit_cliente_id').value = eventObj.extendedProps.cliente_id;
+        document.getElementById('edit_sistema').value = eventObj.extendedProps.sistema;
+        document.getElementById('edit_consultor').value = eventObj.extendedProps.consultor;
+        document.getElementById('edit_status').value = eventObj.extendedProps.status;
+        document.getElementById('edit_tipo').value = eventObj.extendedProps.tipo || 'TREINAMENTO';
+        document.getElementById('edit_observacoes').value = eventObj.extendedProps.observacoes || '';
 
-        events: 'fetch_treinamentos.php',
+        let editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
+        editModal.show();
+      }
+    });
+    calendar.render();
+  });
 
-        eventClick: function(info) {
-          // Objeto do evento
-          const eventObj = info.event;
+  function modalExcluir(id, cliente) {
+    document.getElementById('excluir_id').value = id;
+    document.getElementById('excluir_cliente').textContent = cliente;
+    new bootstrap.Modal(document.getElementById('modalExcluirTreinamento')).show();
+  }
+  
+  // ALERTA DE PROXIMIDADE
+  let eventoParaReagendar = null;
+  function mostrarToastAgendamento(evento) {
+    eventoParaReagendar = evento;
+    const toastElement = document.getElementById('toastAgendamento');
+    const toastBody = document.getElementById('toastAgendamentoMensagem');
+    toastBody.innerHTML = `
+      <strong>📅 Próximo agendamento:</strong><br>
+      ${evento.title}<br>
+      <strong>Horário:</strong> ${new Date(evento.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+    `;
+    const toast = new bootstrap.Toast(toastElement, { delay: 10000 });
+    toast.show();
+  }
 
-          // Preenche o ID do evento
-          document.getElementById('edit_id').value = eventObj.id;
-          
-          // Ajustar data/hora no formato correto
-          let startDate = new Date(eventObj.start);
-          let year  = startDate.getFullYear();
-          let month = String(startDate.getMonth() + 1).padStart(2, '0');
-          let day   = String(startDate.getDate()).padStart(2, '0');
-          let hours = String(startDate.getHours()).padStart(2, '0');
-          let mins  = String(startDate.getMinutes()).padStart(2, '0');
+  document.getElementById('btnReagendarToast').addEventListener('click', function() {
+    if (!eventoParaReagendar) return;
+    const evento = eventoParaReagendar;
+    document.getElementById('edit_id').value = evento.id;
+    const dataEvento = new Date(evento.start);
+    const ano = dataEvento.getFullYear();
+    const mes = String(dataEvento.getMonth() + 1).padStart(2, '0');
+    const dia = String(dataEvento.getDate()).padStart(2, '0');
+    const hora = String(dataEvento.getHours()).padStart(2, '0');
+    const minuto = String(dataEvento.getMinutes()).padStart(2, '0');
+    document.getElementById('edit_data').value = `${ano}-${mes}-${dia}`;
+    document.getElementById('edit_hora').value = `${hora}:${minuto}`;
+    document.getElementById('edit_cliente').value = evento.extendedProps.cliente;
+    document.getElementById('edit_cliente_id').value = evento.extendedProps.cliente_id;
+    document.getElementById('edit_sistema').value = evento.extendedProps.sistema;
+    document.getElementById('edit_consultor').value = evento.extendedProps.consultor;
+    document.getElementById('edit_status').value = evento.extendedProps.status;
+    document.getElementById('edit_tipo').value = evento.extendedProps.tipo;
+    document.getElementById('edit_observacoes').value = evento.extendedProps.observacoes;
+    const editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
+    editModal.show();
+  });
 
-          document.getElementById('edit_data').value        = `${year}-${month}-${day}`;
-          document.getElementById('edit_hora').value        = `${hours}:${mins}`;
-          document.getElementById('edit_cliente').value     = eventObj.extendedProps.cliente;
-          document.getElementById('edit_sistema').value     = eventObj.extendedProps.sistema;
-          document.getElementById('edit_consultor').value   = eventObj.extendedProps.consultor;
-          document.getElementById('edit_status').value      = eventObj.extendedProps.status;
-          
-          // Novos campos:
-          document.getElementById('edit_tipo').value        = eventObj.extendedProps.tipo || 'TREINAMENTO';
-          document.getElementById('edit_cnpjcpf').value     = eventObj.extendedProps.cnpjcpf || '';
-          document.getElementById('edit_serial').value      = eventObj.extendedProps.serial || '';
-          document.getElementById('edit_observacoes').value = eventObj.extendedProps.observacoes || '';
+  function verificarProximidadeAgendamento(eventos) {
+    const agora = new Date();
+    const alertaAntecedenciaMinutos = 15;
+    eventos.forEach(evento => {
+      const dataEvento = new Date(evento.start);
+      const diferencaMinutos = (dataEvento - agora) / (1000 * 60);
+      if (diferencaMinutos > 0 && diferencaMinutos <= alertaAntecedenciaMinutos) {
+        mostrarToastAgendamento(evento);
+      }
+    });
+  }
 
-          // Exibe modal
-          let editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
-          editModal.show();
+  function checarAgendamentos() {
+    fetch('fetch_treinamentos.php')
+      .then(response => response.json())
+      .then(eventos => verificarProximidadeAgendamento(eventos))
+      .catch(error => console.error('Erro ao carregar eventos:', error));
+  }
+
+  setInterval(checarAgendamentos, 300000);
+  checarAgendamentos();
+</script>
+
+<script>
+$(document).ready(function(){
+    // Busca para o campo de cliente no cadastro de agendamento
+    $('#cliente_treino').on('keyup', function(){
+        var query = $(this).val();
+        if(query.length < 2) {
+            $('#cliente_suggestions').empty();
+            return;
         }
-      });
-      calendar.render();
+        $.ajax({
+            url: 'search_clientes.php',
+            data: { q: query },
+            dataType: 'json',
+            success: function(data) {
+                var suggestions = '';
+                data.forEach(function(item) {
+                    suggestions += '<a href="#" class="list-group-item list-group-item-action" data-id="'+item.id+'" data-nome="'+item.cliente+'">'+item.cliente+' - '+item.cnpjcpf+' - '+item.serial+'</a>';
+                });
+                $('#cliente_suggestions').html(suggestions);
+            }
+        });
     });
 
-    function modalExcluir(id, cliente) {
-      document.getElementById('excluir_id').value = id;
-      document.getElementById('excluir_cliente').textContent = cliente;
-      new bootstrap.Modal(document.getElementById('modalExcluirTreinamento')).show();
-    }
-     // ALERTA DE PROXIMIDADE
-     let eventoParaReagendar = null;  // Guarda o evento atual para reagendamento
+    $('#cliente_suggestions').on('click', 'a', function(e){
+        e.preventDefault();
+        var id = $(this).data('id');
+        var nome = $(this).data('nome');
+        $('#cliente_treino').val(nome);
+        $('#cliente_id').val(id);
+        $('#cliente_suggestions').empty();
+    });
 
-function mostrarToastAgendamento(evento) {
-  eventoParaReagendar = evento; // Guarda o evento clicado
-  
-  const toastElement = document.getElementById('toastAgendamento');
-  const toastBody = document.getElementById('toastAgendamentoMensagem');
+    $(document).click(function(e) {
+        if (!$(e.target).closest('#cliente_treino, #cliente_suggestions').length) {
+            $('#cliente_suggestions').empty();
+        }
+    });
 
-  toastBody.innerHTML = `
-    <strong>📅 Próximo agendamento:</strong><br>
-    ${evento.title}<br>
-    <strong>Horário:</strong> ${new Date(evento.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-  `;
+    // Busca para o campo de cliente no modal de edição
+    $('#edit_cliente').on('keyup', function(){
+        var query = $(this).val();
+        if(query.length < 2) {
+            $('#edit_cliente_suggestions').empty();
+            return;
+        }
+        $.ajax({
+            url: 'search_clientes.php',
+            data: { q: query },
+            dataType: 'json',
+            success: function(data) {
+                var suggestions = '';
+                data.forEach(function(item) {
+                    suggestions += '<a href="#" class="list-group-item list-group-item-action" data-id="'+item.id+'" data-nome="'+item.cliente+'">'+item.cliente+' - '+item.cnpjcpf+' - '+item.serial+'</a>';
+                });
+                $('#edit_cliente_suggestions').html(suggestions);
+            }
+        });
+    });
 
-  const toast = new bootstrap.Toast(toastElement, { delay: 10000 });
-  toast.show();
-}
+    $('#edit_cliente_suggestions').on('click', 'a', function(e){
+        e.preventDefault();
+        var id = $(this).data('id');
+        var nome = $(this).data('nome');
+        $('#edit_cliente').val(nome);
+        $('#edit_cliente_id').val(id);
+        $('#edit_cliente_suggestions').empty();
+    });
 
-document.getElementById('btnReagendarToast').addEventListener('click', function() {
-  if (!eventoParaReagendar) return;
-
-  const evento = eventoParaReagendar;
-
-  document.getElementById('edit_id').value = evento.id;
-
-  const dataEvento = new Date(evento.start);
-  const ano = dataEvento.getFullYear();
-  const mes = String(dataEvento.getMonth() + 1).padStart(2, '0');
-  const dia = String(dataEvento.getDate()).padStart(2, '0');
-  const hora = String(dataEvento.getHours()).padStart(2, '0');
-  const minuto = String(dataEvento.getMinutes()).padStart(2, '0');
-
-  document.getElementById('edit_data').value        = `${ano}-${mes}-${dia}`;
-  document.getElementById('edit_hora').value        = `${hora}:${minuto}`;
-  document.getElementById('edit_cliente').value     = evento.extendedProps.cliente;
-  document.getElementById('edit_sistema').value     = evento.extendedProps.sistema;
-  document.getElementById('edit_consultor').value   = evento.extendedProps.consultor;
-  document.getElementById('edit_status').value      = evento.extendedProps.status;
-  document.getElementById('edit_tipo').value        = evento.extendedProps.tipo;
-  document.getElementById('edit_cnpjcpf').value     = evento.extendedProps.cnpjcpf;
-  document.getElementById('edit_serial').value      = evento.extendedProps.serial;
-  document.getElementById('edit_observacoes').value = evento.extendedProps.observacoes;
-
-  // Abrir modal
-  const editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
-  editModal.show();
+    $(document).click(function(e) {
+        if (!$(e.target).closest('#edit_cliente, #edit_cliente_suggestions').length) {
+            $('#edit_cliente_suggestions').empty();
+        }
+    });
 });
-
-function verificarProximidadeAgendamento(eventos) {
-  const agora = new Date();
-  const alertaAntecedenciaMinutos = 15;
-
-  eventos.forEach(evento => {
-    const dataEvento = new Date(evento.start);
-    const diferencaMinutos = (dataEvento - agora) / (1000 * 60);
-
-    if (diferencaMinutos > 0 && diferencaMinutos <= alertaAntecedenciaMinutos) {
-      mostrarToastAgendamento(evento);
-    }
-  });
-}
-
-function checarAgendamentos() {
-  fetch('fetch_treinamentos.php')
-    .then(response => response.json())
-    .then(eventos => verificarProximidadeAgendamento(eventos))
-    .catch(error => console.error('Erro ao carregar eventos:', error));
-}
-
-setInterval(checarAgendamentos, 300000);
-checarAgendamentos();
-  </script>
+</script>
 </body>
 </html>

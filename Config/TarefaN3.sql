@@ -330,17 +330,30 @@ CREATE TABLE TB_AVALIACOES (
     FOREIGN KEY (usuario_id) REFERENCES TB_USUARIO(Id),
     FOREIGN KEY (criterio) REFERENCES TB_CRITERIOS(id)
 );
+
+
+CREATE TABLE TB_CLIENTES (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cnpjcpf VARCHAR(20) UNIQUE,
+    serial VARCHAR(50) UNIQUE,
+    cliente VARCHAR(100) NOT NULL,
+    horas_adquiridas INT NOT NULL, -- tempo contratado (ex: em minutos ou horas)
+    horas_utilizadas INT NOT NULL DEFAULT 0, -- tempo já utilizado nos treinamentos
+    ativo TINYINT(1) NOT NULL DEFAULT 1,
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 CREATE TABLE TB_TREINAMENTOS (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  data DATE NOT NULL,
-  hora TIME NOT NULL,
-  tipo VARCHAR(50) NOT NULL DEFAULT 'TREINAMENTO',  -- TREINAMENTO, INSTALACAO ou AMBOS
-  cnpjcpf VARCHAR(20),
-  cliente VARCHAR(100) NOT NULL,
-  sistema VARCHAR(50) NOT NULL,
-  consultor VARCHAR(50) NOT NULL,
-  serial VARCHAR(50),
-  status ENUM('PENDENTE','CONCLUIDO','CANCELADO') DEFAULT 'PENDENTE',
-  observacoes TEXT,
-  criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    data DATE NOT NULL,
+    hora TIME NOT NULL,
+    tipo VARCHAR(50) NOT NULL DEFAULT 'TREINAMENTO',  -- TREINAMENTO, INSTALACAO ou AMBOS
+    duracao INT NOT NULL DEFAULT 30,                   -- Duração do agendamento em minutos
+    cliente_id INT NOT NULL,                           -- Chave estrangeira para TB_CLIENTES
+    sistema VARCHAR(50) NOT NULL,
+    consultor VARCHAR(50) NOT NULL,
+    status ENUM('PENDENTE','CONCLUIDO','CANCELADO') DEFAULT 'PENDENTE',
+    observacoes TEXT,
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_cliente FOREIGN KEY (cliente_id) REFERENCES TB_CLIENTES(id)
 );
