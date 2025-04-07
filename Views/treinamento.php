@@ -62,9 +62,9 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
       </a>
       <nav class="nav flex-column">
-        <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i> Home</a>
-        <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users me-2"></i> Usuários</a>
+        <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
         <a class="nav-link" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
+        <a class="nav-link" href="destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>       
         <a class="nav-link" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
         <a class="nav-link" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
         <a class="nav-link" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
