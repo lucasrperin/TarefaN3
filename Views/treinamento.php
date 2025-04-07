@@ -40,6 +40,9 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
 
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+ <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- Google Fonts -->
@@ -87,6 +90,18 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         <span id="toastMensagemErro"></span>
       </div>
     </div>
+    <!-- Toast para agendamentos próximos -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
+  <div id="toastAgendamento" class="toast text-bg-primary border-0" role="alert">
+    <div class="toast-body">
+      <div id="toastAgendamentoMensagem"></div>
+      <div class="mt-2 pt-2 border-top text-end">
+        <button id="btnReagendarToast" class="btn btn-light btn-sm">Reagendar</button>
+        <button type="button" class="btn btn-close btn-close-white btn-sm" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+</div>
 
     <!-- Main Content --> 
     <div class="w-100">
@@ -413,6 +428,78 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
       document.getElementById('excluir_cliente').textContent = cliente;
       new bootstrap.Modal(document.getElementById('modalExcluirTreinamento')).show();
     }
+     // ALERTA DE PROXIMIDADE
+     let eventoParaReagendar = null;  // Guarda o evento atual para reagendamento
+
+function mostrarToastAgendamento(evento) {
+  eventoParaReagendar = evento; // Guarda o evento clicado
+  
+  const toastElement = document.getElementById('toastAgendamento');
+  const toastBody = document.getElementById('toastAgendamentoMensagem');
+
+  toastBody.innerHTML = `
+    <strong>📅 Próximo agendamento:</strong><br>
+    ${evento.title}<br>
+    <strong>Horário:</strong> ${new Date(evento.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+  `;
+
+  const toast = new bootstrap.Toast(toastElement, { delay: 10000 });
+  toast.show();
+}
+
+document.getElementById('btnReagendarToast').addEventListener('click', function() {
+  if (!eventoParaReagendar) return;
+
+  const evento = eventoParaReagendar;
+
+  document.getElementById('edit_id').value = evento.id;
+
+  const dataEvento = new Date(evento.start);
+  const ano = dataEvento.getFullYear();
+  const mes = String(dataEvento.getMonth() + 1).padStart(2, '0');
+  const dia = String(dataEvento.getDate()).padStart(2, '0');
+  const hora = String(dataEvento.getHours()).padStart(2, '0');
+  const minuto = String(dataEvento.getMinutes()).padStart(2, '0');
+
+  document.getElementById('edit_data').value        = `${ano}-${mes}-${dia}`;
+  document.getElementById('edit_hora').value        = `${hora}:${minuto}`;
+  document.getElementById('edit_cliente').value     = evento.extendedProps.cliente;
+  document.getElementById('edit_sistema').value     = evento.extendedProps.sistema;
+  document.getElementById('edit_consultor').value   = evento.extendedProps.consultor;
+  document.getElementById('edit_status').value      = evento.extendedProps.status;
+  document.getElementById('edit_tipo').value        = evento.extendedProps.tipo;
+  document.getElementById('edit_cnpjcpf').value     = evento.extendedProps.cnpjcpf;
+  document.getElementById('edit_serial').value      = evento.extendedProps.serial;
+  document.getElementById('edit_observacoes').value = evento.extendedProps.observacoes;
+
+  // Abrir modal
+  const editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
+  editModal.show();
+});
+
+function verificarProximidadeAgendamento(eventos) {
+  const agora = new Date();
+  const alertaAntecedenciaMinutos = 15;
+
+  eventos.forEach(evento => {
+    const dataEvento = new Date(evento.start);
+    const diferencaMinutos = (dataEvento - agora) / (1000 * 60);
+
+    if (diferencaMinutos > 0 && diferencaMinutos <= alertaAntecedenciaMinutos) {
+      mostrarToastAgendamento(evento);
+    }
+  });
+}
+
+function checarAgendamentos() {
+  fetch('fetch_treinamentos.php')
+    .then(response => response.json())
+    .then(eventos => verificarProximidadeAgendamento(eventos))
+    .catch(error => console.error('Erro ao carregar eventos:', error));
+}
+
+setInterval(checarAgendamentos, 300000);
+checarAgendamentos();
   </script>
 </body>
 </html>

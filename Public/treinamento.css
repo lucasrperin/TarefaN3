@@ -228,3 +228,19 @@ body {
    (Mas é mais fácil prefixar no "title" do fetch.)
   */
 }
+/* Customização do botão de fechar do Toast */
+.toast .btn-close {
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  opacity: 0.8;
+  transition: background-color 0.3s, opacity 0.3s;
+}
+
+.toast .btn-close:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+  opacity: 1;
+}
