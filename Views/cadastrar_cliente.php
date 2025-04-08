@@ -19,6 +19,10 @@ $cnpjcpf = trim($_POST['cnpjcpf'] ?? '');
 $serial = trim($_POST['serial'] ?? '');
 $horas_adquiridas = intval($_POST['horas_adquiridas'] ?? 0);
 
+// Recebe os novos campos: WhatsApp e Data de Conclusão
+$whatsapp = trim($_POST['whatsapp'] ?? '');
+$data_conclusao = trim($_POST['data_conclusao'] ?? '');
+
 // Valida os campos obrigatórios
 if (empty($cliente) || $horas_adquiridas <= 0) {
     echo json_encode([
@@ -47,8 +51,9 @@ if ($duplicateFound) {
     exit();
 }
 
-// Insere o novo cliente na TB_CLIENTES
-$queryInsert = "INSERT INTO TB_CLIENTES (cliente, cnpjcpf, serial, horas_adquiridas, ativo) VALUES (?, ?, ?, ?, 1)";
+// Insere o novo cliente na TB_CLIENTES incluindo os novos campos
+$queryInsert = "INSERT INTO TB_CLIENTES (cliente, cnpjcpf, serial, horas_adquiridas, whatsapp, data_conclusao, ativo) 
+                VALUES (?, ?, ?, ?, ?, ?, 1)";
 $stmtInsert = mysqli_prepare($conn, $queryInsert);
 if (!$stmtInsert) {
     echo json_encode([
@@ -57,7 +62,7 @@ if (!$stmtInsert) {
     ]);
     exit();
 }
-mysqli_stmt_bind_param($stmtInsert, "sssi", $cliente, $cnpjcpf, $serial, $horas_adquiridas);
+mysqli_stmt_bind_param($stmtInsert, "sssiis", $cliente, $cnpjcpf, $serial, $horas_adquiridas, $whatsapp, $data_conclusao);
 if (!mysqli_stmt_execute($stmtInsert)) {
     echo json_encode([
         'status'  => 'error',
