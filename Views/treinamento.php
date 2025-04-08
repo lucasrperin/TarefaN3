@@ -85,6 +85,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         <span id="toastMensagemErro"></span>
       </div>
     </div>
+
     <!-- Toast para agendamentos próximos -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050;">
       <div id="toastAgendamento" class="toast text-bg-primary border-0" role="alert">
@@ -259,7 +260,6 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
           <div class="row">
             <div class="col-md-4 mb-3" style="position: relative;">
               <label for="edit_cliente" class="form-label">Cliente</label>
-              <!-- Removido o atributo readonly para permitir pesquisa -->
               <input type="text" name="cliente_nome" id="edit_cliente" class="form-control" placeholder="Pesquise por nome, CNPJ/CPF ou Serial" autocomplete="off" required>
               <input type="hidden" name="cliente_id" id="edit_cliente_id">
               <div id="edit_cliente_suggestions" class="list-group" style="position: absolute; width: 100%; z-index: 1000;"></div>
@@ -277,6 +277,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
             <div class="col-md-4 mb-3">
               <label for="edit_consultor" class="form-label">Consultor</label>
               <select name="consultor" id="edit_consultor" class="form-select" required>
+                <option value="">-- Selecione --</option>
                 <?php foreach($consultores as $cons): ?>
                   <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
                     <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
@@ -315,7 +316,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
   </div>
 </div>
 
-<!-- Modal: Exclusão de Treinamento -->
+<!-- Modal: Exclusão de Agendamento -->
 <div class="modal fade" id="modalExcluirTreinamento" tabindex="-1" aria-labelledby="modalExcluirLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -378,18 +379,22 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         let day   = String(startDate.getDate()).padStart(2, '0');
         let hours = String(startDate.getHours()).padStart(2, '0');
         let mins  = String(startDate.getMinutes()).padStart(2, '0');
-
+        
         document.getElementById('edit_data').value = `${year}-${month}-${day}`;
         document.getElementById('edit_hora').value = `${hours}:${mins}`;
-        // Preenche os campos do cliente
+        
+        // Preenche os campos do cliente e armazena os valores originais para evitar perda
         document.getElementById('edit_cliente').value = eventObj.extendedProps.cliente;
         document.getElementById('edit_cliente_id').value = eventObj.extendedProps.cliente_id;
+        $('#edit_cliente').data('original-client-id', eventObj.extendedProps.cliente_id);
+        $('#edit_cliente').data('original-client-nome', eventObj.extendedProps.cliente);
+        
         document.getElementById('edit_sistema').value = eventObj.extendedProps.sistema;
         document.getElementById('edit_consultor').value = eventObj.extendedProps.consultor;
         document.getElementById('edit_status').value = eventObj.extendedProps.status;
         document.getElementById('edit_tipo').value = eventObj.extendedProps.tipo || 'TREINAMENTO';
         document.getElementById('edit_observacoes').value = eventObj.extendedProps.observacoes || '';
-
+  
         let editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
         editModal.show();
       }
@@ -536,6 +541,15 @@ $(document).ready(function(){
         if (!$(e.target).closest('#edit_cliente, #edit_cliente_suggestions').length) {
             $('#edit_cliente_suggestions').empty();
         }
+    });
+
+    // Ao sair (blur) do campo de edição, se o valor não mudar, garante que o hidden seja o original
+    $('#edit_cliente').on('blur', function(){
+      var originalNome = $(this).data('original-client-nome');
+      if($(this).val().trim() === '' || $(this).val().trim() === originalNome){
+         var originalId = $(this).data('original-client-id');
+         $('#edit_cliente_id').val(originalId);
+      }
     });
 });
 </script>
