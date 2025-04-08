@@ -77,7 +77,7 @@ while ($row = mysqli_fetch_assoc($resultN)) {
         <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
         <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
         <a class="nav-link active" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
-        <a class="nav-link" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
+        <a class="nav-link" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a></li>
       </nav>
     </div>
     <!-- Minimalist Modern Toast Layout -->
