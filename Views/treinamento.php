@@ -216,6 +216,14 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
               <textarea name="observacoes" id="observacoes_treino" class="form-control" rows="3"></textarea>
             </div>
           </div>
+
+          <!-- Linha 5: Duração (minutos) -->
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="duracao_treino" class="form-label">Duração (minutos)</label>
+              <input type="number" name="duracao" id="duracao_treino" class="form-control" required value="30">
+            </div>
+          </div>
         </div><!-- modal-body -->
         <div class="modal-footer">
           <button type="submit" class="btn btn-custom">Cadastrar</button>
@@ -307,6 +315,13 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
             </div>
           </div>
 
+          <!-- Linha 5: Duração (minutos) -->
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="edit_duracao" class="form-label">Duração (minutos)</label>
+              <input type="number" name="duracao" id="edit_duracao" class="form-control" required value="30">
+            </div>
+          </div>
         </div><!-- modal-body -->
         <div class="modal-footer">
           <button type="submit" class="btn btn-custom">Salvar</button>
@@ -339,7 +354,24 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
       
   </div> <!-- / w-100 -->
 </div> <!-- / d-flex-wrapper -->
-
+<!-- Modal: Excedeu Horas Contratadas -->
+<div class="modal fade" id="modalExceeded" tabindex="-1" aria-labelledby="modalExceededLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalExceededLabel">Limite de Horas Excedido</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <p id="exceededMessage"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="btnRedirectClients">Sim, Registrar Mais Horas</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- Scripts JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -383,9 +415,10 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         document.getElementById('edit_data').value = `${year}-${month}-${day}`;
         document.getElementById('edit_hora').value = `${hours}:${mins}`;
         
-        // Preenche os campos do cliente e armazena os valores originais para evitar perda
+        // Preenche os campos do cliente
         document.getElementById('edit_cliente').value = eventObj.extendedProps.cliente;
         document.getElementById('edit_cliente_id').value = eventObj.extendedProps.cliente_id;
+        // Armazena os valores originais para recuperação caso o usuário apague o campo
         $('#edit_cliente').data('original-client-id', eventObj.extendedProps.cliente_id);
         $('#edit_cliente').data('original-client-nome', eventObj.extendedProps.cliente);
         
@@ -394,6 +427,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         document.getElementById('edit_status').value = eventObj.extendedProps.status;
         document.getElementById('edit_tipo').value = eventObj.extendedProps.tipo || 'TREINAMENTO';
         document.getElementById('edit_observacoes').value = eventObj.extendedProps.observacoes || '';
+        document.getElementById('edit_duracao').value = eventObj.extendedProps.duracao || 30;
   
         let editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
         editModal.show();
@@ -442,6 +476,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
     document.getElementById('edit_status').value = evento.extendedProps.status;
     document.getElementById('edit_tipo').value = evento.extendedProps.tipo;
     document.getElementById('edit_observacoes').value = evento.extendedProps.observacoes;
+    document.getElementById('edit_duracao').value = evento.extendedProps.duracao || 30;
     const editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
     editModal.show();
   });
@@ -528,6 +563,11 @@ $(document).ready(function(){
         });
     });
 
+    $('#edit_cliente_suggestions').on('click', function(e){
+        // Evita que o clique em qualquer lugar dentro da área de sugestões feche a lista
+        e.stopPropagation();
+    });
+
     $('#edit_cliente_suggestions').on('click', 'a', function(e){
         e.preventDefault();
         var id = $(this).data('id');
@@ -553,5 +593,42 @@ $(document).ready(function(){
     });
 });
 </script>
+<script>
+$(document).ready(function(){
+  // Intercepta a submissão do formulário do modal de cadastro de agendamento
+  $('#modalCadastroTreinamento form').on('submit', function(e){
+      e.preventDefault();
+      $.ajax({
+          url: $(this).attr('action'),
+          method: 'POST',
+          data: $(this).serialize(),
+          dataType: 'json',
+          success: function(response) {
+              if(response.status === 'exceeded'){
+                  // Converte as quebras de linha para <br> e exibe a mensagem no modal
+                  var formattedMsg = response.message.replace(/\n/g, "<br>");
+                  $('#exceededMessage').html(formattedMsg);
+                  var modalExceeded = new bootstrap.Modal(document.getElementById('modalExceeded'));
+                  modalExceeded.show();
+              } else if(response.status === 'success'){
+                  alert(response.message);
+                  location.reload();
+              } else {
+                  alert(response.message);
+              }
+          },
+          error: function(){
+              alert('Erro na comunicação com o servidor.');
+          }
+      });
+  });
+
+  // Ao clicar no botão para redirecionar para a aba de clientes para registrar mais horas
+  $('#btnRedirectClients').on('click', function(){
+      window.location.href = 'clientes.php';
+  });
+});
+
+  </script>
 </body>
 </html>

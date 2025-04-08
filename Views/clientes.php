@@ -28,7 +28,7 @@ $result = mysqli_query($conn, $query);
 </head>
 <body>
   <div class="d-flex-wrapper">
-    <!-- Sidebar (reaproveitada) -->
+    <!-- Sidebar -->
     <div class="sidebar">
       <a class="light-logo" href="menu.php">
         <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
@@ -44,7 +44,7 @@ $result = mysqli_query($conn, $query);
         <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i> Nível 3</a>
         <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2"></i> Totalizadores</a>
         <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i> Usuários</a>
-        <a class="nav-link" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i> Treinamentos</a>
+        <a class="nav-link active" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i> Treinamentos</a>
       </nav>
     </div>
 
@@ -78,8 +78,8 @@ $result = mysqli_query($conn, $query);
                   <th>Cliente</th>
                   <th>CNPJ/CPF</th>
                   <th>Serial</th>
-                  <th>Horas Adquiridas</th>
-                  <th>Horas Utilizadas</th>
+                  <th>Horas Adquiridas (minutos)</th>
+                  <th>Horas Utilizadas (minutos)</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -213,7 +213,6 @@ $result = mysqli_query($conn, $query);
         dataType: 'json',
         success: function(response) {
           if(response.status === 'duplicate') {
-            // Armazena os dados do cliente duplicado
             duplicateClientData = response;
             var duplicateModal = new bootstrap.Modal(document.getElementById('modalDuplicate'));
             duplicateModal.show();
@@ -241,11 +240,6 @@ $result = mysqli_query($conn, $query);
         duplicateClientData.serial,
         duplicateClientData.horas_adquiridas
       );
-    });
-
-    // Quando o modal de cadastro/edição for fechado (por exemplo, ao clicar em "Cancelar"), recarrega a página
-    $('#modalCliente').on('hidden.bs.modal', function () {
-       location.reload();
     });
   </script>
 </body>
