@@ -45,6 +45,8 @@ $sql = "SELECT u.Id, u.Nome,
         LEFT JOIN TB_NIVEL n ON e.idNivel = n.id 
         WHERE e.idUsuario = u.Id LIMIT 1) as nivel 
         FROM TB_USUARIO u 
+        LEFT JOIN TB_EQUIPE_NIVEL_ANALISTA e ON e.idUsuario = u.Id
+        WHERE e.idNivel not in (6, 7, 8)
         ORDER BY u.Nome";
 $result = $conn->query($sql);
 $usuarios = [];
