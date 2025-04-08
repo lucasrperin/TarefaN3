@@ -163,6 +163,7 @@ $resultado_grafico = $stmt_grafico->get_result();
       <form method="GET" action="dashboard.php">
         <div class="modal-header">
           <h5 class="modal-title" id="filterModalLabel">Filtro</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <div class="row mb-3">
