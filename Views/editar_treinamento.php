@@ -1,9 +1,10 @@
 <?php
 include '../Config/Database.php';
 session_start();
+header("Content-Type: application/json");
 
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php");
+    echo json_encode(['status' => 'error', 'message' => 'Acesso não autorizado']);
     exit();
 }
 
@@ -18,7 +19,7 @@ $consultor    = $_POST['consultor'];
 $status       = $_POST['status'];
 $observacoes  = $_POST['observacoes'];
 
-// Se cliente_id estiver 0, tenta recuperar o valor já cadastrado no agendamento
+// Se cliente_id for 0, tentar recuperar o valor atual do agendamento
 if ($cliente_id === 0) {
     $queryExisting = "SELECT cliente_id FROM TB_TREINAMENTOS WHERE id = ?";
     $stmtExisting = mysqli_prepare($conn, $queryExisting);
@@ -26,34 +27,89 @@ if ($cliente_id === 0) {
     mysqli_stmt_execute($stmtExisting);
     mysqli_stmt_bind_result($stmtExisting, $existingClienteId);
     if (mysqli_stmt_fetch($stmtExisting)) {
-        $cliente_id = $existingClienteId;
+        $cliente_id = intval($existingClienteId);
     }
     mysqli_stmt_close($stmtExisting);
 }
+if ($cliente_id === 0) {
+    echo json_encode(['status' => 'error', 'message' => 'Erro: Cliente selecionado não existe.']);
+    exit();
+}
 
-// Verifica se o cliente_id existe na TB_CLIENTES
-$queryCheck = "SELECT id FROM TB_CLIENTES WHERE id = ?";
+// Verifica se o cliente existe e obtém as horas contratadas (em minutos)
+$queryCheck = "SELECT id, horas_adquiridas FROM TB_CLIENTES WHERE id = ?";
 $stmtCheck = mysqli_prepare($conn, $queryCheck);
 mysqli_stmt_bind_param($stmtCheck, 'i', $cliente_id);
 mysqli_stmt_execute($stmtCheck);
-mysqli_stmt_store_result($stmtCheck);
-if(mysqli_stmt_num_rows($stmtCheck) == 0) {
+mysqli_stmt_bind_result($stmtCheck, $dummy, $horasAdquiridas);
+if (mysqli_stmt_fetch($stmtCheck) == 0) {
     mysqli_stmt_close($stmtCheck);
-    die("Erro: Cliente selecionado não existe.");
+    echo json_encode(['status'=>'error', 'message'=>'Erro: Cliente selecionado não existe.']);
+    exit();
 }
 mysqli_stmt_close($stmtCheck);
+
+// Calcula o total de duração de todos os agendamentos para o cliente, excluindo o atual
+$querySum = "SELECT SUM(duracao) as total FROM TB_TREINAMENTOS WHERE cliente_id = ? AND id <> ?";
+$stmtSum = mysqli_prepare($conn, $querySum);
+mysqli_stmt_bind_param($stmtSum, "ii", $cliente_id, $id);
+mysqli_stmt_execute($stmtSum);
+mysqli_stmt_bind_result($stmtSum, $otherTotal);
+mysqli_stmt_fetch($stmtSum);
+mysqli_stmt_close($stmtSum);
+if (is_null($otherTotal)) {
+    $otherTotal = 0;
+}
+$newTotal = $otherTotal + $duracao;
+
+// Se o novo total ultrapassar as horas contratadas, retorna status "exceeded"
+if ($newTotal > $horasAdquiridas) {
+    $msg = "O cliente excedeu as horas adquiridas.\nHoras adquiridas: {$horasAdquiridas} minutos.\nJá utilizadas: {$otherTotal} minutos.\nTentativa de alterar para: {$duracao} minutos (novo total: {$newTotal} minutos).";
+    echo json_encode([
+        'status'  => 'exceeded',
+        'message' => $msg
+    ]);
+    exit();
+}
 
 // Atualiza o agendamento na TB_TREINAMENTOS
 $query = "UPDATE TB_TREINAMENTOS 
           SET data = ?, hora = ?, tipo = ?, duracao = ?, cliente_id = ?, sistema = ?, consultor = ?, status = ?, observacoes = ? 
           WHERE id = ?";
 $stmt = mysqli_prepare($conn, $query);
+if (!$stmt) {
+    echo json_encode(['status'=>'error', 'message'=>'Erro na preparação da query: ' . mysqli_error($conn)]);
+    exit();
+}
 mysqli_stmt_bind_param($stmt, "sssisssssi", $data, $hora, $tipo, $duracao, $cliente_id, $sistema, $consultor, $status, $observacoes, $id);
-
-if(!mysqli_stmt_execute($stmt)){
-    die("Erro ao atualizar agendamento: " . mysqli_error($conn));
+if (!mysqli_stmt_execute($stmt)) {
+    echo json_encode(['status'=>'error', 'message'=>'Erro ao atualizar agendamento: ' . mysqli_error($conn)]);
+    exit();
 }
 mysqli_stmt_close($stmt);
-header("Location: treinamento.php");
+
+// Recalcula o total de duração de todos os agendamentos para o cliente (incluindo este)
+$querySum2 = "SELECT SUM(duracao) as total FROM TB_TREINAMENTOS WHERE cliente_id = ?";
+$stmtSum2 = mysqli_prepare($conn, $querySum2);
+mysqli_stmt_bind_param($stmtSum2, "i", $cliente_id);
+mysqli_stmt_execute($stmtSum2);
+mysqli_stmt_bind_result($stmtSum2, $totalDuracao);
+mysqli_stmt_fetch($stmtSum2);
+mysqli_stmt_close($stmtSum2);
+if (is_null($totalDuracao)) {
+    $totalDuracao = 0;
+}
+
+// Atualiza o campo horas_utilizadas na TB_CLIENTES para esse cliente
+$queryUpdate = "UPDATE TB_CLIENTES SET horas_utilizadas = ? WHERE id = ?";
+$stmtUpdate  = mysqli_prepare($conn, $queryUpdate);
+mysqli_stmt_bind_param($stmtUpdate, "ii", $totalDuracao, $cliente_id);
+if(!mysqli_stmt_execute($stmtUpdate)){
+    echo json_encode(['status'=>'error', 'message'=>'Erro ao atualizar horas utilizadas do cliente: ' . mysqli_error($conn)]);
+    exit();
+}
+mysqli_stmt_close($stmtUpdate);
+
+echo json_encode(['status'=>'success', 'message'=>'Agendamento atualizado com sucesso.']);
 exit();
 ?>

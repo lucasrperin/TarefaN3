@@ -235,7 +235,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
 
 <!-- Modal: Edição de Agendamento -->
 <div class="modal fade" id="modalEditarTreinamento" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
+  <div class="modal-dialog modal-lg"> 
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="modalEditarLabel">Editar Agendamento</h5>
@@ -351,10 +351,8 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
     </div>
   </div>
 </div>
-      
-  </div> <!-- / w-100 -->
-</div> <!-- / d-flex-wrapper -->
-<!-- Modal: Excedeu Horas Contratadas -->
+
+<!-- Modal: Excedeu Horas Contratadas (usado para cadastro e edição) -->
 <div class="modal fade" id="modalExceeded" tabindex="-1" aria-labelledby="modalExceededLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -372,10 +370,10 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
     </div>
   </div>
 </div>
+
 <!-- Scripts JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- FullCalendar JS -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
 <script>
@@ -414,11 +412,9 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         
         document.getElementById('edit_data').value = `${year}-${month}-${day}`;
         document.getElementById('edit_hora').value = `${hours}:${mins}`;
-        
         // Preenche os campos do cliente
         document.getElementById('edit_cliente').value = eventObj.extendedProps.cliente;
         document.getElementById('edit_cliente_id').value = eventObj.extendedProps.cliente_id;
-        // Armazena os valores originais para recuperação caso o usuário apague o campo
         $('#edit_cliente').data('original-client-id', eventObj.extendedProps.cliente_id);
         $('#edit_cliente').data('original-client-nome', eventObj.extendedProps.cliente);
         
@@ -591,44 +587,66 @@ $(document).ready(function(){
          $('#edit_cliente_id').val(originalId);
       }
     });
+    
+    // Intercepta a submissão do formulário do modal de cadastro de agendamento
+    $('#modalCadastroTreinamento form').on('submit', function(e){
+        e.preventDefault();
+        $.ajax({
+            url: $(this).attr('action'),
+            method: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json',
+            success: function(response) {
+                if(response.status === 'exceeded'){
+                    var formattedMsg = response.message.replace(/\n/g, "<br>");
+                    $('#exceededMessage').html(formattedMsg);
+                    var modalExceeded = new bootstrap.Modal(document.getElementById('modalExceeded'));
+                    modalExceeded.show();
+                } else if(response.status === 'success'){
+                    alert(response.message);
+                    location.reload();
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function(){
+                alert('Erro na comunicação com o servidor.');
+            }
+        });
+    });
+    
+    // Intercepta a submissão do formulário do modal de edição de agendamento
+    $('#modalEditarTreinamento form').on('submit', function(e){
+        e.preventDefault();
+        $.ajax({
+            url: $(this).attr('action'),
+            method: 'POST',
+            data: $(this).serialize(),
+            dataType: 'json',
+            success: function(response) {
+                if(response.status === 'exceeded'){
+                    var formattedMsg = response.message.replace(/\n/g, "<br>");
+                    $('#exceededMessage').html(formattedMsg);
+                    var modalExceeded = new bootstrap.Modal(document.getElementById('modalExceeded'));
+                    modalExceeded.show();
+                } else if(response.status === 'success'){
+                    alert(response.message);
+                    location.reload();
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function(){
+                alert('Erro na comunicação com o servidor.');
+            }
+        });
+    });
+    
+    // Redireciona para a página de clientes para registrar mais horas
+    $('#btnRedirectClients').on('click', function(){
+        window.location.href = 'clientes.php';
+    });
 });
 </script>
-<script>
-$(document).ready(function(){
-  // Intercepta a submissão do formulário do modal de cadastro de agendamento
-  $('#modalCadastroTreinamento form').on('submit', function(e){
-      e.preventDefault();
-      $.ajax({
-          url: $(this).attr('action'),
-          method: 'POST',
-          data: $(this).serialize(),
-          dataType: 'json',
-          success: function(response) {
-              if(response.status === 'exceeded'){
-                  // Converte as quebras de linha para <br> e exibe a mensagem no modal
-                  var formattedMsg = response.message.replace(/\n/g, "<br>");
-                  $('#exceededMessage').html(formattedMsg);
-                  var modalExceeded = new bootstrap.Modal(document.getElementById('modalExceeded'));
-                  modalExceeded.show();
-              } else if(response.status === 'success'){
-                  alert(response.message);
-                  location.reload();
-              } else {
-                  alert(response.message);
-              }
-          },
-          error: function(){
-              alert('Erro na comunicação com o servidor.');
-          }
-      });
-  });
-
-  // Ao clicar no botão para redirecionar para a aba de clientes para registrar mais horas
-  $('#btnRedirectClients').on('click', function(){
-      window.location.href = 'clientes.php';
-  });
-});
-
-  </script>
 </body>
 </html>
