@@ -1,6 +1,7 @@
 <?php
 include '../Config/Database.php';
 session_start();
+header("Content-Type: application/json");
 
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: ../Views/login.php");

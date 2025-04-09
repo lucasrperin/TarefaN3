@@ -1,0 +1,14 @@
+{
+    "name": "guilherme/tarefa-n3",
+    "description": "Aplicação para gerenciamento do Painel N3 de treinamentos e clientes.",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Guilherme\\TarefaN3\\": "src/"
+        }
+    },
+    "minimum-stability": "stable",
+    "require": {
+        "twilio/sdk": "^8.5"
+    }
+}

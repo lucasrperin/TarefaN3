@@ -338,12 +338,15 @@ CREATE TABLE TB_CLIENTES (
     cnpjcpf VARCHAR(20) UNIQUE,
     serial VARCHAR(50) UNIQUE,
     cliente VARCHAR(100) NOT NULL,
-    horas_adquiridas INT NOT NULL, -- tempo contratado (ex: em minutos ou horas)
-    horas_utilizadas INT NOT NULL DEFAULT 0, -- tempo já utilizado nos treinamentos
+    whatsapp VARCHAR(20) DEFAULT NULL,
+    data_conclusao DATE DEFAULT NULL,
+    horas_adquiridas INT NOT NULL,
+    horas_utilizadas INT NOT NULL DEFAULT 0,
     ativo TINYINT(1) NOT NULL DEFAULT 1,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
     atualizado_em DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
 
 CREATE TABLE TB_TREINAMENTOS (
     id INT AUTO_INCREMENT PRIMARY KEY,
