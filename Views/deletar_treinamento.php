@@ -16,6 +16,7 @@ mysqli_stmt_bind_param($stmt, 'i', $id);
 if (mysqli_stmt_execute($stmt)) {
   header("Location: treinamento.php?success=3");
 } else {
-  header("Location: treinamento.php?error=3");
+  header("Location: treinamento.php?error=2");
 }
 exit();
+?>

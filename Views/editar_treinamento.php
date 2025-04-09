@@ -1,7 +1,6 @@
 <?php
 include '../Config/Database.php';
 session_start();
-header("Content-Type: application/json");
 
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: ../Views/login.php");
@@ -58,9 +57,35 @@ if ($action === 'salvar') {
     header("Location: /TarefaN3/Views/treinamento.php?success=2");
     exit();
     
+} elseif ($action === 'iniciar') {
+    // Verifica se o treinamento já foi iniciado
+    $queryCheck = "SELECT dt_ini FROM TB_TREINAMENTOS WHERE id = ?";
+    $stmtCheck = mysqli_prepare($conn, $queryCheck);
+    mysqli_stmt_bind_param($stmtCheck, "i", $id);
+    mysqli_stmt_execute($stmtCheck);
+    mysqli_stmt_bind_result($stmtCheck, $dt_ini_actual);
+    mysqli_stmt_fetch($stmtCheck);
+    mysqli_stmt_close($stmtCheck);
+
+    // Se dt_ini já possui valor (diferente de NULL e "0000-00-00 00:00:00"), redireciona
+    if (!is_null($dt_ini_actual) && $dt_ini_actual !== "0000-00-00 00:00:00") {
+        header("Location: /TarefaN3/Views/treinamento.php?success=4");
+        exit();
+    }
+    
+    // Se ainda não foi iniciado, atualiza o campo dt_ini para NOW()
+    $query = "UPDATE TB_TREINAMENTOS SET dt_ini = NOW() WHERE id = ?";
+    $stmt = mysqli_prepare($conn, $query);
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    if (!mysqli_stmt_execute($stmt)) {
+         die("Erro ao iniciar treinamento: " . mysqli_error($conn));
+    }
+    mysqli_stmt_close($stmt);
+    
+    header("Location: /TarefaN3/Views/treinamento.php?success=4");
+    exit();
+    
 } elseif ($action === 'encerrar') {
-    // Atualiza dt_fim, muda status para CONCLUIDO, calcula a diferença de tempo:
-    // duracao em minutos com TIMESTAMPDIFF e total_tempo com TIMEDIFF.
     $query = "UPDATE TB_TREINAMENTOS 
               SET dt_fim = NOW(), status = 'CONCLUIDO', 
                   duracao = TIMESTAMPDIFF(MINUTE, dt_ini, NOW()),
@@ -69,7 +94,7 @@ if ($action === 'salvar') {
     $stmt = mysqli_prepare($conn, $query);
     mysqli_stmt_bind_param($stmt, "i", $id);
     if (!mysqli_stmt_execute($stmt)) {
-        die("Erro ao encerrar treinamento: " . mysqli_error($conn));
+         die("Erro ao encerrar treinamento: " . mysqli_error($conn));
     }
     mysqli_stmt_close($stmt);
     

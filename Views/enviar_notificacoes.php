@@ -20,7 +20,7 @@ use Twilio\Rest\Client;
 
 // Obtenha as credenciais do Twilio – recomendamos utilizar variáveis de ambiente
 $sid   = getenv('TWILIO_SID') ?: 'ACfc2e783b722dda5ad310e6cb7480c059';
-$token = getenv('TWILIO_TOKEN') ?: 'edbfb6df7ef4b3182924b3a86d234f0f';
+$token = getenv('TWILIO_TOKEN') ?: '0bfbd566f664543b9e415c26811fd7f0';
 $client = new Client($sid, $token);
 
 // Número de origem para WhatsApp – utilize o número do Sandbox para testes:

@@ -244,3 +244,16 @@ body {
   background-color: rgba(255, 255, 255, 0.5);
   opacity: 1;
 }
+
+body.blur * {
+  filter: blur(2px);
+}
+
+/* Exceto o modal de exclusão e o próprio backdrop */
+body.blur #modalExcluirTreinamento,
+body.blur #modalExcluirTreinamento *,
+body.blur #modalExceeded,
+body.blur #modalExceeded *,
+body.blur .modal-backdrop {
+  filter: none;
+}

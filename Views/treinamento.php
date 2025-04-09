@@ -65,7 +65,7 @@ $treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales-all.global.min.js"></script>
 </head>
 <body>
-  <div class="d-flex-wrapper">
+  <div class="d-flex-wrapper page-container">
     <!-- Sidebar -->
     <div class="sidebar">
       <a class="light-logo" href="menu.php">
@@ -90,7 +90,7 @@ $treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
     <div id="toast-container" class="toast-container">
       <div id="toastSucesso" class="toast toast-success">
         <i class="fa-solid fa-check-circle"></i>
-        <span id="toastMensagem"></span>
+        <span id="toastMensagem"><i class="fa-solid fa-check-circle"></i></span>
       </div>
       <div id="toastErro" class="toast toast-error">
         <i class="fa-solid fa-exclamation-triangle"></i>
@@ -153,6 +153,9 @@ $treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
             case "1":
               msg = "Erro ao finalizar treinamento!";
               break;
+            case "2":
+              msg = "Erro ao excluir treinamento!";
+              break;
           }
           if (msg) showToast(msg, "error");
         }
@@ -212,6 +215,38 @@ $treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
           </button>
         </div>
       </div>
+
+      <!-- Exemplo de card estilizado -->
+      <div class="container my-3">
+        <?php if (!empty($treinamentoEmAndamento)): ?>
+          <div class="d-flex align-items-center justify-content-between bg-light border rounded p-3 shadow-sm" style="max-width: 500px; margin: auto;">
+            <div>
+              <i class="fa-solid fa-clock me-2"></i><strong>Treinamento em Andamento</strong>
+              <div class="mt-1">
+                <span><?= htmlspecialchars($treinamentoEmAndamento['cliente'], ENT_QUOTES) ?> - <?= htmlspecialchars($treinamentoEmAndamento['sistema'], ENT_QUOTES) ?></span><br>
+                <small>
+                  Tipo: <?= htmlspecialchars($treinamentoEmAndamento['tipo'], ENT_QUOTES) ?><br>
+                  Início: <?= date("d/m H:i:s", strtotime($treinamentoEmAndamento['dt_ini'])) ?>
+                </small>
+              </div>
+            </div>
+            <div>
+              <!-- Formulário oculto para encerrar o treinamento -->
+              <form id="finalizeForm" action="editar_treinamento.php" method="post" style="display: none;">
+                <input type="hidden" name="id" value="<?= htmlspecialchars($treinamentoEmAndamento['id'], ENT_QUOTES) ?>">
+                <input type="hidden" name="action" value="encerrar">
+              </form>
+              <!-- Ícone encapsulado em um link; ao clicar, submete o formulário oculto -->
+              <a href="javascript:void(0);" onclick="document.getElementById('finalizeForm').submit();">
+                <i id="iconFinalizar" class="fa-regular fa-circle-pause text-danger" style="font-size: 1.75em; cursor: pointer;" 
+                  data-bs-toggle="tooltip" data-bs-placement="top" title="Finalizar treinamento"></i>
+              </a>
+            </div>
+          </div>
+        <?php endif; ?>
+      </div>
+
+
       <div class="card-body">
         <!-- Calendário -->
         <div id="calendar"></div>
@@ -219,379 +254,259 @@ $treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
     </div>
   </div>
 
-    <!-- Modal: Cadastro de Agendamento -->
-    <div class="modal fade" id="modalCadastroTreinamento" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg"> 
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalCadastroLabel">Novo Agendamento</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-          </div>
-          <form action="cadastrar_treinamento.php" method="post">
-            <div class="modal-body">
-              <!-- Linha 1: Data | Hora | Tipo -->
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label for="data_treino" class="form-label">Data</label>
-                  <input type="date" name="data" id="data_treino" class="form-control" required>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label for="hora_treino" class="form-label">Hora</label>
-                  <input type="time" name="hora" id="hora_treino" class="form-control" required>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label for="tipo_treino" class="form-label">Tipo</label>
-                  <select name="tipo" id="tipo_treino" class="form-select" required>
-                    <option value="TREINAMENTO">Treinamento</option>
-                    <option value="INSTALACAO">Instalação</option>
-                    <option value="AMBOS">Instalação + Treinamento</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- Linha 2: Cliente (Pesquisa), Sistema, Consultor -->
-              <div class="row">
-                <div class="col-md-4 mb-3" style="position: relative;">
-                  <label for="cliente_treino" class="form-label">Cliente</label>
-                  <input type="text" name="cliente_nome" id="cliente_treino" class="form-control" placeholder="Pesquise por nome, CNPJ/CPF ou Serial" autocomplete="off" required>
-                  <input type="hidden" name="cliente_id" id="cliente_id">
-                  <div id="cliente_suggestions" class="list-group" style="position: absolute; width: 100%; z-index: 1000;"></div>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label for="sistema_treino" class="form-label">Sistema</label>
-                  <select name="sistema" id="sistema_treino" class="form-select" required>
-                    <option value="">-- Selecione --</option>
-                    <?php foreach($sistemas as $sis): ?>
-                      <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
-                        <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
-                      </option>
-                    <?php endforeach; ?>
-                  </select>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label for="consultor_treino" class="form-label">Consultor</label>
-                  <select name="consultor" id="consultor_treino" class="form-select" required>
-                    <option value="">-- Selecione --</option>
-                    <?php foreach($consultores as $cons): ?>
-                      <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
-                        <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
-                      </option>
-                    <?php endforeach; ?>
-                  </select>
-                </div>
-              </div>
-
-              <!-- Linha 3: Status -->
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label for="status_treino" class="form-label">Status</label>
-                  <select name="status" id="status_treino" class="form-select">
-                    <option value="PENDENTE">Pendente</option>
-                    <option value="CONCLUIDO">Concluído</option>
-                    <option value="CANCELADO">Cancelado</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- Linha 4: Observações -->
-              <div class="row">
-                <div class="col-12 mb-3">
-                  <label for="observacoes_treino" class="form-label">Observações</label>
-                  <textarea name="observacoes" id="observacoes_treino" class="form-control" rows="3"></textarea>
-                </div>
-              </div>
-
-          <!-- Linha 5: Duração (minutos) -->
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <label for="duracao_treino" class="form-label">Duração (minutos)</label>
-              <input type="number" name="duracao" id="duracao_treino" class="form-control" required value="30">
-            </div>
-          </div>
-        </div><!-- modal-body -->
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-custom">Cadastrar</button>
+  <!-- Modal: Cadastro de Agendamento -->
+  <div class="modal fade" id="modalCadastroTreinamento" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg"> 
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalCadastroLabel">Novo Agendamento</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
-      </form>
+        <form action="cadastrar_treinamento.php" method="post">
+          <div class="modal-body">
+            <!-- Linha 1: Data | Hora | Tipo -->
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="data_treino" class="form-label">Data</label>
+                <input type="date" name="data" id="data_treino" class="form-control" required>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="hora_treino" class="form-label">Hora</label>
+                <input type="time" name="hora" id="hora_treino" class="form-control" required>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="tipo_treino" class="form-label">Tipo</label>
+                <select name="tipo" id="tipo_treino" class="form-select" required>
+                  <option value="TREINAMENTO">Treinamento</option>
+                  <option value="INSTALACAO">Instalação</option>
+                  <option value="AMBOS">Instalação + Treinamento</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Linha 2: Cliente (Pesquisa), Sistema, Consultor -->
+            <div class="row">
+              <div class="col-md-4 mb-3" style="position: relative;">
+                <label for="cliente_treino" class="form-label">Cliente</label>
+                <input type="text" name="cliente_nome" id="cliente_treino" class="form-control" placeholder="Pesquise por nome, CNPJ/CPF ou Serial" autocomplete="off" required>
+                <input type="hidden" name="cliente_id" id="cliente_id">
+                <div id="cliente_suggestions" class="list-group" style="position: absolute; width: 100%; z-index: 1000;"></div>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="sistema_treino" class="form-label">Sistema</label>
+                <select name="sistema" id="sistema_treino" class="form-select" required>
+                  <option value="">-- Selecione --</option>
+                  <?php foreach($sistemas as $sis): ?>
+                    <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
+                      <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="consultor_treino" class="form-label">Consultor</label>
+                <select name="consultor" id="consultor_treino" class="form-select" required>
+                  <option value="">-- Selecione --</option>
+                  <?php foreach($consultores as $cons): ?>
+                    <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
+                      <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+            </div>
+
+            <!-- Linha 3: Status -->
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="status_treino" class="form-label">Status</label>
+                <select name="status" id="status_treino" class="form-select">
+                  <option value="PENDENTE">Pendente</option>
+                  <option value="CONCLUIDO">Concluído</option>
+                  <option value="CANCELADO">Cancelado</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Linha 4: Observações -->
+            <div class="row">
+              <div class="col-12 mb-3">
+                <label for="observacoes_treino" class="form-label">Observações</label>
+                <textarea name="observacoes" id="observacoes_treino" class="form-control" rows="3"></textarea>
+              </div>
+            </div>
+
+            <!-- Linha 5: Duração (minutos) -->
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="duracao_treino" class="form-label">Duração (minutos)</label>
+                <input type="number" name="duracao" id="duracao_treino" class="form-control" required value="30">
+              </div>
+            </div>
+          </div><!-- modal-body -->
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-custom">Cadastrar</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-</div>
 
-    <!-- Modal: Edição de Agendamento -->
-    <div class="modal fade" id="modalEditarTreinamento" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalEditarLabel">Editar Agendamento</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-          </div>
-          <form action="editar_treinamento.php" method="post">
-            <div class="modal-body">
-              <input type="hidden" name="id" id="edit_id">
-              <!-- Linha 1: Data | Hora | Tipo -->
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label for="edit_data" class="form-label">Data</label>
-                  <input type="date" name="data" id="edit_data" class="form-control" required>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label for="edit_hora" class="form-label">Hora</label>
-                  <input type="time" name="hora" id="edit_hora" class="form-control" required>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label for="edit_tipo" class="form-label">Tipo</label>
-                  <select name="tipo" id="edit_tipo" class="form-select" required>
-                    <option value="TREINAMENTO">Treinamento</option>
-                    <option value="INSTALACAO">Instalação</option>
-                    <option value="AMBOS">Instalação + Treinamento</option>
-                  </select>
-                </div>
+  <!-- Modal: Edição de Agendamento -->
+  <div class="modal fade" id="modalEditarTreinamento" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEditarLabel">Editar Agendamento</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <form action="editar_treinamento.php" method="post">
+          <div class="modal-body">
+            <input type="hidden" name="id" id="edit_id">
+            <!-- Linha 1: Data | Hora | Tipo -->
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="edit_data" class="form-label">Data</label>
+                <input type="date" name="data" id="edit_data" class="form-control" required>
               </div>
-              <!-- Hidden para dt_ini e dt_fim -->
-              <input type="hidden" name="dt_ini" id="edit_dt_ini" value="">
-              <input type="hidden" name="dt_fim" id="edit_dt_fim" value="">
-              <!-- Linha 2: Cliente (Pesquisa), Sistema, Consultor -->
-              <div class="row">
-                <div class="col-md-4 mb-3" style="position: relative;">
-                  <label for="edit_cliente" class="form-label">Cliente</label>
-                  <input type="text" name="cliente_nome" id="edit_cliente" class="form-control" placeholder="Pesquise por nome, CNPJ/CPF ou Serial" autocomplete="off" required>
-                  <input type="hidden" name="cliente_id" id="edit_cliente_id">
-                  <div id="edit_cliente_suggestions" class="list-group" style="position: absolute; width: 100%; z-index: 1000;"></div>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label for="edit_sistema" class="form-label">Sistema</label>
-                  <select name="sistema" id="edit_sistema" class="form-select" required>
-                    <?php foreach($sistemas as $sis): ?>
-                      <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
-                        <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
-                      </option>
-                    <?php endforeach; ?>
-                  </select>
-                </div>
-                <div class="col-md-4 mb-3">
-                  <label for="edit_consultor" class="form-label">Consultor</label>
-                  <select name="consultor" id="edit_consultor" class="form-select" required>
-                    <option value="">-- Selecione --</option>
-                    <?php foreach($consultores as $cons): ?>
-                      <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
-                        <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
-                      </option>
-                    <?php endforeach; ?>
-                  </select>
-                </div>
+              <div class="col-md-4 mb-3">
+                <label for="edit_hora" class="form-label">Hora</label>
+                <input type="time" name="hora" id="edit_hora" class="form-control" required>
               </div>
-              <!-- Linha 3: Status -->
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label for="edit_status" class="form-label">Status</label>
-                  <select name="status" id="edit_status" class="form-select">
-                    <option value="PENDENTE">Pendente</option>
-                    <option value="CONCLUIDO">Concluído</option>
-                    <option value="CANCELADO">Cancelado</option>
-                  </select>
-                </div>
-              </div>
-              <!-- Linha 4: Observações -->
-              <div class="row">
-                <div class="col-12 mb-3">
-                  <label for="edit_observacoes" class="form-label">Observações</label>
-                  <textarea name="observacoes" id="edit_observacoes" class="form-control" rows="3"></textarea>
-                </div>
-              </div>
-              <!-- Linha 5: Duração (minutos) -->
-              <div class="row">
-                <div class="col-md-4 mb-3">
-                  <label for="edit_duracao" class="form-label">Duração (minutos)</label>
-                  <input type="number" name="duracao" id="edit_duracao" class="form-control" required value="30">
-                </div>
-              </div>
-            </div><!-- modal-body -->
-            <div class="modal-footer">
-              <div class="d-flex w-100">
-                <!-- Ambos os botões iniciam com display:none; serão exibidos via JavaScript conforme o valor de dt_ini/dt_fim -->
-                <?php if ($cargo === 'Treinamento'): ?>
-                  <button type="button" class="btn btn-success me-2" id="btnIniciarTreinamento" style="display: none;">
-                    <i class="fa-solid fa-circle-play me-2"></i>Iniciar
-                  </button>
-                  <button type="button" class="btn btn-danger me-2" id="btnEncerrarTreinamento" style="display: none;">
-                    <i class="fa-solid fa-circle-pause me-2"></i>Encerrar
-                  </button>
-                <?php endif; ?>
-                <div class="ms-auto">
-                  <a><i class="fa-solid fa-trash-can text-center" style="font-size: 1.75em; cursor: pointer;"></i></a>
-                  <button type="submit" name="action" value="salvar" class="btn btn-custom">Salvar</button>
-                </div>
+              <div class="col-md-4 mb-3">
+                <label for="edit_tipo" class="form-label">Tipo</label>
+                <select name="tipo" id="edit_tipo" class="form-select" required>
+                  <option value="TREINAMENTO">Treinamento</option>
+                  <option value="INSTALACAO">Instalação</option>
+                  <option value="AMBOS">Instalação + Treinamento</option>
+                </select>
               </div>
             </div>
-          </form>
-        </div>
+            <!-- Hidden para dt_ini e dt_fim -->
+            <input type="hidden" name="dt_ini" id="edit_dt_ini" value="">
+            <input type="hidden" name="dt_fim" id="edit_dt_fim" value="">
+            <!-- Linha 2: Cliente (Pesquisa), Sistema, Consultor -->
+            <div class="row">
+              <div class="col-md-4 mb-3" style="position: relative;">
+                <label for="edit_cliente" class="form-label">Cliente</label>
+                <input type="text" name="cliente_nome" id="edit_cliente" class="form-control" placeholder="Pesquise por nome, CNPJ/CPF ou Serial" autocomplete="off" required>
+                <input type="hidden" name="cliente_id" id="edit_cliente_id">
+                <div id="edit_cliente_suggestions" class="list-group" style="position: absolute; width: 100%; z-index: 1000;"></div>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="edit_sistema" class="form-label">Sistema</label>
+                <select name="sistema" id="edit_sistema" class="form-select" required>
+                  <?php foreach($sistemas as $sis): ?>
+                    <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
+                      <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="edit_consultor" class="form-label">Consultor</label>
+                <select name="consultor" id="edit_consultor" class="form-select" required>
+                  <option value="">-- Selecione --</option>
+                  <?php foreach($consultores as $cons): ?>
+                    <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
+                      <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+            </div>
+            <!-- Linha 3: Status -->
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="edit_status" class="form-label">Status</label>
+                <select name="status" id="edit_status" class="form-select">
+                  <option value="PENDENTE">Pendente</option>
+                  <option value="CONCLUIDO">Concluído</option>
+                  <option value="CANCELADO">Cancelado</option>
+                </select>
+              </div>
+            </div>
+            <!-- Linha 4: Observações -->
+            <div class="row">
+              <div class="col-12 mb-3">
+                <label for="edit_observacoes" class="form-label">Observações</label>
+                <textarea name="observacoes" id="edit_observacoes" class="form-control" rows="3"></textarea>
+              </div>
+            </div>
+            <!-- Linha 5: Duração (minutos) -->
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="edit_duracao" class="form-label">Duração (minutos)</label>
+                <input type="number" name="duracao" id="edit_duracao" class="form-control" required value="30">
+              </div>
+            </div>
+          </div><!-- modal-body -->
+          <div class="modal-footer">
+            <div class="d-flex w-100">
+              <!-- Ambos os botões iniciam com display:none; serão exibidos via JavaScript conforme o valor de dt_ini/dt_fim -->
+              <?php if ($cargo === 'Treinamento'): ?>
+                <button type="button" class="btn btn-success me-2" id="btnIniciarTreinamento" style="display: none;">
+                  <i class="fa-solid fa-circle-play me-2"></i>Iniciar
+                </button>
+                <button type="button" class="btn btn-danger me-2" id="btnEncerrarTreinamento" style="display: none;">
+                  <i class="fa-solid fa-circle-pause me-2"></i>Encerrar
+                </button>
+              <?php endif; ?>
+              <!-- Ícone de lixeira no modal de edição -->
+              <div class="ms-auto d-flex align-items-center gap-2">
+                <a onclick="modalExcluir(document.getElementById('edit_id').value, document.getElementById('edit_cliente').value)" title="Excluir">
+                  <i class="fa-regular fa-trash-alt text-danger" style="font-size: 1.75em; cursor: pointer;"></i>
+                </a>
+                <button type="submit" name="action" value="salvar" class="btn btn-custom">Salvar</button>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
-<!-- Modal: Edição de Agendamento -->
-<div class="modal fade" id="modalEditarTreinamento" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg"> 
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalEditarLabel">Editar Agendamento</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+  </div>
+
+  <!-- Modal: Exclusão de Agendamento -->
+  <div class="modal fade" id="modalExcluirTreinamento" tabindex="-1" aria-labelledby="modalExcluirLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalExcluirLabel">Excluir Agendamento</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <form action="deletar_treinamento.php" method="post">
+          <div class="modal-body">
+            <input type="hidden" name="id" id="excluir_id">
+            <p>Tem certeza que deseja excluir o agendamento <strong id="excluir_cliente"></strong>?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-danger">Excluir</button>
+          </div>
+        </form>
       </div>
-      <form action="editar_treinamento.php" method="post">
+    </div>
+  </div>
+
+  <!-- Modal: Excedeu Horas Contratadas (usado para cadastro e edição) -->
+  <div class="modal fade" id="modalExceeded" tabindex="-1" aria-labelledby="modalExceededLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalExceededLabel">Limite de Horas Excedido</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
         <div class="modal-body">
-          <input type="hidden" name="id" id="edit_id">
-          <!-- Linha 1: Data | Hora | Tipo -->
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <label for="edit_data" class="form-label">Data</label>
-              <input type="date" name="data" id="edit_data" class="form-control" required>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label for="edit_hora" class="form-label">Hora</label>
-              <input type="time" name="hora" id="edit_hora" class="form-control" required>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label for="edit_tipo" class="form-label">Tipo</label>
-              <select name="tipo" id="edit_tipo" class="form-select" required>
-                <option value="TREINAMENTO">Treinamento</option>
-                <option value="INSTALACAO">Instalação</option>
-                <option value="AMBOS">Instalação + Treinamento</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Linha 2: Cliente (Pesquisa), Sistema, Consultor -->
-          <div class="row">
-            <div class="col-md-4 mb-3" style="position: relative;">
-              <label for="edit_cliente" class="form-label">Cliente</label>
-              <input type="text" name="cliente_nome" id="edit_cliente" class="form-control" placeholder="Pesquise por nome, CNPJ/CPF ou Serial" autocomplete="off" required>
-              <input type="hidden" name="cliente_id" id="edit_cliente_id">
-              <div id="edit_cliente_suggestions" class="list-group" style="position: absolute; width: 100%; z-index: 1000;"></div>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label for="edit_sistema" class="form-label">Sistema</label>
-              <select name="sistema" id="edit_sistema" class="form-select" required>
-                <?php foreach($sistemas as $sis): ?>
-                  <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
-                    <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
-                  </option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label for="edit_consultor" class="form-label">Consultor</label>
-              <select name="consultor" id="edit_consultor" class="form-select" required>
-                <option value="">-- Selecione --</option>
-                <?php foreach($consultores as $cons): ?>
-                  <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
-                    <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
-                  </option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-          </div>
-
-          <!-- Linha 3: Status -->
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <label for="edit_status" class="form-label">Status</label>
-              <select name="status" id="edit_status" class="form-select">
-                <option value="PENDENTE">Pendente</option>
-                <option value="CONCLUIDO">Concluído</option>
-                <option value="CANCELADO">Cancelado</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Linha 4: Observações -->
-          <div class="row">
-            <div class="col-12 mb-3">
-              <label for="edit_observacoes" class="form-label">Observações</label>
-              <textarea name="observacoes" id="edit_observacoes" class="form-control" rows="3"></textarea>
-            </div>
-          </div>
-
-          <!-- Linha 5: Duração (minutos) -->
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <label for="edit_duracao" class="form-label">Duração (minutos)</label>
-              <input type="number" name="duracao" id="edit_duracao" class="form-control" required value="30">
-            </div>
-          </div>
-        </div><!-- modal-body -->
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-custom">Salvar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-    <!-- Modal: Exclusão de Agendamento -->
-    <div class="modal fade" id="modalExcluirTreinamento" tabindex="-1" aria-labelledby="modalExcluirLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalExcluirLabel">Excluir Agendamento</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-          </div>
-          <form action="deletar_treinamento.php" method="post">
-            <div class="modal-body">
-              <input type="hidden" name="id" id="excluir_id">
-              <p>Tem certeza que deseja excluir o agendamento <strong id="excluir_cliente"></strong>?</p>
-            </div>
-            <div class="modal-footer">
-              <button type="submit" class="btn btn-danger">Excluir</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div> <!-- / w-100 -->
-</div> <!-- / d-flex-wrapper -->
-
-<!-- Modal: Excedeu Horas Contratadas -->
-<!-- Modal: Exclusão de Agendamento -->
-<div class="modal fade" id="modalExcluirTreinamento" tabindex="-1" aria-labelledby="modalExcluirLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalExcluirLabel">Excluir Agendamento</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-      </div>
-      <form action="deletar_treinamento.php" method="post">
-        <div class="modal-body">
-          <input type="hidden" name="id" id="excluir_id">
-          <p>Tem certeza que deseja excluir o agendamento <strong id="excluir_cliente"></strong>?</p>
+          <p id="exceededMessage"></p>
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-danger">Excluir</button>
+          <button type="button" class="btn btn-primary" id="btnRedirectClients">Sim, Registrar Mais Horas</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
         </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Excedeu Horas Contratadas (usado para cadastro e edição) -->
-<div class="modal fade" id="modalExceeded" tabindex="-1" aria-labelledby="modalExceededLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalExceededLabel">Limite de Horas Excedido</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-      </div>
-      <div class="modal-body">
-        <p id="exceededMessage"></p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" id="btnRedirectClients">Sim, Registrar Mais Horas</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
       </div>
     </div>
   </div>
-</div>
 
 <!-- Scripts JS -->
-
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -604,31 +519,6 @@ $treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-
-    // Configura o clique no ícone para encerrar o treinamento via AJAX
-    $("#iconFinalizar").on("click", function() {
-        // Obtenha o ID do treinamento em andamento (conforme sua lógica)
-        var treinamentoId = <?= json_encode($treinamentoEmAndamento['id'] ?? 0) ?>;
-        if(treinamentoId == 0) return;
-        
-        $.ajax({
-            url: 'editar_treinamento.php',
-            method: 'POST',
-            data: { id: treinamentoId, action: 'encerrar' },
-            dataType: 'json',
-            success: function(response) {
-                if(response.status === "success"){
-                    alert(response.message);
-                    location.reload();
-                } else {
-                    alert(response.message);
-                }
-            },
-            error: function() {
-                alert("Erro na comunicação com o servidor.");
-            }
-        });
     });
   });
 
@@ -983,68 +873,38 @@ $treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
       }
     });
   });
-</script>
 
-    
-    // Intercepta a submissão do formulário do modal de cadastro de agendamento
-    $('#modalCadastroTreinamento form').on('submit', function(e){
-        e.preventDefault();
-        $.ajax({
-            url: $(this).attr('action'),
-            method: 'POST',
-            data: $(this).serialize(),
-            dataType: 'json',
-            success: function(response) {
-                if(response.status === 'exceeded'){
-                    var formattedMsg = response.message.replace(/\n/g, "<br>");
-                    $('#exceededMessage').html(formattedMsg);
-                    var modalExceeded = new bootstrap.Modal(document.getElementById('modalExceeded'));
-                    modalExceeded.show();
-                } else if(response.status === 'success'){
-                    alert(response.message);
-                    location.reload();
-                } else {
-                    alert(response.message);
-                }
-            },
-            error: function(){
-                alert('Erro na comunicação com o servidor.');
-            }
-        });
+  document.addEventListener('DOMContentLoaded', function() {
+    // Inicializa os tooltips do Bootstrap (caso já não esteja feito)
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+
+    // Listener para o modal de exclusão
+    var modalExcluirEl = document.getElementById('modalExcluirTreinamento');
+    if (modalExcluirEl) {
+      modalExcluirEl.addEventListener('shown.bs.modal', function () {
+        document.body.classList.add('blur');
+      });
+      modalExcluirEl.addEventListener('hidden.bs.modal', function () {
+        document.body.classList.remove('blur');
+      });
+    }
     
-    // Intercepta a submissão do formulário do modal de edição de agendamento
-    $('#modalEditarTreinamento form').on('submit', function(e){
-        e.preventDefault();
-        $.ajax({
-            url: $(this).attr('action'),
-            method: 'POST',
-            data: $(this).serialize(),
-            dataType: 'json',
-            success: function(response) {
-                if(response.status === 'exceeded'){
-                    var formattedMsg = response.message.replace(/\n/g, "<br>");
-                    $('#exceededMessage').html(formattedMsg);
-                    var modalExceeded = new bootstrap.Modal(document.getElementById('modalExceeded'));
-                    modalExceeded.show();
-                } else if(response.status === 'success'){
-                    alert(response.message);
-                    location.reload();
-                } else {
-                    alert(response.message);
-                }
-            },
-            error: function(){
-                alert('Erro na comunicação com o servidor.');
-            }
-        });
-    });
-    
-    // Redireciona para a página de clientes para registrar mais horas
-    $('#btnRedirectClients').on('click', function(){
-        window.location.href = 'clientes.php';
-    });
-});
+    // Listener para o modal de horas excedidas
+    var modalExceededEl = document.getElementById('modalExceeded');
+    if (modalExceededEl) {
+      modalExceededEl.addEventListener('shown.bs.modal', function () {
+        document.body.classList.add('blur');
+      });
+      modalExceededEl.addEventListener('hidden.bs.modal', function () {
+        document.body.classList.remove('blur');
+      });
+    }
+  });
+
+
 </script>
 </body>
 </html>
