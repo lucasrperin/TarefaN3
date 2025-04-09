@@ -31,6 +31,18 @@ $consultores     = [];
 while ($row = mysqli_fetch_assoc($consultorResult)) {
   $consultores[] = $row;
 }
+
+// Consulta para buscar treinamento em andamento (dt_ini preenchido, dt_fim nulo e status PENDENTE)
+$queryInProgress = "SELECT t.id, t.dt_ini, t.dt_fim, t.tipo, t.sistema, t.status, c.cliente, t.dt_ini 
+                    FROM TB_TREINAMENTOS t
+                    JOIN TB_CLIENTES c ON t.cliente_id = c.id 
+                    WHERE t.dt_ini IS NOT NULL 
+                      AND t.dt_fim IS NULL 
+                      AND t.status = 'PENDENTE'
+                    ORDER BY t.dt_ini DESC LIMIT 1";
+$resultInProgress = mysqli_query($conn, $queryInProgress);
+$treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -73,6 +85,79 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         <a class="nav-link active" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
       </nav>
     </div>
+
+    <!-- Minimalist Modern Toast Layout -->
+    <div id="toast-container" class="toast-container">
+      <div id="toastSucesso" class="toast toast-success">
+        <i class="fa-solid fa-check-circle"></i>
+        <span id="toastMensagem"></span>
+      </div>
+      <div id="toastErro" class="toast toast-error">
+        <i class="fa-solid fa-exclamation-triangle"></i>
+        <span id="toastMensagemErro"></span>
+      </div>
+    </div>
+    <script>
+      function showToast(message, type) {
+        const container = document.getElementById("toast-container");
+        const toast = document.createElement("div");
+        toast.className = "toast " + type;
+        toast.textContent = message;
+        container.appendChild(toast);
+        // Trigger the CSS animation
+        setTimeout(() => {
+          toast.classList.add("show");
+        }, 10);
+        // Hide after 2 seconds and remove from DOM
+        setTimeout(() => {
+          toast.classList.remove("show");
+          setTimeout(() => {
+            container.removeChild(toast);
+          }, 300);
+        }, 2000);
+      }
+
+      document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get("success");
+        const error = urlParams.get("error");
+
+        if (success) {
+          let msg = "";
+          switch (success) {
+            case "1":
+              msg = "Treinamento Cadastrado!";
+              break;
+            case "2":
+              msg = "Treinamento Editado!";
+              break;
+            case "3":
+              msg = "Treinamento Excluído!";
+              break;
+            case "4":
+              msg = "Treinamento Iniciado!";
+              break;
+            case "5":
+              msg = "Treinamento Finalizado!";
+              break;  
+            case "6":
+              msg = "Erro ao cadastrar!";
+              break;
+          }
+          if (msg) showToast(msg, "success");
+        }
+
+        if (error) {
+          let msg = "";
+          switch (error) {
+            case "1":
+              msg = "Erro ao finalizar treinamento!";
+              break;
+          }
+          if (msg) showToast(msg, "error");
+        }
+      });
+    </script>
 
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container">
@@ -127,7 +212,6 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
           </button>
         </div>
       </div>
-
       <div class="card-body">
         <!-- Calendário -->
         <div id="calendar"></div>
@@ -135,225 +219,259 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
     </div>
   </div>
 
-<!-- Modal: Cadastro de Agendamento -->
-<div class="modal fade" id="modalCadastroTreinamento" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg"> 
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalCadastroLabel">Novo Agendamento</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+    <!-- Modal: Cadastro de Agendamento -->
+    <div class="modal fade" id="modalCadastroTreinamento" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg"> 
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalCadastroLabel">Novo Agendamento</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <form action="cadastrar_treinamento.php" method="post">
+            <div class="modal-body">
+              <!-- Linha 1: Data | Hora | Tipo -->
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="data_treino" class="form-label">Data</label>
+                  <input type="date" name="data" id="data_treino" class="form-control" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="hora_treino" class="form-label">Hora</label>
+                  <input type="time" name="hora" id="hora_treino" class="form-control" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="tipo_treino" class="form-label">Tipo</label>
+                  <select name="tipo" id="tipo_treino" class="form-select" required>
+                    <option value="TREINAMENTO">Treinamento</option>
+                    <option value="INSTALACAO">Instalação</option>
+                    <option value="AMBOS">Instalação + Treinamento</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Linha 2: Cliente (Pesquisa), Sistema, Consultor -->
+              <div class="row">
+                <div class="col-md-4 mb-3" style="position: relative;">
+                  <label for="cliente_treino" class="form-label">Cliente</label>
+                  <input type="text" name="cliente_nome" id="cliente_treino" class="form-control" placeholder="Pesquise por nome, CNPJ/CPF ou Serial" autocomplete="off" required>
+                  <input type="hidden" name="cliente_id" id="cliente_id">
+                  <div id="cliente_suggestions" class="list-group" style="position: absolute; width: 100%; z-index: 1000;"></div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="sistema_treino" class="form-label">Sistema</label>
+                  <select name="sistema" id="sistema_treino" class="form-select" required>
+                    <option value="">-- Selecione --</option>
+                    <?php foreach($sistemas as $sis): ?>
+                      <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
+                        <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="consultor_treino" class="form-label">Consultor</label>
+                  <select name="consultor" id="consultor_treino" class="form-select" required>
+                    <option value="">-- Selecione --</option>
+                    <?php foreach($consultores as $cons): ?>
+                      <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
+                        <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Linha 3: Status -->
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="status_treino" class="form-label">Status</label>
+                  <select name="status" id="status_treino" class="form-select">
+                    <option value="PENDENTE">Pendente</option>
+                    <option value="CONCLUIDO">Concluído</option>
+                    <option value="CANCELADO">Cancelado</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Linha 4: Observações -->
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="observacoes_treino" class="form-label">Observações</label>
+                  <textarea name="observacoes" id="observacoes_treino" class="form-control" rows="3"></textarea>
+                </div>
+              </div>
+
+              <!-- Linha 5: Duração (minutos) -->
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="duracao_treino" class="form-label">Duração (minutos)</label>
+                  <input type="number" name="duracao" id="duracao_treino" class="form-control" required value="30" onchange="verificaHoras();">
+                </div>
+              </div>
+            </div><!-- modal-body -->
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-custom">Cadastrar</button>
+            </div>
+          </form>
+        </div>
       </div>
-      <form action="cadastrar_treinamento.php" method="post">
-        <div class="modal-body">
-          <!-- Linha 1: Data | Hora | Tipo -->
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <label for="data_treino" class="form-label">Data</label>
-              <input type="date" name="data" id="data_treino" class="form-control" required>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label for="hora_treino" class="form-label">Hora</label>
-              <input type="time" name="hora" id="hora_treino" class="form-control" required>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label for="tipo_treino" class="form-label">Tipo</label>
-              <select name="tipo" id="tipo_treino" class="form-select" required>
-                <option value="TREINAMENTO">Treinamento</option>
-                <option value="INSTALACAO">Instalação</option>
-                <option value="AMBOS">Instalação + Treinamento</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Linha 2: Cliente (Pesquisa), Sistema, Consultor -->
-          <div class="row">
-            <div class="col-md-4 mb-3" style="position: relative;">
-              <label for="cliente_treino" class="form-label">Cliente</label>
-              <input type="text" name="cliente_nome" id="cliente_treino" class="form-control" placeholder="Pesquise por nome, CNPJ/CPF ou Serial" autocomplete="off" required>
-              <input type="hidden" name="cliente_id" id="cliente_id">
-              <div id="cliente_suggestions" class="list-group" style="position: absolute; width: 100%; z-index: 1000;"></div>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label for="sistema_treino" class="form-label">Sistema</label>
-              <select name="sistema" id="sistema_treino" class="form-select" required>
-                <option value="">-- Selecione --</option>
-                <?php foreach($sistemas as $sis): ?>
-                  <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
-                    <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
-                  </option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label for="consultor_treino" class="form-label">Consultor</label>
-              <select name="consultor" id="consultor_treino" class="form-select" required>
-                <option value="">-- Selecione --</option>
-                <?php foreach($consultores as $cons): ?>
-                  <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
-                    <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
-                  </option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-          </div>
-
-          <!-- Linha 3: Status -->
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <label for="status_treino" class="form-label">Status</label>
-              <select name="status" id="status_treino" class="form-select">
-                <option value="PENDENTE">Pendente</option>
-                <option value="CONCLUIDO">Concluído</option>
-                <option value="CANCELADO">Cancelado</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Linha 4: Observações -->
-          <div class="row">
-            <div class="col-12 mb-3">
-              <label for="observacoes_treino" class="form-label">Observações</label>
-              <textarea name="observacoes" id="observacoes_treino" class="form-control" rows="3"></textarea>
-            </div>
-          </div>
-
-          <!-- Linha 5: Duração (minutos) -->
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <label for="duracao_treino" class="form-label">Duração (minutos)</label>
-              <input type="number" name="duracao" id="duracao_treino" class="form-control" required value="30">
-            </div>
-          </div>
-        </div><!-- modal-body -->
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-custom">Cadastrar</button>
-        </div>
-      </form>
     </div>
-  </div>
-</div>
 
-<!-- Modal: Edição de Agendamento -->
-<div class="modal fade" id="modalEditarTreinamento" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalEditarLabel">Editar Agendamento</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+    <!-- Modal: Excedeu Horas Contratadas -->
+    <div class="modal fade" id="modalExceeded" tabindex="-1" aria-labelledby="modalExceededLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalExceededLabel">Limite de Horas Excedido</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <p id="exceededMessage"></p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="btnRedirectClients">Sim, Registrar Mais Horas</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          </div>
+        </div>
       </div>
-      <form action="editar_treinamento.php" method="post">
-        <div class="modal-body">
-          <input type="hidden" name="id" id="edit_id">
-          <!-- Linha 1: Data | Hora | Tipo -->
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <label for="edit_data" class="form-label">Data</label>
-              <input type="date" name="data" id="edit_data" class="form-control" required>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label for="edit_hora" class="form-label">Hora</label>
-              <input type="time" name="hora" id="edit_hora" class="form-control" required>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label for="edit_tipo" class="form-label">Tipo</label>
-              <select name="tipo" id="edit_tipo" class="form-select" required>
-                <option value="TREINAMENTO">Treinamento</option>
-                <option value="INSTALACAO">Instalação</option>
-                <option value="AMBOS">Instalação + Treinamento</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Linha 2: Cliente (Pesquisa), Sistema, Consultor -->
-          <div class="row">
-            <div class="col-md-4 mb-3" style="position: relative;">
-              <label for="edit_cliente" class="form-label">Cliente</label>
-              <input type="text" name="cliente_nome" id="edit_cliente" class="form-control" placeholder="Pesquise por nome, CNPJ/CPF ou Serial" autocomplete="off" required>
-              <input type="hidden" name="cliente_id" id="edit_cliente_id">
-              <div id="edit_cliente_suggestions" class="list-group" style="position: absolute; width: 100%; z-index: 1000;"></div>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label for="edit_sistema" class="form-label">Sistema</label>
-              <select name="sistema" id="edit_sistema" class="form-select" required>
-                <?php foreach($sistemas as $sis): ?>
-                  <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
-                    <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
-                  </option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-            <div class="col-md-4 mb-3">
-              <label for="edit_consultor" class="form-label">Consultor</label>
-              <select name="consultor" id="edit_consultor" class="form-select" required>
-                <option value="">-- Selecione --</option>
-                <?php foreach($consultores as $cons): ?>
-                  <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
-                    <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
-                  </option>
-                <?php endforeach; ?>
-              </select>
-            </div>
-          </div>
-
-          <!-- Linha 3: Status -->
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <label for="edit_status" class="form-label">Status</label>
-              <select name="status" id="edit_status" class="form-select">
-                <option value="PENDENTE">Pendente</option>
-                <option value="CONCLUIDO">Concluído</option>
-                <option value="CANCELADO">Cancelado</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Linha 4: Observações -->
-          <div class="row">
-            <div class="col-12 mb-3">
-              <label for="edit_observacoes" class="form-label">Observações</label>
-              <textarea name="observacoes" id="edit_observacoes" class="form-control" rows="3"></textarea>
-            </div>
-          </div>
-
-          <!-- Linha 5: Duração (minutos) -->
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <label for="edit_duracao" class="form-label">Duração (minutos)</label>
-              <input type="number" name="duracao" id="edit_duracao" class="form-control" required value="30">
-            </div>
-          </div>
-        </div><!-- modal-body -->
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-custom">Salvar</button>
-        </div>
-      </form>
     </div>
-  </div>
-</div>
 
-<!-- Modal: Exclusão de Agendamento -->
-<div class="modal fade" id="modalExcluirTreinamento" tabindex="-1" aria-labelledby="modalExcluirLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalExcluirLabel">Excluir Agendamento</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+
+
+    <!-- Modal: Edição de Agendamento -->
+    <div class="modal fade" id="modalEditarTreinamento" tabindex="-1" aria-labelledby="modalEditarLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalEditarLabel">Editar Agendamento</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <form action="editar_treinamento.php" method="post">
+            <div class="modal-body">
+              <input type="hidden" name="id" id="edit_id">
+              <!-- Linha 1: Data | Hora | Tipo -->
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="edit_data" class="form-label">Data</label>
+                  <input type="date" name="data" id="edit_data" class="form-control" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="edit_hora" class="form-label">Hora</label>
+                  <input type="time" name="hora" id="edit_hora" class="form-control" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="edit_tipo" class="form-label">Tipo</label>
+                  <select name="tipo" id="edit_tipo" class="form-select" required>
+                    <option value="TREINAMENTO">Treinamento</option>
+                    <option value="INSTALACAO">Instalação</option>
+                    <option value="AMBOS">Instalação + Treinamento</option>
+                  </select>
+                </div>
+              </div>
+              <!-- Hidden para dt_ini e dt_fim -->
+              <input type="hidden" name="dt_ini" id="edit_dt_ini" value="">
+              <input type="hidden" name="dt_fim" id="edit_dt_fim" value="">
+              <!-- Linha 2: Cliente (Pesquisa), Sistema, Consultor -->
+              <div class="row">
+                <div class="col-md-4 mb-3" style="position: relative;">
+                  <label for="edit_cliente" class="form-label">Cliente</label>
+                  <input type="text" name="cliente_nome" id="edit_cliente" class="form-control" placeholder="Pesquise por nome, CNPJ/CPF ou Serial" autocomplete="off" required>
+                  <input type="hidden" name="cliente_id" id="edit_cliente_id">
+                  <div id="edit_cliente_suggestions" class="list-group" style="position: absolute; width: 100%; z-index: 1000;"></div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="edit_sistema" class="form-label">Sistema</label>
+                  <select name="sistema" id="edit_sistema" class="form-select" required>
+                    <?php foreach($sistemas as $sis): ?>
+                      <option value="<?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>">
+                        <?= htmlspecialchars($sis['Descricao'], ENT_QUOTES) ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="edit_consultor" class="form-label">Consultor</label>
+                  <select name="consultor" id="edit_consultor" class="form-select" required>
+                    <option value="">-- Selecione --</option>
+                    <?php foreach($consultores as $cons): ?>
+                      <option value="<?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>">
+                        <?= htmlspecialchars($cons['Nome'], ENT_QUOTES) ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+              </div>
+              <!-- Linha 3: Status -->
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="edit_status" class="form-label">Status</label>
+                  <select name="status" id="edit_status" class="form-select">
+                    <option value="PENDENTE">Pendente</option>
+                    <option value="CONCLUIDO">Concluído</option>
+                    <option value="CANCELADO">Cancelado</option>
+                  </select>
+                </div>
+              </div>
+              <!-- Linha 4: Observações -->
+              <div class="row">
+                <div class="col-12 mb-3">
+                  <label for="edit_observacoes" class="form-label">Observações</label>
+                  <textarea name="observacoes" id="edit_observacoes" class="form-control" rows="3"></textarea>
+                </div>
+              </div>
+              <!-- Linha 5: Duração (minutos) -->
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="edit_duracao" class="form-label">Duração (minutos)</label>
+                  <input type="number" name="duracao" id="edit_duracao" class="form-control" required value="30">
+                </div>
+              </div>
+            </div><!-- modal-body -->
+            <div class="modal-footer">
+              <div class="d-flex w-100">
+                <!-- Ambos os botões iniciam com display:none; serão exibidos via JavaScript conforme o valor de dt_ini/dt_fim -->
+                <?php if ($cargo === 'Treinamento'): ?>
+                  <button type="button" class="btn btn-success me-2" id="btnIniciarTreinamento" style="display: none;">
+                    <i class="fa-solid fa-circle-play me-2"></i>Iniciar
+                  </button>
+                  <button type="button" class="btn btn-danger me-2" id="btnEncerrarTreinamento" style="display: none;">
+                    <i class="fa-solid fa-circle-pause me-2"></i>Encerrar
+                  </button>
+                <?php endif; ?>
+                <div class="ms-auto">
+                  <a><i class="fa-solid fa-trash-can text-center" style="font-size: 1.75em; cursor: pointer;"></i></a>
+                  <button type="submit" name="action" value="salvar" class="btn btn-custom">Salvar</button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
-      <form action="deletar_treinamento.php" method="post">
-        <div class="modal-body">
-          <input type="hidden" name="id" id="excluir_id">
-          <p>Tem certeza que deseja excluir o agendamento <strong id="excluir_cliente"></strong>?</p>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-danger">Excluir</button>
-        </div>
-      </form>
     </div>
-  </div>
-</div>
-      
+
+    <!-- Modal: Exclusão de Agendamento -->
+    <div class="modal fade" id="modalExcluirTreinamento" tabindex="-1" aria-labelledby="modalExcluirLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalExcluirLabel">Excluir Agendamento</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <form action="deletar_treinamento.php" method="post">
+            <div class="modal-body">
+              <input type="hidden" name="id" id="excluir_id">
+              <p>Tem certeza que deseja excluir o agendamento <strong id="excluir_cliente"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-danger">Excluir</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div> <!-- / w-100 -->
 </div> <!-- / d-flex-wrapper -->
+
 <!-- Modal: Excedeu Horas Contratadas -->
 <div class="modal fade" id="modalExceeded" tabindex="-1" aria-labelledby="modalExceededLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -373,12 +491,47 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
   </div>
 </div>
 <!-- Scripts JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
+
 <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Inicializa todos os tooltips do Bootstrap
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Configura o clique no ícone para encerrar o treinamento via AJAX
+    $("#iconFinalizar").on("click", function() {
+        // Obtenha o ID do treinamento em andamento (conforme sua lógica)
+        var treinamentoId = <?= json_encode($treinamentoEmAndamento['id'] ?? 0) ?>;
+        if(treinamentoId == 0) return;
+        
+        $.ajax({
+            url: 'editar_treinamento.php',
+            method: 'POST',
+            data: { id: treinamentoId, action: 'encerrar' },
+            dataType: 'json',
+            success: function(response) {
+                if(response.status === "success"){
+                    alert(response.message);
+                    location.reload();
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function() {
+                alert("Erro na comunicação com o servidor.");
+            }
+        });
+    });
+  });
+
   document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
     var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -415,10 +568,8 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         document.getElementById('edit_data').value = `${year}-${month}-${day}`;
         document.getElementById('edit_hora').value = `${hours}:${mins}`;
         
-        // Preenche os campos do cliente
         document.getElementById('edit_cliente').value = eventObj.extendedProps.cliente;
         document.getElementById('edit_cliente_id').value = eventObj.extendedProps.cliente_id;
-        // Armazena os valores originais para recuperação caso o usuário apague o campo
         $('#edit_cliente').data('original-client-id', eventObj.extendedProps.cliente_id);
         $('#edit_cliente').data('original-client-nome', eventObj.extendedProps.cliente);
         
@@ -428,20 +579,164 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
         document.getElementById('edit_tipo').value = eventObj.extendedProps.tipo || 'TREINAMENTO';
         document.getElementById('edit_observacoes').value = eventObj.extendedProps.observacoes || '';
         document.getElementById('edit_duracao').value = eventObj.extendedProps.duracao || 30;
-  
-        let editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
+        
+        var dtIni = eventObj.extendedProps.dt_ini;
+        var dtFim = eventObj.extendedProps.dt_fim;
+        
+        if (dtIni === "0000-00-00 00:00:00") dtIni = "";
+        if (dtFim === "0000-00-00 00:00:00") dtFim = "";
+        
+        document.getElementById('edit_dt_ini').value = dtIni ? dtIni : "";
+        document.getElementById('edit_dt_fim').value = dtFim ? dtFim : "";
+        
+        // Se dt_ini está preenchido e dt_fim está vazio, mostra o botão de Encerrar
+        if (!dtIni) {
+          $('#btnIniciarTreinamento').show();
+          $('#btnEncerrarTreinamento').hide();
+        } else if (dtIni && !dtFim) {
+          $('#btnIniciarTreinamento').hide();
+          $('#btnEncerrarTreinamento').show();
+        } else {
+          $('#btnIniciarTreinamento').hide();
+          $('#btnEncerrarTreinamento').hide();
+        }
+        
+        $('#modalEditarTreinamento form input[name="action"]').remove();
+        var editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
         editModal.show();
       }
     });
     calendar.render();
   });
 
+  $(document).ready(function(){
+    $('#modalCadastroTreinamento form').on('submit', function(e){
+        e.preventDefault(); // impede o envio imediato
+        var form = $(this);
+        $.ajax({
+            url: 'check_hours.php',
+            method: 'POST',
+            data: form.serialize(),
+            dataType: 'json',
+            success: function(response) {
+                if(response.status === 'exceeded'){
+                    // Exibe o modal de aviso de horas excedidas
+                    var formattedMsg = response.message.replace(/\n/g, "<br>");
+                    $('#exceededMessage').html(formattedMsg);
+                    var modalExceeded = new bootstrap.Modal(document.getElementById('modalExceeded'));
+                    modalExceeded.show();
+                } else if(response.status === 'ok'){
+                    // Remove o handler e submete o formulário normalmente
+                    form.off('submit').submit();
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function(){
+                alert('Erro na comunicação com o servidor.');
+            }
+        });
+    });
+  });
+
+  // Botões de ação no modal
+  $(document).ready(function(){  
+    // Exemplo: Botão para redirecionar para a aba de clientes (se necessário)
+    $('#btnRedirectClients').on('click', function(){
+        window.location.href = 'clientes.php';
+    });
+    // Botão para redirecionar para a aba de clientes
+    $('#btnRedirectClients').on('click', function(){
+        window.location.href = 'clientes.php';
+    });
+
+    // Ao clicar no botão para redirecionar para a aba de clientes para registrar mais horas
+    $('#btnRedirectClients').on('click', function(){
+        window.location.href = 'clientes.php';
+    });
+  
+    // Botão Iniciar
+    $('#btnIniciarTreinamento').click(function(e) {
+      e.preventDefault();
+      $('#modalEditarTreinamento form input[name="action"]').remove();
+      $('<input>').attr({
+        type: 'hidden',
+        name: 'action',
+        value: 'iniciar'
+      }).appendTo('#modalEditarTreinamento form');
+      $('#modalEditarTreinamento form').submit();
+    });
+    
+    // Botão Encerrar
+    $('#btnEncerrarTreinamento').click(function(e) {
+      e.preventDefault();
+      $('#modalEditarTreinamento form input[name="action"]').remove();
+      $('<input>').attr({
+        type: 'hidden',
+        name: 'action',
+        value: 'encerrar'
+      }).appendTo('#modalEditarTreinamento form');
+      $('#modalEditarTreinamento form').submit();
+    });
+  });
+
+  function verificaHoras() {
+    var clienteId = $("#cliente_id").val();
+    var duracao = parseInt($("#duracao_treino").val());
+    if (!clienteId || isNaN(duracao)) return;
+    
+    $.ajax({
+        url: 'check_hours.php',
+        method: 'POST',
+        data: { cliente_id: clienteId, duracao: duracao },
+        dataType: 'json',
+        success: function(response) {
+            if(response.status === 'exceeded'){
+                var formattedMsg = response.message.replace(/\n/g, "<br>");
+                $('#exceededMessage').html(formattedMsg);
+                var modalExceeded = new bootstrap.Modal(document.getElementById('modalExceeded'));
+                modalExceeded.show();
+            }
+        },
+        error: function(){
+            console.log("Falha na verificação das horas.");
+        }
+    });
+  }
+
+
+  $(document).ready(function(){
+    // Se desejar que a verificação ocorra quando o campo de duração mudar
+    $("#duracao_treinamento").on("change", verificaHoras);
+  });
+
+
+  $(document).ready(function(){
+    // Sempre que o valor de duração mudar, dispara a verificação
+    $("#duracao_treino").on("change", verificaHoras);
+  });
+
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Inicializa os tooltips do Bootstrap
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Ao clicar no ícone de finalizar, submete o formulário
+    document.getElementById('iconFinalizar').addEventListener('click', function() {
+      document.getElementById('finalizeForm').submit();
+    });
+  });
+
+  
   function modalExcluir(id, cliente) {
     document.getElementById('excluir_id').value = id;
     document.getElementById('excluir_cliente').textContent = cliente;
     new bootstrap.Modal(document.getElementById('modalExcluirTreinamento')).show();
   }
-  
+    
   // ALERTA DE PROXIMIDADE
   let eventoParaReagendar = null;
   function mostrarToastAgendamento(evento) {
@@ -456,7 +751,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
     const toast = new bootstrap.Toast(toastElement, { delay: 10000 });
     toast.show();
   }
-
+  
   document.getElementById('btnReagendarToast').addEventListener('click', function() {
     if (!eventoParaReagendar) return;
     const evento = eventoParaReagendar;
@@ -480,7 +775,7 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
     const editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
     editModal.show();
   });
-
+  
   function verificarProximidadeAgendamento(eventos) {
     const agora = new Date();
     const alertaAntecedenciaMinutos = 15;
@@ -492,143 +787,103 @@ while ($row = mysqli_fetch_assoc($consultorResult)) {
       }
     });
   }
-
+  
   function checarAgendamentos() {
     fetch('fetch_treinamentos.php')
       .then(response => response.json())
       .then(eventos => verificarProximidadeAgendamento(eventos))
       .catch(error => console.error('Erro ao carregar eventos:', error));
   }
-
+  
   setInterval(checarAgendamentos, 300000);
   checarAgendamentos();
-</script>
-
-<script>
-$(document).ready(function(){
+  
+  $(document).ready(function(){
     // Busca para o campo de cliente no cadastro de agendamento
     $('#cliente_treino').on('keyup', function(){
-        var query = $(this).val();
-        if(query.length < 2) {
-            $('#cliente_suggestions').empty();
-            return;
-        }
-        $.ajax({
-            url: 'search_clientes.php',
-            data: { q: query },
-            dataType: 'json',
-            success: function(data) {
-                var suggestions = '';
-                data.forEach(function(item) {
-                    suggestions += '<a href="#" class="list-group-item list-group-item-action" data-id="'+item.id+'" data-nome="'+item.cliente+'">'+item.cliente+' - '+item.cnpjcpf+' - '+item.serial+'</a>';
-                });
-                $('#cliente_suggestions').html(suggestions);
-            }
-        });
-    });
-
-    $('#cliente_suggestions').on('click', 'a', function(e){
-        e.preventDefault();
-        var id = $(this).data('id');
-        var nome = $(this).data('nome');
-        $('#cliente_treino').val(nome);
-        $('#cliente_id').val(id);
+      var query = $(this).val();
+      if(query.length < 2) {
         $('#cliente_suggestions').empty();
-    });
-
-    $(document).click(function(e) {
-        if (!$(e.target).closest('#cliente_treino, #cliente_suggestions').length) {
-            $('#cliente_suggestions').empty();
+        return;
+      }
+      $.ajax({
+        url: 'search_clientes.php',
+        data: { q: query },
+        dataType: 'json',
+        success: function(data) {
+          var suggestions = '';
+          data.forEach(function(item) {
+            suggestions += '<a href="#" class="list-group-item list-group-item-action" data-id="'+item.id+'" data-nome="'+item.cliente+'">'+item.cliente+' - '+item.cnpjcpf+' - '+item.serial+'</a>';
+          });
+          $('#cliente_suggestions').html(suggestions);
         }
+      });
     });
-
+  
+    $('#cliente_suggestions').on('click', 'a', function(e){
+      e.preventDefault();
+      var id = $(this).data('id');
+      var nome = $(this).data('nome');
+      $('#cliente_treino').val(nome);
+      $('#cliente_id').val(id);
+      $('#cliente_suggestions').empty();
+    });
+  
+    $(document).click(function(e) {
+      if (!$(e.target).closest('#cliente_treino, #cliente_suggestions').length) {
+        $('#cliente_suggestions').empty();
+      }
+    });
+  
     // Busca para o campo de cliente no modal de edição
     $('#edit_cliente').on('keyup', function(){
-        var query = $(this).val();
-        if(query.length < 2) {
-            $('#edit_cliente_suggestions').empty();
-            return;
-        }
-        $.ajax({
-            url: 'search_clientes.php',
-            data: { q: query },
-            dataType: 'json',
-            success: function(data) {
-                var suggestions = '';
-                data.forEach(function(item) {
-                    suggestions += '<a href="#" class="list-group-item list-group-item-action" data-id="'+item.id+'" data-nome="'+item.cliente+'">'+item.cliente+' - '+item.cnpjcpf+' - '+item.serial+'</a>';
-                });
-                $('#edit_cliente_suggestions').html(suggestions);
-            }
-        });
-    });
-
-    $('#edit_cliente_suggestions').on('click', function(e){
-        // Evita que o clique em qualquer lugar dentro da área de sugestões feche a lista
-        e.stopPropagation();
-    });
-
-    $('#edit_cliente_suggestions').on('click', 'a', function(e){
-        e.preventDefault();
-        var id = $(this).data('id');
-        var nome = $(this).data('nome');
-        $('#edit_cliente').val(nome);
-        $('#edit_cliente_id').val(id);
+      var query = $(this).val();
+      if(query.length < 2) {
         $('#edit_cliente_suggestions').empty();
-    });
-
-    $(document).click(function(e) {
-        if (!$(e.target).closest('#edit_cliente, #edit_cliente_suggestions').length) {
-            $('#edit_cliente_suggestions').empty();
+        return;
+      }
+      $.ajax({
+        url: 'search_clientes.php',
+        data: { q: query },
+        dataType: 'json',
+        success: function(data) {
+          var suggestions = '';
+          data.forEach(function(item) {
+            suggestions += '<a href="#" class="list-group-item list-group-item-action" data-id="'+item.id+'" data-nome="'+item.cliente+'">'+item.cliente+' - '+item.cnpjcpf+' - '+item.serial+'</a>';
+          });
+          $('#edit_cliente_suggestions').html(suggestions);
         }
+      });
     });
-
-    // Ao sair (blur) do campo de edição, se o valor não mudar, garante que o hidden seja o original
+  
+    $('#edit_cliente_suggestions').on('click', function(e){
+      e.stopPropagation();
+    });
+  
+    $('#edit_cliente_suggestions').on('click', 'a', function(e){
+      e.preventDefault();
+      var id = $(this).data('id');
+      var nome = $(this).data('nome');
+      $('#edit_cliente').val(nome);
+      $('#edit_cliente_id').val(id);
+      $('#edit_cliente_suggestions').empty();
+    });
+  
+    $(document).click(function(e) {
+      if (!$(e.target).closest('#edit_cliente, #edit_cliente_suggestions').length) {
+        $('#edit_cliente_suggestions').empty();
+      }
+    });
+  
     $('#edit_cliente').on('blur', function(){
       var originalNome = $(this).data('original-client-nome');
       if($(this).val().trim() === '' || $(this).val().trim() === originalNome){
-         var originalId = $(this).data('original-client-id');
-         $('#edit_cliente_id').val(originalId);
+        var originalId = $(this).data('original-client-id');
+        $('#edit_cliente_id').val(originalId);
       }
     });
-});
+  });
 </script>
-<script>
-$(document).ready(function(){
-  // Intercepta a submissão do formulário do modal de cadastro de agendamento
-  $('#modalCadastroTreinamento form').on('submit', function(e){
-      e.preventDefault();
-      $.ajax({
-          url: $(this).attr('action'),
-          method: 'POST',
-          data: $(this).serialize(),
-          dataType: 'json',
-          success: function(response) {
-              if(response.status === 'exceeded'){
-                  // Converte as quebras de linha para <br> e exibe a mensagem no modal
-                  var formattedMsg = response.message.replace(/\n/g, "<br>");
-                  $('#exceededMessage').html(formattedMsg);
-                  var modalExceeded = new bootstrap.Modal(document.getElementById('modalExceeded'));
-                  modalExceeded.show();
-              } else if(response.status === 'success'){
-                  alert(response.message);
-                  location.reload();
-              } else {
-                  alert(response.message);
-              }
-          },
-          error: function(){
-              alert('Erro na comunicação com o servidor.');
-          }
-      });
-  });
 
-  // Ao clicar no botão para redirecionar para a aba de clientes para registrar mais horas
-  $('#btnRedirectClients').on('click', function(){
-      window.location.href = 'clientes.php';
-  });
-});
-
-  </script>
 </body>
 </html>

@@ -170,7 +170,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
       
       <?php endif; ?>
 
-      <?php if($cargo==='Admin'): ?>
+      <?php if($cargo==='Admin' || $cargo==='Treinamento'): ?>
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
         <div class="menu-card" onclick="location.href='treinamento.php';">
           <div class="menu-icon">

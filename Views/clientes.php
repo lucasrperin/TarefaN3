@@ -65,7 +65,7 @@ $result = mysqli_query($conn, $query);
       <div class="content container-fluid">
         <div class="card mb-4">
           <div class="card-header d-flex justify-content-between align-items-center">
-            <h4>Lista de Clientes</h4>
+            <h4><a href="treinamento.php"><i class="fa-solid fa-angle-left me-2" style="color: #283e51"></i></a>Lista de Clientes</h4>
             <button class="btn btn-custom" onclick="novoCliente()">
               <i class="fa-solid fa-plus me-1"></i> Novo Cliente
             </button>

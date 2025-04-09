@@ -47,7 +47,7 @@ while ($row = mysqli_fetch_assoc($result)) {
         break;
     }
 
-    // Monta o título utilizando o nome do cliente (vindo da tabela TB_CLIENTES)
+    // Monta o título utilizando o nome do cliente e sistema
     $tituloOriginal = $row['cliente'] . " - " . $row['sistema'];
     $titulo = $simboloStatus . ' ' . $tituloOriginal;
 
@@ -65,10 +65,13 @@ while ($row = mysqli_fetch_assoc($result)) {
             'sistema'     => $row['sistema'],
             'consultor'   => $row['consultor'],
             'serial'      => $row['serial'],
-            'observacoes' => $row['observacoes']
+            'observacoes' => $row['observacoes'],
+            'dt_ini'      => $row['dt_ini'],
+            'dt_fim'      => $row['dt_fim'],
         ]
     ];
 }
 
 header('Content-Type: application/json');
 echo json_encode($eventos);
+?>

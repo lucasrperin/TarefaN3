@@ -73,6 +73,7 @@ INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Ian Savoldi', 'ian.s
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Iago Pereira', 'iago.pereira@zucchetti.com', 1234, 'Conversor');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Eduardo Renan', 'eduardo.renan@zucchetti.com', 1234, 'Conversor');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Vanessa Maia', 'vanessa.maia@zucchetti.com', 1234, 'Comercial');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Adinan Barpi', 'adinan.barpi@zucchetti.com', 1234, 'Treinamento');
 
 ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idSituacao) REFERENCES TB_SITUACAO (Id);
 ALTER TABLE TB_ANALISES ADD FOREIGN KEY(idSistema) REFERENCES TB_SISTEMA (Id);
@@ -356,5 +357,8 @@ CREATE TABLE TB_TREINAMENTOS (
     status ENUM('PENDENTE','CONCLUIDO','CANCELADO') DEFAULT 'PENDENTE',
     observacoes TEXT,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+    dt_ini DATETIME,
+    dt_fim DATETIME,
+    total_tempo TIME,
     CONSTRAINT fk_cliente FOREIGN KEY (cliente_id) REFERENCES TB_CLIENTES(id)
 );
