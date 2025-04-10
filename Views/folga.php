@@ -130,11 +130,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
 }
 
 // ===================== CONSULTAS PARA LISTAGEM (Tabelas) =====================
-// Para Férias
+// Para Ferias
 $sqlListarFerias = "SELECT f.id, f.usuario_id, u.Nome AS nome_colaborador, f.data_inicio, f.data_fim, f.quantidade_dias
                     FROM TB_FOLGA f
                     JOIN TB_USUARIO u ON f.usuario_id = u.Id";
-$conditionsFerias = ["f.tipo = 'Férias'"];
+$conditionsFerias = ["f.tipo = 'Ferias'"];
 if ($idEquipeFilter != 'Todos' || $idNivelFilter != 'Todos') {
     $sqlListarFerias .= " JOIN TB_EQUIPE_NIVEL_ANALISTA eva ON u.Id = eva.idUsuario";
 }
@@ -274,7 +274,7 @@ $resultFolga = $conn->query($sqlListarFolga);
     <div class="modal-dialog modal-lg">
       <div class="modal-content shadow">
         <div class="modal-header">
-          <h5 class="modal-title" id="modalCadastroLabel">Cadastrar Folga/Férias</h5>
+          <h5 class="modal-title" id="modalCadastroLabel">Cadastrar Folga/Ferias</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
         <form method="post" action="">
@@ -296,7 +296,7 @@ $resultFolga = $conn->query($sqlListarFolga);
               <div class="col-md-6">
                 <label for="tipo" class="form-label fw-semibold">Tipo:</label>
                 <select class="form-select" name="tipo" id="tipo">
-                  <option value="Férias">Férias</option>
+                  <option value="Ferias">Ferias</option>
                   <option value="Folga">Folga</option>
                 </select>
               </div>
@@ -335,7 +335,7 @@ $resultFolga = $conn->query($sqlListarFolga);
     <div class="modal-dialog modal-lg">
       <div class="modal-content shadow">
         <div class="modal-header">
-          <h5 class="modal-title" id="modalEditarLabel">Editar Folga/Férias</h5>
+          <h5 class="modal-title" id="modalEditarLabel">Editar Folga/Ferias</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
         <form method="post" action="editar_folga.php">
@@ -345,7 +345,6 @@ $resultFolga = $conn->query($sqlListarFolga);
               <div class="col-md-6">
                 <label for="edit_usuario_id" class="form-label fw-semibold">Colaborador:</label>
                 <?php
-                  // Para o modal de edição, também aplicamos o filtro de colaboradores
                   if ($idEquipeFilter != 'Todos' || $idNivelFilter != 'Todos') {
                       $sqlUsuarios2 = "SELECT u.Id, u.Nome FROM TB_USUARIO u
                                         JOIN TB_EQUIPE_NIVEL_ANALISTA eva ON u.Id = eva.idUsuario
@@ -372,7 +371,7 @@ $resultFolga = $conn->query($sqlListarFolga);
               <div class="col-md-6">
                 <label for="edit_tipo" class="form-label fw-semibold">Tipo:</label>
                 <select class="form-select" name="tipo" id="edit_tipo" required>
-                  <option value="Férias">Férias</option>
+                  <option value="Ferias">Ferias</option>
                   <option value="Folga">Folga</option>
                 </select>
               </div>
@@ -407,11 +406,11 @@ $resultFolga = $conn->query($sqlListarFolga);
 
   <!-- Listagem dos registros -->
   <div class="row g-4">
-    <!-- Card de Férias -->
+    <!-- Card de Ferias -->
     <div class="col-md-6">
       <div class="card shadow-sm">
         <div class="card-header bg-secondary text-white">
-          <h4 class="mb-0">Férias</h4>
+          <h4 class="mb-0">Ferias</h4>
         </div>
         <div class="card-body p-0">
           <table class="table table-hover table-striped mb-0">
@@ -440,7 +439,7 @@ $resultFolga = $conn->query($sqlListarFolga);
                           data-bs-target="#modalEditar"
                           data-id="<?php echo $row['id']; ?>"
                           data-usuarioid="<?php echo $row['usuario_id']; ?>"  
-                          data-tipo="Férias"
+                          data-tipo="Ferias"
                           data-inicio="<?php echo $row['data_inicio']; ?>"
                           data-fim="<?php echo $row['data_fim']; ?>"
                           data-justificativa="">
@@ -458,7 +457,7 @@ $resultFolga = $conn->query($sqlListarFolga);
                 <?php endwhile; ?>
               <?php else: ?>
                 <tr>
-                  <td colspan="5" class="text-center text-muted">Nenhum registro de Férias encontrado.</td>
+                  <td colspan="5" class="text-center text-muted">Nenhum registro de Ferias encontrado.</td>
                 </tr>
               <?php endif; ?>
             </tbody>
@@ -580,7 +579,6 @@ $resultFolga = $conn->query($sqlListarFolga);
       },
       height: 350,
       expandRows: true,
-      // Personaliza os cabeçalhos dos dias da semana: remove o ponto e deixa em maiúsculas
       dayHeaderContent: function(arg) {
         return arg.text.toUpperCase().replace(/\./g, '');
       },

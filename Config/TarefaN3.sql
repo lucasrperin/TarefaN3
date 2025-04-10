@@ -249,7 +249,7 @@ CREATE TABLE IF NOT EXISTS TB_INDICACAO (
 CREATE TABLE TB_FOLGA (
   id INT AUTO_INCREMENT PRIMARY KEY,
   usuario_id INT NOT NULL,
-  tipo ENUM('Férias','Folga') NOT NULL,
+  tipo ENUM('Ferias','Folga') NOT NULL,
   data_inicio DATE NOT NULL,
   data_fim DATE NOT NULL,
   quantidade_dias INT NOT NULL,
@@ -364,4 +364,12 @@ CREATE TABLE TB_TREINAMENTOS (
     dt_fim DATETIME,
     total_tempo TIME,
     CONSTRAINT fk_cliente FOREIGN KEY (cliente_id) REFERENCES TB_CLIENTES(id)
+);
+CREATE TABLE TB_NOTIFICACOES (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(100) NOT NULL,
+    mensagem TEXT NOT NULL,
+    data_envio DATETIME DEFAULT CURRENT_TIMESTAMP,
+    cliente_id INT,
+    FOREIGN KEY (cliente_id) REFERENCES TB_CLIENTES(id)
 );

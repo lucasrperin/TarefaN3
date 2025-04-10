@@ -1,13 +1,13 @@
 <?php
 include '../Config/Database.php';
 session_start();
-
+ 
 // Verifica se o usuário está autenticado
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: login.php");
     exit();
 }
-
+ 
 // Seleciona todos os clientes (ativos e inativos)
 $query = "SELECT * FROM TB_CLIENTES ORDER BY cliente";
 $result = mysqli_query($conn, $query);
@@ -23,7 +23,7 @@ $result = mysqli_query($conn, $query);
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-  <!-- CSS customizado (mesmo usado no treinamento.php) -->
+  <!-- CSS customizado -->
   <link rel="stylesheet" href="../Public/treinamento.css">
 </head>
 <body>
@@ -42,7 +42,7 @@ $result = mysqli_query($conn, $query);
         <a class="nav-link" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i> Incidentes</a>
         <a class="nav-link" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i> Indicações</a>
         <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i> Nível 3</a>
-        <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i> Totalizadores</a>
+        <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2"></i> Totalizadores</a>
         <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i> Usuários</a>
         <a class="nav-link active" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i> Treinamentos</a>
       </nav>
@@ -69,12 +69,40 @@ $result = mysqli_query($conn, $query);
             <i class="fa-solid fa-paper-plane me-1"></i> Enviar Notificações
           </button>
         </div>
+        
+        <!-- Accordion para Notificações Enviadas (global) -->
+        <div class="accordion mb-4" id="notificacoesAccordion">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingNotificacoes">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNotificacoes" aria-expanded="false" aria-controls="collapseNotificacoes">
+                Notificações Enviadas
+              </button>
+            </h2>
+            <div id="collapseNotificacoes" class="accordion-collapse collapse" aria-labelledby="headingNotificacoes" data-bs-parent="#notificacoesAccordion">
+              <div class="accordion-body">
+                <ul class="list-group" id="listaNotificacoes">
+                  <li class="list-group-item">Carregando notificações...</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Card de Lista de Clientes -->
         <div class="card mb-4">
           <div class="card-header d-flex justify-content-between align-items-center">
-            <h4><a href="treinamento.php"><i class="fa-solid fa-angle-left me-2" style="color: #283e51"></i></a>Lista de Clientes</h4>
-            <button class="btn btn-custom" onclick="novoCliente()">
-              <i class="fa-solid fa-plus me-1"></i> Novo Cliente
-            </button>
+            <div class="d-flex align-items-center">
+              <a href="treinamento.php" class="me-2" style="color: #283e51; text-decoration: none;">
+                <i class="fa-solid fa-angle-left"></i>
+              </a>
+              <h4 class="mb-0">Lista de Clientes</h4>
+            </div>
+            <div class="d-flex align-items-center flex-nowrap">
+              <input type="text" id="clientSearch" class="form-control me-2" style="width: 200px;" placeholder="Pesquisar clientes...">
+              <button class="btn btn-custom" onclick="novoCliente()">
+                <i class="fa-solid fa-plus me-1"></i> Novo Cliente
+              </button>
+            </div>
           </div>
           <div class="card-body">
             <table class="table table-bordered">
@@ -84,8 +112,8 @@ $result = mysqli_query($conn, $query);
                   <th>Cliente</th>
                   <th>CNPJ/CPF</th>
                   <th>Serial</th>
-                  <th>Horas Adquiridas (minutos)</th>
-                  <th>Horas Utilizadas (minutos)</th>
+                  <th>Horas Adquiridas (min)</th>
+                  <th>Horas Utilizadas (min)</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -99,21 +127,25 @@ $result = mysqli_query($conn, $query);
                   <td><?= $row['horas_adquiridas'] ?></td>
                   <td><?= $row['horas_utilizadas'] ?></td>
                   <td>
-                  <button class="btn btn-sm btn-warning" onclick="editarCliente(
-                    '<?= $row['id'] ?>',
-                    '<?= addslashes($row['cliente']) ?>',
-                    '<?= addslashes($row['cnpjcpf']) ?>',
-                    '<?= addslashes($row['serial']) ?>',
-                    '<?= $row['horas_adquiridas'] ?>',
-                    '<?= addslashes($row['whatsapp']) ?>',
-                    '<?= $row['data_conclusao'] ?>'
-                  )">Editar</button>
-                  <?php if ($row['ativo'] == 1): ?>
-                    <a href="inativar_cliente.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Deseja inativar este cliente?')">Inativar</a>
-                  <?php else: ?>
-                    <a href="ativar_cliente.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-success" onclick="return confirm('Deseja ativar este cliente?')">Ativar</a>
-                  <?php endif; ?>
-                </td>
+                    <button class="btn btn-sm btn-warning" onclick="editarCliente(
+                      '<?= $row['id'] ?>',
+                      '<?= addslashes($row['cliente']) ?>',
+                      '<?= addslashes($row['cnpjcpf']) ?>',
+                      '<?= addslashes($row['serial']) ?>',
+                      '<?= $row['horas_adquiridas'] ?>',
+                      '<?= addslashes($row['whatsapp']) ?>',
+                      '<?= $row['data_conclusao'] ?>'
+                    )">Editar</button>
+                    <?php if ($row['ativo'] == 1): ?>
+                      <a href="inativar_cliente.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Deseja inativar este cliente?')">Inativar</a>
+                    <?php else: ?>
+                      <a href="ativar_cliente.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-success" onclick="return confirm('Deseja ativar este cliente?')">Ativar</a>
+                    <?php endif; ?>
+                    <!-- Botão individual para visualizar notificações deste cliente -->
+                    <button class="btn btn-sm btn-info mt-1" onclick="verNotificacoesCliente('<?= $row['id'] ?>', '<?= addslashes($row['cliente']) ?>')">
+                      <i class="fa-solid fa-comments"></i>
+                    </button>
+                  </td>
                 </tr>
                 <?php endwhile; ?>
               </tbody>
@@ -147,18 +179,16 @@ $result = mysqli_query($conn, $query);
               <label for="cliente_serial" class="form-label">Serial</label>
               <input type="text" name="serial" id="cliente_serial" class="form-control">
             </div>
-            <!-- Novo campo para WhatsApp -->
             <div class="mb-3">
               <label for="cliente_whatsapp" class="form-label">Número do WhatsApp</label>
               <input type="text" name="whatsapp" id="cliente_whatsapp" class="form-control" placeholder="+55XXXXXXXXXXX">
             </div>
-            <!-- Novo campo para Data de Conclusão do Treinamento -->
             <div class="mb-3">
               <label for="data_conclusao" class="form-label">Data de Conclusão do Treinamento</label>
               <input type="date" name="data_conclusao" id="data_conclusao" class="form-control">
             </div>
             <div class="mb-3">
-              <label for="horas_adquiridas" class="form-label">Horas Adquiridas (minutos)</label>
+              <label for="horas_adquiridas" class="form-label">Horas Adquiridas (min)</label>
               <input type="number" name="horas_adquiridas" id="horas_adquiridas" class="form-control" required>
             </div>
           </div>
@@ -209,7 +239,7 @@ $result = mysqli_query($conn, $query);
     </div>
   </div>
   
-  <!-- Modal: Resultado das Notificações -->
+  <!-- Modal: Resultado das Notificações (global) -->
   <div class="modal fade" id="modalNotificacoes" tabindex="-1" aria-labelledby="modalNotificacoesLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -227,15 +257,35 @@ $result = mysqli_query($conn, $query);
     </div>
   </div>
   
-  <!-- Scripts -->
+  <!-- Modal: Notificações Individuais do Cliente -->
+  <div class="modal fade" id="modalNotificacoesCliente" tabindex="-1" aria-labelledby="modalNotificacoesClienteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalNotificacoesClienteLabel">Notificações de <span id="clienteNomeNotificacao"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <ul class="list-group" id="listaNotificacoesCliente">
+            <li class="list-group-item">Carregando notificações...</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bootstrap JS e jQuery -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   
   <script>
-    // Funções para cadastro/edição de clientes
+    // Funções para gerenciamento de clientes
     let duplicateClientData = null;
-
+    
     function novoCliente() {
       $('#cliente_id').val('');
       $('#cliente_nome').val('');
@@ -249,21 +299,21 @@ $result = mysqli_query($conn, $query);
       var modal = new bootstrap.Modal(document.getElementById('modalCliente'));
       modal.show();
     }
-
+    
     function editarCliente(id, cliente, cnpjcpf, serial, horasAdquiridas, whatsapp, dataConclusao) {
-  $('#cliente_id').val(id);
-  $('#cliente_nome').val(cliente);
-  $('#cliente_cnpjcpf').val(cnpjcpf);
-  $('#cliente_serial').val(serial);
-  $('#horas_adquiridas').val(horasAdquiridas);
-  $('#cliente_whatsapp').val(whatsapp);
-  $('#data_conclusao').val(dataConclusao);
-  $('#modalClienteLabel').text('Editar Cliente');
-  $('#formCliente').attr('action', 'editar_cliente.php');
-  var modal = new bootstrap.Modal(document.getElementById('modalCliente'));
-  modal.show();
-}
-
+      $('#cliente_id').val(id);
+      $('#cliente_nome').val(cliente);
+      $('#cliente_cnpjcpf').val(cnpjcpf);
+      $('#cliente_serial').val(serial);
+      $('#horas_adquiridas').val(horasAdquiridas);
+      $('#cliente_whatsapp').val(whatsapp);
+      $('#data_conclusao').val(dataConclusao);
+      $('#modalClienteLabel').text('Editar Cliente');
+      $('#formCliente').attr('action', 'editar_cliente.php');
+      var modal = new bootstrap.Modal(document.getElementById('modalCliente'));
+      modal.show();
+    }
+    
     // Submissão via Ajax para cadastro/edição de cliente
     $('#formCliente').on('submit', function(e) {
       e.preventDefault();
@@ -289,7 +339,7 @@ $result = mysqli_query($conn, $query);
         }
       });
     });
-
+    
     $('#btnAbrirCadastro').on('click', function() {
       var duplicateModal = bootstrap.Modal.getInstance(document.getElementById('modalDuplicate'));
       duplicateModal.hide();
@@ -301,8 +351,8 @@ $result = mysqli_query($conn, $query);
         duplicateClientData.horas_adquiridas
       );
     });
-
-    // Botão para enviar notificações via WhatsApp
+    
+    // Botão para enviar notificações via WhatsApp (global)
     $('#btnEnviarNotificacoes').on('click', function(){
       $.ajax({
           url: 'enviar_notificacoes.php',
@@ -325,7 +375,17 @@ $result = mysqli_query($conn, $query);
           }
       });
     });
-
+    
+    // Função para filtrar a tabela de clientes
+    $(document).ready(function(){
+      $("#clientSearch").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          $("table tbody tr").filter(function() {
+              $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+          });
+      });
+    });
+    
     // Configuração do FullCalendar
     document.addEventListener('DOMContentLoaded', function() {
       var calendarEl = document.getElementById('calendar');
@@ -388,7 +448,7 @@ $result = mysqli_query($conn, $query);
       new bootstrap.Modal(document.getElementById('modalExcluirTreinamento')).show();
     }
     
-    // Exibe alerta de proximidade (exemplo, adapte conforme necessário)
+    // Exibe alerta de proximidade (exemplo, adaptar conforme necessário)
     let eventoParaReagendar = null;
     function mostrarToastAgendamento(evento) {
       eventoParaReagendar = evento;
@@ -424,6 +484,126 @@ $result = mysqli_query($conn, $query);
     
     setInterval(checarAgendamentos, 300000);
     checarAgendamentos();
+    
+    function verNotificacoesCliente(clientId, clientName) {
+  // Atualiza o título do modal com o nome do cliente
+  $('#clienteNomeNotificacao').text(clientName);
+  // Requisição AJAX com filtro por cliente_id:
+  $.ajax({
+     url: 'buscar_notificacoes.php',
+     method: 'GET',
+     data: { cliente_id: clientId },
+     dataType: 'json',
+     success: function(response) {
+       let listaHtml = "";
+       if (response.status === "success" && response.data.length > 0) {
+         $.each(response.data, function(index, notif){
+           listaHtml += '<li class="list-group-item">';
+           listaHtml += '<strong>' + notif.titulo + '</strong><br>';
+           listaHtml += notif.mensagem.replace(/\n/g, '<br>') + '<br>';
+           listaHtml += '<small class="text-muted">Enviado em: ' + notif.data_envio + '</small>';
+           listaHtml += '</li>';
+         });
+       } else {
+         listaHtml = '<li class="list-group-item">Nenhuma notificação encontrada.</li>';
+       }
+       $('#listaNotificacoesCliente').html(listaHtml);
+       let modal = new bootstrap.Modal(document.getElementById('modalNotificacoesCliente'));
+       modal.show();
+     },
+     error: function(){
+       $('#listaNotificacoesCliente').html('<li class="list-group-item text-danger">Erro ao carregar notificações.</li>');
+     }
+  });
+}
+
+$('#collapseNotificacoes').on('shown.bs.collapse', function(){
+  $.ajax({
+    url: 'buscar_notificacoes.php',
+    method: 'GET',
+    dataType: 'json',
+    success: function(response) {
+      console.log("Response:", response); // Debug: veja o que está retornando
+      let listaHtml = "";
+      if(response.status === "success" && response.data.length > 0) {
+        $.each(response.data, function(index, notif){
+          listaHtml += '<li class="list-group-item">';
+          listaHtml += '<strong>' + notif.titulo + '</strong><br>';
+          listaHtml += notif.mensagem.replace(/\n/g, '<br>') + '<br>';
+          listaHtml += '<small class="text-muted">Enviado em: ' + notif.data_envio + '</small>';
+          listaHtml += '</li>';
+        });
+      } else {
+        // Se o array estiver vazio, mostra mensagem de que não há notificações
+        listaHtml = '<li class="list-group-item">Nenhuma notificação enviada.</li>';
+      }
+      $('#listaNotificacoes').html(listaHtml);
+    },
+    error: function(jqXHR, textStatus, errorThrown){
+      console.error("Erro na requisição:", textStatus, errorThrown);
+      $('#listaNotificacoes').html('<li class="list-group-item text-danger">Erro ao buscar notificações.</li>');
+    }
+  });
+});
+
   </script>
+  
+  <!-- Modal: Notificações Individuais do Cliente -->
+  <div class="modal fade" id="modalNotificacoesCliente" tabindex="-1" aria-labelledby="modalNotificacoesClienteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalNotificacoesClienteLabel">Notificações de <span id="clienteNomeNotificacao"></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <ul class="list-group" id="listaNotificacoesCliente">
+            <li class="list-group-item">Carregando notificações...</li>
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal: Resultado das Notificações (global) -->
+  <div class="modal fade" id="modalNotificacoes" tabindex="-1" aria-labelledby="modalNotificacoesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalNotificacoesLabel">Resultado das Notificações</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <div id="notificacoesMensagem"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Modal: Excedeu Horas Contratadas (usado para cadastro/edição) -->
+  <div class="modal fade" id="modalExceeded" tabindex="-1" aria-labelledby="modalExceededLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalExceededLabel">Limite de Horas Excedido</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <p id="exceededMessage"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="btnRedirectClients">Sim, Registrar Mais Horas</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 </body>
 </html>
