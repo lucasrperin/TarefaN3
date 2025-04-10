@@ -49,113 +49,122 @@ $result = mysqli_query($conn, $query);
     </div>
     
     <!-- Main Content -->
-    <div class="w-100">
-      <!-- Header -->
-      <div class="header">
-        <h3>Clientes</h3>
-        <div class="user-info">
-          <span>Bem-vindo(a), <?= htmlspecialchars($_SESSION['usuario_nome'], ENT_QUOTES, 'UTF-8'); ?>!</span>
-          <a href="logout.php" class="btn btn-danger">
-            <i class="fa-solid fa-right-from-bracket me-1"></i> Sair
-          </a>
+<!-- Main Content -->
+<div class="w-100">
+  <!-- Header -->
+  <div class="header">
+    <h3>Clientes</h3>
+    <div class="user-info">
+      <span>Bem-vindo(a), <?= htmlspecialchars($_SESSION['usuario_nome'], ENT_QUOTES, 'UTF-8'); ?>!</span>
+      <a href="logout.php" class="btn btn-danger">
+        <i class="fa-solid fa-right-from-bracket me-1"></i> Sair
+      </a>
+    </div>
+  </div>
+  
+  <!-- Conteúdo -->
+  <div class="content container-fluid">
+    <!-- Botão para enviar notificações via WhatsApp -->
+    <div class="mb-3">
+      <button id="btnEnviarNotificacoes" class="btn btn-primary">
+        <i class="fa-solid fa-paper-plane me-1"></i> Enviar Notificações
+      </button>
+    </div>
+    
+    <!-- Accordion para Notificações Enviadas (global) -->
+    <div class="accordion mb-4" id="notificacoesAccordion">
+      <div class="accordion-item">
+        <h2 class="accordion-header" id="headingNotificacoes">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNotificacoes" aria-expanded="false" aria-controls="collapseNotificacoes">
+            Notificações Enviadas
+          </button>
+        </h2>
+        <div id="collapseNotificacoes" class="accordion-collapse collapse" aria-labelledby="headingNotificacoes" data-bs-parent="#notificacoesAccordion">
+          <div class="accordion-body">
+            <ul class="list-group" id="listaNotificacoes">
+              <li class="list-group-item">Carregando notificações...</li>
+            </ul>
+          </div>
         </div>
       </div>
-      
-      <!-- Conteúdo -->
-      <div class="content container-fluid">
-        <!-- Botão para enviar notificações via WhatsApp -->
-        <div class="mb-3">
-          <button id="btnEnviarNotificacoes" class="btn btn-primary">
-            <i class="fa-solid fa-paper-plane me-1"></i> Enviar Notificações
+    </div>
+    
+    <!-- Card de Lista de Clientes -->
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+          <a href="treinamento.php" class="me-2" style="color: #283e51; text-decoration: none;">
+            <i class="fa-solid fa-angle-left"></i>
+          </a>
+          <h4 class="mb-0">Lista de Clientes</h4>
+        </div>
+        <div class="d-flex align-items-center flex-nowrap">
+          <input type="text" id="clientSearch" class="form-control me-2" style="width: 200px;" placeholder="Pesquisar clientes...">
+          <button class="btn btn-custom" onclick="novoCliente()">
+            <i class="fa-solid fa-plus me-1"></i> Novo Cliente
           </button>
         </div>
-        
-        <!-- Accordion para Notificações Enviadas (global) -->
-        <div class="accordion mb-4" id="notificacoesAccordion">
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingNotificacoes">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNotificacoes" aria-expanded="false" aria-controls="collapseNotificacoes">
-                Notificações Enviadas
-              </button>
-            </h2>
-            <div id="collapseNotificacoes" class="accordion-collapse collapse" aria-labelledby="headingNotificacoes" data-bs-parent="#notificacoesAccordion">
-              <div class="accordion-body">
-                <ul class="list-group" id="listaNotificacoes">
-                  <li class="list-group-item">Carregando notificações...</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Card de Lista de Clientes -->
-        <div class="card mb-4">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-              <a href="treinamento.php" class="me-2" style="color: #283e51; text-decoration: none;">
-                <i class="fa-solid fa-angle-left"></i>
-              </a>
-              <h4 class="mb-0">Lista de Clientes</h4>
-            </div>
-            <div class="d-flex align-items-center flex-nowrap">
-              <input type="text" id="clientSearch" class="form-control me-2" style="width: 200px;" placeholder="Pesquisar clientes...">
-              <button class="btn btn-custom" onclick="novoCliente()">
-                <i class="fa-solid fa-plus me-1"></i> Novo Cliente
-              </button>
-            </div>
-          </div>
-          <div class="card-body">
-            <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Cliente</th>
-                  <th>CNPJ/CPF</th>
-                  <th>Serial</th>
-                  <th>Horas Adquiridas (min)</th>
-                  <th>Horas Utilizadas (min)</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php while($row = mysqli_fetch_assoc($result)): ?>
-                <tr class="<?= $row['ativo'] == 0 ? 'table-secondary' : '' ?>">
-                  <td><?= $row['id'] ?></td>
-                  <td><?= htmlspecialchars($row['cliente'], ENT_QUOTES, 'UTF-8') ?></td>
-                  <td><?= htmlspecialchars($row['cnpjcpf'], ENT_QUOTES, 'UTF-8') ?></td>
-                  <td><?= htmlspecialchars($row['serial'], ENT_QUOTES, 'UTF-8') ?></td>
-                  <td><?= $row['horas_adquiridas'] ?></td>
-                  <td><?= $row['horas_utilizadas'] ?></td>
-                  <td>
-                    <button class="btn btn-sm btn-warning" onclick="editarCliente(
-                      '<?= $row['id'] ?>',
-                      '<?= addslashes($row['cliente']) ?>',
-                      '<?= addslashes($row['cnpjcpf']) ?>',
-                      '<?= addslashes($row['serial']) ?>',
-                      '<?= $row['horas_adquiridas'] ?>',
-                      '<?= addslashes($row['whatsapp']) ?>',
-                      '<?= $row['data_conclusao'] ?>'
-                    )">Editar</button>
-                    <?php if ($row['ativo'] == 1): ?>
-                      <a href="inativar_cliente.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Deseja inativar este cliente?')">Inativar</a>
-                    <?php else: ?>
-                      <a href="ativar_cliente.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-success" onclick="return confirm('Deseja ativar este cliente?')">Ativar</a>
-                    <?php endif; ?>
-                    <!-- Botão individual para visualizar notificações deste cliente -->
-                    <button class="btn btn-sm btn-info mt-1" onclick="verNotificacoesCliente('<?= $row['id'] ?>', '<?= addslashes($row['cliente']) ?>')">
-                      <i class="fa-solid fa-comments"></i>
-                    </button>
-                  </td>
-                </tr>
-                <?php endwhile; ?>
-              </tbody>
-            </table>
-          </div>
-        </div>
       </div>
-    </div> <!-- /w-100 -->
-  </div> <!-- /d-flex-wrapper -->
-  
+      <div class="card-body">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cliente</th>
+              <th>CNPJ/CPF</th>
+              <th>Serial</th>
+              <th>Minutos Adquiridos</th>
+              <th>Minutos Utilizados</th>
+              <th class="acoes">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php while($row = mysqli_fetch_assoc($result)): ?>
+            <tr class="<?= $row['ativo'] == 0 ? 'table-secondary' : '' ?>">
+              <td><?= $row['id'] ?></td>
+              <td><?= htmlspecialchars($row['cliente'], ENT_QUOTES, 'UTF-8') ?></td>
+              <td><?= htmlspecialchars($row['cnpjcpf'], ENT_QUOTES, 'UTF-8') ?></td>
+              <td><?= htmlspecialchars($row['serial'], ENT_QUOTES, 'UTF-8') ?></td>
+              <td><?= $row['horas_adquiridas'] ?></td>
+              <td><?= $row['horas_utilizadas'] ?></td>
+              <td class="acoes" style="width:150px; white-space: nowrap; text-align: center;">
+                <div class="acao-container">
+                  <button class="btn btn-sm btn-warning acao-btn" onclick="editarCliente(
+                    '<?= $row['id'] ?>',
+                    '<?= addslashes($row['cliente']) ?>',
+                    '<?= addslashes($row['cnpjcpf']) ?>',
+                    '<?= addslashes($row['serial']) ?>',
+                    '<?= $row['horas_adquiridas'] ?>',
+                    '<?= addslashes($row['whatsapp']) ?>',
+                    '<?= $row['data_conclusao'] ?>'
+                  )" title="Editar">
+                    <i class="fa-solid fa-pencil"></i>
+                  </button>
+                  <?php if ($row['ativo'] == 1): ?>
+                    <a href="inativar_cliente.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-danger acao-btn" onclick="return confirm('Deseja inativar este cliente?')" title="Inativar">
+                      <i class="fa-solid fa-user-slash"></i>
+                    </a>
+                  <?php else: ?>
+                    <a href="ativar_cliente.php?id=<?= $row['id'] ?>" class="btn btn-sm btn-success acao-btn" onclick="return confirm('Deseja ativar este cliente?')" title="Ativar">
+                      <i class="fa-solid fa-user-check"></i>
+                    </a>
+                  <?php endif; ?>
+                  <button class="btn btn-sm btn-info acao-btn" onclick="verNotificacoesCliente('<?= $row['id'] ?>', '<?= addslashes($row['cliente']) ?>')" title="Notificações">
+                    <i class="fa-solid fa-comments"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <?php endwhile; ?>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div> <!-- /w-100 -->
+
+
+
   <!-- Modal para Cadastro/Editar Cliente -->
   <div class="modal fade" id="modalCliente" tabindex="-1" aria-labelledby="modalClienteLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -188,7 +197,7 @@ $result = mysqli_query($conn, $query);
               <input type="date" name="data_conclusao" id="data_conclusao" class="form-control">
             </div>
             <div class="mb-3">
-              <label for="horas_adquiridas" class="form-label">Horas Adquiridas (min)</label>
+              <label for="horas_adquiridas" class="form-label">Minutos Adquiridos (min)</label>
               <input type="number" name="horas_adquiridas" id="horas_adquiridas" class="form-control" required>
             </div>
           </div>
