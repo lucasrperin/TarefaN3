@@ -249,7 +249,7 @@ CREATE TABLE IF NOT EXISTS TB_INDICACAO (
 CREATE TABLE TB_FOLGA (
   id INT AUTO_INCREMENT PRIMARY KEY,
   usuario_id INT NOT NULL,
-  tipo ENUM('Férias','Folga') NOT NULL,
+  tipo ENUM('Ferias','Folga') NOT NULL,
   data_inicio DATE NOT NULL,
   data_fim DATE NOT NULL,
   quantidade_dias INT NOT NULL,
