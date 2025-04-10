@@ -130,7 +130,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
       
 
 
-      <?php if($cargo==='User' || $cargo==='Conversor'): ?>
+      <?php if($cargo==='User' || $cargo==='Conversor' || $cargo==='Treinamento'): ?>
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
         <div class="menu-card" onclick="location.href='user.php';">
           <div class="menu-icon">
