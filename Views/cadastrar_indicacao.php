@@ -19,7 +19,8 @@ $fone      = $_POST['fone'];
 
 // Define o status explicitamente como "Pendente"
 $status = 'Pendente';
-// Define o consultor explicitamente como "Vanessa"
+// Define o consultor explicitamente como "Vanessa" pois o consultor é FK é este campo precisa ser preenchido
+// pois somente terá de fato um consultor na edição.
 $consultor = 29;
 
 // Monta a query de inserção, incluindo o user_id e o status
