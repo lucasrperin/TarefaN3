@@ -780,26 +780,66 @@ $treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
   document.getElementById('btnReagendarToast').addEventListener('click', function() {
     if (!eventoParaReagendar) return;
     const evento = eventoParaReagendar;
-    document.getElementById('edit_id').value = evento.id;
+    
+    // Preencher os campos de edição com os dados do evento reagendado
+    $('#edit_id').val(evento.id);
     const dataEvento = new Date(evento.start);
     const ano = dataEvento.getFullYear();
     const mes = String(dataEvento.getMonth() + 1).padStart(2, '0');
     const dia = String(dataEvento.getDate()).padStart(2, '0');
     const hora = String(dataEvento.getHours()).padStart(2, '0');
     const minuto = String(dataEvento.getMinutes()).padStart(2, '0');
-    document.getElementById('edit_data').value = `${ano}-${mes}-${dia}`;
-    document.getElementById('edit_hora').value = `${hora}:${minuto}`;
-    document.getElementById('edit_cliente').value = evento.extendedProps.cliente;
-    document.getElementById('edit_cliente_id').value = evento.extendedProps.cliente_id;
-    document.getElementById('edit_sistema').value = evento.extendedProps.sistema;
-    document.getElementById('edit_consultor').value = evento.extendedProps.consultor;
-    document.getElementById('edit_status').value = evento.extendedProps.status;
-    document.getElementById('edit_tipo').value = evento.extendedProps.tipo;
-    document.getElementById('edit_observacoes').value = evento.extendedProps.observacoes;
-    document.getElementById('edit_duracao').value = evento.extendedProps.duracao || 30;
+    const dataSelecionada = `${ano}-${mes}-${dia}`;
+    const horaSelecionada = `${hora}:${minuto}`;
+    const duracao = evento.extendedProps.duracao || 30;
+
+    $('#edit_data').val(dataSelecionada);
+    // Atualiza o select de horários no modal de edição (incluindo o parâmetro "ignore")
+    $.ajax({
+        url: 'horarios_disponiveis.php',
+        method: 'GET',
+        data: { data: dataSelecionada, duracao: duracao, ignore: evento.id },
+        dataType: 'json',
+        success: function(response) {
+            let html = '<option value="">Selecione um horário</option>';
+            let encontrouHorario = false;
+            $.each(response, function(index, horario) {
+                const selected = horario.trim() === horaSelecionada.trim() ? 'selected' : '';
+                if (selected) encontrouHorario = true;
+                html += `<option value="${horario}" ${selected}>${horario}</option>`;
+            });
+            // Se o horário atual não estiver na lista, adiciona manualmente
+            if (!encontrouHorario) {
+                html += `<option value="${horaSelecionada}" selected>${horaSelecionada} (atual)</option>`;
+            }
+            $('#edit_hora').html(html);
+        },
+        error: function(){
+            alert('Erro ao buscar horários disponíveis.');
+        }
+    });
+    
+    // Preenche os demais campos da edição
+    $('#edit_cliente').val(evento.extendedProps.cliente);
+    $('#edit_cliente_id').val(evento.extendedProps.cliente_id);
+    $('#edit_sistema').val(evento.extendedProps.sistema);
+    $('#edit_consultor').val(evento.extendedProps.consultor);
+    $('#edit_status').val(evento.extendedProps.status);
+    $('#edit_tipo').val(evento.extendedProps.tipo || 'TREINAMENTO');
+    $('#edit_observacoes').val(evento.extendedProps.observacoes || '');
+    $('#edit_duracao').val(duracao);
+
+    // Caso haja campos ocultos de dt_ini e dt_fim, mantenha-os atualizados
+    const dtIni = evento.extendedProps.dt_ini === "0000-00-00 00:00:00" ? "" : evento.extendedProps.dt_ini;
+    const dtFim = evento.extendedProps.dt_fim === "0000-00-00 00:00:00" ? "" : evento.extendedProps.dt_fim;
+    $('#edit_dt_ini').val(dtIni);
+    $('#edit_dt_fim').val(dtFim);
+    
+    // Exibe o modal de edição (que também será usado para reagendamento)
     const editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
     editModal.show();
-  });
+});
+
   
   function verificarProximidadeAgendamento(eventos) {
     const agora = new Date();
