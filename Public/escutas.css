@@ -1,33 +1,95 @@
-.scroll-container {
-    max-height: 250px; /* ajuste a altura conforme necessário */
-    overflow-y: auto;
-  }
+/* === Estilos de Layout (mesmos do usuários.css) === */
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #f0f2f5;
+}
 
-  /* Estilo do Toast */
+.d-flex-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar com as cores do menu */
+.sidebar {
+  background: linear-gradient(135deg, #4b79a1, #283e51);
+  min-width: 220px;
+  padding: 1.5rem;
+  color: #fff;
+}
+
+.sidebar a {
+  color: #fff;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  color: #fff;
+  background-color: #283e51;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+/* Header com a mesma cor do menu */
+.header {
+  background: linear-gradient(135deg, #4b79a1, #283e51);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+}
+
+.header .user-info span {
+  margin-right: 1rem;
+}
+
+/* Conteúdo principal */
+.content {
+  padding: 2rem;
+  flex-grow: 1;
+  background-color: #f1f3f5;
+}
+
+/* === Fim dos Estilos de Layout === */
+
+
+/* === Estilos Específicos do Escutas.css === */
+
+/* Scroll Container */
+.scroll-container { 
+  max-height: 250px; /* ajuste a altura conforme necessário */
+  overflow-y: auto;
+}
+
+/* Estilo do Toast */
 .toast-container {
-  position: fixed!important;
-  top: 0;
-  right: 0;
-  z-index: 1050; /* Garantir que o toast esteja acima de outros elementos */
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1050; /* garante que o toast fique acima de outros elementos */
   padding: 10px;
-  display: flex; /* Para evitar que o toast tente expandir */
-  flex-direction: column; /* Para que os toasts fiquem empilhados, se houver mais de um */
-  align-items: flex-end; /* Garante que os toasts fiquem alinhados à direita */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .toast {
-  width: fit-content !important;
   display: none;
   opacity: 0;
   transition: opacity 0.5s ease;
   background-color: #28a745;
   color: white;
-  width: auto; /* Faz o toast ocupar apenas o espaço necessário */
-  max-width: 30px; /* Limite para não ficar muito grande */
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 10px;
 }
 
 .toast.show {
-  display: flex;
+  display: block;
   opacity: 1;
   background-color: #28a745;
   color: white;
@@ -39,7 +101,6 @@
   padding: 10px 15px; /* Reduz o espaçamento interno */
   font-size: 16px;
   white-space: nowrap; /* Impede que o texto quebre em múltiplas linhas */
-  flex-grow: 1; /* Garante que o conteúdo ocupe só o espaço necessário */
 }
 
 .toast-body i {
@@ -50,7 +111,6 @@
 
 #toastMensagem {
   display: inline; /* Garante que o texto não ocupe espaço extra */
-  flex-grow: 0; /* Faz o texto ocupar apenas o espaço necessário */
 }
 
 /* Ajustes no input-group */
@@ -58,6 +118,7 @@
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
 }
+
 .input-group .btn-outline-secondary {
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
@@ -65,4 +126,16 @@
   color: #8a8989;
   border: 1px solid #ced4daa2;
   border-left: none;
+}
+.light-logo {
+  filter: brightness(0) invert(1);
+}
+
+/* Remova qualquer fundo no hover ou foco da logo */
+.light-logo:hover,
+.light-logo:focus {
+  background: transparent !important;
+  transform: none !important;
+  margin: 1 !important;
+  padding: 0 !important;
 }
