@@ -12,7 +12,7 @@ $id = $_GET['id'];
 // Exclui a indicação
 $sql = "DELETE FROM TB_INDICACAO WHERE id = '$id'";
 if (mysqli_query($conn, $sql)) {
-    header("Location: indicacao.php");
+    header("Location: indicacao.php?success=3");
     exit();
 } else {
     echo "Erro ao excluir: " . mysqli_error($conn);

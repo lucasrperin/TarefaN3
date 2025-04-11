@@ -19,15 +19,17 @@ $fone      = $_POST['fone'];
 
 // Define o status explicitamente como "Pendente"
 $status = 'Pendente';
+// Define o consultor explicitamente como "Vanessa"
+$consultor = 29;
 
 // Monta a query de inserção, incluindo o user_id e o status
 $sql = "
-  INSERT INTO TB_INDICACAO (plugin_id, data, cnpj, serial, contato, fone, user_id, status)
-  VALUES ('$plugin_id', '$data', '$cnpj', '$serial', '$contato', '$fone', '$usuario_id', '$status')
+  INSERT INTO TB_INDICACAO (plugin_id, data, cnpj, serial, contato, fone, user_id, idConsultor, status)
+  VALUES ('$plugin_id', '$data', '$cnpj', '$serial', '$contato', '$fone', '$usuario_id', '$consultor', '$status')
 ";
 
 if (mysqli_query($conn, $sql)) {
-    header('Location: indicacao.php');
+    header('Location: indicacao.php?success=1');
     exit();
 } else {
     echo 'Erro ao cadastrar: ' . mysqli_error($conn);
