@@ -641,7 +641,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                     <select class="form-select" id="editar_consultor" name="consultor" required>
                         <option value="">Selecione</option>
                         <?php
-                        $sqlConsult = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo = 'Comercial' ORDER BY Nome";
+                        $sqlConsult = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo = 'Comercial' AND Id <> 29 ORDER BY Nome";
                         $resConsult = $conn->query($sqlConsult);
                         while ($row = $resConsult->fetch_assoc()) {
                             echo "<option value='" . $row['Id'] . "'>" . $row['Nome'] . "</option>";
