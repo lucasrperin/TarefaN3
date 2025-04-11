@@ -271,9 +271,11 @@ $treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
                 <input type="date" name="data" id="data_treino" class="form-control" required>
               </div>
               <div class="col-md-4 mb-3">
-                <label for="hora_treino" class="form-label">Hora</label>
-                <input type="time" name="hora" id="hora_treino" class="form-control" required>
-              </div>
+                  <label for="hora_treino" class="form-label">Hora</label>
+                  <select name="hora" id="hora_treino" class="form-select" required>
+                    <option value="">Selecione um horário</option>
+                  </select>
+                </div>
               <div class="col-md-4 mb-3">
                 <label for="tipo_treino" class="form-label">Tipo</label>
                 <select name="tipo" id="tipo_treino" class="form-select" required>
@@ -370,9 +372,11 @@ $treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
                 <input type="date" name="data" id="edit_data" class="form-control" required>
               </div>
               <div class="col-md-4 mb-3">
-                <label for="edit_hora" class="form-label">Hora</label>
-                <input type="time" name="hora" id="edit_hora" class="form-control" required>
-              </div>
+              <label for="edit_hora" class="form-label">Hora</label>
+              <select name="hora" id="edit_hora" class="form-select" required>
+                <option value="">Selecione um horário</option>
+              </select>
+            </div>
               <div class="col-md-4 mb-3">
                 <label for="edit_tipo" class="form-label">Tipo</label>
                 <select name="tipo" id="edit_tipo" class="form-select" required>
@@ -545,56 +549,87 @@ $treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
       allDayText: 'Dia inteiro',
       events: 'fetch_treinamentos.php',
       eventClick: function(info) {
-        const eventObj = info.event;
-        document.getElementById('edit_id').value = eventObj.id;
-        
-        let startDate = new Date(eventObj.start);
-        let year  = startDate.getFullYear();
-        let month = String(startDate.getMonth() + 1).padStart(2, '0');
-        let day   = String(startDate.getDate()).padStart(2, '0');
-        let hours = String(startDate.getHours()).padStart(2, '0');
-        let mins  = String(startDate.getMinutes()).padStart(2, '0');
-        
-        document.getElementById('edit_data').value = `${year}-${month}-${day}`;
-        document.getElementById('edit_hora').value = `${hours}:${mins}`;
-        // Preenche os campos do cliente
-        document.getElementById('edit_cliente').value = eventObj.extendedProps.cliente;
-        document.getElementById('edit_cliente_id').value = eventObj.extendedProps.cliente_id;
-        $('#edit_cliente').data('original-client-id', eventObj.extendedProps.cliente_id);
-        $('#edit_cliente').data('original-client-nome', eventObj.extendedProps.cliente);
-        
-        document.getElementById('edit_sistema').value = eventObj.extendedProps.sistema;
-        document.getElementById('edit_consultor').value = eventObj.extendedProps.consultor;
-        document.getElementById('edit_status').value = eventObj.extendedProps.status;
-        document.getElementById('edit_tipo').value = eventObj.extendedProps.tipo || 'TREINAMENTO';
-        document.getElementById('edit_observacoes').value = eventObj.extendedProps.observacoes || '';
-        document.getElementById('edit_duracao').value = eventObj.extendedProps.duracao || 30;
-        
-        var dtIni = eventObj.extendedProps.dt_ini;
-        var dtFim = eventObj.extendedProps.dt_fim;
-        
-        if (dtIni === "0000-00-00 00:00:00") dtIni = "";
-        if (dtFim === "0000-00-00 00:00:00") dtFim = "";
-        
-        document.getElementById('edit_dt_ini').value = dtIni ? dtIni : "";
-        document.getElementById('edit_dt_fim').value = dtFim ? dtFim : "";
-        
-        // Se dt_ini está preenchido e dt_fim está vazio, mostra o botão de Encerrar
-        if (!dtIni) {
-          $('#btnIniciarTreinamento').show();
-          $('#btnEncerrarTreinamento').hide();
-        } else if (dtIni && !dtFim) {
-          $('#btnIniciarTreinamento').hide();
-          $('#btnEncerrarTreinamento').show();
-        } else {
-          $('#btnIniciarTreinamento').hide();
-          $('#btnEncerrarTreinamento').hide();
+          const eventObj = info.event;
+          document.getElementById('edit_id').value = eventObj.id;
+
+          let startDate = new Date(eventObj.start);
+          let year  = startDate.getFullYear();
+          let month = String(startDate.getMonth() + 1).padStart(2, '0');
+          let day   = String(startDate.getDate()).padStart(2, '0');
+          let hours = String(startDate.getHours()).padStart(2, '0');
+          let mins  = String(startDate.getMinutes()).padStart(2, '0');
+
+          const dataSelecionada = `${year}-${month}-${day}`;
+          const horaSelecionada = `${hours}:${mins}`;
+          const duracao = eventObj.extendedProps.duracao || 30;
+
+          document.getElementById('edit_data').value = dataSelecionada;
+
+          // Carregar horários disponíveis via AJAX
+          $.ajax({
+            url: 'horarios_disponiveis.php',
+            method: 'GET',
+            data: { data: dataSelecionada, duracao: duracao },
+            dataType: 'json',
+            success: function(response) {
+              let html = '<option value="">Selecione um horário</option>';
+              let encontrouHorario = false;
+
+              $.each(response, function(index, horario) {
+                const selected = horario.trim() === horaSelecionada.trim() ? 'selected' : '';
+                if (selected) encontrouHorario = true;
+                html += `<option value="${horario}" ${selected}>${horario}</option>`;
+              });
+
+              // Caso o horário agendado não esteja disponível, adiciona manualmente
+              if (!encontrouHorario) {
+                html += `<option value="${horaSelecionada}" selected>${horaSelecionada} (atual)</option>`;
+              }
+
+              $('#edit_hora').html(html);
+            },
+            error: function(){
+              alert('Erro ao buscar horários disponíveis.');
+            }
+          });
+
+          // Preenche os demais campos
+          document.getElementById('edit_cliente').value = eventObj.extendedProps.cliente;
+          document.getElementById('edit_cliente_id').value = eventObj.extendedProps.cliente_id;
+          $('#edit_cliente').data('original-client-id', eventObj.extendedProps.cliente_id);
+          $('#edit_cliente').data('original-client-nome', eventObj.extendedProps.cliente);
+
+          document.getElementById('edit_sistema').value = eventObj.extendedProps.sistema;
+          document.getElementById('edit_consultor').value = eventObj.extendedProps.consultor;
+          document.getElementById('edit_status').value = eventObj.extendedProps.status;
+          document.getElementById('edit_tipo').value = eventObj.extendedProps.tipo || 'TREINAMENTO';
+          document.getElementById('edit_observacoes').value = eventObj.extendedProps.observacoes || '';
+          document.getElementById('edit_duracao').value = duracao;
+
+          var dtIni = eventObj.extendedProps.dt_ini;
+          var dtFim = eventObj.extendedProps.dt_fim;
+
+          if (dtIni === "0000-00-00 00:00:00") dtIni = "";
+          if (dtFim === "0000-00-00 00:00:00") dtFim = "";
+
+          document.getElementById('edit_dt_ini').value = dtIni || "";
+          document.getElementById('edit_dt_fim').value = dtFim || "";
+
+          if (!dtIni) {
+            $('#btnIniciarTreinamento').show();
+            $('#btnEncerrarTreinamento').hide();
+          } else if (dtIni && !dtFim) {
+            $('#btnIniciarTreinamento').hide();
+            $('#btnEncerrarTreinamento').show();
+          } else {
+            $('#btnIniciarTreinamento, #btnEncerrarTreinamento').hide();
+          }
+
+          $('#modalEditarTreinamento form input[name="action"]').remove();
+          const editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
+          editModal.show();
         }
-        
-        $('#modalEditarTreinamento form input[name="action"]').remove();
-        var editModal = new bootstrap.Modal(document.getElementById('modalEditarTreinamento'));
-        editModal.show();
-      }
+
     });
     calendar.render();
   });
@@ -903,6 +938,58 @@ $treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
       });
     }
   });
+// Para o modal de cadastro
+$('#data_treino').on('change', function(){
+    var dataSelecionada = $(this).val();
+    var duracao = $('#duracao_treino').val() || 30;
+    if (dataSelecionada) {
+        $.ajax({
+            url: 'horarios_disponiveis.php',
+            method: 'GET',
+            data: { data: dataSelecionada, duracao: duracao },
+            dataType: 'json',
+            success: function(response) {
+                var html = '<option value="">Selecione um horário</option>';
+                $.each(response, function(index, horario) {
+                    html += '<option value="'+ horario +'">'+ horario +'</option>';
+                });
+                $('#hora_treino').html(html);
+            },
+            error: function(){
+                alert('Erro ao buscar horários disponíveis.');
+            }
+        });
+    } else {
+        $('#hora_treino').html('<option value="">Selecione um horário</option>');
+    }
+});
+
+// Para o modal de edição
+$('#edit_data').on('change', function(){
+    var dataSelecionada = $(this).val();
+    var duracao = $('#edit_duracao').val() || 30;
+    if (dataSelecionada) {
+        $.ajax({
+            url: 'horarios_disponiveis.php',
+            method: 'GET',
+            data: { data: dataSelecionada, duracao: duracao },
+            dataType: 'json',
+            success: function(response) {
+                var html = '<option value="">Selecione um horário</option>';
+                $.each(response, function(index, horario) {
+                    html += '<option value="'+ horario +'">'+ horario +'</option>';
+                });
+                $('#edit_hora').html(html);
+            },
+            error: function(){
+                alert('Erro ao buscar horários disponíveis.');
+            }
+        });
+    } else {
+        $('#edit_hora').html('<option value="">Selecione um horário</option>');
+    }
+});
+
 
 
 </script>
