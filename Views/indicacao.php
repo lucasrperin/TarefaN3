@@ -17,15 +17,22 @@ $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
 
 // Consulta para pegar todas as indicações do mês e ano atuais, incluindo nome do usuário e status
-$sql = "
-  SELECT i.*, p.nome AS plugin_nome, u.nome AS usuario_nome, i.status
-  FROM TB_INDICACAO i
-  JOIN TB_PLUGIN p ON i.plugin_id = p.id
-  JOIN TB_USUARIO u ON i.user_id = u.id
-  WHERE MONTH(i.data) = MONTH(CURRENT_DATE())
-    AND YEAR(i.data) = YEAR(CURRENT_DATE())
-  ORDER BY i.data DESC
-";
+$sql = "  SELECT 
+              i.*, 
+              p.nome AS plugin_nome,
+              u.nome AS usuario_nome,
+              case
+              when idConsultor = 29 -- Quando for a Vanessa muda para não possui, explicação no cadastrar_indicacao.php
+                  then 'Não Possui'
+                  else c.nome 
+              end consultor_nome
+          FROM TB_INDICACAO i
+          JOIN TB_PLUGIN p ON i.plugin_id = p.id
+          JOIN TB_USUARIO u ON i.user_id = u.id
+          JOIN TB_USUARIO c ON i.idConsultor = c.id
+          WHERE MONTH(i.data) = MONTH(CURRENT_DATE())
+            AND YEAR(i.data) = YEAR(CURRENT_DATE())
+          ORDER BY i.data DESC";
 $result = mysqli_query($conn, $sql);
 
 // Consulta para o ranking: quantidade de indicações por usuário
@@ -42,6 +49,22 @@ while($row = mysqli_fetch_assoc($resultRanking)) {
     $ranking[] = $row;
 }
 
+// Consulta para o ranking: quantidade de indicações por usuário
+$sqlRankingConsult = "SELECT 
+                        c.Nome AS usuario_nome, 
+                        SUM(CASE WHEN i.status = 'Faturado' THEN i.vlr_total ELSE 0 END) AS total_faturado_consult
+                      FROM TB_INDICACAO i
+                      JOIN TB_USUARIO c ON i.idConsultor = c.id
+                      WHERE c.Id <> 29
+                      AND i.status = 'Faturado'
+                      GROUP BY i.idConsultor
+                      ORDER BY total_faturado_consult DESC";
+$resultRankingConsult = mysqli_query($conn, $sqlRankingConsult);
+$rankingConsult = array();
+while($rowC = mysqli_fetch_assoc($resultRankingConsult)) {
+    $rankingConsult[] = $rowC;
+}
+
 // Total de Faturamento
 $sqlFaturamento = "SELECT SUM(vlr_total) AS total_faturamento FROM TB_INDICACAO WHERE status = 'Faturado'";
 $resultFaturamento = mysqli_query($conn, $sqlFaturamento);
@@ -49,16 +72,14 @@ $rowFaturamento = mysqli_fetch_assoc($resultFaturamento);
 $totalFaturamento = $rowFaturamento['total_faturamento'] ?: 0;
 
 // Totalizador por Plugin
-$sqlPluginsCount = "
-  SELECT 
-    p.nome AS plugin_nome, 
-    COUNT(i.id) AS total_indicacoes, 
-    SUM(CASE WHEN i.status = 'Faturado' THEN i.vlr_total ELSE 0 END) AS total_faturado
-  FROM TB_INDICACAO i
-  JOIN TB_PLUGIN p ON i.plugin_id = p.id
-  GROUP BY p.id
-  ORDER BY total_indicacoes DESC
-";
+$sqlPluginsCount = "SELECT 
+                      p.nome AS plugin_nome, 
+                      COUNT(i.id) AS total_indicacoes, 
+                      SUM(CASE WHEN i.status = 'Faturado' THEN i.vlr_total ELSE 0 END) AS total_faturado
+                    FROM TB_INDICACAO i
+                    JOIN TB_PLUGIN p ON i.plugin_id = p.id
+                    GROUP BY p.id
+                    ORDER BY total_indicacoes DESC";
 $resultPluginsCount = mysqli_query($conn, $sqlPluginsCount);
 $pluginsCount = array();
 while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
@@ -204,6 +225,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
             <div id="collapseIndicadores" class="accordion-collapse collapse show" aria-labelledby="headingIndicadores" data-bs-parent="#accordionIndicadores">
               <div class="accordion-body">
                 <div class="row g-3">
+                <?php if ($cargo != 'Comercial'): ?>
                   <!-- Ranking de Indicações -->
                   <div class="col-md-4">
                     <div class="card card-fixed-height shadow">
@@ -236,6 +258,42 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                       </div>
                     </div>
                   </div>
+                  <?php endif; ?>
+
+                  <?php if ($cargo === 'Comercial'): ?>
+                    <!-- Ranking de Faturamento -->
+                    <div class="col-md-4" id="rankingFaturamento">
+                      <div class="card card-fixed-height shadow">
+                        <div class="card-header border-bottom" style="background-color: #4b79a1;">
+                          <h6 class="mb-0" style="color: #fff"><b>Ranking de Faturamento</b></h6>
+                        </div>
+                        <div class="card-body p-2">
+                          <?php if (count($rankingConsult) > 0): ?>
+                            <ul class="list-group list-group-flush">
+                              <?php foreach ($rankingConsult as $indexC => $rankC): ?>
+                                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                                  <span>
+                                    <?php
+                                      if ($indexC == 0) echo "🥇 ";
+                                      elseif ($indexC == 1) echo "🥈 ";
+                                      elseif ($indexC == 2) echo "🥉 ";
+                                      else echo ($indexC + 1) . "º ";
+                                      echo $rankC['usuario_nome'];
+                                    ?>
+                                  </span>
+                                  <span class="text-center">
+                                        R$ <?php echo number_format($rankC['total_faturado_consult'], 2, ',', '.'); ?>
+                                  </span>
+                                </li>
+                              <?php endforeach; ?>
+                            </ul>
+                          <?php else: ?>
+                            <p class="text-muted mb-0">Nenhum ranking disponível.</p>
+                          <?php endif; ?>
+                        </div>
+                      </div>
+                    </div>
+                  <?php endif; ?>
 
                   <!-- Total por Plugin -->
                   <div class="col-md-4">
@@ -323,6 +381,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                     <th>Fone</th>
                     <th width="10%">Usuário</th>
                     <th width="5%">Status</th>
+                    <th width="5%">Consultor(a)</th>
                     <th width="5%">Ações</th>
                   </tr>
                 </thead>
@@ -337,6 +396,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                       <td><?php echo $row['fone']; ?></td>
                       <td><?php echo $row['usuario_nome']; ?></td>
                       <td><?php echo $row['status']; ?></td>
+                      <td><?php echo $row['consultor_nome']; ?></td>
                       <td class="text-center">
                         <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $row['user_id'] == $usuario_id): ?>
                           <div class="d-flex flex-row align-items-center gap-1">
@@ -351,6 +411,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                                       <?php echo htmlspecialchars(json_encode($row["serial"]), ENT_QUOTES, "UTF-8"); ?>,
                                       <?php echo htmlspecialchars(json_encode($row["contato"]), ENT_QUOTES, "UTF-8"); ?>,
                                       <?php echo htmlspecialchars(json_encode($row["fone"]), ENT_QUOTES, "UTF-8"); ?>,
+                                      <?php echo htmlspecialchars(json_encode($row["idConsultor"]), ENT_QUOTES, "UTF-8"); ?>,
                                       <?php echo htmlspecialchars(json_encode($row["status"]), ENT_QUOTES, "UTF-8"); ?>,
                                       <?php echo htmlspecialchars(json_encode($row["vlr_total"]), ENT_QUOTES, "UTF-8"); ?>,
                                       <?php echo htmlspecialchars(json_encode($row["n_venda"]), ENT_QUOTES, "UTF-8"); ?>
@@ -376,8 +437,6 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
       </div><!-- /content -->
     </div><!-- /Área principal -->
   </div><!-- /d-flex-wrapper -->
-
-
   <!-- Função de pesquisa nas tabelas-->
   <script>
       $(document).ready(function(){
@@ -576,12 +635,31 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                     </select>
                   </div>
                 </div>
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="editar_consultor">Consultor</label>
+                    <select class="form-select" id="editar_consultor" name="consultor" required>
+                        <option value="">Selecione</option>
+                        <?php
+                        $sqlConsult = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo = 'Comercial' ORDER BY Nome";
+                        $resConsult = $conn->query($sqlConsult);
+                        while ($row = $resConsult->fetch_assoc()) {
+                            echo "<option value='" . $row['Id'] . "'>" . $row['Nome'] . "</option>";
+                        }
+                        ?>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="row mt-2">
                 <!-- Container para campos adicionais quando o status for Faturado -->
                 <div class="col-md-6" id="faturadoContainer" style="display: none;">
-                  <div class="form-group">
+                  <div class="form-groupo mt-2">
                     <label for="editar_valor">Valor R$</label>
                     <input type="text" class="form-control" id="editar_valor" name="editar_valor" value="0">
                   </div>
+                </div>
+                <div class="col-md-6"> 
                   <div class="form-group mt-2">
                     <label for="editar_venda">Nº Venda</label>
                     <input type="text" class="form-control" id="editar_venda" name="editar_venda">
@@ -765,7 +843,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
 </script>
 <script>
   // Função para popular o modal de edição com os dados recebidos
-  function editarIndicacao(id, plugin_id, data, cnpj, serial, contato, fone, status, editar_valor, editar_venda) {
+  function editarIndicacao(id, plugin_id, data, cnpj, serial, contato, fone, idConsultor, status, editar_valor, editar_venda) {
     document.getElementById("editar_id").value = id;
     document.getElementById("editar_plugin_id").value = plugin_id;
     document.getElementById("editar_data").value = data;
@@ -773,6 +851,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
     document.getElementById("editar_serial").value = serial;
     document.getElementById("editar_contato").value = contato;
     document.getElementById("editar_fone").value = fone;
+    document.getElementById("editar_consultor").value = idConsultor;
 
     if (document.getElementById("editar_status")) {
       document.getElementById("editar_status").value = status;

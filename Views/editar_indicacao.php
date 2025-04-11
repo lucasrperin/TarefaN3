@@ -10,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $serial    = $_POST['serial'];
     $contato   = $_POST['contato'];
     $fone      = $_POST['fone'];
+    $consultor = $_POST['consultor'];
     $status    = $_POST['editar_status'];
     $vlt_total = $_POST['editar_valor'];
     $n_venda   = $_POST['editar_venda'];
@@ -41,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     contato = '$contato',
                     fone = '$fone',
                     status = '$status',
+                    idConsultor = '$consultor',
                     vlr_total = '$valorFormatado',
                     n_venda = '$n_venda'
                 WHERE id = '$id'
@@ -55,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     contato = '$contato',
                     fone = '$fone',
                     status = '$status'
+                    idConsultor = '$consultor',
                 WHERE id = '$id'
             ";
         } else {
@@ -66,7 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     cnpj = '$cnpj',
                     serial = '$serial',
                     contato = '$contato',
-                    fone = '$fone'
+                    fone = '$fone',
+                    idConsultor = '$consultor'
                 WHERE id = '$id'
             ";
         }
