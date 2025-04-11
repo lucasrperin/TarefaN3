@@ -468,7 +468,7 @@ $treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
           <div class="modal-footer">
             <div class="d-flex w-100">
               <!-- Ambos os botões iniciam com display:none; serão exibidos via JavaScript conforme o valor de dt_ini/dt_fim -->
-              <?php if ($cargo === 'Treinamento'): ?>
+              <?php if ($cargo === 'Treinamento' || $cargo === 'Admin'): ?>
                 <button type="button" class="btn btn-success me-2" id="btnIniciarTreinamento" style="display: none;">
                   <i class="fa-solid fa-circle-play me-2"></i>Iniciar
                 </button>
