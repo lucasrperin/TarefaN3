@@ -239,3 +239,17 @@ td.sobrepor2 {
   margin: 1 !important;
   padding: 0 !important;
 }
+
+.btn-custom {
+  background-color: #283e51;
+  color: #fff;
+  border: none;
+}
+.btn-custom:hover {
+  background-color: #495057;
+}
+
+.modal-header {
+  background-color: #283e51;
+  color: #fff;
+}

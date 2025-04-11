@@ -362,7 +362,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
             <div class="d-flex justify-content-end gap-2">
               <input type="text" id="searchInput" class="form-control ms-2" style="max-width: 200px;" placeholder="Pesquisar...">
               <?php if ($cargo === 'Admin' || $cargo === 'User' || $cargo === 'Conversor'): ?>
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalNovaIndicacao">
+                <button class="btn btn-custom ms-2" data-bs-toggle="modal" data-bs-target="#modalNovaIndicacao">
                   <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
                 </button>
               <?php endif; ?>
@@ -418,10 +418,10 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
                                     )'>
                               <i class="fa-solid fa-pen"></i>
                             </button>
-                            <a href="deletar_indicacao.php?id=<?php echo $row['id']; ?>" 
+                            <a type="button"
                                class="btn btn-outline-danger btn-sm"
                                title="Excluir"
-                               onclick="return confirm('Tem certeza que deseja excluir esta indicação?');">
+                               onclick="modalExcluir('<?php echo $row['id']; ?>')">
                               <i class="fa-sharp fa-solid fa-trash"></i>
                             </a>
                           </div>
@@ -457,7 +457,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
         <!-- Conteúdo do modal de cadastro -->
         <div class="modal-header">
           <h5 class="modal-title" id="modalNovaIndicacaoLabel">Nova Indicação</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <form action="cadastrar_indicacao.php" method="POST">
           <div class="modal-body">
@@ -549,7 +549,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
         <form action="editar_indicacao.php" method="POST">
           <div class="modal-header">
             <h5 class="modal-title" id="modalEditarIndicacaoLabel">Editar Indicação</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
             <!-- Campo oculto para o ID -->
@@ -653,13 +653,13 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
               </div>
               <div class="row mt-2">
                 <!-- Container para campos adicionais quando o status for Faturado -->
-                <div class="col-md-6" id="faturadoContainer" style="display: none;">
+                <div class="col-md-6" id="valorContainer" style="display: none;">
                   <div class="form-groupo mt-2">
                     <label for="editar_valor">Valor R$</label>
                     <input type="text" class="form-control" id="editar_valor" name="editar_valor" value="0">
                   </div>
                 </div>
-                <div class="col-md-6"> 
+                <div class="col-md-6" id="vendaContainer" style="display: none;"> 
                   <div class="form-group mt-2">
                     <label for="editar_venda">Nº Venda</label>
                     <input type="text" class="form-control" id="editar_venda" name="editar_venda">
@@ -675,6 +675,27 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
       </div>
     </div>
   </div>
+
+  <!-- Modal de Exclusão -->
+  <div class="modal fade" id="modalExcluir" tabindex="-1" aria-labelledby="modalExcluirLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalExcluirLabel">Excluir Indicação</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <form action="deletar_indicacao.php" method="post">
+          <div class="modal-body">
+            <input type="hidden" name="id" id="excluir_id">
+            <p>Tem certeza que deseja excluir essa indicação?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-danger">Excluir</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
   
   <!-- Scripts JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -683,17 +704,20 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
   // Exibe/oculta campos do modal de edição quando status é "Faturado"
   function verificarStatus() {
     var status = document.getElementById("editar_status");
-    var faturadoContainer = document.getElementById("faturadoContainer");
+    var valorContainer = document.getElementById("valorContainer");
+    var vendaContainer = document.getElementById("vendaContainer");
     var valor = document.getElementById("editar_valor");
     var venda = document.getElementById("editar_venda");
 
     var statusSelecionado = status.options[status.selectedIndex].text.trim();
     if (statusSelecionado === "Faturado") {
-      faturadoContainer.style.display = "block";
+      valorContainer.style.display = "block";
+      vendaContainer.style.display = "block";
       valor.setAttribute("required", "true");
       venda.setAttribute("required", "true");
     } else {
-      faturadoContainer.style.display = "none";
+      valorContainer.style.display = "none";
+      vendaContainer.style.display = "none";
       valor.removeAttribute("required");
       venda.removeAttribute("required");
     }
@@ -877,6 +901,11 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
 
     $('#modalEditarIndicacao').modal('show');
   }
+
+  function modalExcluir(id) {
+      document.getElementById('excluir_id').value = id;
+      new bootstrap.Modal(document.getElementById('modalExcluir')).show();
+    }
 </script>
 </body>
 </html>
