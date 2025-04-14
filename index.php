@@ -153,150 +153,150 @@ foreach ($rows as $row) {
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- CSS Personalizado (layout unificado com os demais módulos) -->
-  <link href="Public/index.css" rel="stylesheet">
+  <link rel="stylesheet" href="Public/index.css">
   <link rel="icon" href="Public/Image/icone2.png" type="image/png">
 </head>
 <body class="bg-light">
-  <div class="d-flex-wrapper">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <a class="light-logo" href="indicacao.php">
-        <img src="Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
-      </a>
-      <nav class="nav flex-column">
-        <a class="nav-link" href="Views/menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
-        <?php if ($cargo === 'Admin'): ?>
-          <a class="nav-link" href="Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
-          <a class="nav-link" href="Views/destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
-          <a class="nav-link" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
-          <a class="nav-link" href="Views/folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
-          <a class="nav-link" href="Views/incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User'): ?>
-         <a class="nav-link" href="Views/indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
-         <a class="nav-link active" href="index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
-          <a class="nav-link" href="Views/dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
-         <a class="nav-link" href="Views/usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
-          <a class="nav-link" href="Views/treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
-        <?php endif; ?>
-      </nav>
-    </div>
-    
-    <!-- Minimalist Modern Toast Layout -->
-    <div id="toast-container" class="toast-container">
-      <div id="toastSucesso" class="toast toast-success">
-        <i class="fa-solid fa-check-circle"></i>
-        <span id="toastMensagem"></span>
-      </div>
-      <div id="toastErro" class="toast toast-error">
-        <i class="fa-solid fa-exclamation-triangle"></i>
-        <span id="toastMensagemErro"></span>
-      </div>
-    </div>
-    <script>
-      function showToast(message, type) {
-        const container = document.getElementById("toast-container");
-        const toast = document.createElement("div");
-        toast.className = "toast " + type;
-        toast.textContent = message;
-        container.appendChild(toast);
-        // Trigger the CSS animation
-        setTimeout(() => {
-          toast.classList.add("show");
-        }, 10);
-        // Hide after 2 seconds and remove from DOM
-        setTimeout(() => {
-          toast.classList.remove("show");
-          setTimeout(() => {
-            container.removeChild(toast);
-          }, 300);
-        }, 2000);
-      }
-
-      document.addEventListener("DOMContentLoaded", function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const success = urlParams.get("success");
-        const error = urlParams.get("error");
-
-        if (success) {
-          let msg = "";
-          switch (success) {
-            case "1":
-              msg = "Análise Cadastrada!";
-              break;
-            case "2":
-              msg = "Análise Editada!";
-              break;
-            case "3":
-              msg = "Análise Excluída!";
-              break;
-          }
-          if (msg) showToast(msg, "success");
-        }
-      });
-    </script>
-
-    <!-- Área Principal -->
-    <div class="w-100">
-      <!-- Header -->
-      <div class="header">
-        <h3>Tarefas N3</h3>
-        <div class="user-info">
-          <span>Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
-          <a href="logout.php" class="btn btn-danger">
-            <i class="fa-solid fa-right-from-bracket me-1"></i> Sair
-          </a>
+    <div class="d-flex-wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar">
+        <a class="light-logo" href="index.php">
+            <img src="Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
+        </a>
+        <nav class="nav flex-column">
+            <a class="nav-link" href="Views/menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
+            <?php if ($cargo === 'Admin'): ?>
+            <a class="nav-link" href="Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
+            <?php endif; ?>
+            <?php if ($cargo === 'Admin'): ?>
+            <a class="nav-link" href="Views/destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>
+            <?php endif; ?>
+            <?php if ($cargo === 'Admin'): ?>
+            <a class="nav-link" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
+            <?php endif; ?>
+            <?php if ($cargo === 'Admin'): ?>
+            <a class="nav-link" href="Views/folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
+            <?php endif; ?>
+            <?php if ($cargo === 'Admin'): ?>
+            <a class="nav-link" href="Views/incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
+            <?php endif; ?>
+            <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User'): ?>
+            <a class="nav-link" href="Views/indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
+            <?php endif; ?>
+            <?php if ($cargo === 'Admin'): ?>
+            <a class="nav-link active" href="index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
+            <?php endif; ?>
+            <?php if ($cargo === 'Admin'): ?>
+            <a class="nav-link" href="Views/dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
+            <?php endif; ?>
+            <?php if ($cargo === 'Admin'): ?>
+            <a class="nav-link" href="Views/usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
+            <?php endif; ?>
+            <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
+            <a class="nav-link" href="Views/treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
+            <?php endif; ?>
+        </nav>
         </div>
-      </div>
+        
+        <!-- Minimalist Modern Toast Layout -->
+        <div id="toast-container" class="toast-container">
+        <div id="toastSucesso" class="toast toast-success">
+            <i class="fa-solid fa-check-circle"></i>
+            <span id="toastMensagem"></span>
+        </div>
+        <div id="toastErro" class="toast toast-error">
+            <i class="fa-solid fa-exclamation-triangle"></i>
+            <span id="toastMensagemErro"></span>
+        </div>
+        </div>
+        <script>
+        function showToast(message, type) {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = "toast " + type;
+            toast.textContent = message;
+            container.appendChild(toast);
+            // Trigger the CSS animation
+            setTimeout(() => {
+            toast.classList.add("show");
+            }, 10);
+            // Hide after 2 seconds and remove from DOM
+            setTimeout(() => {
+            toast.classList.remove("show");
+            setTimeout(() => {
+                container.removeChild(toast);
+            }, 300);
+            }, 2000);
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const success = urlParams.get("success");
+            const error = urlParams.get("error");
+
+            if (success) {
+            let msg = "";
+            switch (success) {
+                case "1":
+                msg = "Análise Cadastrada!";
+                break;
+                case "2":
+                msg = "Análise Editada!";
+                break;
+                case "3":
+                msg = "Análise Excluída!";
+                break;
+            }
+            if (msg) showToast(msg, "success");
+            }
+        });
+        </script>
+
+        <!-- Área Principal -->
+        <div class="w-100">
+            <!-- Header -->
+            <div class="header">
+                <h3>Tarefas N3</h3>
+                <div class="user-info">
+                <span>Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
+                <a href="logout.php" class="btn btn-danger">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i> Sair
+                </a>
+                </div>
+            </div>
       
         
         <!-- Script para alternar entre os campos de período e analista -->
-    <script>
-       // Exibe o campo de filtro correspondente conforme a seleção do "Coluna"
-      function adjustFilterFields() {
-          let filterColumn = document.getElementById("filterColumn").value;
-          // Atualiza um campo hidden, se necessário para o backend (opcional)
-          document.getElementById("filterColumnHidden").value = filterColumn;
-          // Esconde todos os containers
-          document.getElementById("filterPeriod").style.display = "none";
-          document.getElementById("filterAnalista").style.display = "none";
-          document.getElementById("filterSituacao").style.display = "none";
-          document.getElementById("filterSistema").style.display = "none";
-          document.getElementById("filterStatus").style.display = "none";
-          // Exibe apenas o container selecionado
-          if (filterColumn === "period") {
-              document.getElementById("filterPeriod").style.display = "block";
-          } else if (filterColumn === "analista") {
-              document.getElementById("filterAnalista").style.display = "block";
-          } else if (filterColumn === "situacao") {
-              document.getElementById("filterSituacao").style.display = "block";
-          } else if (filterColumn === "sistema") {
-              document.getElementById("filterSistema").style.display = "block";
-          } else if (filterColumn === "status") {
-              document.getElementById("filterStatus").style.display = "block";
-          }
-      }
-      document.addEventListener("DOMContentLoaded", function() {
-          adjustFilterFields();
-          document.getElementById("filterColumn").addEventListener("change", adjustFilterFields);
-      });
-    </script>
+            <script>
+            // Exibe o campo de filtro correspondente conforme a seleção do "Coluna"
+            function adjustFilterFields() {
+                let filterColumn = document.getElementById("filterColumn").value;
+                // Atualiza um campo hidden, se necessário para o backend (opcional)
+                document.getElementById("filterColumnHidden").value = filterColumn;
+                // Esconde todos os containers
+                document.getElementById("filterPeriod").style.display = "none";
+                document.getElementById("filterAnalista").style.display = "none";
+                document.getElementById("filterSituacao").style.display = "none";
+                document.getElementById("filterSistema").style.display = "none";
+                document.getElementById("filterStatus").style.display = "none";
+                // Exibe apenas o container selecionado
+                if (filterColumn === "period") {
+                    document.getElementById("filterPeriod").style.display = "block";
+                } else if (filterColumn === "analista") {
+                    document.getElementById("filterAnalista").style.display = "block";
+                } else if (filterColumn === "situacao") {
+                    document.getElementById("filterSituacao").style.display = "block";
+                } else if (filterColumn === "sistema") {
+                    document.getElementById("filterSistema").style.display = "block";
+                } else if (filterColumn === "status") {
+                    document.getElementById("filterStatus").style.display = "block";
+                }
+            }
+            document.addEventListener("DOMContentLoaded", function() {
+                adjustFilterFields();
+                document.getElementById("filterColumn").addEventListener("change", adjustFilterFields);
+            });
+            </script>
 
     <!-- Conteúdo -->
     <div class="content container-fluid">
@@ -384,81 +384,80 @@ foreach ($rows as $row) {
         </div>
     </div>
 
-               <!-- Lista de Análises - Novo Layout Moderno -->
+                <!-- Lista de Análises - Novo Layout Moderno -->
                 <div class="card shadow mb-4 modern-card">
-                <div class="card-header d-flex align-items-center modern-card-header">
-                    <h4 class="mb-0 flex-grow-1">Lista de Análises</h4>
-                    <div class="d-flex gap-2 align-items-center">
-                    <!-- Botão para abrir o modal de filtro -->
-                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
-                        <i class="fa-solid fa-filter"></i>
-                    </button>
-                    <!-- Campo de pesquisa -->
-                    <input type="text" id="searchInput" class="form-control" style="max-width: 200px;" placeholder="Pesquisar...">
-                    <?php if ($cargo === 'Admin'): ?>
-                    <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#modalCadastro">
-                        <i class="fa-solid fa-plus me-1"></i> Cadastrar
-                    </button>
-                    <?php endif; ?>
+                    <div class="card-header d-flex align-items-center modern-card-header">
+                        <h4 class="mb-0 flex-grow-1">Lista de Análises</h4>
+                        <div class="d-flex gap-2 align-items-center">
+                        <!-- Botão para abrir o modal de filtro -->
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
+                            <i class="fa-solid fa-filter"></i>
+                        </button>
+                        <!-- Campo de pesquisa -->
+                        <input type="text" id="searchInput" class="form-control" style="max-width: 200px;" placeholder="Pesquisar...">
+                        <?php if ($cargo === 'Admin'): ?>
+                        <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#modalCadastro">
+                            <i class="fa-solid fa-plus me-1"></i> Cadastrar
+                        </button>
+                        <?php endif; ?>
+                        </div>
                     </div>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive access-scroll">
-                    <table id="tabelaAnalises" class="table table-hover modern-table">
-                        <thead class="thead-light modern-thead">
-                        <tr>
-                            <th style="width: 17%">Descrição</th>
-                            <th style="width: 7%">Situação</th>
-                            <th style="width: 7%">Analista</th>
-                            <th style="width: 5%">Sistema</th>
-                            <th style="width: 5%">Status</th>
-                            <th style="width: 5%">Total Horas</th>
-                            <?php if ($cargo === 'Admin') echo '<th style="width: 5%">Ações</th>'; ?>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php 
-                        if ($result->num_rows > 0) {
-                            while($row = $result->fetch_assoc()) {
-                                echo "<tr>";
-                                echo "<td class='sobrepor'>" . $row["Descricao"] . "</td>";
-                                echo "<td>" . $row["Situacao"] . "</td>";
-                                echo "<td>" . $row["NomeUsuario"] . "</td>";
-                                echo "<td>" . $row["Sistema"] . "</td>";
-                                echo "<td>" . $row["Status"] . "</td>";
-                                echo "<td>" . $row["Total_hora"] . "</td>";
-                                if ($cargo === 'Admin') {
-                                    echo "<td class='text-center'>";
-                                    echo "<button class='btn btn-outline-primary btn-sm' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick='editarAnalise(" 
-                                        . htmlspecialchars(json_encode($row['Codigo']), ENT_QUOTES, 'UTF-8') . ", " 
-                                        . htmlspecialchars(json_encode($row['Descricao']), ENT_QUOTES, 'UTF-8') . ", " 
-                                        . htmlspecialchars(json_encode($row['idSituacao']), ENT_QUOTES, 'UTF-8') . ", " 
-                                        . htmlspecialchars(json_encode($row['idAtendente']), ENT_QUOTES, 'UTF-8') . ", " 
-                                        . htmlspecialchars(json_encode($row['idSistema']), ENT_QUOTES, 'UTF-8') . ", " 
-                                        . htmlspecialchars(json_encode($row['idStatus']), ENT_QUOTES, 'UTF-8') . ", " 
-                                        . htmlspecialchars(json_encode($row['Hora_ini']), ENT_QUOTES, 'UTF-8') . ", " 
-                                        . htmlspecialchars(json_encode($row['Hora_fim']), ENT_QUOTES, 'UTF-8') . ", " 
-                                        . htmlspecialchars(json_encode($row['Nota']), ENT_QUOTES, 'UTF-8') . ", " 
-                                        . htmlspecialchars(json_encode($row['Justificativa']), ENT_QUOTES, 'UTF-8') .
-                                        ")'><i class='fa-solid fa-pen'></i></button> ";
-                                    echo "<button class='btn btn-outline-danger btn-sm' data-bs-toggle='modal' data-bs-target='#modalExclusao' onclick='excluirAnalise(" 
-                                        . htmlspecialchars(json_encode($row['Codigo']), ENT_QUOTES, 'UTF-8') .
-                                        ")'><i class='fa-solid fa-trash'></i></button>";
-                                    echo "</td>";
+                    <div class="card-body p-0">
+                        <div class="table-responsive access-scroll">
+                        <table id="tabelaAnalises" class="table table-hover modern-table">
+                            <thead class="thead-light modern-thead">
+                            <tr>
+                                <th style="width: 17%">Descrição</th>
+                                <th style="width: 7%">Situação</th>
+                                <th style="width: 7%">Analista</th>
+                                <th style="width: 5%">Sistema</th>
+                                <th style="width: 5%">Status</th>
+                                <th style="width: 5%">Total Horas</th>
+                                <?php if ($cargo === 'Admin') echo '<th style="width: 5%">Ações</th>'; ?>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <?php 
+                            if ($result->num_rows > 0) {
+                                while($row = $result->fetch_assoc()) {
+                                    echo "<tr>";
+                                    echo "<td class='sobrepor'>" . $row["Descricao"] . "</td>";
+                                    echo "<td>" . $row["Situacao"] . "</td>";
+                                    echo "<td>" . $row["NomeUsuario"] . "</td>";
+                                    echo "<td>" . $row["Sistema"] . "</td>";
+                                    echo "<td>" . $row["Status"] . "</td>";
+                                    echo "<td>" . $row["Total_hora"] . "</td>";
+                                    if ($cargo === 'Admin') {
+                                        echo "<td class='text-center'>";
+                                        echo "<button class='btn btn-outline-primary btn-sm' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick='editarAnalise(" 
+                                            . htmlspecialchars(json_encode($row['Codigo']), ENT_QUOTES, 'UTF-8') . ", " 
+                                            . htmlspecialchars(json_encode($row['Descricao']), ENT_QUOTES, 'UTF-8') . ", " 
+                                            . htmlspecialchars(json_encode($row['idSituacao']), ENT_QUOTES, 'UTF-8') . ", " 
+                                            . htmlspecialchars(json_encode($row['idAtendente']), ENT_QUOTES, 'UTF-8') . ", " 
+                                            . htmlspecialchars(json_encode($row['idSistema']), ENT_QUOTES, 'UTF-8') . ", " 
+                                            . htmlspecialchars(json_encode($row['idStatus']), ENT_QUOTES, 'UTF-8') . ", " 
+                                            . htmlspecialchars(json_encode($row['Hora_ini']), ENT_QUOTES, 'UTF-8') . ", " 
+                                            . htmlspecialchars(json_encode($row['Hora_fim']), ENT_QUOTES, 'UTF-8') . ", " 
+                                            . htmlspecialchars(json_encode($row['Nota']), ENT_QUOTES, 'UTF-8') . ", " 
+                                            . htmlspecialchars(json_encode($row['Justificativa']), ENT_QUOTES, 'UTF-8') .
+                                            ")'><i class='fa-solid fa-pen'></i></button> ";
+                                        echo "<button class='btn btn-outline-danger btn-sm' data-bs-toggle='modal' data-bs-target='#modalExclusao' onclick='excluirAnalise(" 
+                                            . htmlspecialchars(json_encode($row['Codigo']), ENT_QUOTES, 'UTF-8') .
+                                            ")'><i class='fa-solid fa-trash'></i></button>";
+                                        echo "</td>";
+                                    }
+                                    echo "</tr>";
                                 }
-                                echo "</tr>";
                             }
-                        }
-                        ?>
-                        </tbody>
-                    </table>
+                            ?>
+                            </tbody>
+                        </table>
+                        </div>
                     </div>
                 </div>
-                </div>
-
             </div> <!-- /.content -->
         </div>
-  </div> <!-- /.d-flex-wrapper -->
+    </div> <!-- /.d-flex-wrapper -->
 
   <!-- Modal de Cadastro -->
   <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
@@ -466,7 +465,7 @@ foreach ($rows as $row) {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalCadastroLabel">Nova Análise</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form action="Views/cadastrar_analise.php" method="POST">
@@ -698,7 +697,7 @@ foreach ($rows as $row) {
             <!-- Cabeçalho do Modal -->
             <div class="modal-header">
                 <h5 class="modal-title" id="modalEdicaoLabel">Editar Análise</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <!-- Corpo do Modal -->
             <div class="modal-body">

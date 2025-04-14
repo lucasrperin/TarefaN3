@@ -141,8 +141,26 @@ CREATE TABLE TB_ANALISTA_CONVER (
     nome VARCHAR(255) NOT NULL UNIQUE
 );
 
-INSERT INTO TB_ANALISTA_CONVER (nome) VALUES
-    ('Douglas'), ('Ian'), ('Gabriel');
+INSERT INTO `TB_ANALISTA_CONVER` (`id`, `nome`) VALUES
+(16, 'Douglas Santana'),
+(17, 'Ian Savoldi'),
+(15, 'Gabriel Deggerone'),
+(1, 'Lucas Perin'),
+(2, 'Guilherme Ferri'),
+(3, 'Gabriel Battistella'),
+(4, 'Bernardo Rachadel'),
+(5, 'Douglas da Silva'),
+(6, 'Vagner Wilske'),
+(7, 'Germano Santos'),
+(8, 'Leandro Haefliger'),
+(9, 'Wesley Zamarchi'),
+(10, 'Lucas Rossato'),
+(11, 'Giselle Goetz'),
+(12, 'Caio Oliveira'),
+(13, 'Eduardo Forcellini'),
+(14, 'Antonio Zampeze'),
+(18, 'Eduardo Renan'),
+(19, 'Iago Pereira');
 
 CREATE TABLE TB_CONVERSOES (
     id INT AUTO_INCREMENT PRIMARY KEY,

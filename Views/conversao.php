@@ -374,260 +374,314 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
 <head>
   <meta charset="UTF-8">
   <title>Gerenciar Conversões</title>
-  <!-- CSS externo minimalista -->
-  <link rel="stylesheet" href="../Public/conversao.css">
-  <!-- Ícones personalizados -->
+  <!-- CSS, fontes e demais referências -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../Public/conversao.css">
   <link rel="icon" href="..\Public\Image\icone2.png" type="image/png">
-  
 </head>
-<body>
-
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container d-flex justify-content-between align-items-center">
-        <!-- Botão Hamburguer com Dropdown -->
-        <div class="dropdown">
-          <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-              <span class="navbar-toggler-icon"></span>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-dark">
+<body class="bg-light">
+    <div class="d-flex-wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar">
+          <a class="light-logo" href="conversao.php">
+              <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
+          </a>
+          <nav class="nav flex-column">
+            <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
             <?php if ($cargo === 'Admin'): ?>
-              <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
+            <a class="nav-link active" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
             <?php endif; ?>
-
             <?php if ($cargo === 'Admin'): ?>
-              <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
+            <a class="nav-link" href="destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>
             <?php endif; ?>
-
-            <?php if ($cargo === 'Admin'  || $cargo === 'Viewer'): ?>
-              <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
-            <?php endif; ?>
-
-            <?php if ($cargo === 'Admin' || $cargo === 'Conversor' || $cargo === 'User'): ?>
-              <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-1"></i>Indicações</a></li>
-            <?php endif; ?>
-
-            <?php if ($cargo === 'User' || $cargo === 'Conversor'  || $cargo === 'Viewer'): ?>
-              <li><a class="dropdown-item" href="user.php"><i class="fa-solid fa-chalkboard-user me-1"></i>Meu Painel</a></li>
-            <?php endif; ?>
-
             <?php if ($cargo === 'Admin'): ?>
-              <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
+            <a class="nav-link" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
             <?php endif; ?>
-
             <?php if ($cargo === 'Admin'): ?>
-              <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
-              <li><a class="dropdown-item" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
+            <a class="nav-link" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
             <?php endif; ?>
-          </ul>
+            <?php if ($cargo === 'Admin'): ?>
+            <a class="nav-link" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
+            <?php endif; ?>
+            <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User'): ?>
+            <a class="nav-link" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
+            <?php endif; ?>
+            <?php if ($cargo === 'Admin'): ?>
+            <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
+            <?php endif; ?>
+            <?php if ($cargo === 'Admin'): ?>
+            <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
+            <?php endif; ?>
+            <?php if ($cargo === 'Admin'): ?>
+            <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
+            <?php endif; ?>
+            <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
+            <a class="nav-link" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
+            <?php endif; ?>
+          </nav>
         </div>
-        <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
-        <a href="menu.php" class="btn btn-danger">
-          <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
-        </a>
-    </div>
-</nav>
+        
+        
 
-<!-- Container do Toast no canto superior direito -->
-<div class="toast-container">
-    <div id="toastSucesso" class="toast">
-        <div class="toast-body">
-            <i class="fa-solid fa-check-circle"></i> <span id="toastMensagem"></span>
+        <!-- Área Principal -->
+        <div class="w-100">
+            <!-- Header -->
+            <div class="header">
+                <h3>Gerenciar Conversões</h3>
+                <div class="user-info">
+                <span>Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
+                <a href="logout.php" class="btn btn-danger">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i> Sair
+                </a>
+                </div>
+            </div>
+            
+            <div class="container mt-4">
+      <!-- Accordion principal -->
+      <div class="accordion" id="accordionConversao">
+
+        <!-- Accordion Item 1: Gráfico e Filtro Global -->
+        <div class="accordion-item mb-3">
+          <h2 class="accordion-header" id="headingGrafico">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGrafico" aria-expanded="false" aria-controls="collapseGrafico">
+              Gráfico e Filtro Global
+            </button>
+          </h2>
+          <div id="collapseGrafico" class="accordion-collapse collapse" aria-labelledby="headingGrafico" data-bs-parent="#accordionConversao">
+            <div class="accordion-body">
+              <!-- Linha 1: Gráfico e Filtro Global na mesma linha -->
+              <div class="row mb-4">
+                <!-- Gráfico à esquerda (8 colunas) -->
+                <div class="col-md-8">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Conversões Mensais por Analista</h5>
+                      <canvas id="chartBarras" height="100"></canvas>
+                    </div>
+                  </div>
+                </div>
+                <!-- Filtro Global à direita (4 colunas) -->
+                <div class="col-md-4">
+                  <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Filtro Global</h5>
+                      <form method="GET" class="row gy-2 gx-2">
+                        <div class="col-12">
+                          <label>Data Inicial</label>
+                          <input type="date" name="data_inicial" value="<?= htmlspecialchars($dataInicial) ?>" class="form-control">
+                        </div>
+                        <div class="col-12">
+                          <label>Data Final</label>
+                          <input type="date" name="data_final" value="<?= htmlspecialchars($dataFinal) ?>" class="form-control">
+                        </div>
+                        <div class="col-12">
+                          <label>Analista</label>
+                          <select name="analista_id" class="form-select">
+                            <option value="0">-- Todos --</option>
+                            <?php while ($anF = $analistasFiltro->fetch_assoc()): ?>
+                              <option value="<?= $anF['id'] ?>" <?= ($analistaID == $anF['id']) ? 'selected' : '' ?>>
+                                <?= $anF['nome'] ?>
+                              </option>
+                            <?php endwhile; ?>
+                          </select>
+                        </div>
+                        <div class="d-flex justify-content-center gap-2">
+                          <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+                          <a href="conversao.php?reset=1" class="btn btn-secondary btn-sm">Limpar Filtros</a>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Fim da Linha 1 -->
+            </div>
+          </div>
         </div>
+
+    <!-- Accordion Item 2: Totalizadores de Conversões - Layout 2 -->
+    <div class="accordion-item mb-3">
+      <h2 class="accordion-header" id="headingTotalizadoresLayout2">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTotalizadoresLayout2" aria-expanded="true" aria-controls="collapseTotalizadoresLayout2">
+          <i class="fa-solid fa-chart-bar me-2"></i> Totalizadores de Conversões
+        </button>
+      </h2>
+      <div id="collapseTotalizadoresLayout2" class="accordion-collapse collapse show" aria-labelledby="headingTotalizadoresLayout2" data-bs-parent="#accordionConversao">
+        <div class="accordion-body layout2-accordion-body">
+          <div class="row g-3">
+            <!-- Card 1: Pendentes -->
+            <div class="col-md-4">
+              <div class="card layout2-card text-center">
+                <div class="card-body">
+                  <div class="icon-circle bg-warning mb-2">
+                    <i class="fa-solid fa-hourglass-half fa-lg text-white"></i>
+                  </div>
+                  <h6 class="card-subtitle mb-2">Pendentes</h6>
+                  <div class="list-group">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                      <span><i class="fa-solid fa-clock me-1"></i> Dentro do prazo</span>
+                      <span class="badge rounded-pill bg-info"><?= $countDentroPrazo; ?></span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                      <span><i class="fa-solid fa-arrow-down me-1 ms-1"></i> Atrasadas</span>
+                      <span class="badge rounded-pill bg-warning"><?= $countAtrasadas; ?></span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                      <span><i class="fa-solid fa-exclamation-triangle me-1"></i> Meta não batida</span>
+                      <span class="badge rounded-pill bg-danger"><?= $countMetaNaoBatida; ?></span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                      <span><i class="fa-solid fa-check me-1 ms-1"></i> No prazo</span>
+                      <span class="badge rounded-pill bg-success"><?= $countMetaBatida; ?></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Card 2: Por Status -->
+            <div class="col-md-4">
+              <div class="card layout2-card text-center">
+                <div class="card-body">
+                  <div class="icon-circle bg-primary mb-2">
+                    <i class="fa-solid fa-signal fa-lg text-white"></i>
+                  </div>
+                  <h6 class="card-subtitle mb-2">Por Status</h6>
+                  <div class="list-group">
+                    <?php while($rowSt = $resStatusTot->fetch_assoc()): ?>
+                      <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fa-solid fa-circle me-1" style="color: #0d6efd;"></i> <?= $rowSt['status_nome']; ?></span>
+                        <span class="badge rounded-pill bg-primary"><?= $rowSt['total']; ?></span>
+                      </div>
+                    <?php endwhile; ?>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Card 3: Por Sistema -->
+            <div class="col-md-4">
+              <div class="card layout2-card text-center">
+                <div class="card-body">
+                  <div class="icon-circle bg-secondary mb-2">
+                    <i class="fa-solid fa-desktop fa-lg text-white"></i>
+                  </div>
+                  <h6 class="card-subtitle mb-2">Por Sistema</h6>
+                  <div class="list-group">
+                    <?php while($rowSys = $resSistemaTot->fetch_assoc()): ?>
+                      <?php
+                        // Nome do sistema conforme o banco
+                        $systemName = $rowSys['sistema_exibicao'];
+                        
+                        // Mapeamento dos nomes para os arquivos de imagem
+                        $imageMap = [
+                          "ClippFácil" => "ClippFacil.png",
+                          "Clipp360"   => "Clipp360.png",
+                          "ZetaWeb"   => "ZWeb.png",
+                          // Adicione outros mapeamentos conforme necessário
+                        ];
+                        
+                        // Verifica se o sistema existe no mapeamento; se não, gera um nome de arquivo simples
+                        if (isset($imageMap[$systemName])) {
+                          $imageFilename = $imageMap[$systemName];
+                        } else {
+                          // Exemplo de geração automática: remove espaços, converte para minúsculas e acrescenta .png
+                          $imageFilename = strtolower(str_replace(" ", "", $systemName)) . ".png";
+                        }
+                        
+                        // Caminho da imagem (ajuste conforme seu ambiente)
+                        // Exemplo: se a pasta Public/Image for acessível pela URL /TarefaN3/Public/Image/
+                        $imagePath = "/TarefaN3/Public/Image/" . $imageFilename;
+                      ?>
+                      <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>
+                          <img src="<?= $imagePath ?>" alt="<?= $systemName ?>" style="width: 30px; height: auto;" class="me-2">
+                          <?= $systemName; ?>
+                        </span>
+                        <span class="badge rounded-pill bg-secondary"><?= $rowSys['total']; ?></span>
+                      </div>
+                    <?php endwhile; ?>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><!-- Fim da row g-3 -->
+        </div><!-- Fim do accordion-body -->
+      </div>
     </div>
+
+ <!-- Accordion Item: Resumo Geral - Layout 5 (Ajustado para centralização horizontal uniforme) -->
+<div class="accordion-item mb-3">
+  <h2 class="accordion-header" id="headingResumoGeralLayout5">
+    <button class="accordion-button collapsed layout5-accordion-header" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResumoGeralLayout5" aria-expanded="false" aria-controls="collapseResumoGeralLayout5">
+      <i class="fa-solid fa-chart-area me-2"></i> Resumo Geral
+    </button>
+  </h2>
+  <div id="collapseResumoGeralLayout5" class="accordion-collapse collapse" aria-labelledby="headingResumoGeralLayout5" data-bs-parent="#accordionConversao">
+    <div class="accordion-body layout5-accordion-body">
+      <!-- Contêiner centralizado com largura limitada -->
+      <div class="row justify-content-center">
+        <div class="col-lg-12">
+          <div class="row">
+            <!-- Card 1: Total de Conversões -->
+            <div class="col-md-4 mb-4">
+              <div class="card custom-card text-center h-100 border-0">
+                <div class="card-body p-4 d-flex flex-column justify-content-center">
+                  <p class="text-muted mb-1" style="font-size: 0.9rem;">Total de Conversões</p>
+                  <h3 class="mb-3"><?= $total_conversoes; ?></h3>
+                  <div class="icon-wrapper">
+                    <i class="fa-solid fa-layer-group fa-2x" style="color: #1e90ff;"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Card 2: Atingimento da Meta -->
+            <div class="col-md-4 mb-4">
+              <div class="card custom-card text-center h-100 border-0">
+                <div class="card-body p-4 d-flex flex-column justify-content-center">
+                  <p class="text-muted mb-1" style="font-size: 0.9rem;">Atingimento da Meta</p>
+                  <h3 class="mb-3"><?= $meta; ?>%</h3>
+                  <div class="icon-wrapper">
+                    <i class="fa-solid fa-percent fa-2x" style="color: <?= $metaColor; ?>;"></i>
+                  </div>
+                  <div class="progress mt-3" style="height: 5px;">
+                    <div class="progress-bar" role="progressbar" style="width: <?= $meta; ?>%; background-color: <?= $metaColor; ?>;" aria-valuenow="<?= $meta; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                  </div>
+                  <small class="d-block mt-2" style="color: #6c757d;">🟩 >95% | 🟨 90-94% | 🟥 &lt;90%</small>
+                </div>
+              </div>
+            </div>
+            <!-- Card 3: Tempo Médio -->
+            <div class="col-md-4 mb-4">
+              <div class="card custom-card text-center h-100 border-0">
+                <div class="card-body p-4 d-flex flex-column justify-content-center">
+                  <div class="mb-2">
+                    <i class="fa-solid fa-hourglass-half fa-2x" style="color: #17a2b8;"></i>
+                  </div>
+                  <h6 class="mb-3">Tempo Médio</h6>
+                  <div class="row">
+                    <div class="col-6 border-end">
+                      <h6 class="small mb-1">Entrega</h6>
+                      <p class="mb-0"><?= $tempo_medio_ret; ?></p>
+                    </div>
+                    <div class="col-6">
+                      <h6 class="small mb-1">Conversão</h6>
+                      <p class="mb-0"><?= $tempo_medio_conv; ?></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><!-- Fim da row interna -->
+        </div><!-- Fim col-lg-10 -->
+      </div><!-- Fim row justify-content-center -->
+    </div><!-- Fim accordion-body -->
+  </div><!-- Fim accordion-collapse -->
 </div>
 
-<script>
-//Toast para mensagem de sucesso
-document.addEventListener("DOMContentLoaded", function () {
-        const urlParams = new URLSearchParams(window.location.search);
-        const success = urlParams.get("success");
-
-        if (success) {
-            let mensagem = "";
-            switch (success) {
-                case "1":
-                    mensagem = "Conversão cadastrada com sucesso!";
-                    break;
-                case "2":
-                    mensagem = "Conversão editada com sucesso!";
-                    break;
-                case "3":
-                    mensagem = "Conversão excluída com sucesso!";
-                    break;
-            }
-            if (mensagem) {
-                document.getElementById("toastMensagem").textContent = mensagem;
-                var toastEl = document.getElementById("toastSucesso");
-                var toast = new bootstrap.Toast(toastEl, { delay: 2200 });
-                toast.show();
-            }
-        }
-    });
-</script> 
-</head>
-<body>
-<div class="container mt-4">
-  <h1 class="text-center mb-4">Gerenciar Conversões</h1>
-
-  <!-- Linha 1: Gráfico e Filtro Global na mesma linha -->
-<div class="row mb-4">
-  <!-- Gráfico à esquerda (8 colunas) -->
-  <div class="col-md-8">
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">Conversões Mensais por Analista</h5>
-        <canvas id="chartBarras" height="100"></canvas>
-      </div>
-    </div>
-  </div>
-  <!-- Filtro Global à direita (4 colunas) -->
-  <div class="col-md-4">
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">Filtro Global</h5>
-        <form method="GET" class="row gy-2 gx-2">
-          <div class="col-12">
-            <label>Data Inicial</label>
-            <input type="date" name="data_inicial" value="<?= htmlspecialchars($dataInicial) ?>" class="form-control">
-          </div>
-          <div class="col-12">
-            <label>Data Final</label>
-            <input type="date" name="data_final" value="<?= htmlspecialchars($dataFinal) ?>" class="form-control">
-          </div>
-          <div class="col-12">
-            <label>Analista</label>
-            <select name="analista_id" class="form-select">
-              <option value="0">-- Todos --</option>
-              <?php while ($anF = $analistasFiltro->fetch_assoc()): ?>
-              <option value="<?= $anF['id'] ?>" <?= ($analistaID == $anF['id']) ? 'selected' : '' ?>>
-                <?= $anF['nome'] ?>
-              </option>
-              <?php endwhile; ?>
-            </select>
-          </div>
-          <div class="d-flex justify-content-center gap-2">
-                <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-                <a href="conversao.php?reset=1" class="btn btn-secondary btn-sm">Limpar Filtros</a>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Linha 2: Três Totalizadores lado a lado -->
-<div class="row mb-4">
-  <!-- Conversões Pendentes para Entrega Hoje -->
-  <div class="col-md-4">
-    <div class="card">
-      <div class="card-body">
-         <h5 class="card-title">Conversões Pendentes</h5>
-         <ul class="list-group">
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              Ainda dentro do prazo
-              <span class="badge bg-info rounded-pill"><?= $countDentroPrazo; ?></span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              Atrasadas (Em fila, Analise, Dar prioridade)
-              <span class="badge bg-warning rounded-pill"><?= $countAtrasadas; ?></span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              Meta não batida (Concluídas com prazo não cumprido)
-              <span class="badge bg-danger rounded-pill"><?= $countMetaNaoBatida; ?></span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              Concluídas no prazo (Meta Batida)
-              <span class="badge bg-success rounded-pill"><?= $countMetaBatida; ?></span>
-            </li>
-         </ul>
-      </div>
-    </div>
-  </div>
-  <!-- Conversões por Status -->
-  <div class="col-md-4">
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">Conversões por Status</h5>
-        <ul class="list-group">
-          <?php while ($rowSt = $resStatusTot->fetch_assoc()): ?>
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <?= $rowSt['status_nome'] ?>
-            <span class="badge bg-primary rounded-pill"><?= $rowSt['total'] ?></span>
-          </li>
-          <?php endwhile; ?>
-        </ul>
-      </div>
-    </div>
-  </div>
-  <!-- Conversões por Sistema -->
-  <div class="col-md-4">
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">Conversões por Sistema</h5>
-        <ul class="list-group">
-          <?php while ($rowSys = $resSistemaTot->fetch_assoc()): ?>
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <?= $rowSys['sistema_exibicao'] ?>
-            <span class="badge bg-secondary rounded-pill"><?= $rowSys['total'] ?></span>
-          </li>
-          <?php endwhile; ?>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<!-- TOTALIZADORES GERAIS (Total de Conversões, Atingimento da Meta e Tempo Médio) -->
-<div class="row g-3 mb-3 card-total">
-  <!-- Total de Conversões -->
-  <div class="col-md-4">
-    <div class="card text-white" style="background-color:rgb(120, 157, 184);"> 
-      <!-- Cor suave azul -->
-      <div class="card-body text-center">
-        <h5 class="card-title">Total de Conversões</h5>
-        <h3 class="card-text"><?= $total_conversoes; ?></h3>
-      </div>
-    </div>
-  </div>
-  <!-- Atingimento da Meta -->
-  <div class="col-md-4">
-    <div class="card text-white" style="background-color: <?= $metaColor; ?>;">
-      <div class="card-body text-center">
-        <span data-bs-toggle="tooltip" data-bs-html="true" title="🟩 Acima de 95%  <br>🟨 Entre 90% e 94%  <br>🟥 Abaixo de 90%">
-          <h5 class="card-title">Atingimento da Meta</h5>
-          <h3 class="card-text"><?= $meta; ?>%</h3>
-        </span>
-      </div>
-    </div>
-  </div>
-  <!-- Tempo Médio -->
-  <div class="col-md-4">
-    <div class="card text-white" style="background-color:rgba(91, 41, 170, 0.67);"> 
-      <div class="card-body text-center d-flex p-0">
-        <div class="card-body text-center">
-          <span data-bs-toggle="tooltip" title="Data Conclusão - Data Recebido">
-          <h5 class="card-title">Tempo Entrega</h5>
-          <h3 class="card-text"><?= $tempo_medio_ret; ?></h3>
-        </div>
-        <div class="card-body text-center">
-          <span data-bs-toggle="tooltip" title="Data Conclusão - Data Inicio">
-            <h5 class="card-title">Tempo Conversão</h5>
-            <h3 class="card-text"><?= $tempo_medio_conv; ?></h3>
-          </span>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Código para exibir e remover a mensagem/aviso -->
 <script>
@@ -1253,25 +1307,25 @@ document.getElementById("formCadastro").addEventListener("submit", function(even
 }
 </script>
 
-<!-- Modal de Exclusão -->
-<div class="modal fade" id="modalExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalExclusaoLabel">Confirma a Exclusão da Análise?</h5>
-                </div>
-                <div class="modal-body">
-                    <form action="deletar_conversao.php" method="POST">
-                        <!-- Campo oculto para armazenar o ID da análise -->
-                        <input type="hidden" id="id_excluir" name="id_excluir">
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-success">Sim</button>
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close">Não</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+    <!-- Modal de Exclusão -->
+    <div class="modal fade" id="modalExclusao" tabindex="-1" aria-labelledby="modalExclusaoLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="modalExclusaoLabel">Confirma a Exclusão da Análise?</h5>
+          </div>
+          <div class="modal-body">
+            <form action="deletar_conversao.php" method="POST">
+              <!-- Campo oculto para armazenar o ID da análise -->
+              <input type="hidden" id="id_excluir" name="id_excluir">
+              <div class="text-end">
+                <button type="submit" class="btn btn-success">Sim</button>
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close">Não</button>
+              </div>
+            </form>
+          </div>
         </div>
+      </div>
     </div>
 
 <!-- Bootstrap JS -->

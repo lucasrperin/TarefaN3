@@ -176,7 +176,7 @@ if ($resultTotalizadores && $resultTotalizadores->num_rows > 0) {
           <a class="nav-link" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
         <?php endif; ?>
         <?php if ($cargo === 'Admin'): ?>
-          <a class="nav-link" href="destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>
+          <a class="nav-link active" href="destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>
         <?php endif; ?>
         <?php if ($cargo === 'Admin'): ?>
           <a class="nav-link" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
@@ -200,7 +200,7 @@ if ($resultTotalizadores && $resultTotalizadores->num_rows > 0) {
          <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
         <?php endif; ?>
         <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
-          <a class="nav-link active" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
+          <a class="nav-link" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
         <?php endif; ?>
       </nav>
     </div>

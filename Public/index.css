@@ -290,6 +290,11 @@ body {
   color: #fff;
 }
 
+.accordion-button:not(.collapsed) {
+  background-color: #4b79a1;
+  color: #fff;
+}
+
 /* Novo Layout Moderno para a Lista de Análises */
 .modern-card {
   border: none;
