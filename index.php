@@ -259,7 +259,7 @@ foreach ($rows as $row) {
         <h3>Tarefas N3</h3>
         <div class="user-info">
           <span>Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
-          <a href="logout.php" class="btn btn-danger">
+          <a href="Views/logout.php" class="btn btn-danger">
             <i class="fa-solid fa-right-from-bracket me-1"></i> Sair
           </a>
         </div>

@@ -8,6 +8,10 @@ if (!isset($_SESSION['usuario_id'])) {
   header("Location: login.php");
   exit();
 }
+// Variáveis de sessão
+$usuario_id   = $_SESSION['usuario_id'];
+$cargo        = $_SESSION['cargo'] ?? '';
+$usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -179,6 +183,9 @@ $resultFolga = $conn->query($sqlListarFolga);
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  
   <!-- Flatpickr CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <!-- Font Awesome -->
@@ -187,28 +194,59 @@ $resultFolga = $conn->query($sqlListarFolga);
   <link rel="stylesheet" href="../Public/folga.css">
 </head>
 <body>
-<nav class="navbar navbar-dark bg-dark">
-  <div class="container d-flex justify-content-between align-items-center">
-    <div class="dropdown">
-      <button class="navbar-toggler" type="button" data-bs-toggle="dropdown">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <ul class="dropdown-menu dropdown-menu-dark">
-        <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
-        <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
-        <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
-        <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-1"></i>Indicações</a></li>
-        <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
-        <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
-        <li><a class="dropdown-item" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
-      </ul>
+  <!-- Início do layout unificado: Sidebar e Cabeçalho -->
+  <div class="d-flex-wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <a class="light-logo" href="menu.php">
+        <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
+      </a>
+      <nav class="nav flex-column">
+        <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
+        <?php if ($cargo === 'Admin'): ?>
+          <a class="nav-link" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+          <a class="nav-link" href="destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+          <a class="nav-link" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+          <a class="nav-link" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+          <a class="nav-link" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User'): ?>
+         <a class="nav-link" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+         <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+          <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+         <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
+          <a class="nav-link active" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
+        <?php endif; ?>
+      </nav>
     </div>
-    <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
-    <a href="menu.php" class="btn btn-danger">
-      <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
-    </a>
-  </div>
-</nav>
+    <!-- Main Content -->
+    <div class="w-100">
+      <!-- Cabeçalho -->
+      <div class="header">
+        <h3>Controle de Férias e Folgas</h3>
+        <div class="user-info">
+          <span>Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
+          <a href="logout.php" class="btn btn-danger">
+            <i class="fa-solid fa-right-from-bracket me-1"></i> Sair
+          </a>
+        </div>
+      </div>
 
 <div class="container my-5">
   <!-- Formulário de filtro -->
