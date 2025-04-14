@@ -248,3 +248,80 @@ body {
     background-color: #283e51;
     color: #fff;
   }
+
+  /* Layout 2 - Resumo dos Totalizadores */
+.totalizador2 {
+  background: linear-gradient(135deg, #283e51, #568bb9);
+  color: #fff;
+  padding: 16px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+}
+.totalizador2:hover {
+  transform: scale(1.05);
+}
+.totalizador2 .icon {
+  font-size: 1.8rem;
+  margin-right: 12px;
+}
+.totalizador2 .info {
+  text-align: left;
+}
+.totalizador2 .info span {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+.totalizador2 .info h4 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+.totalizador2-full {
+  justify-content: center;
+}
+
+.accordion-button {
+  font-weight: 600;
+  background-color: #283e51;
+  color: #fff;
+}
+
+/* Novo Layout Moderno para a Lista de Análises */
+.modern-card {
+  border: none;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.modern-card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #eaeaea;
+  padding: 1rem 1.5rem;
+}
+
+.modern-card-header h4 {
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.modern-table th,
+.modern-table td {
+  padding: 12px;
+  vertical-align: middle;
+  border-top: 1px solid #dee2e6;
+}
+.modern-table tbody tr {
+  border-radius: 5px;
+  overflow: hidden;
+  font-family: 'Nunito', sans-serif;
+}
+
+.modern-thead {
+  background-color: #e9ecef;
+  color: #333;
+  font-weight: 600;
+}

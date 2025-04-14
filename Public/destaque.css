@@ -11,23 +11,20 @@ body {
   min-height: 100vh;
 }
 
-/* Sidebar (menu lateral) */
+/* Sidebar com as cores do menu */
 .sidebar {
   background: linear-gradient(135deg, #4b79a1, #283e51);
   min-width: 220px;
   padding: 1.5rem;
   color: #fff;
 }
-
 .sidebar a {
   color: #fff;
   display: block;
   margin-bottom: 1rem;
-  text-decoration: none;
 }
-
-.sidebar a:hover,
-.sidebar a.active {
+.sidebar a:hover, .sidebar a.active {
+  color: #fff;
   background-color: #283e51;
   border-radius: 4px;
   padding: 0.5rem;

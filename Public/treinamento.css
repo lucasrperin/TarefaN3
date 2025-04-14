@@ -6,6 +6,7 @@ body {
     display: flex;
     min-height: 100vh;
   }
+
   /* Sidebar com as cores do menu */
   .sidebar {
     background: linear-gradient(135deg, #4b79a1, #283e51);
@@ -33,6 +34,7 @@ body {
     align-items: center;
     color: #fff;
   }
+
   .header .user-info span {
     margin-right: 1rem;
   }
