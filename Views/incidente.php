@@ -8,12 +8,31 @@ if (!isset($_SESSION['usuario_id'])) {
   exit();
 }
 
-// Definir o cargo do usuário (supondo que ele esteja armazenado na sessão, com a chave "Cargo")
+// Define o cargo do usuário (supondo que ele esteja armazenado na sessão, com a chave "cargo")
 $usuario_id = $_SESSION['usuario_id'];
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+
+// Função para mapear o nome do sistema para o caminho do ícone correspondente
+function getIconPath($system) {
+    switch($system) {
+        case 'ClippPRO':
+            return '../Public/Image/ClippPRO.png';
+        case 'ZWEB':
+            return '../Public/Image/ZWEB.png';
+        case 'Clipp360':
+            return '../Public/Image/Clipp360.png';
+        case 'ClippFácil':
+        case 'ClippFacil': // Atende tanto com acento quanto sem
+            return '../Public/Image/ClippFacil.png';
+        case 'Conversor':
+            return '../Public/Image/Conversor.png';
+        default:
+            return '../Public/Image/default.png';
+    }
+}
 
 // ======== TOTALIZADORES E DADOS PARA O GRÁFICO ========
 
@@ -144,15 +163,15 @@ $resultWeb = $conn->query($sqlWeb);
           </script>
         <?php endif; ?>
 
-        <!-- Menu expansivo para Gráfico e Totalizadores -->
-        <div class="accordion mb-4" id="accordionTotalizadores">
+        <!-- Accordion para o Gráfico -->
+        <div class="accordion mb-4" id="accordionGraph">
           <div class="accordion-item">
-            <h2 class="accordion-header" id="headingTotalizadores">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTotalizadores" aria-expanded="false" aria-controls="collapseTotalizadores">
-                Exibir Gráfico e Totalizadores
+            <h2 class="accordion-header" id="headingGraph">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGraph" aria-expanded="false" aria-controls="collapseGraph">
+                Exibir Gráfico
               </button>
             </h2>
-            <div id="collapseTotalizadores" class="accordion-collapse collapse" aria-labelledby="headingTotalizadores" data-bs-parent="#accordionTotalizadores">
+            <div id="collapseGraph" class="accordion-collapse collapse" aria-labelledby="headingGraph">
               <div class="accordion-body">
                 <!-- Linha para o Gráfico com 500px de altura -->
                 <div class="row mb-4" style="height: 500px;">
@@ -167,8 +186,23 @@ $resultWeb = $conn->query($sqlWeb);
                     </div>
                   </div>
                 </div>
-                <!-- Linha para Totalizadores, lado a lado -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion para os Totalizadores -->
+        <div class="accordion mb-4" id="accordionTotalizadores">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingTotalizadores">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTotalizadores" aria-expanded="false" aria-controls="collapseTotalizadores">
+                Exibir Totalizadores
+              </button>
+            </h2>
+            <div id="collapseTotalizadores" class="accordion-collapse collapse" aria-labelledby="headingTotalizadores">
+              <div class="accordion-body">
                 <div class="row">
+                  <!-- Total por Sistema -->
                   <div class="col-md-6 mb-2">
                     <div class="card" style="overflow: auto;">
                       <div class="card-header bg-light">
@@ -186,7 +220,10 @@ $resultWeb = $conn->query($sqlWeb);
                             <tbody>
                               <?php while($row = $systemTotals->fetch_assoc()): ?>
                                 <tr>
-                                  <td><?= $row['sistema'] ?></td>
+                                  <td>
+                                    <img src="<?= getIconPath($row['sistema']) ?>" alt="<?= $row['sistema'] ?>" style="height:30px; vertical-align: middle;">
+                                    <span style="margin-left: 8px; vertical-align: middle;"><?= $row['sistema'] ?></span>
+                                  </td>
                                   <td><?= $row['total'] ?></td>
                                 </tr>
                               <?php endwhile; ?>
@@ -198,6 +235,7 @@ $resultWeb = $conn->query($sqlWeb);
                       </div>
                     </div>
                   </div>
+                  <!-- Total por Gravidade -->
                   <div class="col-md-6 mb-2">
                     <div class="card" style="overflow: auto;">
                       <div class="card-header bg-light">
@@ -227,8 +265,8 @@ $resultWeb = $conn->query($sqlWeb);
                       </div>
                     </div>
                   </div>
-                </div>
-              </div> <!-- Fim do accordion-body -->
+                </div> <!-- Fim dos Totalizadores -->
+              </div>
             </div>
           </div>
         </div>
@@ -400,8 +438,7 @@ $resultWeb = $conn->query($sqlWeb);
                       <thead class="table-light">
                         <tr>
                           <th>Sistema</th>
-                          <th>Gravidade</th>
-                          <th>Problema</th>
+                          <th>Gravidade</th>                          
                           <th>Tempo Total</th>
                           <th>Ações</th>
                         </tr>
@@ -418,13 +455,15 @@ $resultWeb = $conn->query($sqlWeb);
                           }
                         ?>
                           <tr>
-                            <td><?= $row['sistema'] ?></td>
+                            <td>
+                              <img src="<?= getIconPath($row['sistema']) ?>" alt="<?= $row['sistema'] ?>" style="height:30px; vertical-align: middle;">
+                              <span style="margin-left: 8px; vertical-align: middle;"><?= $row['sistema'] ?></span>
+                            </td>
                             <td>
                               <span class="badge <?= $gravidadeClass ?>">
                                 <?= $row['gravidade'] ?>
                               </span>
-                            </td>
-                            <td class="sobrepor"><?= $row['problema'] ?></td>                   
+                            </td>                                             
                             <td><?= $row['tempo_total'] ?></td>
                             <td>
                               <a href="javascript:void(0);" 
@@ -472,7 +511,6 @@ $resultWeb = $conn->query($sqlWeb);
                         <tr>
                           <th>Sistema</th>
                           <th>Gravidade</th>
-                          <th>Problema</th>
                           <th>Tempo Total</th>
                           <th>Ações</th>
                         </tr>
@@ -489,13 +527,15 @@ $resultWeb = $conn->query($sqlWeb);
                           }
                         ?>
                           <tr>
-                            <td><?= $row['sistema'] ?></td>
+                            <td>
+                              <img src="<?= getIconPath($row['sistema']) ?>" alt="<?= $row['sistema'] ?>" style="height:30px; vertical-align: middle;">
+                              <span style="margin-left: 8px; vertical-align: middle;"><?= $row['sistema'] ?></span>
+                            </td>
                             <td>
                               <span class="badge <?= $gravidadeClass ?>">
                                 <?= $row['gravidade'] ?>
                               </span>
                             </td>
-                            <td class="sobrepor"><?= $row['problema'] ?></td>
                             <td><?= $row['tempo_total'] ?></td>
                             <td>
                               <a href="javascript:void(0);" 

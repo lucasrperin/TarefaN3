@@ -1,4 +1,57 @@
-/* folga.css */
+/* ===== Layout Global, Sidebar e Header ===== */
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #f0f2f5;
+  margin: 0;
+  padding: 0;
+}
+
+.d-flex-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar com as cores do menu */
+.sidebar {
+  background: linear-gradient(135deg, #4b79a1, #283e51);
+  min-width: 220px;
+  padding: 1.5rem;
+  color: #fff;
+}
+.sidebar a {
+  color: #fff;
+  display: block;
+  margin-bottom: 1rem;
+}
+.sidebar a:hover, .sidebar a.active {
+  color: #fff;
+  background-color: #283e51;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+/* Header (Cabeçalho) */
+.header {
+  background: linear-gradient(135deg, #4b79a1, #283e51);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+}
+
+.header .user-info span {
+  margin-right: 1rem;
+}
+
+/* Conteúdo Principal */
+.content {
+  padding: 2rem;
+  flex-grow: 1;
+  background-color: #f1f3f5;
+}
+
+/* ===== Estilos Originais do Folga.css ===== */
 
 /* Estilo de "card" para o calendário e painel de detalhes */
 #calendar,
@@ -75,23 +128,36 @@
 /* Espaçamento inferior para a linha do calendário */
 .row.calendario-detalhes {
     margin-bottom: 20px;
-  }
+}
+
 /* Destaque para o dia selecionado (opcional) */
 .fc-daygrid-day-frame.selected-day {
     outline: 2px solid #FF9800;
-  }
-  .used-day {
-    background-color: rgba(255, 0, 0, 0.2) !important;
-  }
-  .fc-col-header-cell a {
-    text-decoration: none !important;
-    color: inherit !important;
-    pointer-events: none;
-    cursor: default;
-  }
-  .fc-daygrid-day a {
-    text-decoration: none !important;
-    color: inherit !important;
-    pointer-events: none;
-    cursor: default;
-  }
+}
+.used-day {
+  background-color: rgba(255, 0, 0, 0.2) !important;
+}
+.fc-col-header-cell a {
+  text-decoration: none !important;
+  color: inherit !important;
+  pointer-events: none;
+  cursor: default;
+}
+.fc-daygrid-day a {
+  text-decoration: none !important;
+  color: inherit !important;
+  pointer-events: none;
+  cursor: default;
+}
+.light-logo {
+  filter: brightness(0) invert(1);
+}
+
+/* Remova qualquer fundo no hover ou foco da logo */
+.light-logo:hover,
+.light-logo:focus {
+  background: transparent !important;
+  transform: none !important;
+  margin: 1 !important;
+  padding: 0 !important;
+}
