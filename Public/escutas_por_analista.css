@@ -1,30 +1,128 @@
-.scroll-container {
-  max-height: 100px !important; /* ajuste a altura conforme necessário */
+/* === Layout Geral (idêntico a usuarios.css) === */
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #f0f2f5;
+}
+
+.d-flex-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar com as cores do menu */
+.sidebar {
+  background: linear-gradient(135deg, #4b79a1, #283e51);
+  min-width: 220px;
+  padding: 1.5rem;
+  color: #fff;
+}
+
+.sidebar a {
+  color: #fff;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  color: #fff;
+  background-color: #283e51;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #4b79a1, #283e51);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+}
+
+.header .user-info span {
+  margin-right: 1rem;
+}
+
+/* Conteúdo principal */
+.content {
+  padding: 2rem;
+  flex-grow: 1;
+  background-color: #f1f3f5;
+}
+
+.card {
+  border: none;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card-header {
+  background-color: #fff;
+  border-bottom: none;
+  padding: 1.5rem 1.75rem;
+}
+
+.card-header h4 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.card-header small {
+  color: #6c757d;
+}
+
+.card-body {
+  background-color: #fff;
+  padding: 1.75rem;
+}
+
+/* Logo */
+.light-logo {
+  filter: brightness(0) invert(1);
+}
+
+.light-logo:hover,
+.light-logo:focus {
+  background: transparent !important;
+  transform: none !important;
+  margin: 1 !important;
+  padding: 0 !important;
+}
+
+/* === Estilos Específicos para Escutas_por_Analista === */
+
+/* Scroll Container */
+.scroll-container { 
+  max-height: 100px !important;
   overflow-y: auto;
 }
 
-/* Personalização do scrollbar (Chrome, Edge, Safari) */
 .scroll-container::-webkit-scrollbar {
   width: 8px;
 }
+
 .scroll-container::-webkit-scrollbar-thumb {
-  background: #888; 
+  background: #888;
   border-radius: 10px;
 }
+
 .scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #555; 
+  background: #555;
 }
 
 /* Estilo do Toast */
 .toast-container {
-  position: fixed!important;
+  position: fixed !important;
   top: 0;
   right: 0;
-  z-index: 1050; /* Garantir que o toast esteja acima de outros elementos */
+  z-index: 1050;
   padding: 10px;
-  display: flex; /* Para evitar que o toast tente expandir */
-  flex-direction: column; /* Para que os toasts fiquem empilhados, se houver mais de um */
-  align-items: flex-end; /* Garante que os toasts fiquem alinhados à direita */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
 .toast {
@@ -34,8 +132,8 @@
   transition: opacity 0.5s ease;
   background-color: #28a745;
   color: white;
-  width: auto; /* Faz o toast ocupar apenas o espaço necessário */
-  max-width: 30px; /* Limite para não ficar muito grande */
+  width: auto;
+  max-width: 30px;
 }
 
 .toast.show {
@@ -48,60 +146,55 @@
 .toast-body {
   display: flex;
   align-items: center;
-  padding: 10px 15px; /* Reduz o espaçamento interno */
+  padding: 10px 15px;
   font-size: 16px;
-  white-space: nowrap; /* Impede que o texto quebre em múltiplas linhas */
-  flex-grow: 1; /* Garante que o conteúdo ocupe só o espaço necessário */
+  white-space: nowrap;
+  flex-grow: 1;
 }
 
 .toast-body i {
   margin-right: 10px;
   font-size: 25px;
-  flex-shrink: 0; /* Evita que o ícone encolha */
+  flex-shrink: 0;
 }
 
 #toastMensagem {
-  display: inline; /* Garante que o texto não ocupe espaço extra */
-  flex-grow: 0; /* Faz o texto ocupar apenas o espaço necessário */
+  display: inline;
+  flex-grow: 0;
 }
 
-td.sobrepor {
-  max-width: 100px; /* ajuste o valor conforme necessário */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
+/* Estilos para as Tabelas */
 .table {
-    background-color: white;
+  background-color: white;
 }
 
 .table th {
-    text-align: center;
-    vertical-align: middle;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .table td {
-    text-align: center;
-    vertical-align: middle;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .tabelaEstilizada {
-    border-collapse: separate;
-    border-spacing: 0 2px;
+  border-collapse: separate;
+  border-spacing: 0 2px;
 }
 
 .tabelaEstilizada tbody tr {
-    border-radius: 5px;
-    overflow: hidden;
-    font-family: 'Nunito', sans-serif;
+  border-radius: 5px;
+  overflow: hidden;
+  font-family: 'Nunito', sans-serif;
 }
 
-/* Ajustes no input-group */
+/* Input Group */
 .input-group .form-select {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
 }
+
 .input-group .btn-outline-secondary {
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
@@ -111,27 +204,30 @@ td.sobrepor {
   border-left: none;
 }
 
+/* Sobrepor Tot */
 .sobreporTot {
-  max-width: 200px; /* ajuste conforme necessário */
+  max-width: 200px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: inline-block;
 }
 
+/* Scroll Container TB (para tabelas) */
 .scroll-containerTB {
-  max-height: 500px !important; /* ajuste a altura conforme necessário */
+  max-height: 500px !important;
   overflow-y: auto;
 }
 
-/* Personalização do scrollbar (Chrome, Edge, Safari) */
 .scroll-containerTB::-webkit-scrollbar {
   width: 8px;
 }
+
 .scroll-containerTB::-webkit-scrollbar-thumb {
-  background: #888; 
+  background: #888;
   border-radius: 10px;
 }
+
 .scroll-containerTB::-webkit-scrollbar-thumb:hover {
-  background: #555; 
+  background: #555;
 }
