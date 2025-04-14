@@ -1,57 +1,110 @@
-.star-rating {
-    direction: rtl;
-    display: inline-block;
-    font-size: 1.5rem;
-  }
-  .star-rating input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-    width: 1px;
-    height: 1px;
-  }
-  .star-rating label {
-    color: #ddd;
-    cursor: pointer;
-  }
-  .star-rating input[type="radio"]:checked ~ label {
-    color: #f7d106;
-  }
-  .star-rating label:hover,
-  .star-rating label:hover ~ label {
-    color: #f7d106;
-  }
-  /* Ranking card */
-  .card-ranking {
-      margin-top: 20px;
-  }
-  .header-blue {
-      background-color: #3f51b5;
-      color: #fff;
-  }
-  .ranking-scroll {
-      max-height: 300px;
-      overflow-y: auto;
-  }
+/* Estilos Globais e Layout Compartilhado */
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #f0f2f5;
+  margin: 0;
+  padding: 0;
+}
 
-  /* Tabelas */
+.d-flex-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar (menu lateral) */
+.sidebar {
+  background: linear-gradient(135deg, #4b79a1, #283e51);
+  min-width: 220px;
+  padding: 1.5rem;
+  color: #fff;
+}
+
+.sidebar a {
+  color: #fff;
+  display: block;
+  margin-bottom: 1rem;
+  text-decoration: none;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  background-color: #283e51;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+/* Header (cabeçalho) */
+.header {
+  background: linear-gradient(135deg, #4b79a1, #283e51);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+}
+
+.header .user-info span {
+  margin-right: 1rem;
+}
+
+/* Conteúdo principal */
+.content {
+  padding: 2rem;
+  flex-grow: 1;
+  background-color: #f1f3f5;
+}
+
+/* Estilos específicos do Destaque */
+.star-rating {
+  direction: rtl;
+  display: inline-block;
+  font-size: 1.5rem;
+}
+.star-rating input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.star-rating label {
+  color: #ddd;
+  cursor: pointer;
+}
+.star-rating input[type="radio"]:checked ~ label {
+  color: #f7d106;
+}
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+  color: #f7d106;
+}
+
+/* Ranking card */
+.card-ranking {
+  margin-top: 20px;
+}
+.header-blue {
+  background-color: #3f51b5;
+  color: #fff;
+}
+.ranking-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Tabelas */
 .table {
   background-color: white;
-  border: 1px solid #ced4daa2; /* ajuste a cor e espessura conforme necessário */
+  border: 1px solid #ced4daa2;
 }
-.table th {
-  text-align: center;
-  vertical-align: middle;
-  border: 1px solid #ced4daa2; /* ajuste a cor e espessura conforme necessário */
-}
+.table th,
 .table td {
   text-align: center;
   vertical-align: middle;
-  border: 1px solid #ced4daa2; /* ajuste a cor e espessura conforme necessário */
+  border: 1px solid #ced4daa2;
 }
 .tabelaEstilizada {
   border-collapse: separate;
   border-spacing: 0 0px;
-
 }
 .tabelaEstilizada tbody tr {
   border-radius: 5px;
@@ -59,11 +112,22 @@
   font-family: 'Nunito', sans-serif;
 }
 .limitar-altura {
-  max-height: 185px; /* ou o valor de sua preferência */
+  max-height: 185px;
   overflow-y: auto;
 }
 .limitar-altura-avaliacoes {
-  max-height: 450px; /* ou o valor de sua preferência */
+  max-height: 450px;
   overflow-y: auto;
 }
+.light-logo {
+  filter: brightness(0) invert(1);
+}
 
+/* Remova qualquer fundo no hover ou foco da logo */
+.light-logo:hover,
+.light-logo:focus {
+  background: transparent !important;
+  transform: none !important;
+  margin: 1 !important;
+  padding: 0 !important;
+}
