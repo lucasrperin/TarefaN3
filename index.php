@@ -1,6 +1,5 @@
 <?php
 require 'Config/Database.php';
-
 session_start();
 
 // Verifica se o usuário está logado; se não, redireciona para o login
@@ -9,32 +8,16 @@ if (!isset($_SESSION['usuario_id'])) {
     exit();
 }
 
-// Definir o cargo do usuário (supondo que ele esteja armazenado na sessão, com a chave "Cargo")
 $usuario_id = $_SESSION['usuario_id'];
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 
-// Captura os parâmetros do filtro, se enviados
-$data_inicio = isset($_GET['data_inicio']) ? $_GET['data_inicio'] : '';
-$data_fim    = isset($_GET['data_fim']) ? $_GET['data_fim'] : '';
+// Para preencher os selects do filtro, buscamos os dados dos usuários e demais categorias
+$resultado_usuarios_dropdown = $conn->query("SELECT Id, Nome FROM TB_USUARIO WHERE Cargo in ('User', 'Conversor', 'Treinamento', 'Viewer') ORDER BY Nome ASC");
+$lista_situacoes = $conn->query("SELECT Id, Descricao FROM TB_SITUACAO ORDER BY Descricao ASC");
+$lista_sistemas   = $conn->query("SELECT Id, Descricao FROM TB_SISTEMA ORDER BY Descricao ASC");
+$lista_status     = $conn->query("SELECT Id, Descricao FROM TB_STATUS ORDER BY Descricao ASC");
 
-// Captura os parâmetros do filtro ou define o mês atual por padrão na primeira carga
-// Captura os parâmetros do filtro ou define o mês atual por padrão
-if (isset($_GET['data_inicio']) && isset($_GET['data_fim'])) {
-    if ($_GET['data_inicio'] === '' && $_GET['data_fim'] === '') {
-        // sem filtro, mostra tudo
-        $data_inicio = '';
-        $data_fim = '';
-    } else {
-        $data_inicio = $_GET['data_inicio'];
-        $data_fim = $_GET['data_fim'];
-    }
-} else {
-    // Padrão: Primeiro e último dia do mês atual
-    $data_inicio = date('Y-m-01');
-    $data_fim = date('Y-m-t');
-}
-
-// Monta a query base, SEC_TO_TIME converte em segundos para o cálculo da média
+// Monta a query base (SEC_TO_TIME converte de segundos para formatação de hora)
 $sql = "SELECT
             tas.Id as Codigo,
             tas.Descricao as Descricao,
@@ -60,94 +43,83 @@ $sql = "SELECT
             LEFT JOIN TB_SITUACAO sit ON sit.Id = tas.idSituacao
             LEFT JOIN TB_SISTEMA sis ON sis.Id = tas.idSistema
             LEFT JOIN TB_STATUS sta ON sta.Id = tas.idStatus
-            LEFT JOIN TB_USUARIO usu ON usu.Id = tas.idUsuario";
+            LEFT JOIN TB_USUARIO usu ON usu.Id = tas.idUsuario
+        WHERE tas.Hora_ini is not null";
 
-// Se as datas estiverem definidas, adiciona a cláusula WHERE para filtrar pelo período
-if (!empty($data_inicio) && !empty($data_fim)) {
-    $sql .= " WHERE DATE(tas.Hora_ini) BETWEEN '$data_inicio' AND '$data_fim'";
-} 
+// Filtros por data usando somente a parte de data (DATE) para evitar problemas com os horários
+if (!empty($_GET['data_inicio'])) {
+    $sql .= " AND DATE(tas.Hora_ini) >= '" . $_GET['data_inicio'] . "'";
+}
+if (!empty($_GET['data_fim'])) {
+    $sql .= " AND DATE(tas.Hora_ini) <= '" . $_GET['data_fim'] . "'";
+}
+// Filtro por analista
+if (!empty($_GET['analista'])) {
+    $sql .= " AND tas.idAtendente = '" . $_GET['analista'] . "'";
+}
+// Filtro por situação
+if (!empty($_GET['situacao'])) {
+    $sql .= " AND tas.idSituacao = '" . $_GET['situacao'] . "'";
+}
+// Filtro por sistema
+if (!empty($_GET['sistema'])) {
+    $sql .= " AND tas.idSistema = '" . $_GET['sistema'] . "'";
+}
+// Filtro por status
+if (!empty($_GET['status'])) {
+    $sql .= " AND tas.idStatus = '" . $_GET['status'] . "'";
+}
 
 $sql .= " ORDER BY tas.Id DESC";
 
 $result = $conn->query($sql);
 $result1 = $conn->query($sql);
-
-// Verificar se a consulta retornou resultados
 if ($result1 === false) {
     die("Erro na consulta SQL: " . $conn->error);
 }
 
-// Armazenar os registros em um array para possibilitar o cálculo dos totalizadores
+// Armazena os registros em um array para possibilitar o cálculo dos totalizadores
 $rows = array();
-if ($result1->num_rows > 0) {
-    while ($row = $result1->fetch_assoc()) {
-        $rows[] = $row;
-    }
-} else {
-    $rows = array();
+while ($row = $result1->fetch_assoc()) {
+    $rows[] = $row;
 }
 
 // Cálculo dos totalizadores
-$totalFichas = 0; // Total de fichas criadas
-$totalAnaliseN3 = 0; // Quantidade de "Analise N3" (baseado no campo Situacao)
-$totalAuxilio = 0; // Total de Auxílio Suporte/Vendas
-$totalParado = 0; // Total de Cliente Parado
-$totalHoras = 0; // Soma do campo Total_hora
-$uniqueDates = array(); // Para calcular a média diária de horas
+$totalFichas = 0;
+$totalAnaliseN3 = 0;
+$totalAuxilio = 0;
+$totalParado = 0;
+$totalHoras = 0;
 
 foreach ($rows as $row) {
-    // Contar quantidade de "Analise N3"
     if (trim($row['Situacao']) == "Analise N3") {
         $totalAnaliseN3++;
     }
-    // Contabilizar Auxílio Suporte/Vendas
     if (trim($row['Situacao']) == "Auxilio Suporte/Vendas") {
         $totalAuxilio++;
     }
-    // Contar quantidade de "Fichas Criadas"
     if (trim($row['Situacao']) == "Ficha Criada") {
         $totalFichas++;
     }
-    // Contar quantidade de "Cliente Parado"
     if (trim($row['Parado']) == "S") {
         $totalParado++;
     }
-    
-    // Extrair a data (dia) de Hora_ini para cálculo da média diária
-    $date = date("Y-m-d", strtotime($row["Hora_ini"]));
-    $uniqueDates[$date] = true;
-}
-$numeroDias = count($uniqueDates);
-// Certifique-se de que total de horas é tratado corretamente
-$totalHoras = 0; 
-$uniqueDates = array();
-
-foreach ($rows as $row) {
     if (!empty($row["Total_hora"])) {
-        // Converter HH:MM:SS para segundos
         list($h, $m, $s) = explode(":", $row["Total_hora"]);
         $totalHoras += ($h * 3600) + ($m * 60) + $s;
     }
-
-    // Extrai a data para cálculo da média diária
-    $date = date("Y-m-d", strtotime($row["Hora_ini"]));
-    $uniqueDates[$date] = true;
 }
 
-// Calculando a média corretamente
 if ($totalAnaliseN3 > 0) {
     $mediaSegundos = round($totalHoras / $totalAnaliseN3);
-
-    // Converter segundos para HH:MM:SS
     $horas = floor($mediaSegundos / 3600);
     $minutos = floor(($mediaSegundos % 3600) / 60);
     $segundos = $mediaSegundos % 60;
 } else {
-    $horas = $minutos = $segundos = 0; 
+    $horas = $minutos = $segundos = 0;
 }
 
-
-// Processamento dos dados para o gráfico de barras
+// Processamento dos dados para o gráfico de barras mensal
 $fichasPorMes = array_fill(1, 12, 0);
 $analisesN3PorMes = array_fill(1, 12, 0);
 $clienteParadoPorMes = array_fill(1, 12, 0);
@@ -155,9 +127,8 @@ $currentYear = date("Y");
 
 foreach ($rows as $row) {
     $dataHora = strtotime($row["Hora_ini"]);
-    $year = date("Y", $dataHora);
-    if ($year == $currentYear) {
-        $month = intval(date("n", $dataHora)); // 1 a 12
+    if (date("Y", $dataHora) == $currentYear) {
+        $month = intval(date("n", $dataHora));
         if (trim($row['Situacao']) == "Ficha Criada") {
             $fichasPorMes[$month]++;
         }
@@ -169,492 +140,597 @@ foreach ($rows as $row) {
         }
     }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tarefas N3</title>
-    <!-- Arquivo CSS personalizado -->
-    <link href="Public/index.css" rel="stylesheet">
-
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   
-    <!-- Ícones personalizados -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
- 
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <link rel="icon" href="Public\Image\icone2.png" type="image/png">
-    
+  <meta charset="UTF-8">
+  <title>Painel N3 - Tarefas N3</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap, Font Awesome, Google Fonts, Chart.js -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- CSS Personalizado (layout unificado com os demais módulos) -->
+  <link href="Public/index.css" rel="stylesheet">
+  <link rel="icon" href="Public/Image/icone2.png" type="image/png">
 </head>
 <body class="bg-light">
-
-<!-- Container do Toast no canto superior direito -->
-<div class="toast-container">
-    <div id="toastSucesso" class="toast">
-        <div class="toast-body">
-            <i class="fa-solid fa-check-circle"></i> <span id="toastMensagem"></span>
-        </div>
-    </div>
-</div>
-
-<script dref>
-document.addEventListener("DOMContentLoaded", function () {
-    const urlParams = new URLSearchParams(window.location.search);
-    const success = urlParams.get("success");
-
-    if (success) {
-        let mensagem = "";
-        switch (success) {
-            case "1":
-                mensagem = "Análise cadastrada com sucesso!";
-                break;
-            case "2":
-                mensagem = "Análise editada com sucesso!";
-                break;
-            case "3":
-                mensagem = "Análise excluída com sucesso!";
-                break;
-        }
-
-        if (mensagem) {
-            document.getElementById("toastMensagem").textContent = mensagem;
-            var toastEl = document.getElementById("toastSucesso");
-            var toast = new bootstrap.Toast(toastEl, { delay: 2200 });
-            toast.show();
-        }
-    }
-});
-
-</script>
-
-
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container d-flex justify-content-between align-items-center">
-        <!-- Botão Hamburguer com Dropdown -->
-        <div class="dropdown">
-            <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-                <li><a class="dropdown-item" href="Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversão</a></li>
-                <?php if ($cargo === 'Admin'): ?>  <!-- Verifica o cargo do usuário -->
-                <li><a class="dropdown-item" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
-                <li><a class="dropdown-item" href="Views/folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
-                <li><a class="dropdown-item" href="Views/incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
-                <li><a class="dropdown-item" href="Views/indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a></li>
-                <li><a class="dropdown-item" href="Views/dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
-                <li><a class="dropdown-item" href="Views/usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
-                <?php endif; ?>
-            </ul>
-        </div>
-        <span class="text-white">Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
-        <a href="Views/menu.php" class="btn btn-danger">
-            <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
-        </a>
-    </div>
-</nav>
- 
-   <!-- Linha com Resumo dos Totalizadores, Gráfico Mensal e Filtro de Período -->
-<div class="container mt-4">
-    <div class="row" id="dashboardCards">
-        <!-- Totalizadores -->
-        <div class="col-md-4">
-            <div class="card shadow-lg">
-                <div class="card-header text-white bg-primary">
-                    <h4 class="mb-0">Resumo dos Totalizadores</h4>
-                </div>
-                <div class="card-body mt-4">
-                    <table class="table table-hover table-striped">
-                        <tbody>
-                            <tr>
-                                <td><strong>Fichas Criadas:</strong></td>
-                                <td><?php echo $totalFichas; ?></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Analise N3:</strong></td>
-                                <td><?php echo $totalAnaliseN3; ?></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Auxílio Suporte/Vendas:</strong></td>
-                                <td><?php echo $totalAuxilio; ?></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Cliente Parado</strong></td>
-                                <td><?php echo $totalParado; ?></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Média Horas:</strong></td>
-                                <td><?php echo sprintf("%02d:%02d:%02d", $horas, $minutos, $segundos); ?></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Gráfico Mensal -->
-        <div class="col-md-5">
-            <div class="card shadow-lg">
-                <div class="card-header text-white bg-info">
-                    <h4 class="mb-0">Gráfico Mensal</h4>
-                </div>
-                <div class="card-body">
-                    <canvas id="chartMensal" width="18%" height="10%"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Filtro de Período -->
-        <div class="col-md-3" >
-            <div class="card shadow-lg">
-                <div class="card-header text-white bg-secondary">
-                    <h4 class="mb-0">Filtro de Período</h4>
-                </div>
-                <div class="card-body" >
-                    <form method="GET" action="">
-                        <div class="mb-3">
-                            <label for="data_inicio" class="form-label mt-2" >Data Início:</label>
-                            <input type="date" class="form-control" name="data_inicio" id="data_inicio" value="<?php echo htmlspecialchars($data_inicio); ?>">
-                        </div>
-                        <div class="mb-4">
-                            <label for="data_fim" class="form-label">Data Fim:</label>
-                            <input type="date" class="form-control" name="data_fim" id="data_fim" value="<?php echo htmlspecialchars($data_fim); ?>">
-                        </div>
-                        <div class="d-flex justify-content-center gap-2">
-                            <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-                            <a href="index.php?data_inicio=&data_fim=" class="btn btn-secondary btn-sm">Limpar Filtros</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-  <!-- Título Lista de Análises e Botão Cadastrar análise -->
-<div class="container mt-4">
-  <div class="row align-items-center">
-    <div class="col-4"></div> 
-    <div class="col-4 text-center">
-      <h2 class="mb-0">Lista de Análises</h2>
-    </div>
-    <div class="col-4 text-end">
+  <div class="d-flex-wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <a class="light-logo" href="indicacao.php">
+        <img src="Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
+      </a>
+      <nav class="nav flex-column">
+        <a class="nav-link" href="Views/menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
         <?php if ($cargo === 'Admin'): ?>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">
-                <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
-            </button>
+          <a class="nav-link" href="Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
         <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+          <a class="nav-link" href="Views/destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+          <a class="nav-link" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+          <a class="nav-link" href="Views/folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+          <a class="nav-link" href="Views/incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User'): ?>
+         <a class="nav-link" href="Views/indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+         <a class="nav-link active" href="index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+          <a class="nav-link" href="Views/dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+         <a class="nav-link" href="Views/usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
+          <a class="nav-link" href="Views/treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
+        <?php endif; ?>
+      </nav>
     </div>
-  </div>
-</div>
-
-<!-- Exibição da Lista de Análises dentro de um Card -->
-<div class="container mt-4">
-  <div class="card shadow-sm">
-    <div class="card-body">
-      <div class="table-responsive access-scroll">
-        <table id="tabelaAnalises" class="table table-bordered table-striped table-hover align-middle">
-          <thead class="table-dark">
-            <tr>
-              <th style="width:30%">Descrição</th>
-              <th style="width:11%">Situação</th>
-              <th style="width:10%">Analista</th>
-              <th>Sistema</th>
-              <th>Status</th>
-              <th style="width:15%">Hora Início</th>
-              <th style="width:15%">Hora Fim</th>
-              <th style="width:10%">Total Horas</th>
-              <?php
-              if ($cargo === 'Admin') { //Se o cargo for ADM apresenta o menu ações
-                echo "<th>Ações</th>";
-                }?>
-            </tr>
-          </thead>
-          <tbody>
-            <?php 
-            if ($result->num_rows > 0) {
-              while($row = $result->fetch_assoc()) {
-                echo "<tr>";
-                echo "<td class=\"sobrepor\">" . $row["Descricao"] . "</td>";
-                echo "<td>" . $row["Situacao"] . "</td>";
-                echo "<td>" . $row["NomeUsuario"] . "</td>";
-                echo "<td>" . $row["Sistema"] . "</td>";
-                echo "<td>" . $row["Status"] . "</td>";
-                echo "<td>" . $row["Hora_ini2"] . "</td>";
-                echo "<td>" . $row["Hora_fim2"] . "</td>";
-                echo "<td>" . $row["Total_hora"] . "</td>";
-                if ($cargo === 'Admin') { // Se o cargo for ADM apresenta o menu ações
-                    echo "<td class='text-center'>";
-                    echo "<a href='javascript:void(0)' class='btn btn-outline-primary btn-sm' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick='editarAnalise(" 
-                         . htmlspecialchars(json_encode($row['Codigo']), ENT_QUOTES, 'UTF-8') . ", " 
-                         . htmlspecialchars(json_encode($row['Descricao']), ENT_QUOTES, 'UTF-8') . ", " 
-                         . htmlspecialchars(json_encode($row['idSituacao']), ENT_QUOTES, 'UTF-8') . ", " 
-                         . htmlspecialchars(json_encode($row['idAtendente']), ENT_QUOTES, 'UTF-8') . ", " 
-                         . htmlspecialchars(json_encode($row['idSistema']), ENT_QUOTES, 'UTF-8') . ", " 
-                         . htmlspecialchars(json_encode($row['idStatus']), ENT_QUOTES, 'UTF-8') . ", " 
-                         . htmlspecialchars(json_encode($row['Hora_ini']), ENT_QUOTES, 'UTF-8') . ", " 
-                         . htmlspecialchars(json_encode($row['Hora_fim']), ENT_QUOTES, 'UTF-8') . ", " 
-                         . htmlspecialchars(json_encode($row['Nota']), ENT_QUOTES, 'UTF-8') . ", " 
-                         . htmlspecialchars(json_encode($row['Justificativa']), ENT_QUOTES, 'UTF-8') .
-                         ")'><i class='fa-sharp fa-solid fa-pen'></i></a> ";
-                    echo "<a href='javascript:void(0)' class='btn btn-outline-danger btn-sm' data-bs-toggle='modal' data-bs-target='#modalExclusao' onclick='excluirAnalise(" 
-                         . htmlspecialchars(json_encode($row['Codigo']), ENT_QUOTES, 'UTF-8') .
-                         ")'><i class='fa-sharp fa-solid fa-trash'></i></a>";
-                    echo "</td>";
-                }
-                
-                echo "</td>";
-                echo "</tr>";
-              }
-            }
-            ?>
-          </tbody>
-        </table>
-      </div> 
-    </div> 
-  </div> 
-</div> 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  document.querySelectorAll("#tabelaAnalises tbody tr").forEach(row => {
-    let statusCell = row.cells[4]; // 5ª coluna (índice 4)
-    let status = statusCell.textContent.trim();
-    // Remove classes de cores anteriores, se houver
-    statusCell.classList.remove("pastel-aguardando", "pastel-desenvolvimento", "pastel-resolvido");
-    // Aplica as classes com as novas cores:
-    switch (status) {
-      case "Aguardando":
-        statusCell.classList.add("pastel-aguardando");
-        break;
-      case "Desenvolvimento":
-        statusCell.classList.add("pastel-desenvolvimento");
-        break;
-      case "Resolvido":
-        statusCell.classList.add("pastel-resolvido");
-        break;
-    }
-  });
-});
-</script>
-
-    <!-- Adiciona a biblioteca Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Script para configurar o gráfico de barras -->
+    
+    <!-- Minimalist Modern Toast Layout -->
+    <div id="toast-container" class="toast-container">
+      <div id="toastSucesso" class="toast toast-success">
+        <i class="fa-solid fa-check-circle"></i>
+        <span id="toastMensagem"></span>
+      </div>
+      <div id="toastErro" class="toast toast-error">
+        <i class="fa-solid fa-exclamation-triangle"></i>
+        <span id="toastMensagemErro"></span>
+      </div>
+    </div>
     <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Dados gerados pelo PHP
-        const fichasPorMes = <?php echo json_encode(array_values($fichasPorMes)); ?>;
-        const analisesN3PorMes = <?php echo json_encode(array_values($analisesN3PorMes)); ?>;
-        const clienteParadoPorMes = <?php echo json_encode(array_values($clienteParadoPorMes)); ?>;
-        
-        // Labels dos meses (abreviados)
-        const labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+      function showToast(message, type) {
+        const container = document.getElementById("toast-container");
+        const toast = document.createElement("div");
+        toast.className = "toast " + type;
+        toast.textContent = message;
+        container.appendChild(toast);
+        // Trigger the CSS animation
+        setTimeout(() => {
+          toast.classList.add("show");
+        }, 10);
+        // Hide after 2 seconds and remove from DOM
+        setTimeout(() => {
+          toast.classList.remove("show");
+          setTimeout(() => {
+            container.removeChild(toast);
+          }, 300);
+        }, 2000);
+      }
 
-        const data = {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Fichas Criadas',
-                    data: fichasPorMes,
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)', // Azul
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Analise N3',
-                    data: analisesN3PorMes,
-                    backgroundColor: 'rgba(255, 99, 132, 0.5)', // Vermelho
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Cliente Parado',
-                    data: clienteParadoPorMes,
-                    backgroundColor: 'rgb(248, 11, 11)', // Vermelho
-                    borderColor: 'rgb(243, 137, 160)',
-                    borderWidth: 1
-                }
-            ]
-        };
+      document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const success = urlParams.get("success");
+        const error = urlParams.get("error");
 
-        const config = {
-            type: 'bar',
-            data: data,
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
-                    }
-                }
-            }
-        };
-
-        // Cria o gráfico na canvas com id "chartMensal"
-        new Chart(
-            document.getElementById('chartMensal'),
-            config
-        );
-    });
+        if (success) {
+          let msg = "";
+          switch (success) {
+            case "1":
+              msg = "Análise Cadastrada!";
+              break;
+            case "2":
+              msg = "Análise Editada!";
+              break;
+            case "3":
+              msg = "Análise Excluída!";
+              break;
+          }
+          if (msg) showToast(msg, "success");
+        }
+      });
     </script>
- 
-    <!-- Modal de Cadastro -->
-    <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalCadastroLabel">Nova Análise</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+    <!-- Área Principal -->
+    <div class="w-100">
+      <!-- Header -->
+      <div class="header">
+        <h3>Tarefas N3</h3>
+        <div class="user-info">
+          <span>Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!</span>
+          <a href="logout.php" class="btn btn-danger">
+            <i class="fa-solid fa-right-from-bracket me-1"></i> Sair
+          </a>
+        </div>
+      </div>
+
+        <!-- Modal de Filtro com opções completas -->
+      <!-- Modal de Filtro com Controle por Coluna -->
+      <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+          <div class="modal-content">
+            <form method="GET" action="index.php">
+              <div class="modal-header">
+                <h5 class="modal-title" id="filterModalLabel">Filtro</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+              </div>
+              <div class="modal-body">
+                <!-- Seletor de Coluna para filtrar -->
+                <div class="mb-3">
+                  <label for="filterColumn" class="form-label">Filtrar por Coluna:</label>
+                  <select class="form-select" id="filterColumn" name="filterColumn">
+                    <option value="period" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'period') echo "selected"; ?>>Período</option>
+                    <option value="analista" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'analista') echo "selected"; ?>>Analista</option>
+                    <option value="situacao" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'situacao') echo "selected"; ?>>Situação</option>
+                    <option value="sistema" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'sistema') echo "selected"; ?>>Sistema</option>
+                    <option value="status" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'status') echo "selected"; ?>>Status</option>
+                  </select>
                 </div>
-                <div class="modal-body">
-                    <form action="Views/cadastrar_analise.php" method="POST">
-                        <div class="row mb-1">
-                            <div class="col-md-12 mb-2">
-                                <label for="descricao" class="form-label">Descrição</label>
-                                <textarea type="text" class="form-control" id="descricao" name="descricao" maxlength="100" required></textarea>
-                            </div>
-                        </div>    
-                        <div class="row mb-1">
-                            <div class="col-md-6 mb-2">
-                                <label for="nota" id="notaAnalise" class="form-label">Nota</label>
-                                <select class="form-select" id="nota" name="nota">
-                                    <option value="0">0</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                    <option value="4">4</option>
-                                    <option value="5">5</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="situacao" class="form-label">Situação</label>
-                                <select class="form-select" id="situacao" name="situacao" required onchange="verificarSituacao(); verificarSituacao2();">
-                                    <option value="">Selecione</option>
-                                    <?php
-                                    $querySituacao = "SELECT Id, Descricao FROM TB_SITUACAO";
-                                    $resultSituacao = $conn->query($querySituacao);
-                                    while ($rowS = $resultSituacao->fetch_assoc()) {
-                                        echo "<option value='" . $rowS['Id'] . "'>" . $rowS['Descricao'] . "</option>";
-                                    }
-                                    ?>
-                                </select>
-                                <!-- Checkbox e campo de Número da Ficha (inicialmente ocultos) -->
-                                <div class="row mt-3" id="fichaContainer" style="display: none;">
-                                    <div class="row mb-3 mt-3">
-                                        <div class="form-check d-flex justify-content-center ms-1">
-                                            <input class="form-check-input" type="checkbox" id="chkFicha" name="chkFicha" onchange="verificarFicha() ">
-                                            <label class="form-check-label" for="chkFicha">Ficha</label>
-                                            <input class="form-check-input ms-2" type="checkbox" id="chkParado" name="chkParado" onchange="marcaParado()">
-                                            <label class="form-check-label" for="chkParado">Cliente Parado</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row mb-3" id="numeroFichaContainer" style="display: none;">
-                                    <div class="col-md-12">
-                                        <label for="numeroFicha" class="form-label">Número da Ficha</label>
-                                        <input type="number" class="form-control" id="numeroFicha" name="numeroFicha" pattern="\d+">
-                                    </div>
-                                </div>
-
-                                <!-- Checkbox e campo de Número do multiplicador (inicialmente ocultos) -->
-                                <div class="row mb-3 mt-3" id="multiplicaContainer" style="display: none;">
-                                    <div class="col-md-4">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="chkMultiplica" name="chkMultiplica" onchange="verificarMultiplica()">
-                                            <label class="form-check-label" for="chkMultiplica">Replicar</label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row mb-3" id="numeroMultiContainer" style="display: none;">
-                                    <div class="col-md-15">
-                                        <label for="numeroMulti" class="form-label">Quantidade para Replicar</label>
-                                        <input type="number" class="form-control" id="numeroMulti" name="numeroMulti" pattern="\d+">
-                                    </div>
-                                </div>
-                            </div>
+                <!-- Campos de filtro, exibidos conforme a seleção -->
+                <div id="filterPeriod" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="data_inicio" class="form-label">Data Início:</label>
+                            <input type="date" class="form-control" id="data_inicio" name="data_inicio" value="<?php echo isset($_GET['data_inicio']) ? $_GET['data_inicio'] : ''; ?>">
                         </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="data_fim" class="form-label">Data Fim:</label>
+                            <input type="date" class="form-control" id="data_fim" name="data_fim" value="<?php echo isset($_GET['data_fim']) ? $_GET['data_fim'] : ''; ?>">
+                        </div>
+                    </div>
+                </div>
+                <div id="filterAnalista" style="display: none;">
+                  <div class="mb-3">
+                    <label for="analista" class="form-label">Analista:</label>
+                    <select class="form-select" id="analista" name="analista">
+                      <option value="">Selecione</option>
+                      <?php while ($row = $resultado_usuarios_dropdown->fetch_assoc()) { ?>
+                        <option value="<?php echo $row['Id']; ?>" <?php if(isset($_GET['analista']) && $_GET['analista'] == $row['Id']) echo "selected"; ?>><?php echo $row['Nome']; ?></option>
+                      <?php } ?>
+                    </select>
+                  </div>
+                </div>
+                <div id="filterSituacao" style="display: none;">
+                  <div class="mb-3">
+                    <label for="situacao" class="form-label">Situação:</label>
+                    <select class="form-select" id="situacao" name="situacao">
+                      <option value="">Selecione</option>
+                      <?php while ($row = $lista_situacoes->fetch_assoc()) { ?>
+                        <option value="<?php echo $row['Id']; ?>" <?php if(isset($_GET['situacao']) && $_GET['situacao'] == $row['Id']) echo "selected"; ?>><?php echo $row['Descricao']; ?></option>
+                      <?php } ?>
+                    </select>
+                  </div>
+                </div>
+                <div id="filterSistema" style="display: none;">
+                  <div class="mb-3">
+                    <label for="sistema" class="form-label">Sistema:</label>
+                    <select class="form-select" id="sistema" name="sistema">
+                      <option value="">Selecione</option>
+                      <?php while ($row = $lista_sistemas->fetch_assoc()) { ?>
+                        <option value="<?php echo $row['Id']; ?>" <?php if(isset($_GET['sistema']) && $_GET['sistema'] == $row['Id']) echo "selected"; ?>><?php echo $row['Descricao']; ?></option>
+                      <?php } ?>
+                    </select>
+                  </div>
+                </div>
+                <div id="filterStatus" style="display: none;">
+                  <div class="mb-3">
+                    <label for="status" class="form-label">Status:</label>
+                    <select class="form-select" id="status" name="status">
+                      <option value="">Selecione</option>
+                      <?php while ($row = $lista_status->fetch_assoc()) { ?>
+                        <option value="<?php echo $row['Id']; ?>" <?php if(isset($_GET['status']) && $_GET['status'] == $row['Id']) echo "selected"; ?>><?php echo $row['Descricao']; ?></option>
+                      <?php } ?>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='index.php'">Limpar Filtro</button>
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+              </div>
+              <input type="hidden" name="filterColumn" id="filterColumnHidden">
+            </form>
+          </div>
+        </div>
+      </div>
+      
+        
+        <!-- Script para alternar entre os campos de período e analista -->
+    <script>
+       // Exibe o campo de filtro correspondente conforme a seleção do "Coluna"
+      function adjustFilterFields() {
+          let filterColumn = document.getElementById("filterColumn").value;
+          // Atualiza um campo hidden, se necessário para o backend (opcional)
+          document.getElementById("filterColumnHidden").value = filterColumn;
+          // Esconde todos os containers
+          document.getElementById("filterPeriod").style.display = "none";
+          document.getElementById("filterAnalista").style.display = "none";
+          document.getElementById("filterSituacao").style.display = "none";
+          document.getElementById("filterSistema").style.display = "none";
+          document.getElementById("filterStatus").style.display = "none";
+          // Exibe apenas o container selecionado
+          if (filterColumn === "period") {
+              document.getElementById("filterPeriod").style.display = "block";
+          } else if (filterColumn === "analista") {
+              document.getElementById("filterAnalista").style.display = "block";
+          } else if (filterColumn === "situacao") {
+              document.getElementById("filterSituacao").style.display = "block";
+          } else if (filterColumn === "sistema") {
+              document.getElementById("filterSistema").style.display = "block";
+          } else if (filterColumn === "status") {
+              document.getElementById("filterStatus").style.display = "block";
+          }
+      }
+      document.addEventListener("DOMContentLoaded", function() {
+          adjustFilterFields();
+          document.getElementById("filterColumn").addEventListener("change", adjustFilterFields);
+      });
+    </script>
 
-                        <!-- JavaScript para controlar a exibição dos campos -->
-                        <script>
-                            function verificarSituacao() {
-                                var situacao = document.getElementById("situacao");
-                                var fichaContainer = document.getElementById("fichaContainer");
+      <!-- Conteúdo -->
+      <div class="content container-fluid">
+        <!-- Dashboard: Totalizadores, Gráfico Mensal e Filtro de Período -->
+        <div class="row mb-4" id="dashboardCards">
+          <!-- Totalizadores -->
+          <div class="col-md-4">
+            <div class="card shadow">
+              <div class="card-header">
+                <h4 class="mb-0">Resumo dos Totalizadores</h4>
+              </div>
+              <div class="card-body">
+                <table class="table table-hover">
+                  <tbody>
+                    <tr>
+                      <td><strong>Fichas Criadas:</strong></td>
+                      <td><?php echo $totalFichas; ?></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Analise N3:</strong></td>
+                      <td><?php echo $totalAnaliseN3; ?></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Auxílio Suporte/Vendas:</strong></td>
+                      <td><?php echo $totalAuxilio; ?></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Cliente Parado:</strong></td>
+                      <td><?php echo $totalParado; ?></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Média Horas:</strong></td>
+                      <td><?php echo sprintf("%02d:%02d:%02d", $horas, $minutos, $segundos); ?></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <!-- Gráfico Mensal -->
+          <div class="col-md-5">
+            <div class="card shadow">
+              <div class="card-header">
+                <h4 class="mb-0">Gráfico Mensal</h4>
+              </div>
+              <div class="card-body">
+                <canvas id="chartMensal"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                                // Pega o texto da opção selecionada
-                                var situacaoSelecionada = situacao.options[situacao.selectedIndex].text.trim();
 
-                                // Verifica se a opção selecionada é "Analise N3"
-                                if (situacaoSelecionada === "Analise N3") {
-                                    fichaContainer.style.display = "block";
-                                } else {
-                                    fichaContainer.style.display = "none";
-                                    document.getElementById("numeroFichaContainer").style.display = "none";
-                                    document.getElementById("chkFicha").checked = false;
-                
-                                }
-                            }
+        <!-- Lista de Análises -->
+        <div class="card shadow mb-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Lista de Análises</h4>
+            <div class="ms-auto d-flex justify-content-end gap-2">
+                <!-- Botão que abre o modal de filtros -->
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
+                    <i class="fa-solid fa-filter"></i>
+                </button>
+                <input type="text" id="searchInput" class="form-control" style="width: 200px;" placeholder="Pesquisar...">
+                <?php if ($cargo === 'Admin'): ?>
+                <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#modalCadastro">
+                    <i class="fa-solid fa-plus me-1"></i> Cadastrar
+                </button>
+                <?php endif; ?>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive access-scroll">
+              <table id="tabelaAnalises" class="table table-bordered table-striped table-hover align-middle pesquisaAnalises">
+                <thead class="thead-dark">
+                  <tr>
+                    <th>Descrição</th>
+                    <th>Situação</th>
+                    <th>Analista</th>
+                    <th>Sistema</th>
+                    <th>Status</th>
+                    <th>Hora Início</th>
+                    <th>Hora Fim</th>
+                    <th>Total Horas</th>
+                    <?php if ($cargo === 'Admin') echo '<th>Ações</th>'; ?>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php 
+                  if ($result->num_rows > 0) {
+                      while($row = $result->fetch_assoc()) {
+                          echo "<tr>";
+                          echo "<td class='sobrepor'>" . $row["Descricao"] . "</td>";
+                          echo "<td>" . $row["Situacao"] . "</td>";
+                          echo "<td>" . $row["NomeUsuario"] . "</td>";
+                          echo "<td>" . $row["Sistema"] . "</td>";
+                          echo "<td>" . $row["Status"] . "</td>";
+                          echo "<td>" . $row["Hora_ini2"] . "</td>";
+                          echo "<td>" . $row["Hora_fim2"] . "</td>";
+                          echo "<td>" . $row["Total_hora"] . "</td>";
+                          if ($cargo === 'Admin') {
+                              echo "<td class='text-center'>";
+                              echo "<button class='btn btn-outline-primary btn-sm' data-bs-toggle='modal' data-bs-target='#modalEdicao' onclick='editarAnalise(" 
+                              . htmlspecialchars(json_encode($row['Codigo']), ENT_QUOTES, 'UTF-8') . ", " 
+                              . htmlspecialchars(json_encode($row['Descricao']), ENT_QUOTES, 'UTF-8') . ", " 
+                              . htmlspecialchars(json_encode($row['idSituacao']), ENT_QUOTES, 'UTF-8') . ", " 
+                              . htmlspecialchars(json_encode($row['idAtendente']), ENT_QUOTES, 'UTF-8') . ", " 
+                              . htmlspecialchars(json_encode($row['idSistema']), ENT_QUOTES, 'UTF-8') . ", " 
+                              . htmlspecialchars(json_encode($row['idStatus']), ENT_QUOTES, 'UTF-8') . ", " 
+                              . htmlspecialchars(json_encode($row['Hora_ini']), ENT_QUOTES, 'UTF-8') . ", " 
+                              . htmlspecialchars(json_encode($row['Hora_fim']), ENT_QUOTES, 'UTF-8') . ", " 
+                              . htmlspecialchars(json_encode($row['Nota']), ENT_QUOTES, 'UTF-8') . ", " 
+                              . htmlspecialchars(json_encode($row['Justificativa']), ENT_QUOTES, 'UTF-8') .
+                              ")'><i class='fa-solid fa-pen'></i></button> ";
+                              echo "<button class='btn btn-outline-danger btn-sm' data-bs-toggle='modal' data-bs-target='#modalExclusao' onclick='excluirAnalise(" 
+                              . htmlspecialchars(json_encode($row['Codigo']), ENT_QUOTES, 'UTF-8') .
+                              ")'><i class='fa-solid fa-trash'></i></button>";
+                              echo "</td>";
+                          }
+                          echo "</tr>";
+                      }
+                  }
+                  ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div> <!-- /.content -->
+    </div>
+  </div> <!-- /.d-flex-wrapper -->
 
-                            function verificarFicha() {
-                                var chkFicha = document.getElementById("chkFicha").checked;
-                                var numeroFichaContainer = document.getElementById("numeroFichaContainer");
-                                var numeroFichaInput = document.getElementById("numeroFicha");
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Script para pesquisar na tabela -->
+    <script>
+    $(document).ready(function(){
+        $("#searchInput").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#tabelaAnalises tbody tr").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+            });
+        });
+        });
+    </script>
 
-                                if (chkFicha) {
-                                    numeroFichaContainer.style.display = "block";
-                                    numeroFichaInput.setAttribute("required", "true"); // Adiciona required quando visível
-                                } else {
-                                    numeroFichaContainer.style.display = "none";
-                                    numeroFichaInput.removeAttribute("required"); // Remove required quando oculto
-                                    numeroFichaInput.value = ""; // Limpa o valor do campo
-                                }
-                            }
+  <!-- Script para alterar as cores do status da tabela -->
+  <script>
+      document.addEventListener("DOMContentLoaded", function () {
+          document.querySelectorAll("#tabelaAnalises tbody tr").forEach(row => {
+              let statusCell = row.cells[4];
+              let status = statusCell.textContent.trim();
+              statusCell.classList.remove("pastel-aguardando", "pastel-desenvolvimento", "pastel-resolvido");
+              switch (status) {
+                  case "Aguardando":
+                      statusCell.classList.add("pastel-aguardando");
+                      break;
+                  case "Desenvolvimento":
+                      statusCell.classList.add("pastel-desenvolvimento");
+                      break;
+                  case "Resolvido":
+                      statusCell.classList.add("pastel-resolvido");
+                      break;
+              }
+          });
+      });
+  </script>
+  
+  <!-- Chart.js para o Gráfico Mensal -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+      document.addEventListener("DOMContentLoaded", function () {
+          const fichasPorMes = <?php echo json_encode(array_values($fichasPorMes)); ?>;
+          const analisesN3PorMes = <?php echo json_encode(array_values($analisesN3PorMes)); ?>;
+          const clienteParadoPorMes = <?php echo json_encode(array_values($clienteParadoPorMes)); ?>;
+          const labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+          const data = {
+              labels: labels,
+              datasets: [
+                  {
+                      label: 'Fichas Criadas',
+                      data: fichasPorMes,
+                      backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                      borderColor: 'rgba(54, 162, 235, 1)',
+                      borderWidth: 1
+                  },
+                  {
+                      label: 'Analise N3',
+                      data: analisesN3PorMes,
+                      backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                      borderColor: 'rgba(255, 99, 132, 1)',
+                      borderWidth: 1
+                  },
+                  {
+                      label: 'Cliente Parado',
+                      data: clienteParadoPorMes,
+                      backgroundColor: 'rgb(248, 11, 11)',
+                      borderColor: 'rgb(243, 137, 160)',
+                      borderWidth: 1
+                  }
+              ]
+          };
+          const config = {
+              type: 'bar',
+              data: data,
+              options: {
+                  scales: {
+                      y: {
+                          beginAtZero: true,
+                          ticks: { stepSize: 1 }
+                      }
+                  }
+              }
+          };
+          new Chart(document.getElementById('chartMensal'), config);
+      });
+  </script>
 
-                            function verificarSituacao2() {
-                                var situacao = document.getElementById("situacao");
-                                var fichaContainer = document.getElementById("multiplicaContainer");
-
-                                // Pega o texto da opção selecionada
-                                var situacaoSelecionada = situacao.options[situacao.selectedIndex].text.trim();
-
-                                var atendente = document.getElementById("atendente");
-                                var atenTitulo = document.getElementById("atenTitulo");
-
-                                // Verifica se a opção selecionada é "Analise N3"
-                                if (situacaoSelecionada === "Auxilio Suporte/Vendas") {
-                                    multiplicaContainer.style.display = "block";
-                                    atendente.style.display = "none";
-                                    atendente.removeAttribute("required"); // Adiciona required quando visível
-                                    atenTitulo.style.display = "none";
-                                } else {
-                                    multiplicaContainer.style.display = "none";
-                                    document.getElementById("numeroMultiplicaContainer").style.display = "none";
-                                    document.getElementById("chkMultiplica").checked = false;
-                                }
-                            }
-
-                            function verificarMultiplica() {
-                                var chkMultiplica = document.getElementById("chkMultiplica").checked;
-                                var numeroMultiContainer = document.getElementById("numeroMultiContainer");
-                                var numeroMulti = document.getElementById("numeroMulti");
-                                
-                                if (chkMultiplica) {
-                                    numeroMultiContainer.style.display = "block";
-                                    numeroMulti.setAttribute("required", "true"); // Adiciona required quando visível
-                                } else {
-                                    numeroMultiContainer.style.display = "none";
-                                    numeroMulti.removeAttribute("required"); // Remove required quando oculto
-                                    numeroMulti.value = ""; // Limpa o valor do campo
-                                }
-                            }
+  <!-- Modal de Cadastro -->
+  <div class="modal fade" id="modalCadastro" tabindex="-1" aria-labelledby="modalCadastroLabel" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="modalCadastroLabel">Nova Análise</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                  <form action="Views/cadastrar_analise.php" method="POST">
+                      <div class="row mb-1">
+                          <div class="col-md-12 mb-2">
+                              <label for="descricao" class="form-label">Descrição</label>
+                              <textarea class="form-control" id="descricao" name="descricao" maxlength="100" required></textarea>
+                          </div>
+                      </div>    
+                      <div class="row mb-1">
+                          <div class="col-md-6 mb-2">
+                              <label for="nota" id="notaAnalise" class="form-label">Nota</label>
+                              <select class="form-select" id="nota" name="nota">
+                                  <option value="0">0</option>
+                                  <option value="1">1</option>
+                                  <option value="2">2</option>
+                                  <option value="3">3</option>
+                                  <option value="4">4</option>
+                                  <option value="5">5</option>
+                              </select>
+                          </div>
+                          <div class="col-md-6">
+                              <label for="situacao" class="form-label">Situação</label>
+                              <select class="form-select" id="situacao" name="situacao" required onchange="verificarSituacao(); verificarSituacao2();">
+                                  <option value="">Selecione</option>
+                                  <?php
+                                  $querySituacao = "SELECT Id, Descricao FROM TB_SITUACAO";
+                                  $resultSituacao = $conn->query($querySituacao);
+                                  while ($rowS = $resultSituacao->fetch_assoc()) {
+                                      echo "<option value='" . $rowS['Id'] . "'>" . $rowS['Descricao'] . "</option>";
+                                  }
+                                  ?>
+                              </select>
+                              <!-- Checkbox e campo de Número da Ficha (inicialmente ocultos) -->
+                              <div class="row mt-3" id="fichaContainer" style="display: none;">
+                                  <div class="row mb-3 mt-3">
+                                      <div class="form-check d-flex justify-content-center ms-1">
+                                          <input class="form-check-input" type="checkbox" id="chkFicha" name="chkFicha" onchange="verificarFicha()">
+                                          <label class="form-check-label" for="chkFicha">Ficha</label>
+                                          <input class="form-check-input ms-2" type="checkbox" id="chkParado" name="chkParado" onchange="marcaParado()">
+                                          <label class="form-check-label" for="chkParado">Cliente Parado</label>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="row mb-3" id="numeroFichaContainer" style="display: none;">
+                                  <div class="col-md-12">
+                                      <label for="numeroFicha" class="form-label">Número da Ficha</label>
+                                      <input type="number" class="form-control" id="numeroFicha" name="numeroFicha" pattern="\d+">
+                                  </div>
+                              </div>
+                              <!-- Checkbox e campo de multiplicador -->
+                              <div class="row mb-3 mt-3" id="multiplicaContainer" style="display: none;">
+                                  <div class="col-md-4">
+                                      <div class="form-check">
+                                          <input class="form-check-input" type="checkbox" id="chkMultiplica" name="chkMultiplica" onchange="verificarMultiplica()">
+                                          <label class="form-check-label" for="chkMultiplica">Replicar</label>
+                                      </div>
+                                  </div>
+                              </div>
+                              <div class="row mb-3" id="numeroMultiContainer" style="display: none;">
+                                  <div class="col-md-15">
+                                      <label for="numeroMulti" class="form-label">Quantidade para Replicar</label>
+                                      <input type="number" class="form-control" id="numeroMulti" name="numeroMulti" pattern="\d+">
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                      <script>
+                          function verificarSituacao() {
+                              var situacao = document.getElementById("situacao");
+                              var fichaContainer = document.getElementById("fichaContainer");
+                              var situacaoSelecionada = situacao.options[situacao.selectedIndex].text.trim();
+                              if (situacaoSelecionada === "Analise N3") {
+                                  fichaContainer.style.display = "block";
+                              } else {
+                                  fichaContainer.style.display = "none";
+                                  document.getElementById("numeroFichaContainer").style.display = "none";
+                                  document.getElementById("chkFicha").checked = false;
+                              }
+                          }
+                          function verificarFicha() {
+                              var chkFicha = document.getElementById("chkFicha").checked;
+                              var numeroFichaContainer = document.getElementById("numeroFichaContainer");
+                              var numeroFichaInput = document.getElementById("numeroFicha");
+                              if (chkFicha) {
+                                  numeroFichaContainer.style.display = "block";
+                                  numeroFichaInput.setAttribute("required", "true");
+                              } else {
+                                  numeroFichaContainer.style.display = "none";
+                                  numeroFichaInput.removeAttribute("required");
+                                  numeroFichaInput.value = "";
+                              }
+                          }
+                          function verificarSituacao2() {
+                              var situacao = document.getElementById("situacao");
+                              var multiplicaContainer = document.getElementById("multiplicaContainer");
+                              var situacaoSelecionada = situacao.options[situacao.selectedIndex].text.trim();
+                              if (situacaoSelecionada === "Auxilio Suporte/Vendas") {
+                                  multiplicaContainer.style.display = "block";
+                                  document.getElementById("atendente").style.display = "none";
+                                  document.getElementById("atendente").removeAttribute("required");
+                                  document.getElementById("atenTitulo").style.display = "none";
+                              } else {
+                                  multiplicaContainer.style.display = "none";
+                                  document.getElementById("numeroMultiplicaContainer").style.display = "none";
+                                  document.getElementById("chkMultiplica").checked = false;
+                              }
+                          }
+                          function verificarMultiplica() {
+                              var chkMultiplica = document.getElementById("chkMultiplica").checked;
+                              var numeroMultiContainer = document.getElementById("numeroMultiContainer");
+                              var numeroMulti = document.getElementById("numeroMulti");
+                              if (chkMultiplica) {
+                                  numeroMultiContainer.style.display = "block";
+                                  numeroMulti.setAttribute("required", "true");
+                              } else {
+                                  numeroMultiContainer.style.display = "none";
+                                  numeroMulti.removeAttribute("required");
+                                  numeroMulti.value = "";
+                              }
+                          }
 
                             function marcaParado() {
                                 var chkParado = document.getElementById("chkParado").checked;
@@ -898,6 +974,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <form action="Views/deletar_analise.php" method="POST">
                         <!-- Campo oculto para armazenar o ID da análise -->
                         <input type="hidden" id="id_excluir" name="id_excluir">
+                        <p>Tem certeza que deseja excluir o usuário <strong id="excluir_nome"></strong>?</p>
                         <div class="text-end">
                             <button type="submit" class="btn btn-success">Sim</button>
                             <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close">Não</button>
