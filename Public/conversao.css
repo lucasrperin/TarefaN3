@@ -506,3 +506,23 @@ color: #333 !important;
   background-color: #e2e8f0;
   color: #333;
 }
+/* Remova qualquer espaçamento interno ou externo padrão nas colunas */
+.kanban-column {
+  margin: 0;              /* Remove margem externa */
+  padding: 0;             /* Remove padding interno */
+  max-height: 80vh;       /* Ajuste conforme necessário */
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Título fixo (sticky) no topo da coluna, sem margem */
+.kanban-column h3 {
+  position: sticky;
+  top: 0; 
+  margin: 0;             /* Remove margem padrão do h3 */
+  padding: 0.75rem;      /* Ajuste para controlar o espaçamento interno do título */
+  background-color: #283e51;
+  color: #fff;
+  border-radius: 0;
+  z-index: 2;            /* Para ficar sobre o conteúdo rolável */
+}
