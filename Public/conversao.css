@@ -392,7 +392,69 @@ color: #333 !important;
     align-items: center;
     justify-content: center;
   }
-  
+  .kanban-board {
+    display: flex;
+    gap: 15px;
+    padding: 1rem;
+    margin: 1rem;
+    overflow-x: auto;
+  }
+  .kanban-column {
+    flex: 1;
+    min-width: 280px;
+    max-height: 80vh;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #dee2e6;
+    overflow-y: auto;
+  }
+  .kanban-column h3 {
+    background-color: #283e51;
+    color: #fff;
+    padding: 0.75rem;
+    border-radius: 6px 6px 0 0;
+    text-align: center;
+    margin: 0 0 0.5rem 0;
+    font-family: 'Montserrat', sans-serif;
+  }
+  .kanban-card {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: box-shadow 0.2s ease;
+    font-family: 'Nunito', sans-serif;
+  }
+  .kanban-card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  }
+  .kanban-card p {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+    color: #333;
+  }
+  .acao-card {
+    margin-top: 0.5rem;
+    text-align: right;
+  }
+  .acao-card a {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #283e51;
+    font-size: 1rem;
+    margin-left: 0.3rem;
+    transition: color 0.2s ease;
+  }
+  .acao-card a:hover {
+    color: #4b79a1;
+  }
   
   
 
