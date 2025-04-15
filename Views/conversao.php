@@ -16,43 +16,52 @@ ini_set('display_errors', 1);
 $usuario_id = $_SESSION['usuario_id'];
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 
+// Para preencher os selects do filtro, buscamos os dados dos usuários e demais categorias
+
+
 /****************************************************************
  * 1) Capturar Filtros (GET)
  ****************************************************************/
-$dataInicial = isset($_GET['data_inicial']) ? $_GET['data_inicial'] : '';
-$dataFinal   = isset($_GET['data_final'])   ? $_GET['data_final']   : '';
-// Se os filtros estiverem vazios, preenche com a data atual (formato YYYY-MM-DD)
-if(empty($dataInicial)) {
-  $dataInicial = date("Y-m-d");
-}
-if(empty($dataFinal)) {
-  $dataFinal = date("Y-m-d");
-}
-//Limpa o filtro quando pressionado o botão
-if (isset($_GET['reset']) && $_GET['reset'] == 1) {
-  $dataInicial = '';
-  $dataFinal   = '';
-  $analistaID  = 0;
-} else {
-  $dataInicial = isset($_GET['data_inicial']) ? $_GET['data_inicial'] : date("Y-m-d");
-  $dataFinal   = isset($_GET['data_final'])   ? $_GET['data_final']   : date("Y-m-d");
-  $analistaID  = isset($_GET['analista_id'])  ? intval($_GET['analista_id']) : 0;
+// Se não houver valores via GET, utiliza a data atual (formato YYYY-MM-DD)
+// Recebe os filtros via GET ou define o valor padrão como a data atual
+// Se os parâmetros não forem enviados via GET, redireciona para definir as datas com o dia atual
+if (!isset($_GET['data_inicial']) || !isset($_GET['data_final'])) {
+  $hoje = date("Y-m-d");
+  header("Location: conversao.php?data_inicial={$hoje}&data_final={$hoje}");
+  exit();
 }
 
-$analistaID  = isset($_GET['analista_id'])  ? intval($_GET['analista_id']) : 0;
+// Caso o usuário clique em reset, redefina os filtros para o dia atual
+if (isset($_GET['reset']) && $_GET['reset'] == 1) {
+    $data_inicial = date("Y-m-d");
+    $data_final   = date("Y-m-d");
+    $analistaID  = 0;
+} else {
+    $analistaID  = isset($_GET['analista_id']) ? intval($_GET['analista_id']) : 0;
+}
+
+
 
 /****************************************************************
  * 2) Montar WHERE Dinâmico
  ****************************************************************/
 $where = " WHERE 1=1 ";
-if (!empty($dataInicial)) {
-    $where .= " AND c.data_recebido >= '{$dataInicial} 00:00:00' ";
+if (!empty($data_inicial)) {
+    $where .= " AND c.data_recebido >= '{$data_inicial} 00:00:00' ";
 }
-if (!empty($dataFinal)) {
-    $where .= " AND c.data_recebido <= '{$dataFinal} 23:59:59' ";
+if (!empty($data_final)) {
+    $where .= " AND c.data_recebido <= '{$data_final} 23:59:59' ";
 }
 if ($analistaID > 0) {
-    $where .= " AND c.analista_id = {$analistaID} ";
+  $where .= " AND c.analista_id = {$analistaID} ";
+}
+// Filtro por sistema
+if (!empty($_GET['sistema'])) {
+  $where .= " AND c.sistema_id = '" . $_GET['sistema'] . "'";
+}
+// Filtro por status
+if (!empty($_GET['status'])) {
+  $where .= " AND c.status_id = '" . $_GET['status'] . "'";
 }
 
 /****************************************************************
@@ -286,7 +295,7 @@ $sqlFila = "SELECT
                   c.data_conclusao,
                   DATE_FORMAT(c.prazo_entrega, '%d/%m %H:%i:%s') as prazo_entrega2,
                   DATE_FORMAT(c.data_recebido, '%d/%m %H:%i:%s') as data_recebido2,
-                  DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicio2,
+                  DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicial2,
                   DATE_FORMAT(c.data_conclusao, '%d/%m %H:%i:%s') as data_conclusao2,
                   c.analista_id,
                   a.nome       AS analista_nome,
@@ -316,7 +325,7 @@ $sqlOutros = "SELECT
                   c.data_conclusao,
                   DATE_FORMAT(c.prazo_entrega, '%d/%m %H:%i:%s') as prazo_entrega2,
                   DATE_FORMAT(c.data_recebido, '%d/%m %H:%i:%s') as data_recebido2,
-                  DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicio2,
+                  DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicial2,
                   DATE_FORMAT(c.data_conclusao, '%d/%m %H:%i:%s') as data_conclusao2,
                   c.analista_id,
                   a.nome       AS analista_nome,
@@ -345,7 +354,7 @@ $sqlFinalizados = "SELECT
                       c.data_conclusao,
                       DATE_FORMAT(c.prazo_entrega, '%d/%m %H:%i:%s') as prazo_entrega2,
                       DATE_FORMAT(c.data_recebido, '%d/%m %H:%i:%s') as data_recebido2,
-                      DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicio2,
+                      DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicial2,
                       DATE_FORMAT(c.data_conclusao, '%d/%m %H:%i:%s') as data_conclusao2,
                       c.analista_id,
                       a.nome       AS analista_nome,
@@ -366,8 +375,10 @@ $resFinalizados = $conn->query($sqlFinalizados);
 $sistemas  = $conn->query("SELECT * FROM TB_SISTEMA_CONVER ORDER BY nome");
 $status    = $conn->query("SELECT * FROM TB_STATUS_CONVER ORDER BY descricao");
 $analistas = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN TB_USUARIO u on u.id = ana.id WHERE u.cargo = 'Conversor' ORDER BY ana.nome");
-// Para o filtro:
-$analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN TB_USUARIO u on u.id = ana.id WHERE u.cargo = 'Conversor' ORDER BY ana.nome");
+
+$lista_sistemas   = $conn->query("SELECT * FROM TB_SISTEMA_CONVER ORDER BY nome");
+$lista_status     = $conn->query("SELECT * FROM TB_STATUS_CONVER ORDER BY descricao");
+$resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN TB_USUARIO u on u.id = ana.id WHERE u.cargo = 'Conversor' ORDER BY ana.nome");
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -382,7 +393,6 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../Public/conversao.css">
-  <link rel="icon" href="..\Public\Image\icone2.png" type="image/png">
 </head>
 <body class="bg-light">
     <div class="d-flex-wrapper">
@@ -426,7 +436,6 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
           </nav>
         </div>
         
-        
 
         <!-- Área Principal -->
         <div class="w-100">
@@ -462,39 +471,6 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
                     <div class="card-body">
                       <h5 class="card-title">Conversões Mensais por Analista</h5>
                       <canvas id="chartBarras" height="100"></canvas>
-                    </div>
-                  </div>
-                </div>
-                <!-- Filtro Global à direita (4 colunas) -->
-                <div class="col-md-4">
-                  <div class="card">
-                    <div class="card-body">
-                      <h5 class="card-title">Filtro Global</h5>
-                      <form method="GET" class="row gy-2 gx-2">
-                        <div class="col-12">
-                          <label>Data Inicial</label>
-                          <input type="date" name="data_inicial" value="<?= htmlspecialchars($dataInicial) ?>" class="form-control">
-                        </div>
-                        <div class="col-12">
-                          <label>Data Final</label>
-                          <input type="date" name="data_final" value="<?= htmlspecialchars($dataFinal) ?>" class="form-control">
-                        </div>
-                        <div class="col-12">
-                          <label>Analista</label>
-                          <select name="analista_id" class="form-select">
-                            <option value="0">-- Todos --</option>
-                            <?php while ($anF = $analistasFiltro->fetch_assoc()): ?>
-                              <option value="<?= $anF['id'] ?>" <?= ($analistaID == $anF['id']) ? 'selected' : '' ?>>
-                                <?= $anF['nome'] ?>
-                              </option>
-                            <?php endwhile; ?>
-                          </select>
-                        </div>
-                        <div class="d-flex justify-content-center gap-2">
-                          <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-                          <a href="conversao.php?reset=1" class="btn btn-secondary btn-sm">Limpar Filtros</a>
-                        </div>
-                      </form>
                     </div>
                   </div>
                 </div>
@@ -613,10 +589,10 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
       </div>
     </div>
 
- <!-- Accordion Item: Resumo Geral - Layout 5 (Ajustado para centralização horizontal uniforme) -->
+<!-- Accordion Item: Resumo Geral - Layout 5 (Ajustado para centralização horizontal uniforme) -->
 <div class="accordion-item mb-3">
   <h2 class="accordion-header" id="headingResumoGeralLayout5">
-    <button class="accordion-button collapsed layout5-accordion-header" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResumoGeralLayout5" aria-expanded="false" aria-controls="collapseResumoGeralLayout5">
+    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResumoGeralLayout5" aria-expanded="false" aria-controls="collapseResumoGeralLayout5">
       <i class="fa-solid fa-chart-area me-2"></i> Resumo Geral
     </button>
   </h2>
@@ -695,6 +671,10 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
 
   <!-- Botão Cadastrar -->
   <div class="d-flex justify-content-end mb-3 gap-2">
+    <!-- Botão para abrir o modal de filtro -->
+    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
+      <i class="fa-solid fa-filter"></i>
+    </button>
     <input type="text" id="searchInput" class="form-control ms-2" style="max-width: 200px;" placeholder="Pesquisar...">
     <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
     <button class="btn btn-primary" onclick="abrirModalCadastro()">Cadastrar</button>
@@ -745,7 +725,7 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
                   <td><?= $rowF['sistema_nome']; ?></td>
                   <td><?= $rowF['data_recebido2']; ?></td>
                   <td><?= $rowF['prazo_entrega2']; ?></td>
-                  <td><?= $rowF['data_inicio2']; ?></td>
+                  <td><?= $rowF['data_inicial2']; ?></td>
                   <td><?= $rowF['analista_nome']; ?></td>
                   <td>
                   <?php if ($cargo === 'Admin' || $usuario_id == $rowF['analista_id'] || $usuario_id == '16'): ?>
@@ -807,7 +787,7 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
               <td><?= $rowO['sistema_nome']; ?></td>
               <td class="contato"><?= $rowO['status_nome']; ?></td>
               <td><?= $rowO['data_recebido2']; ?></td>
-              <td><?= $rowO['data_inicio2']; ?></td>
+              <td><?= $rowO['data_inicial2']; ?></td>
               <td><?= $rowO['analista_nome']; ?></td>
               <td>
               <?php if ($cargo === 'Admin' || $rowO['analista_id'] == $usuario_id || $usuario_id == '16'): ?>
@@ -895,7 +875,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   <td><?= $rowC['status_nome']; ?></td>
                   <td><?= $rowC['data_recebido2']; ?></td>
                   <td><?= $rowC['prazo_entrega2']; ?></td>
-                  <td><?= $rowC['data_inicio2']; ?></td>
+                  <td><?= $rowC['data_inicial2']; ?></td>
                   <td><?= $rowC['data_conclusao2']; ?></td>
                   <td><?= $rowC['analista_nome']; ?></td>
                   <td>
@@ -1045,7 +1025,7 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="col-md-4">
               <div class="mb-3">
                 <label class="form-label">Data Início:</label>
-                <input type="datetime-local" class="form-control" name="data_inicio" id="data_inicio">
+                <input type="datetime-local" class="form-control" name="data_inicial" id="data_inicial">
               </div>
             </div>
 
@@ -1100,7 +1080,7 @@ document.getElementById("formCadastro").addEventListener("submit", function(even
   function verificarStatus() {
     var status = document.getElementById("status_id");
     var dataConclusao = document.getElementById("data_conclusao");
-    var dataInicio = document.getElementById("data_inicio");
+    var dataInicio = document.getElementById("data_inicial");
 
     // Pega o texto da opção selecionada
     var statusSelecionado = status.options[status.selectedIndex].text.trim();
@@ -1225,7 +1205,7 @@ document.getElementById("formCadastro").addEventListener("submit", function(even
           <div class="col-md-3">
             <div class="mb-3">
               <label class="form-label">Data Início:</label>
-              <input type="datetime-local" class="form-control" name="data_inicio" id="edit_data_inicio">
+              <input type="datetime-local" class="form-control" name="data_inicial" id="edit_data_inicial">
             </div>
           </div>
 
@@ -1279,7 +1259,7 @@ document.getElementById("formCadastro").addEventListener("submit", function(even
   function verificarStatusEdit() {
     var statusEdit2 = document.getElementById("edit_status");
     var dataConclusao2 = document.getElementById("edit_data_conclusao");
-    var dataInicio2 = document.getElementById("edit_data_inicio");
+    var dataInicio2 = document.getElementById("edit_data_inicial");
 
     // Pega o texto da opção selecionada
     var statusSelecionado2 = statusEdit2.options[statusEdit2.selectedIndex].text.trim();
@@ -1328,6 +1308,116 @@ document.getElementById("formCadastro").addEventListener("submit", function(even
       </div>
     </div>
 
+            <!-- Script para alternar entre os campos de período e analista -->
+            <script>
+              // Exibe o campo de filtro correspondente conforme a seleção do "Coluna"
+              function adjustFilterFields() {
+                  let filterColumn = document.getElementById("filterColumn").value;
+                  // Atualiza um campo hidden, se necessário para o backend (opcional)
+                  document.getElementById("filterColumnHidden").value = filterColumn;
+                  // Esconde todos os containers
+                  document.getElementById("filterPeriod").style.display = "none";
+                  document.getElementById("filterAnalista").style.display = "none";
+                  document.getElementById("filterSistema").style.display = "none";
+                  document.getElementById("filterStatus").style.display = "none";
+                  // Exibe apenas o container selecionado
+                  if (filterColumn === "period") {
+                      document.getElementById("filterPeriod").style.display = "block";
+                  } else if (filterColumn === "analista") {
+                      document.getElementById("filterAnalista").style.display = "block";
+                  } else if (filterColumn === "sistema") {
+                      document.getElementById("filterSistema").style.display = "block";
+                  } else if (filterColumn === "status") {
+                      document.getElementById("filterStatus").style.display = "block";
+                  }
+              }
+              document.addEventListener("DOMContentLoaded", function() {
+                  adjustFilterFields();
+                  document.getElementById("filterColumn").addEventListener("change", adjustFilterFields);
+              });
+            </script>
+
+    <!-- Modal de Filtro com Controle por Coluna -->
+    <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+          <div class="modal-content">
+            <form method="GET" action="conversao.php">
+              <div class="modal-header">
+                <h5 class="modal-title" id="filterModalLabel">Filtro</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+              </div>
+              <div class="modal-body">
+                <!-- Seletor de Coluna para filtrar -->
+                <div class="mb-3">
+                  <label for="filterColumn" class="form-label">Filtrar por Coluna:</label>
+                  <select class="form-select" id="filterColumn" name="filterColumn">
+                    <option value="period" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'period') echo "selected"; ?>>Período</option>
+                    <option value="analista" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'analista') echo "selected"; ?>>Analista</option>
+                    <option value="sistema" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'sistema') echo "selected"; ?>>Sistema</option>
+                    <option value="status" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'status') echo "selected"; ?>>Status</option>
+                  </select>
+                </div>
+                <!-- Campos de filtro, exibidos conforme a seleção -->
+                <div id="filterPeriod" style="display: none;">
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label for="data_inicial" class="form-label">Data Início:</label>
+                      <input type="date" class="form-control" id="data_inicial" name="data_inicial" 
+       value="<?php echo !empty($_GET['data_inicial']) ? $_GET['data_inicial'] : date("Y-m-d"); ?>">
+
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label for="data_final" class="form-label">Data Fim:</label>
+                      <input type="date" class="form-control" id="data_final" name="data_final" 
+       value="<?php echo !empty($_GET['data_final']) ? $_GET['data_final'] : date("Y-m-d"); ?>">
+                    </div>
+                  </div>
+                </div>
+                <div id="filterAnalista" style="display: none;">
+                  <div class="mb-3">
+                    <label for="analista" class="form-label">Analista:</label>
+                    <select class="form-select" id="analista" name="analista_id">
+                      <option value="">Selecione</option>
+                      <?php while ($row = $resultado_usuarios_dropdown->fetch_assoc()) { ?>
+                        <option value="<?php echo $row['Id']; ?>" <?php if(isset($_GET['analista_id']) && $_GET['analista_id'] == $row['Id']) echo "selected"; ?>><?php echo $row['Nome']; ?></option>
+                      <?php } ?>
+                    </select>
+                  </div>
+                </div>
+
+                <div id="filterSistema" style="display: none;">
+                  <div class="mb-3">
+                    <label for="sistema" class="form-label">Sistema:</label>
+                    <select class="form-select" id="sistema" name="sistema">
+                      <option value="">Selecione</option>
+                      <?php while ($row = $lista_sistemas->fetch_assoc()) { ?>
+                        <option value="<?php echo $row['id']; ?>" <?php if(isset($_GET['sistema']) && $_GET['sistema'] == $row['id']) echo "selected"; ?>><?php echo $row['nome']; ?></option>
+                      <?php } ?>
+                    </select>
+                  </div>
+                </div>
+                <div id="filterStatus" style="display: none;">
+                  <div class="mb-3">
+                    <label for="status" class="form-label">Status:</label>
+                    <select class="form-select" id="status" name="status">
+                      <option value="">Selecione</option>
+                      <?php while ($row = $lista_status->fetch_assoc()) { ?>
+                        <option value="<?php echo $row['id']; ?>" <?php if(isset($_GET['status']) && $_GET['status'] == $row['id']) echo "selected"; ?>><?php echo $row['descricao']; ?></option>
+                      <?php } ?>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='conversao.php'">Limpar Filtro</button>
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+              </div>
+              <input type="hidden" name="filterColumn" id="filterColumnHidden">
+            </form>
+          </div>
+        </div>
+      </div>
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -1375,7 +1465,7 @@ let chartBarras = new Chart(ctx, {
       $("#edit_status").val(statusID);
       $("#edit_data_recebido").val(dataRecebido);
       $("#edit_prazo_entrega").val(prazoEntrega);
-      $("#edit_data_inicio").val(dataInicio);
+      $("#edit_data_inicial").val(dataInicio);
       $("#edit_data_conclusao").val(dataConclusao);
       $("#edit_analista").val(analistaID);
       $("#edit_observacao").val(observacao);
@@ -1398,7 +1488,7 @@ let chartBarras = new Chart(ctx, {
       $("#edit_status").val(statusID);
       $("#edit_data_recebido").val(dataRecebido);
       $("#edit_prazo_entrega").val(prazoEntrega);
-      $("#edit_data_inicio").val(dataInicio);
+      $("#edit_data_inicial").val(dataInicio);
       $("#edit_data_conclusao").val(dataConclusao);
       $("#edit_analista").val(analistaID);
       $("#edit_observacao").val(observacao);
