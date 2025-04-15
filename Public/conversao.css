@@ -420,42 +420,89 @@ color: #333 !important;
     margin: 0 0 0.5rem 0;
     font-family: 'Montserrat', sans-serif;
   }
-  .kanban-card {
-    background-color: #fff;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    cursor: pointer;
-    transition: box-shadow 0.2s ease;
-    font-family: 'Nunito', sans-serif;
-  }
-  .kanban-card:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  }
-  .kanban-card p {
-    margin: 0.25rem 0;
-    font-size: 0.9rem;
-    color: #333;
-  }
-  .acao-card {
-    margin-top: 0.5rem;
-    text-align: right;
-  }
-  .acao-card a {
-    border: none;
-    background: none;
-    cursor: pointer;
-    color: #283e51;
-    font-size: 1rem;
-    margin-left: 0.3rem;
-    transition: color 0.2s ease;
-  }
-  .acao-card a:hover {
-    color: #4b79a1;
-  }
-  
-  
+/* Estilo minimalista e moderno para os cards das conversões */
+/* Estilo moderno e minimalista para os cards das conversões */
+.kanban-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Nunito', sans-serif;
+}
 
-  
+.kanban-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Cabeçalho do card com ícone e título */
+.kanban-card .card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.kanban-card .icon {
+  width: 40px;
+  height: 40px;
+  background-color: #e7f0fd;  /* Cor de fundo suave para o ícone */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  font-size: 18px;
+  color: #3b82f6;  /* Azul marcante para o ícone */
+}
+
+.kanban-card .card-title {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Área de detalhes com informações e ícones pequenos */
+.kanban-card .card-details {
+  font-size: 0.9em;
+  color: #555;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.kanban-card .card-details p {
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+}
+
+.kanban-card .card-details p i {
+  font-size: 14px;
+  margin-right: 8px;
+  color: #3b82f6;
+}
+
+/* Botões de ação minimalistas para edição e exclusão */
+.acao-card {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.acao-card a {
+  text-decoration: none;
+  font-size: 16px;
+  color: #666;
+  background: #f1f5f9;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.acao-card a:hover {
+  background-color: #e2e8f0;
+  color: #333;
+}

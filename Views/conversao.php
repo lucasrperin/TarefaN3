@@ -640,51 +640,180 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
         
          <!-- Área de listagem utilizando o novo layout Kanban -->
      <!-- Área de listagem utilizando o novo layout Kanban -->
-<div class="kanban-board">
+     <div class="kanban-board">
   <!-- Coluna: Em Fila -->
   <div class="kanban-column">
-    <h3>Em Fila</h3>
-    <?php while ($rowF = $resFila->fetch_assoc()): ?>
-      <div class="kanban-card"
-              data-id="<?= $rowF['id']; ?>"
-              data-status_id="<?= $rowF['status_id']; ?>"
-              data-contato="<?= htmlspecialchars($rowF['contato']); ?>"
-              data-serial="<?= htmlspecialchars($rowF['serial']); ?>"
-              data-retrabalho="<?= htmlspecialchars($rowF['retrabalho']); ?>"
-              data-sistema_id="<?= $rowF['sistema_id']; ?>"
-              data-data_recebido="<?= $rowF['data_recebido']; ?>"
-              data-prazo_entrega="<?= $rowF['prazo_entrega']; ?>"
-              data-data_inicio="<?= $rowF['data_inicio']; ?>"
-              data-data_conclusao="<?= $rowF['data_conclusao']; ?>"
-              data-analista_id="<?= $rowF['analista_id']; ?>"
-              data-observacao="<?= htmlspecialchars($rowF['observacao']); ?>"
-          >
-            <strong><?= $rowF['contato']; ?></strong><br>
-            Sistema: <?= $rowF['sistema_nome']; ?><br>
-            Recebido: <?= $rowF['data_recebido2']; ?><br>
-            Prazo: <?= $rowF['prazo_entrega2']; ?><br>
-            Analista: <?= $rowF['analista_nome']; ?><br>
-            Status: <span class="card-status"><?= $rowF['status_nome']; ?></span>
-        <?php if ($cargo === 'Admin' || $usuario_id == $rowF['analista_id'] || $usuario_id == '16'): ?>
-          <div class="acao-card">
-          <a class="btn btn-outline-primary btn-sm" onclick="abrirModalEdicaoFromCard(this)">
-          <i class='fa-sharp fa-solid fa-pen'></i>
-         </a>
-            <a href="javascript:void(0)" class="btn btn-outline-danger btn-sm" 
-              data-bs-toggle="modal" data-bs-target="#modalExclusao" 
-              onclick="excluirAnalise(<?= $rowF['id'] ?>)">
-              <i class="fa-sharp fa-solid fa-trash"></i>
-            </a>
-          </div>
-        <?php endif; ?>
+  <h3>Em Fila</h3>
+  <?php while ($rowF = $resFila->fetch_assoc()): ?>
+    <?php
+      // Valor original do sistema, ex: "AC p/ Clipp360" ou "Clipp p/ AC"
+      $systemNameOriginal = $rowF['sistema_nome'];
+
+      // Verifica se a string contém "p/" para separar sistemas de origem e destino
+      if (strpos($systemNameOriginal, 'p/') !== false) {
+          $parts = explode('p/', $systemNameOriginal);
+          $originSystem = trim($parts[0]);
+          $destinationSystem = trim($parts[1]);
+      } else {
+          $originSystem = $systemNameOriginal;
+          $destinationSystem = '';
+      }
+      
+      // Se o sistema aparecer como "Clipp", transforma-o em "ClippPro"
+      if (strcasecmp($originSystem, "Clipp") === 0) {
+          $originSystem = "ClippPro";
+      }
+      if ($destinationSystem !== '' && strcasecmp($destinationSystem, "Clipp") === 0) {
+          $destinationSystem = "ClippPro";
+      }
+      
+      // Mapeamento dos sistemas para os arquivos de imagem
+      $imageMap = [
+          "AC"           => "ac.png",
+          "ClippFácil"   => "ClippFacil.png",
+          "Clipp360"     => "clipp360.png",
+          "ClippPro"     => "clipppro.png",
+          "ClippMei"     => "clippmei.png",
+          "Small"        => "small.png",
+          "Gdoor"        => "gdoor.png",
+          "Conc"        => "concorrente.png",
+          "ZetaWeb"      => "zweb.png"
+      ];
+      
+      // Determina o arquivo da imagem para o sistema de origem
+      if (isset($imageMap[$originSystem])) {
+          $originImage = $imageMap[$originSystem];
+      } else {
+          $originImage = strtolower(str_replace(" ", "", $originSystem)) . ".png";
+      }
+      
+      // Determina o arquivo da imagem para o sistema de destino, se existir
+      if ($destinationSystem !== '') {
+          if (isset($imageMap[$destinationSystem])) {
+              $destinationImage = $imageMap[$destinationSystem];
+          } else {
+              $destinationImage = strtolower(str_replace(" ", "", $destinationSystem)) . ".png";
+          }
+      }
+      
+      // Define os caminhos absolutos para as imagens (ou relativos, conforme seu projeto)
+      $originPath = '/TarefaN3/Public/Image/' . $originImage;
+      if ($destinationSystem !== '') {
+          $destinationPath = '/TarefaN3/Public/Image/' . $destinationImage;
+      }
+    ?>
+    <div class="kanban-card"
+         data-id="<?= $rowF['id']; ?>"
+         data-status_id="<?= $rowF['status_id']; ?>"
+         data-contato="<?= htmlspecialchars($rowF['contato']); ?>"
+         data-serial="<?= htmlspecialchars($rowF['serial']); ?>"
+         data-retrabalho="<?= htmlspecialchars($rowF['retrabalho']); ?>"
+         data-sistema_id="<?= $rowF['sistema_id']; ?>"
+         data-data_recebido="<?= $rowF['data_recebido']; ?>"
+         data-prazo_entrega="<?= $rowF['prazo_entrega']; ?>"
+         data-data_inicio="<?= $rowF['data_inicio']; ?>"
+         data-data_conclusao="<?= $rowF['data_conclusao']; ?>"
+         data-analista_id="<?= $rowF['analista_id']; ?>"
+         data-observacao="<?= htmlspecialchars($rowF['observacao']); ?>"
+    >
+      <div class="card-header">
+        <div class="icon">
+          <i class="fa-solid fa-inbox"></i>
+        </div>
+        <div class="card-title"><?= htmlspecialchars($rowF['contato']); ?></div>
       </div>
-    <?php endwhile; ?>
-  </div>
+      <div class="card-details">
+        <p>
+          <i class="fa-solid fa-desktop"></i> 
+          Sistema:
+          <img src="<?= $originPath; ?>" alt="<?= $originSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
+          <?= $originSystem; ?>
+          <?php if($destinationSystem !== ''): ?>
+            <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i>
+            <img src="<?= $destinationPath; ?>" alt="<?= $destinationSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
+            <?= $destinationSystem; ?>
+          <?php endif; ?>
+        </p>
+        <p><i class="fa-solid fa-clock"></i> Recebido: <?= $rowF['data_recebido2']; ?></p>
+        <p><i class="fa-solid fa-user-check"></i> Analista: <?= $rowF['analista_nome']; ?></p>
+      </div>
+      <?php if ($cargo === 'Admin' || $usuario_id == $rowF['analista_id'] || $usuario_id == '16'): ?>
+        <div class="acao-card">
+          <a href="javascript:void(0)" onclick="abrirModalEdicaoFromCard(this)">
+            <i class="fa-solid fa-pen"></i>
+          </a>
+          <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalExclusao"
+             onclick="excluirAnalise(<?= $rowF['id'] ?>)">
+            <i class="fa-solid fa-trash"></i>
+          </a>
+        </div>
+      <?php endif; ?>
+    </div>
+  <?php endwhile; ?>
+</div>
+
+
+
   
   <!-- Coluna: Em Andamento -->
   <div class="kanban-column">
   <h3>Em Andamento</h3>
   <?php while ($rowO = $resOutros->fetch_assoc()): ?>
+    <?php
+      // Valor original do sistema, por exemplo "Clipp p/ AC" ou outro
+      $systemNameOriginal = $rowO['sistema_nome'];
+      if (strpos($systemNameOriginal, 'p/') !== false) {
+          $parts = explode('p/', $systemNameOriginal);
+          $originSystem = trim($parts[0]);
+          $destinationSystem = trim($parts[1]);
+      } else {
+          $originSystem = $systemNameOriginal;
+          $destinationSystem = '';
+      }
+      
+      // Se o sistema aparecer como "Clipp", considere-o como "ClippPro"
+      if (strcasecmp($originSystem, "Clipp") === 0) {
+          $originSystem = "ClippPro";
+      }
+      if ($destinationSystem !== '' && strcasecmp($destinationSystem, "Clipp") === 0) {
+          $destinationSystem = "ClippPro";
+      }
+      
+      // Mapeamento dos sistemas para os nomes dos arquivos de imagem
+      $imageMap = [
+          "AC"           => "ac.png",
+          "ClippFácil"   => "ClippFacil.png",
+          "Clipp360"     => "clipp360.png",
+          "ClippPro"     => "clipppro.png",
+          "ClippMei"     => "clippmei.png",
+          "Small"        => "small.png",
+          "Gdoor"        => "gdoor.png",
+          "Conc"        => "concorrente.png",
+          "ZetaWeb"      => "zweb.png"
+      ];
+      
+      // Logo para o sistema de origem
+      if (isset($imageMap[$originSystem])) {
+          $originImage = $imageMap[$originSystem];
+      } else {
+          $originImage = strtolower(str_replace(" ", "", $originSystem)) . ".png";
+      }
+      
+      // Logo para o sistema de destino, se existir
+      if ($destinationSystem !== '') {
+          if (isset($imageMap[$destinationSystem])) {
+              $destinationImage = $imageMap[$destinationSystem];
+          } else {
+              $destinationImage = strtolower(str_replace(" ", "", $destinationSystem)) . ".png";
+          }
+      }
+      
+      // Caminhos absolutos para as imagens
+      $originPath = '/TarefaN3/Public/Image/' . $originImage;
+      if ($destinationSystem !== '') {
+          $destinationPath = '/TarefaN3/Public/Image/' . $destinationImage;
+      }
+    ?>
     <div class="kanban-card"
          data-id="<?= $rowO['id']; ?>"
          data-status_id="<?= $rowO['status_id']; ?>"
@@ -699,31 +828,98 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
          data-analista_id="<?= $rowO['analista_id']; ?>"
          data-observacao="<?= htmlspecialchars($rowO['observacao']); ?>"
     >
-      <strong><?= $rowO['contato']; ?></strong><br>
-      Sistema: <?= $rowO['sistema_nome']; ?><br>
-      Status: <span class="card-status"><?= $rowO['status_nome']; ?></span><br>
-      Recebido: <?= $rowO['data_recebido2']; ?><br>
-      Analista: <?= $rowO['analista_nome']; ?><br>
+      <div class="card-header">
+        <div class="icon">
+          <i class="fa-solid fa-spinner"></i>
+        </div>
+        <div class="card-title"><?= htmlspecialchars($rowO['contato']); ?></div>
+      </div>
+      <div class="card-details">
+        <p>
+          <i class="fa-solid fa-desktop"></i> 
+          Sistema: 
+          <img src="<?= $originPath; ?>" alt="<?= $originSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
+          <?= $originSystem; ?>
+          <?php if($destinationSystem !== ''): ?>
+            <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i>
+            <img src="<?= $destinationPath; ?>" alt="<?= $destinationSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
+            <?= $destinationSystem; ?>
+          <?php endif; ?>
+        </p>
+        <p><i class="fa-solid fa-clock"></i> Recebido: <?= $rowO['data_recebido2']; ?></p>
+        <p><i class="fa-solid fa-play"></i> Início: <?= $rowO['data_inicio2']; ?></p>
+        <p><i class="fa-solid fa-user-check"></i> Analista: <?= $rowO['analista_nome']; ?></p>
+      </div>
       <?php if ($cargo === 'Admin' || $rowO['analista_id'] == $usuario_id || $usuario_id == '16'): ?>
         <div class="acao-card">
-          <a class="btn btn-outline-primary btn-sm" onclick="abrirModalEdicaoFromCard(this)">
-            <i class="fa-sharp fa-solid fa-pen"></i>
+          <a href="javascript:void(0)" onclick="abrirModalEdicaoFromCard(this)">
+            <i class="fa-solid fa-pen"></i>
           </a>
-          <a href="javascript:void(0)" class="btn btn-outline-danger btn-sm" 
-             data-bs-toggle="modal" data-bs-target="#modalExclusao" 
+          <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalExclusao"
              onclick="excluirAnalise(<?= $rowO['id'] ?>)">
-            <i class="fa-sharp fa-solid fa-trash"></i>
+            <i class="fa-solid fa-trash"></i>
           </a>
         </div>
       <?php endif; ?>
     </div>
   <?php endwhile; ?>
 </div>
+
+
   
-  <!-- Coluna: Finalizadas -->
-  <div class="kanban-column">
+ <!-- Coluna: Finalizadas -->
+ <div class="kanban-column">
   <h3>Finalizadas</h3>
   <?php while ($rowC = $resFinalizados->fetch_assoc()): ?>
+    <?php
+      $systemNameOriginal = $rowC['sistema_nome'];
+      if (strpos($systemNameOriginal, 'p/') !== false) {
+          $parts = explode('p/', $systemNameOriginal);
+          $originSystem = trim($parts[0]);
+          $destinationSystem = trim($parts[1]);
+      } else {
+          $originSystem = $systemNameOriginal;
+          $destinationSystem = '';
+      }
+      
+      if (strcasecmp($originSystem, "Clipp") === 0) {
+          $originSystem = "ClippPro";
+      }
+      if ($destinationSystem !== '' && strcasecmp($destinationSystem, "Clipp") === 0) {
+          $destinationSystem = "ClippPro";
+      }
+      
+      $imageMap = [
+          "AC"           => "ac.png",
+          "ClippFácil"   => "ClippFacil.png",
+          "Clipp360"     => "clipp360.png",
+          "ClippPro"     => "clipppro.png",
+          "ClippMei"     => "clippmei.png",
+          "Small"        => "small.png",
+          "Gdoor"        => "gdoor.png",
+          "Conc"        => "concorrente.png",
+          "ZetaWeb"      => "zweb.png"
+      ];
+      
+      if (isset($imageMap[$originSystem])) {
+          $originImage = $imageMap[$originSystem];
+      } else {
+          $originImage = strtolower(str_replace(" ", "", $originSystem)) . ".png";
+      }
+      
+      if ($destinationSystem !== '') {
+          if (isset($imageMap[$destinationSystem])) {
+              $destinationImage = $imageMap[$destinationSystem];
+          } else {
+              $destinationImage = strtolower(str_replace(" ", "", $destinationSystem)) . ".png";
+          }
+      }
+      
+      $originPath = '/TarefaN3/Public/Image/' . $originImage;
+      if ($destinationSystem !== '') {
+          $destinationPath = '/TarefaN3/Public/Image/' . $destinationImage;
+      }
+    ?>
     <div class="kanban-card"
          data-id="<?= $rowC['id']; ?>"
          data-status_id="<?= $rowC['status_id']; ?>"
@@ -738,23 +934,37 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
          data-analista_id="<?= $rowC['analista_id']; ?>"
          data-observacao="<?= htmlspecialchars($rowC['observacao']); ?>"
     >
-      <strong><?= $rowC['contato']; ?></strong><br>
-      Serial: <?= $rowC['serial']; ?><br>
-      Retrabalho: <?= $rowC['retrabalho']; ?><br>
-      Sistema: <?= $rowC['sistema_nome']; ?><br>
-      Status: <span class="card-status"><?= $rowC['status_nome']; ?></span><br>
-      Recebido: <?= $rowC['data_recebido2']; ?><br>
-      Conclusão: <?= $rowC['data_conclusao2']; ?><br>
-      Analista: <?= $rowC['analista_nome']; ?><br>
+      <div class="card-header">
+        <div class="icon">
+          <i class="fa-solid fa-check-circle"></i>
+        </div>
+        <div class="card-title"><?= htmlspecialchars($rowC['contato']); ?></div>
+      </div>
+      <div class="card-details">
+        <p>
+          <i class="fa-solid fa-desktop"></i> 
+          Sistema: 
+          <img src="<?= $originPath; ?>" alt="<?= $originSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
+          <?= $originSystem; ?>
+          <?php if($destinationSystem !== ''): ?>
+            <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> 
+            <img src="<?= $destinationPath; ?>" alt="<?= $destinationSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
+            <?= $destinationSystem; ?>
+          <?php endif; ?>
+        </p>
+        <p><i class="fa-solid fa-clock"></i> Recebido: <?= $rowC['data_recebido2']; ?></p>
+        <p><i class="fa-solid fa-play"></i> Início: <?= $rowC['data_inicio2']; ?></p>
+        <p><i class="fa-solid fa-check"></i> Concluído: <?= $rowC['data_conclusao2']; ?></p>
+        <p><i class="fa-solid fa-user-check"></i> Analista: <?= $rowC['analista_nome']; ?></p>
+      </div>
       <?php if ($cargo === 'Admin' || $rowC['analista_id'] == $usuario_id || $usuario_id == '16'): ?>
         <div class="acao-card">
-          <a class="btn btn-outline-primary btn-sm" onclick="abrirModalEdicaoFromCard(this)">
-            <i class="fa-sharp fa-solid fa-pen"></i>
+          <a href="javascript:void(0)" onclick="abrirModalEdicaoFromCard(this)">
+            <i class="fa-solid fa-pen"></i>
           </a>
-          <a href="javascript:void(0)" class="btn btn-outline-danger btn-sm" 
-             data-bs-toggle="modal" data-bs-target="#modalExclusao" 
+          <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalExclusao"
              onclick="excluirAnalise(<?= $rowC['id'] ?>)">
-            <i class="fa-sharp fa-solid fa-trash"></i>
+            <i class="fa-solid fa-trash"></i>
           </a>
         </div>
       <?php endif; ?>
@@ -762,7 +972,7 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
   <?php endwhile; ?>
 </div>
 
-</div><!-- Fim Kanban Board -->
+
 
 
       
