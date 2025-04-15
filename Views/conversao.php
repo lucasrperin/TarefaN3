@@ -440,7 +440,7 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
           <div class="accordion-item mb-3">
             <h2 class="accordion-header" id="headingGrafico">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGrafico" aria-expanded="false" aria-controls="collapseGrafico">
-                Gráfico e Filtro Global
+                <i class="fa-solid fa-chart-simple me-2"></i>Gráfico de Conversões
               </button>
             </h2>
             <div id="collapseGrafico" class="accordion-collapse collapse" aria-labelledby="headingGrafico" data-bs-parent="#accordionConversao">
@@ -561,7 +561,7 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
           <div class="accordion-item mb-3">
             <h2 class="accordion-header" id="headingResumoGeralLayout5">
               <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResumoGeralLayout5" aria-expanded="false" aria-controls="collapseResumoGeralLayout5">
-                <i class="fa-solid fa-chart-area me-2"></i> Resumo Geral
+              <i class="fa-solid fa-chart-line me-2"></i> Resumo Geral
               </button>
             </h2>
             <div id="collapseResumoGeralLayout5" class="accordion-collapse collapse" aria-labelledby="headingResumoGeralLayout5" data-bs-parent="#accordionConversao">
