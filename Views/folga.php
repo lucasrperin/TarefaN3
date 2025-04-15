@@ -213,7 +213,7 @@ $resultFolga = $conn->query($sqlListarFolga);
           <a class="nav-link" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
         <?php endif; ?>
         <?php if ($cargo === 'Admin'): ?>
-          <a class="nav-link" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
+          <a class="nav-link active" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
         <?php endif; ?>
         <?php if ($cargo === 'Admin'): ?>
           <a class="nav-link" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
@@ -231,7 +231,7 @@ $resultFolga = $conn->query($sqlListarFolga);
          <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
         <?php endif; ?>
         <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
-          <a class="nav-link active" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
+          <a class="nav-link" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
         <?php endif; ?>
       </nav>
     </div>

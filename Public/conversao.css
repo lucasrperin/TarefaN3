@@ -465,25 +465,7 @@ color: #333 !important;
   color: #333;
 }
 
-/* Área de detalhes com informações e ícones pequenos */
-.kanban-card .card-details {
-  font-size: 0.9em;
-  color: #555;
-  margin-bottom: 12px;
-  line-height: 1.4;
-}
 
-.kanban-card .card-details p {
-  margin: 4px 0;
-  display: flex;
-  align-items: center;
-}
-
-.kanban-card .card-details p i {
-  font-size: 14px;
-  margin-right: 8px;
-  color: #3b82f6;
-}
 
 /* Botões de ação minimalistas para edição e exclusão */
 .acao-card {
@@ -506,23 +488,120 @@ color: #333 !important;
   background-color: #e2e8f0;
   color: #333;
 }
-/* Remova qualquer espaçamento interno ou externo padrão nas colunas */
-.kanban-column {
-  margin: 0;              /* Remove margem externa */
-  padding: 0;             /* Remove padding interno */
-  max-height: 80vh;       /* Ajuste conforme necessário */
-  overflow-y: auto;
-  position: relative;
-}
 
-/* Título fixo (sticky) no topo da coluna, sem margem */
-.kanban-column h3 {
-  position: sticky;
-  top: 0; 
-  margin: 0;             /* Remove margem padrão do h3 */
-  padding: 0.75rem;      /* Ajuste para controlar o espaçamento interno do título */
-  background-color: #283e51;
-  color: #fff;
-  border-radius: 0;
-  z-index: 2;            /* Para ficar sobre o conteúdo rolável */
-}
+
+/* Exemplo de CSS para alinhar as informações nos cards */
+.kanban-column {
+    width: 320px; /* ajuste conforme a necessidade */
+    margin: 10px;
+    float: left; /* caso queira as colunas lado a lado */
+  }
+  
+  .kanban-card {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-family: Arial, sans-serif; /* ou outra fonte de sua preferência */
+  }
+  
+  .kanban-card .card-header {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 8px;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .kanban-card .card-header .icon {
+    margin-right: 8px;
+    color: #17a2b8; /* cor do ícone, ajuste conforme desejar */
+    font-size: 1.2rem;
+  }
+  
+  .kanban-card .card-title {
+    flex-grow: 1; /* ocupa o espaço restante na mesma linha do ícone */
+    font-weight: bold;
+    font-size: 14px;
+  }
+  
+  .kanban-card .card-details {
+    padding: 8px;
+    line-height: 1.4;
+  }
+  
+  .kanban-card .card-details p {
+    margin: 0 0 5px;
+    display: flex;      /* flex para alinhar ícone e texto na mesma linha */
+    align-items: center;
+    font-size: 14px;    /* ajuste conforme desejar */
+    color: #333;
+  }
+  
+  .kanban-card .card-details p i {
+    margin-right: 5px; /* espaçamento entre ícone e texto */
+    color: #555;       /* ajuste a cor do ícone */
+    font-size: 1rem;   /* ajuste o tamanho do ícone */
+  }
+  
+  .kanban-card .acao-card {
+    border-top: 1px solid #ccc;
+    padding: 8px;
+    display: flex;
+    justify-content: flex-end; /* ícones de edição e exclusão alinhados à direita */
+    gap: 10px;                 /* espaço entre o ícone de edição e exclusão */
+  }
+  
+  .kanban-card .acao-card a i {
+    color: #555;        /* cor dos ícones de ação */
+    font-size: 1rem;    /* tamanho dos ícones de ação */
+    cursor: pointer;
+  }
+  
+  .kanban-card .acao-card a i:hover {
+    color: #000;        /* efeito hover */
+  }
+  
+ /* Container que utiliza display: table para formar as linhas */
+.card-details {
+    display: table;
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    font-size: 14px;  /* Tamanho de fonte igual ao anterior */
+    color: #333;      /* Cor do texto igual ao anterior */
+    line-height: 1.4;
+  }
+  
+  /* Cada linha do "card-details" */
+  .card-details .row-item {
+    display: table-row;
+    margin-bottom: 6px;
+  }
+  
+  /* Primeira coluna: rótulo (label) */
+  .card-details .label-col {
+    display: table-cell;
+    width: 80px;              /* Largura fixa para o rótulo */
+    vertical-align: middle;
+    white-space: nowrap;
+    padding-right: 6px;
+    
+    color: #333;              /* Mesmo tom do texto anterior */
+  }
+  
+  /* Segunda coluna: valor */
+  .card-details .value-col {
+    display: table-cell;
+    vertical-align: middle;
+    color: #333;              /* Mesmo tom do texto anterior */
+  }
+  
+  /* Para os ícones dentro dos rótulos (separados ou dentro da label-col) */
+  .card-details .label-col i {
+    margin-right: 5px;
+    color: #555;              /* Cor do ícone semelhante ao estilo anterior */
+    font-size: 1rem;
+  }
+  
+  

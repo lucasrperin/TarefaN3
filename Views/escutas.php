@@ -222,7 +222,7 @@ if ($percentMetaGeral > 100) $percentMetaGeral = 100;
          <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
         <?php endif; ?>
         <?php if ($cargo === 'Admin'): ?>
-          <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2"></i>Totalizadores</a>
+          <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
         <?php endif; ?>
         <?php if ($cargo === 'Admin'): ?>
          <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
@@ -415,7 +415,6 @@ if ($percentMetaGeral > 100) $percentMetaGeral = 100;
           <?php endif; ?>
         </div>
       </div>
-
     </div> <!-- Fim de .content container-fluid -->
   </div> <!-- Fim de .w-100 (Main Content) -->
 </div> <!-- Fim de .d-flex-wrapper -->

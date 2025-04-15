@@ -25,10 +25,18 @@ $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 // Se não houver valores via GET, utiliza a data atual (formato YYYY-MM-DD)
 // Recebe os filtros via GET ou define o valor padrão como a data atual
 // Se os parâmetros não forem enviados via GET, redireciona para definir as datas com o dia atual
-if (!isset($_GET['data_inicial']) || !isset($_GET['data_final'])) {
-  $hoje = date("Y-m-d");
-  header("Location: conversao.php?data_inicial={$hoje}&data_final={$hoje}");
-  exit();
+if (isset($_GET['clear']) && $_GET['clear'] == 1) {
+  $data_inicial = '';
+  $data_final   = '';
+} else {
+  // Se não houver valores via GET, define a data atual
+  if (!isset($_GET['data_inicial']) || !isset($_GET['data_final'])) {
+      $hoje = date("Y-m-d");
+      header("Location: conversao.php?data_inicial={$hoje}&data_final={$hoje}");
+      exit();
+  }
+  $data_inicial = $_GET['data_inicial'];
+  $data_final   = $_GET['data_final'];
 }
 
 // Caso o usuário clique em reset, redefina os filtros para o dia atual
@@ -268,7 +276,7 @@ $sqlFila = "SELECT
                   c.data_conclusao,
                   DATE_FORMAT(c.prazo_entrega, '%d/%m %H:%i:%s') as prazo_entrega2,
                   DATE_FORMAT(c.data_recebido, '%d/%m %H:%i:%s') as data_recebido2,
-                  DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicial2,
+                  DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicio2,
                   DATE_FORMAT(c.data_conclusao, '%d/%m %H:%i:%s') as data_conclusao2,
                   c.analista_id,
                   a.nome       AS analista_nome,
@@ -298,7 +306,7 @@ $sqlOutros = "SELECT
                   c.data_conclusao,
                   DATE_FORMAT(c.prazo_entrega, '%d/%m %H:%i:%s') as prazo_entrega2,
                   DATE_FORMAT(c.data_recebido, '%d/%m %H:%i:%s') as data_recebido2,
-                  DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicial2,
+                  DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicio2,
                   DATE_FORMAT(c.data_conclusao, '%d/%m %H:%i:%s') as data_conclusao2,
                   c.analista_id,
                   a.nome       AS analista_nome,
@@ -328,7 +336,7 @@ $sqlFinalizados = "SELECT
                       c.data_conclusao,
                       DATE_FORMAT(c.prazo_entrega, '%d/%m %H:%i:%s') as prazo_entrega2,
                       DATE_FORMAT(c.data_recebido, '%d/%m %H:%i:%s') as data_recebido2,
-                      DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicial2,
+                      DATE_FORMAT(c.data_inicio, '%d/%m %H:%i:%s') as data_inicio2,
                       DATE_FORMAT(c.data_conclusao, '%d/%m %H:%i:%s') as data_conclusao2,
                       c.analista_id,
                       a.nome       AS analista_nome,
@@ -350,6 +358,12 @@ $sistemas  = $conn->query("SELECT * FROM TB_SISTEMA_CONVER ORDER BY nome");
 $status    = $conn->query("SELECT * FROM TB_STATUS_CONVER ORDER BY descricao");
 $analistas = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN TB_USUARIO u on u.id = ana.id WHERE u.cargo = 'Conversor' ORDER BY ana.nome");
 $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN TB_USUARIO u on u.id = ana.id WHERE u.cargo = 'Conversor' ORDER BY ana.nome");
+
+// Para preencher os selects do filtro, buscamos os dados dos usuários e demais categorias
+$lista_sistemas   = $conn->query("SELECT * FROM TB_SISTEMA_CONVER ORDER BY nome");
+$lista_status     = $conn->query("SELECT * FROM TB_STATUS_CONVER ORDER BY descricao");
+$resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN TB_USUARIO u on u.id = ana.id WHERE u.cargo = 'Conversor' ORDER BY ana.nome");
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -421,8 +435,6 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
       </div>
       
       <div class="container mt-4">
-        <!-- Accordion com Gráfico, Filtro Global, Totalizadores e Resumo Geral -->
-        <!-- Você pode manter os Accordions originais conforme sua implementação -->
         <div class="accordion" id="accordionConversao">
           <!-- Accordion Item 1: Gráfico e Filtro Global -->
           <div class="accordion-item mb-3">
@@ -434,43 +446,13 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
             <div id="collapseGrafico" class="accordion-collapse collapse" aria-labelledby="headingGrafico" data-bs-parent="#accordionConversao">
               <div class="accordion-body">
                 <div class="row mb-4">
-                  <div class="col-md-8">
-                    <div class="card">
+                  <div class="col-md-12">
+                    <div class="card" style="height: 400px;"> <!-- Altura definida ou em % conforme sua necessidade -->
                       <div class="card-body">
                         <h5 class="card-title">Conversões Mensais por Analista</h5>
-                        <canvas id="chartBarras" height="100"></canvas>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-md-4">
-                    <div class="card">
-                      <div class="card-body">
-                        <h5 class="card-title">Filtro Global</h5>
-                        <form method="GET" class="row gy-2 gx-2">
-                          <div class="col-12">
-                            <label>Data Inicial</label>
-                            <input type="date" name="data_inicial" value="<?= htmlspecialchars($dataInicial) ?>" class="form-control">
-                          </div>
-                          <div class="col-12">
-                            <label>Data Final</label>
-                            <input type="date" name="data_final" value="<?= htmlspecialchars($dataFinal) ?>" class="form-control">
-                          </div>
-                          <div class="col-12">
-                            <label>Analista</label>
-                            <select name="analista_id" class="form-select">
-                              <option value="0">-- Todos --</option>
-                              <?php while ($anF = $analistasFiltro->fetch_assoc()): ?>
-                                <option value="<?= $anF['id'] ?>" <?= ($analistaID == $anF['id']) ? 'selected' : '' ?>>
-                                  <?= $anF['nome'] ?>
-                                </option>
-                              <?php endwhile; ?>
-                            </select>
-                          </div>
-                          <div class="d-flex justify-content-center gap-2">
-                            <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
-                            <a href="conversao.php?reset=1" class="btn btn-secondary btn-sm">Limpar Filtros</a>
-                          </div>
-                        </form>
+                        <div class="canvas-container">
+                          <canvas id="chartBarras"></canvas>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -546,16 +528,18 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
                             <?php
                               $systemName = $rowSys['sistema_exibicao'];
                               $imageMap = [
-                                "ClippFácil" => "ClippFacil.png",
+                                "ClippPro"   => "ClippPro.png",
+                                "ClippMEI"   => "ClippMei.png",
+                                "ClippFacil" => "ClippFacil.png",
                                 "Clipp360"   => "Clipp360.png",
-                                "ZetaWeb"   => "ZWeb.png",
+                                "ZetaWeb"    => "ZWeb.png",
                               ];
                               if (isset($imageMap[$systemName])) {
                                 $imageFilename = $imageMap[$systemName];
                               } else {
                                 $imageFilename = strtolower(str_replace(" ", "", $systemName)) . ".png";
                               }
-                              $imagePath = "/TarefaN3/Public/Image/" . $imageFilename;
+                              $imagePath = "../Public/Image/" . $imageFilename;
                             ?>
                             <div class="list-group-item d-flex justify-content-between align-items-center">
                               <span>
@@ -576,7 +560,7 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
           <!-- Accordion Item: Resumo Geral -->
           <div class="accordion-item mb-3">
             <h2 class="accordion-header" id="headingResumoGeralLayout5">
-              <button class="accordion-button collapsed layout5-accordion-header" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResumoGeralLayout5" aria-expanded="false" aria-controls="collapseResumoGeralLayout5">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResumoGeralLayout5" aria-expanded="false" aria-controls="collapseResumoGeralLayout5">
                 <i class="fa-solid fa-chart-area me-2"></i> Resumo Geral
               </button>
             </h2>
@@ -641,6 +625,10 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
         
         <!-- Botão e campo de pesquisa -->
         <div class="d-flex justify-content-end mb-3 gap-2">
+          <!-- Botão para abrir o modal de filtro -->
+          <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
+            <i class="fa-solid fa-filter"></i>
+          </button>
           <input type="text" id="searchInput" class="form-control ms-2" style="max-width: 200px;" placeholder="Pesquisar...">
           <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
             <button class="btn btn-primary" onclick="abrirModalCadastro()">Cadastrar</button>
@@ -651,15 +639,13 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
          <!-- Área de listagem utilizando o novo layout Kanban -->
      <!-- Área de listagem utilizando o novo layout Kanban -->
      <div class="kanban-board">
-  <!-- Coluna: Em Fila -->
-  <div class="kanban-column">
+ <!-- Coluna: Em Fila -->
+<div class="kanban-column">
   <h3>Em Fila</h3>
   <?php while ($rowF = $resFila->fetch_assoc()): ?>
     <?php
       // Valor original do sistema, ex: "AC p/ Clipp360" ou "Clipp p/ AC"
       $systemNameOriginal = $rowF['sistema_nome'];
-
-      // Verifica se a string contém "p/" para separar sistemas de origem e destino
       if (strpos($systemNameOriginal, 'p/') !== false) {
           $parts = explode('p/', $systemNameOriginal);
           $originSystem = trim($parts[0]);
@@ -679,15 +665,15 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
       
       // Mapeamento dos sistemas para os arquivos de imagem
       $imageMap = [
-          "AC"           => "ac.png",
-          "ClippFácil"   => "ClippFacil.png",
-          "Clipp360"     => "clipp360.png",
-          "ClippPro"     => "clipppro.png",
-          "ClippMei"     => "clippmei.png",
-          "Small"        => "small.png",
-          "Gdoor"        => "gdoor.png",
-          "Conc"        => "concorrente.png",
-          "ZetaWeb"      => "zweb.png"
+          "AC"           => "AC.png",
+          "ClippFacil"   => "ClippFacil.png",
+          "Clipp360"     => "Clipp360.png",
+          "ClippPro"     => "ClippPro.png",
+          "ClippMei"     => "ClippMei.png",
+          "Small"        => "Small.png",
+          "Gdoor"        => "Gdoor.png",
+          "Conc"         => "Concorrente.png",
+          "ZetaWeb"      => "ZWeb.png"
       ];
       
       // Determina o arquivo da imagem para o sistema de origem
@@ -706,10 +692,10 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
           }
       }
       
-      // Define os caminhos absolutos para as imagens (ou relativos, conforme seu projeto)
-      $originPath = '/TarefaN3/Public/Image/' . $originImage;
+      // Define os caminhos absolutos para as imagens
+      $originPath = '../Public/Image/' . $originImage;
       if ($destinationSystem !== '') {
-          $destinationPath = '/TarefaN3/Public/Image/' . $destinationImage;
+          $destinationPath = '../Public/Image/' . $destinationImage;
       }
     ?>
     <div class="kanban-card"
@@ -724,28 +710,50 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
          data-data_inicio="<?= $rowF['data_inicio']; ?>"
          data-data_conclusao="<?= $rowF['data_conclusao']; ?>"
          data-analista_id="<?= $rowF['analista_id']; ?>"
-         data-observacao="<?= htmlspecialchars($rowF['observacao']); ?>"
-    >
-      <div class="card-header">
-        <div class="icon">
+         data-observacao="<?= htmlspecialchars($rowF['observacao']); ?>">
+      <div class="card-header p-2">
+        <div class="icon p-3">
           <i class="fa-solid fa-inbox"></i>
         </div>
         <div class="card-title"><?= htmlspecialchars($rowF['contato']); ?></div>
       </div>
       <div class="card-details">
-        <p>
-          <i class="fa-solid fa-desktop"></i> 
-          Sistema:
-          <img src="<?= $originPath; ?>" alt="<?= $originSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
-          <?= $originSystem; ?>
-          <?php if($destinationSystem !== ''): ?>
-            <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i>
-            <img src="<?= $destinationPath; ?>" alt="<?= $destinationSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
-            <?= $destinationSystem; ?>
-          <?php endif; ?>
-        </p>
-        <p><i class="fa-solid fa-clock"></i> Recebido: <?= $rowF['data_recebido2']; ?></p>
-        <p><i class="fa-solid fa-user-check"></i> Analista: <?= $rowF['analista_nome']; ?></p>
+        <!-- Linha do Sistema -->
+        <div class="row-item">
+          <div class="label-col">
+            <i class="fa-solid fa-desktop me-0"></i>
+            <b>Sistema:</b>
+          </div>
+          <div class="value-col">
+            <img src="<?= $originPath; ?>" alt="<?= $originSystem; ?>" style="width:20px; vertical-align:middle; margin:0 0px;">
+            <?= $originSystem; ?>
+            <?php if($destinationSystem !== ''): ?>
+              <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i>
+              <img src="<?= $destinationPath; ?>" alt="<?= $destinationSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
+              <?= $destinationSystem; ?>
+            <?php endif; ?>
+          </div>
+        </div>
+        <!-- Linha do Recebido -->
+        <div class="row-item">
+          <div class="label-col">
+            <i class="fa-solid fa-clock"></i>
+            <b>Recebido:</b>
+          </div>
+          <div class="value-col">
+            <?= $rowF['data_recebido2']; ?>
+          </div>
+        </div>
+        <!-- Linha do Analista -->
+        <div class="row-item">
+          <div class="label-col">
+            <i class="fa-solid fa-user-check me-0"></i>
+            <b>Analista:</b>
+          </div>
+          <div class="value-col">
+            <?= $rowF['analista_nome']; ?>
+          </div>
+        </div>
       </div>
       <?php if ($cargo === 'Admin' || $usuario_id == $rowF['analista_id'] || $usuario_id == '16'): ?>
         <div class="acao-card">
@@ -762,11 +770,8 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
   <?php endwhile; ?>
 </div>
 
-
-
-  
   <!-- Coluna: Em Andamento -->
-  <div class="kanban-column">
+<div class="kanban-column">
   <h3>Em Andamento</h3>
   <?php while ($rowO = $resOutros->fetch_assoc()): ?>
     <?php
@@ -791,15 +796,15 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
       
       // Mapeamento dos sistemas para os nomes dos arquivos de imagem
       $imageMap = [
-          "AC"           => "ac.png",
-          "ClippFácil"   => "ClippFacil.png",
-          "Clipp360"     => "clipp360.png",
-          "ClippPro"     => "clipppro.png",
-          "ClippMei"     => "clippmei.png",
-          "Small"        => "small.png",
-          "Gdoor"        => "gdoor.png",
-          "Conc"        => "concorrente.png",
-          "ZetaWeb"      => "zweb.png"
+          "AC"           => "AC.png",
+          "ClippFacil"   => "ClippFacil.png",
+          "Clipp360"     => "Clipp360.png",
+          "ClippPro"     => "ClippPro.png",
+          "ClippMei"     => "ClippMei.png",
+          "Small"        => "Small.png",
+          "Gdoor"        => "Gdoor.png",
+          "Conc"         => "Concorrente.png",
+          "ZetaWeb"      => "ZWeb.png"
       ];
       
       // Logo para o sistema de origem
@@ -819,9 +824,9 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
       }
       
       // Caminhos absolutos para as imagens
-      $originPath = '/TarefaN3/Public/Image/' . $originImage;
+      $originPath = '../Public/Image/' . $originImage;
       if ($destinationSystem !== '') {
-          $destinationPath = '/TarefaN3/Public/Image/' . $destinationImage;
+          $destinationPath = '../Public/Image/' . $destinationImage;
       }
     ?>
     <div class="kanban-card"
@@ -836,29 +841,60 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
          data-data_inicio="<?= $rowO['data_inicio']; ?>"
          data-data_conclusao="<?= $rowO['data_conclusao']; ?>"
          data-analista_id="<?= $rowO['analista_id']; ?>"
-         data-observacao="<?= htmlspecialchars($rowO['observacao']); ?>"
-    >
-      <div class="card-header">
-        <div class="icon">
-          <i class="fa-solid fa-spinner"></i>
+         data-observacao="<?= htmlspecialchars($rowO['observacao']); ?>">
+      <div class="card-header p-2">
+        <div class="icon p-3">
+          <i class="fa-solid fa-spinner fa-spin"></i>
         </div>
         <div class="card-title"><?= htmlspecialchars($rowO['contato']); ?></div>
       </div>
       <div class="card-details">
-        <p>
-          <i class="fa-solid fa-desktop"></i> 
-          Sistema: 
-          <img src="<?= $originPath; ?>" alt="<?= $originSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
-          <?= $originSystem; ?>
-          <?php if($destinationSystem !== ''): ?>
-            <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i>
-            <img src="<?= $destinationPath; ?>" alt="<?= $destinationSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
-            <?= $destinationSystem; ?>
-          <?php endif; ?>
-        </p>
-        <p><i class="fa-solid fa-clock"></i> Recebido: <?= $rowO['data_recebido2']; ?></p>
-        <p><i class="fa-solid fa-play"></i> Início: <?= $rowO['data_inicio2']; ?></p>
-        <p><i class="fa-solid fa-user-check"></i> Analista: <?= $rowO['analista_nome']; ?></p>
+        <!-- Linha do Sistema -->
+        <div class="row-item">
+          <div class="label-col">
+            <i class="fa-solid fa-desktop me-0"></i>
+            <b>Sistema:</b>
+          </div>
+          <div class="value-col">
+            <img src="<?= $originPath; ?>" alt="<?= $originSystem; ?>" style="width:20px; vertical-align:middle; margin:0 0px;">
+            <?= $originSystem; ?>
+            <?php if($destinationSystem !== ''): ?>
+              <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i>
+              <img src="<?= $destinationPath; ?>" alt="<?= $destinationSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
+              <?= $destinationSystem; ?>
+            <?php endif; ?>
+          </div>
+        </div>
+        <!-- Linha do Recebido -->
+        <div class="row-item">
+          <div class="label-col">
+            <i class="fa-solid fa-clock"></i>
+            <b>Recebido:</b>
+          </div>
+          <div class="value-col">
+            <?= $rowO['data_recebido2']; ?>
+          </div>
+        </div>
+        <!-- Linha do Início -->
+        <div class="row-item">
+          <div class="label-col">
+            <i class="fa-solid fa-play ms-1"></i>
+            <b>Início:</b>
+          </div>
+          <div class="value-col">
+            <?= $rowO['data_inicio2']; ?>
+          </div>
+        </div>
+        <!-- Linha do Analista -->
+        <div class="row-item">
+          <div class="label-col">
+            <i class="fa-solid fa-user-check me-0"></i>
+            <b>Analista:</b>
+          </div>
+          <div class="value-col">
+            <?= $rowO['analista_nome']; ?>
+          </div>
+        </div>
       </div>
       <?php if ($cargo === 'Admin' || $rowO['analista_id'] == $usuario_id || $usuario_id == '16'): ?>
         <div class="acao-card">
@@ -874,6 +910,7 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
     </div>
   <?php endwhile; ?>
 </div>
+
 
 
   
@@ -900,15 +937,15 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
       }
       
       $imageMap = [
-          "AC"           => "ac.png",
-          "ClippFácil"   => "ClippFacil.png",
-          "Clipp360"     => "clipp360.png",
-          "ClippPro"     => "clipppro.png",
-          "ClippMei"     => "clippmei.png",
-          "Small"        => "small.png",
-          "Gdoor"        => "gdoor.png",
-          "Conc"        => "concorrente.png",
-          "ZetaWeb"      => "zweb.png"
+          "AC"           => "AC.png",
+          "ClippFacil"   => "ClippFacil.png",
+          "Clipp360"     => "Clipp360.png",
+          "ClippPro"     => "ClippPro.png",
+          "ClippMei"     => "ClippMei.png",
+          "Small"        => "Small.png",
+          "Gdoor"        => "Gdoor.png",
+          "Conc"         => "Concorrente.png",
+          "ZetaWeb"      => "ZWeb.png"
       ];
       
       if (isset($imageMap[$originSystem])) {
@@ -925,9 +962,9 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
           }
       }
       
-      $originPath = '/TarefaN3/Public/Image/' . $originImage;
+      $originPath = '../Public/Image/' . $originImage;
       if ($destinationSystem !== '') {
-          $destinationPath = '/TarefaN3/Public/Image/' . $destinationImage;
+          $destinationPath = '../Public/Image/' . $destinationImage;
       }
     ?>
     <div class="kanban-card"
@@ -942,30 +979,74 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
          data-data_inicio="<?= $rowC['data_inicio']; ?>"
          data-data_conclusao="<?= $rowC['data_conclusao']; ?>"
          data-analista_id="<?= $rowC['analista_id']; ?>"
-         data-observacao="<?= htmlspecialchars($rowC['observacao']); ?>"
-    >
-      <div class="card-header">
-        <div class="icon">
+         data-observacao="<?= htmlspecialchars($rowC['observacao']); ?>">
+      <div class="card-header p-2">
+        <div class="icon p-3">
           <i class="fa-solid fa-check-circle"></i>
         </div>
         <div class="card-title"><?= htmlspecialchars($rowC['contato']); ?></div>
       </div>
       <div class="card-details">
-        <p>
-          <i class="fa-solid fa-desktop"></i> 
-          Sistema: 
-          <img src="<?= $originPath; ?>" alt="<?= $originSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
-          <?= $originSystem; ?>
-          <?php if($destinationSystem !== ''): ?>
-            <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> 
-            <img src="<?= $destinationPath; ?>" alt="<?= $destinationSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
-            <?= $destinationSystem; ?>
-          <?php endif; ?>
-        </p>
-        <p><i class="fa-solid fa-clock"></i> Recebido: <?= $rowC['data_recebido2']; ?></p>
-        <p><i class="fa-solid fa-play"></i> Início: <?= $rowC['data_inicio2']; ?></p>
-        <p><i class="fa-solid fa-check"></i> Concluído: <?= $rowC['data_conclusao2']; ?></p>
-        <p><i class="fa-solid fa-user-check"></i> Analista: <?= $rowC['analista_nome']; ?></p>
+        <!-- Linha do Sistema -->
+        <div class="row-item">
+          <div class="label-col">
+            <i class="fa-solid fa-desktop me-0"></i>
+            <b>Sistema:</b>
+          </div>
+          <div class="value-col">
+            <img src="<?= $originPath; ?>" alt="<?= $originSystem; ?>" style="width:20px; vertical-align:middle; margin:0 0px;">
+            <?= $originSystem; ?>
+            <?php if($destinationSystem !== ''): ?>
+              <i class="fa-solid fa-arrow-right" style="margin: 0 5px;"></i> 
+              <img src="<?= $destinationPath; ?>" alt="<?= $destinationSystem; ?>" style="width:20px; vertical-align:middle; margin:0 5px;">
+              <?= $destinationSystem; ?>
+            <?php endif; ?>
+          </div>
+        </div>
+
+        <!-- Linha do Recebido -->
+        <div class="row-item">
+          <div class="label-col">
+            <i class="fa-solid fa-clock"></i>
+            <b>Recebido:</b>
+          </div>
+          <div class="value-col">
+            <?= $rowC['data_recebido2']; ?>
+          </div>
+        </div>
+
+        <!-- Linha do Início -->
+        <div class="row-item">
+          <div class="label-col">
+            <i class="fa-solid fa-play ms-1"></i>
+            <b>Início:</b>
+          </div>
+          <div class="value-col">
+            <?= $rowC['data_inicio2']; ?>
+          </div>
+        </div>
+
+        <!-- Linha do Concluído -->
+        <div class="row-item">
+          <div class="label-col">
+            <i class="fa-solid fa-check"></i>
+            <b>Concluído:</b>
+          </div>
+          <div class="value-col">
+            <?= $rowC['data_conclusao2']; ?>
+          </div>
+        </div>
+
+        <!-- Linha do Analista -->
+        <div class="row-item">
+          <div class="label-col">
+            <i class="fa-solid fa-user-check me-0"></i>
+            <b>Analista:</b>
+          </div>
+          <div class="value-col">
+            <?= $rowC['analista_nome']; ?>
+          </div>
+        </div>
       </div>
       <?php if ($cargo === 'Admin' || $rowC['analista_id'] == $usuario_id || $usuario_id == '16'): ?>
         <div class="acao-card">
@@ -981,10 +1062,6 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
     </div>
   <?php endwhile; ?>
 </div>
-
-
-
-
       
       <!-- Modal de Cadastro -->
       <div class="modal fade" id="modalCadastro" tabindex="-1">
@@ -1236,15 +1313,119 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
           </div>
         </div>
       </div>
-      
     </div><!-- Fim da Área Principal -->
   </div><!-- Fim do d-flex-wrapper -->
 
-  <!-- Scripts -->
+
+  <!-- Modal de Filtro com Controle por Coluna -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content">
+      <form method="GET" action="conversao.php">
+        <div class="modal-header">
+          <h5 class="modal-title" id="filterModalLabel">Filtro</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Seletor de Coluna para filtrar -->
+          <div class="mb-3">
+            <label for="filterColumn" class="form-label">Filtrar por Coluna:</label>
+            <select class="form-select" id="filterColumn" name="filterColumn">
+              <option value="period" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'period') echo "selected"; ?>>Período</option>
+              <option value="analista" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'analista') echo "selected"; ?>>Analista</option>
+              <option value="sistema" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'sistema') echo "selected"; ?>>Sistema</option>
+              <option value="status" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'status') echo "selected"; ?>>Status</option>
+            </select>
+          </div>
+          <!-- Campos de filtro, exibidos conforme a seleção -->
+          <div id="filterPeriod" style="display: none;">
+              <div class="row">
+                  <div class="col-md-6 mb-3">
+                      <label for="data_inicial" class="form-label">Data Início:</label>
+                      <input type="date" class="form-control" id="data_inicial" name="data_inicial" value="<?php echo isset($_GET['data_inicial']) ? $_GET['data_inicial'] : ''; ?>">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                      <label for="data_final" class="form-label">Data Fim:</label>
+                      <input type="date" class="form-control" id="data_final" name="data_final" value="<?php echo isset($_GET['data_final']) ? $_GET['data_final'] : ''; ?>">
+                  </div>
+              </div>
+          </div>
+          <div id="filterAnalista" style="display: none;">
+            <div class="mb-3">
+              <label for="analista" class="form-label">Analista:</label>
+              <!-- Atualize o "name" para "analista_id" conforme esperado no PHP -->
+              <select class="form-select" id="analista" name="analista_id">
+                <option value="">Selecione</option>
+                <?php while ($row = $resultado_usuarios_dropdown->fetch_assoc()) { ?>
+                  <option value="<?php echo $row['Id']; ?>" <?php if(isset($_GET['analista_id']) && $_GET['analista_id'] == $row['Id']) echo "selected"; ?>><?php echo $row['Nome']; ?></option>
+                <?php } ?>
+              </select>
+            </div>
+          </div>
+          <div id="filterSistema" style="display: none;">
+            <div class="mb-3">
+              <label for="sistema" class="form-label">Sistema:</label>
+              <select class="form-select" id="sistema" name="sistema">
+                <option value="">Selecione</option>
+                <?php while ($row = $lista_sistemas->fetch_assoc()) { ?>
+                  <option value="<?php echo $row['id']; ?>" <?php if(isset($_GET['sistema']) && $_GET['sistema'] == $row['id']) echo "selected"; ?>><?php echo $row['nome']; ?></option>
+                <?php } ?>
+              </select>
+            </div>
+          </div>
+          <div id="filterStatus" style="display: none;">
+            <div class="mb-3">
+              <label for="status" class="form-label">Status:</label>
+              <select class="form-select" id="status" name="status">
+                <option value="">Selecione</option>
+                <?php while ($row = $lista_status->fetch_assoc()) { ?>
+                  <option value="<?php echo $row['id']; ?>" <?php if(isset($_GET['status']) && $_GET['status'] == $row['id']) echo "selected"; ?>><?php echo $row['descricao']; ?></option>
+                <?php } ?>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <!-- Alterado o link para incluir o parâmetro clear=1 -->
+          <button type="button" class="btn btn-secondary" onclick="window.location.href='conversao.php?clear=1'">Limpar Filtro</button>
+          <button type="submit" class="btn btn-primary">Filtrar</button>
+        </div>
+        <input type="hidden" name="filterColumn" id="filterColumnHidden">
+      </form>
+    </div>
+  </div>
+</div>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
+<!-- Script para alternar entre os campos de filtro -->
+<script>
+  function adjustFilterFields() {
+    let filterColumn = document.getElementById("filterColumn").value;
+    document.getElementById("filterColumnHidden").value = filterColumn;
+    // Esconde todos os containers
+    document.getElementById("filterPeriod").style.display = "none";
+    document.getElementById("filterAnalista").style.display = "none";
+    document.getElementById("filterSistema").style.display = "none";
+    document.getElementById("filterStatus").style.display = "none";
+    // Exibe apenas o container da opção selecionada
+    if (filterColumn === "period") {
+      document.getElementById("filterPeriod").style.display = "block";
+    } else if (filterColumn === "analista") {
+      document.getElementById("filterAnalista").style.display = "block";
+    } else if (filterColumn === "sistema") {
+      document.getElementById("filterSistema").style.display = "block";
+    } else if (filterColumn === "status") {
+      document.getElementById("filterStatus").style.display = "block";
+    }
+  }
+  document.addEventListener("DOMContentLoaded", function() {
+    adjustFilterFields();
+    document.getElementById("filterColumn").addEventListener("change", adjustFilterFields);
+  });
+</script>
+
   <script>
     // Chart.js para o gráfico de barras
     let labelsMes = <?= json_encode($labelsMes); ?>;
@@ -1298,7 +1479,7 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
       $("#edit_status").val(statusID);
       $("#edit_data_recebido").val(dataRecebido);
       $("#edit_prazo_entrega").val(prazoEntrega);
-      $("#edit_data_inicial").val(dataInicio);
+      $("#edit_data_inicio").val(dataInicio);
       $("#edit_data_conclusao").val(dataConclusao);
       $("#edit_analista").val(analistaID);
       $("#edit_observacao").val(observacao);
@@ -1344,7 +1525,7 @@ $analistasFiltro = $conn->query("SELECT * FROM TB_ANALISTA_CONVER ana INNER JOIN
       document.getElementById("id_excluir").value = id;
     }
   </script>
-  
+
   <!-- Verificar se o status é "Concluido" para obrigar preenchimento da data de conclusão -->
   <script>
     document.getElementById("formCadastro").addEventListener("submit", function(event) {
@@ -1536,8 +1717,8 @@ document.querySelectorAll('.kanban-column').forEach(column => {
     }
   });
 });
-
-
   </script>
+
+          
 </body>
 </html>
