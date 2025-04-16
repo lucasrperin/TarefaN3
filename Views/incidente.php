@@ -19,9 +19,9 @@ ini_set('display_errors', 1);
 function getIconPath($system) {
     switch($system) {
         case 'ClippPRO':
-            return '../Public/Image/ClippPRO.png';
+            return '../Public/Image/ClippPro.png';
         case 'ZWEB':
-            return '../Public/Image/ZWEB.png';
+            return '../Public/Image/ZWeb.png';
         case 'Clipp360':
             return '../Public/Image/Clipp360.png';
         case 'ClippFácil':

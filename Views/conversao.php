@@ -445,13 +445,13 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
             </h2>
             <div id="collapseGrafico" class="accordion-collapse collapse" aria-labelledby="headingGrafico" data-bs-parent="#accordionConversao">
               <div class="accordion-body">
-                <div class="row mb-4">
+                <div class="row">
                   <div class="col-md-12">
-                    <div class="card" style="height: 400px;"> <!-- Altura definida ou em % conforme sua necessidade -->
+                    <div class="card"> <!-- Altura definida ou em % conforme sua necessidade -->
                       <div class="card-body">
                         <h5 class="card-title">Conversões Mensais por Analista</h5>
                         <div class="canvas-container">
-                          <canvas id="chartBarras"></canvas>
+                          <canvas id="chartBarras" style="height: 4rem"></canvas>
                         </div>
                       </div>
                     </div>
@@ -463,11 +463,11 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
           <!-- Accordion Item 2: Totalizadores de Conversões -->
           <div class="accordion-item mb-3">
             <h2 class="accordion-header" id="headingTotalizadoresLayout2">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTotalizadoresLayout2" aria-expanded="true" aria-controls="collapseTotalizadoresLayout2">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTotalizadoresLayout2" aria-expanded="true" aria-controls="collapseTotalizadoresLayout2">
                 <i class="fa-solid fa-chart-bar me-2"></i> Totalizadores de Conversões
               </button>
             </h2>
-            <div id="collapseTotalizadoresLayout2" class="accordion-collapse collapse show" aria-labelledby="headingTotalizadoresLayout2" data-bs-parent="#accordionConversao">
+            <div id="collapseTotalizadoresLayout2" class="accordion-collapse collapse" aria-labelledby="headingTotalizadoresLayout2" data-bs-parent="#accordionConversao">
               <div class="accordion-body layout2-accordion-body">
                 <div class="row g-3">
                   <div class="col-md-4">
@@ -560,11 +560,11 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
           <!-- Accordion Item: Resumo Geral -->
           <div class="accordion-item mb-3">
             <h2 class="accordion-header" id="headingResumoGeralLayout5">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResumoGeralLayout5" aria-expanded="false" aria-controls="collapseResumoGeralLayout5">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResumoGeralLayout5" aria-expanded="true" aria-controls="collapseResumoGeralLayout5">
               <i class="fa-solid fa-chart-line me-2"></i> Resumo Geral
               </button>
             </h2>
-            <div id="collapseResumoGeralLayout5" class="accordion-collapse collapse" aria-labelledby="headingResumoGeralLayout5" data-bs-parent="#accordionConversao">
+            <div id="collapseResumoGeralLayout5" class="accordion-collapse collapse show" aria-labelledby="headingResumoGeralLayout5" data-bs-parent="#accordionConversao">
               <div class="accordion-body layout5-accordion-body">
                 <div class="row justify-content-center">
                   <div class="col-lg-12">
