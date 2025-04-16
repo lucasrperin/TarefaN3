@@ -39,13 +39,16 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
         <a class="light-logo" href="#">
           <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu" aria-controls="navbarMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu"
+                aria-controls="navbarMenu" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse justify-content-end" id="navbarMenu">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <span class="nav-link">Bem-vindo(a), <?php echo htmlspecialchars($usuario_nome, ENT_QUOTES, 'UTF-8'); ?>!</span>
+              <span class="nav-link">
+                Bem-vindo(a), <?php echo htmlspecialchars($usuario_nome, ENT_QUOTES, 'UTF-8'); ?>!
+              </span>
             </li>
             <li class="nav-item">
               <a href="logout.php" class="nav-link btn btn-danger text-white ms-2">
@@ -64,9 +67,15 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
 
   <!-- Área principal com os cards de menu -->
   <main class="container menu-container mt-5">
-    <div class="row g-4">
+    <!-- 
+         row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 
+         g-4 => espaçamento entre colunas 
+    -->
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4">
+      
+      <!-- C: Conversões -->
       <?php if($cargo==='Admin' || $cargo==='Conversor' || $cargo==='Viewer'): ?>
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <div class="col">
         <div class="menu-card" onclick="location.href='conversao.php';">
           <div class="menu-icon">
             <i class="fa-solid fa-right-left"></i>
@@ -76,30 +85,21 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
       </div>
       <?php endif; ?>
 
-      <?php if($cargo==='Admin' || $cargo==='Conversor' || $cargo==='User' || $cargo==='Comercial'): ?>
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="menu-card" onclick="location.href='indicacao.php';">
+      <!-- D: Destaques -->
+      <?php if($cargo==='Admin'): ?>
+      <div class="col">
+        <div class="menu-card" onclick="location.href='destaque.php';">
           <div class="menu-icon">
-            <i class="fa-solid fa-hand-holding-dollar"></i>
+            <i class="fa-solid fa-ranking-star"></i>
           </div>
-          <h5 class="menu-title">Indicações</h5>
+          <h5 class="menu-title">Destaques</h5>
         </div>
       </div>
       <?php endif; ?>
 
+      <!-- E: Escutas -->
       <?php if($cargo==='Admin'): ?>
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="menu-card" onclick="location.href='../index.php';">
-          <div class="menu-icon">
-            <i class="fa-solid fa-layer-group"></i>
-          </div>
-          <h5 class="menu-title">Nível 3</h5>
-        </div>
-      </div>
-      <?php endif; ?>
-
-      <?php if($cargo==='Admin'): ?>
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <div class="col">
         <div class="menu-card" onclick="location.href='escutas.php';">
           <div class="menu-icon">
             <i class="fa-solid fa-headphones"></i>
@@ -107,7 +107,11 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
           <h5 class="menu-title">Escutas</h5>
         </div>
       </div>
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <?php endif; ?>
+
+      <!-- F: Folgas -->
+      <?php if($cargo==='Admin'): ?>
+      <div class="col">
         <div class="menu-card" onclick="location.href='folga.php';">
           <div class="menu-icon">
             <i class="fa-solid fa-umbrella-beach"></i>
@@ -117,8 +121,9 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
       </div>
       <?php endif; ?>
 
+      <!-- I: Incidentes -->
       <?php if($cargo==='Admin' || $cargo==='Viewer'): ?>
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <div class="col">
         <div class="menu-card" onclick="location.href='incidente.php';">
           <div class="menu-icon">
             <i class="fa-solid fa-exclamation-triangle"></i>
@@ -127,55 +132,79 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
         </div>
       </div>
       <?php endif; ?>
-      
+
+      <!-- I: Indicações -->
+      <?php if($cargo==='Admin' || $cargo==='Conversor' || $cargo==='User' || $cargo==='Comercial'): ?>
+      <div class="col">
+        <div class="menu-card" onclick="location.href='indicacao.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+          </div>
+          <h5 class="menu-title">Indicações</h5>
+        </div>
+      </div>
+      <?php endif; ?>
+
+      <!-- M: Meu Painel -->
       <?php if($cargo==='User' || $cargo==='Conversor' || $cargo==='Treinamento'): ?>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-          <div class="menu-card" onclick="location.href='user.php';">
-            <div class="menu-icon">
-              <i class="fa-solid fa-users-rectangle"></i>
-            </div>
-            <h5 class="menu-title">Meu Painel</h5>
+      <div class="col">
+        <div class="menu-card" onclick="location.href='user.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-users-rectangle"></i>
           </div>
+          <h5 class="menu-title">Meu Painel</h5>
         </div>
+      </div>
       <?php endif; ?>
 
+      <!-- N: Nível 3 -->
       <?php if($cargo==='Admin'): ?>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-          <div class="menu-card" onclick="location.href='dashboard.php';">
-            <div class="menu-icon">
-              <i class="fa-solid fa-calculator"></i>
-            </div>
-            <h5 class="menu-title">Totalizadores</h5>
+      <div class="col">
+        <div class="menu-card" onclick="location.href='../index.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-layer-group"></i>
           </div>
+          <h5 class="menu-title">Nível 3</h5>
         </div>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-          <div class="menu-card" onclick="location.href='usuarios.php';">
-            <div class="menu-icon">
-              <i class="fa-solid fa-users-gear"></i>
-            </div>
-            <h5 class="menu-title">Usuários</h5>
-          </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-          <div class="menu-card" onclick="location.href='destaque.php';">
-            <div class="menu-icon">
-              <i class="fa-solid fa-ranking-star"></i>
-            </div>
-            <h5 class="menu-title">Destaques</h5>
-          </div>
-        </div>
+      </div>
       <?php endif; ?>
 
-      <?php if($cargo==='Admin' || $cargo==='Treinamento' || $cargo==='Comercial'): ?>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-          <div class="menu-card" onclick="location.href='treinamento.php';">
-            <div class="menu-icon">
-              <i class="fa-solid fa-calendar-check"></i>
-            </div>
-            <h5 class="menu-title">Treinamentos</h5>
+      <!-- T: Totalizadores -->
+      <?php if($cargo==='Admin'): ?>
+      <div class="col">
+        <div class="menu-card" onclick="location.href='dashboard.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-calculator"></i>
           </div>
+          <h5 class="menu-title">Totalizadores</h5>
         </div>
+      </div>
       <?php endif; ?>
+
+      <!-- T: Treinamentos -->
+      <?php if($cargo==='Admin' || $cargo==='Treinamento' || $cargo==='Comercial'): ?>
+      <div class="col">
+        <div class="menu-card" onclick="location.href='treinamento.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <h5 class="menu-title">Treinamentos</h5>
+        </div>
+      </div>
+      <?php endif; ?>
+
+      <!-- U: Usuários -->
+      <?php if($cargo==='Admin'): ?>
+      <div class="col">
+        <div class="menu-card" onclick="location.href='usuarios.php';">
+          <div class="menu-icon">
+            <i class="fa-solid fa-users-gear"></i>
+          </div>
+          <h5 class="menu-title">Usuários</h5>
+        </div>
+      </div>
+      <?php endif; ?>
+
     </div>
   </main>
 
