@@ -63,7 +63,7 @@ $resultado_media = $stmt_media->get_result()->fetch_assoc();
 $media_geral = number_format($resultado_media['MediaGeral'], 2, '.', '');
 
 // Consulta para obter todos os usuários para a seção "Acessos aos Usuários"
-$sql_usuarios = "SELECT Id, Nome FROM TB_USUARIO WHERE CARGO in ('User', 'Conversor') ORDER BY Nome";
+$sql_usuarios = "SELECT Id, Nome FROM TB_USUARIO WHERE CARGO in ('User', 'Conversor', 'Viewer') ORDER BY Nome";
 $stmt_usuarios_acessos = $conn->prepare($sql_usuarios);
 $stmt_usuarios_acessos->execute();
 $resultado_usuarios_acessos = $stmt_usuarios_acessos->get_result();

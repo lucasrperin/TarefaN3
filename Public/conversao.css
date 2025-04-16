@@ -405,18 +405,24 @@ color: #333 !important;
     max-height: 80vh;
     background-color: #f8f9fa;
     border-radius: 6px;
-    padding: 0.5rem;
+    /* Remover ou reduzir o padding-top */
+    padding: 0 0.5rem 0.5rem 0.5rem; 
     display: flex;
     flex-direction: column;
     border: 1px solid #dee2e6;
     overflow-y: auto;
   }
+  
   .kanban-column h3 {
+    position: sticky;
+    top: 0;
+    z-index: 10;
     background-color: #283e51;
     color: #fff;
     padding: 0.75rem;
     border-radius: 6px 6px 0 0;
     text-align: center;
+    /* Zere o margin-top para não criar espaçamento extra */
     margin: 0 0 0.5rem 0;
     font-family: 'Montserrat', sans-serif;
   }
