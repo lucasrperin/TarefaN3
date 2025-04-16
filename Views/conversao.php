@@ -33,7 +33,7 @@ if (isset($_GET['clear']) && $_GET['clear'] == 1) {
   if (!isset($_GET['data_inicial']) || !isset($_GET['data_final'])) {
     $firstDay = date("Y-m-01");
     $lastDay  = date("Y-m-t");
-    header("Location: conversao.php?data_inicial={$firstDay}&data_final={$lastDay}");
+    header("Location: conversao.php?data_inicial={$firstDay}&data_final={$lastDay}&filterColumn=period&period_recebido=1");
     exit();
   }
   $data_inicial = $_GET['data_inicial'];
