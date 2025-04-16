@@ -112,7 +112,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
       </a>
       <nav class="nav flex-column">
         <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
-        <?php if ($cargo === 'Admin'): ?>
+        <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
           <a class="nav-link" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
         <?php endif; ?>
         <?php if ($cargo === 'Admin'): ?>
@@ -127,8 +127,11 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
         <?php if ($cargo === 'Admin'): ?>
           <a class="nav-link" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
         <?php endif; ?>
-        <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User'): ?>
+        <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User' || $cargo === 'Conversor'): ?>
          <a class="nav-link active" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
+          <a class="nav-link" href="user.php"><i class="fa-solid fa-layer-group me-2"></i>Meu Painel</a>
         <?php endif; ?>
         <?php if ($cargo === 'Admin'): ?>
          <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
