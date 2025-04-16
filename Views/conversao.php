@@ -1622,6 +1622,10 @@ document.querySelectorAll('.kanban-column').forEach(column => {
       // Obtenha os títulos das colunas de origem e destino
       let sourceColumnTitle = evt.from.querySelector('h3').textContent.trim();
       let targetColumnTitle = evt.to.querySelector('h3').textContent.trim();
+
+      if (sourceColumnTitle === targetColumnTitle) {
+    return; 
+  }
       console.log("Cartão movido de: " + sourceColumnTitle + " para: " + targetColumnTitle + " | ConvId: " + convId);
 
       // Mapeamento dos status:
