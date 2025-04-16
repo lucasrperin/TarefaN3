@@ -29,11 +29,12 @@ if (isset($_GET['clear']) && $_GET['clear'] == 1) {
   $data_inicial = '';
   $data_final   = '';
 } else {
-  // Se não houver valores via GET, define a data atual
+  // Se não houver valores via GET, define o período para o mês atual
   if (!isset($_GET['data_inicial']) || !isset($_GET['data_final'])) {
-      $hoje = date("Y-m-d");
-      header("Location: conversao.php?data_inicial={$hoje}&data_final={$hoje}");
-      exit();
+    $firstDay = date("Y-m-01");
+    $lastDay  = date("Y-m-t");
+    header("Location: conversao.php?data_inicial={$firstDay}&data_final={$lastDay}&filterColumn=period&period_recebido=1");
+    exit();
   }
   $data_inicial = $_GET['data_inicial'];
   $data_final   = $_GET['data_final'];
@@ -54,11 +55,30 @@ $analistaID  = isset($_GET['analista_id'])  ? intval($_GET['analista_id']) : 0;
  * 2) Montar WHERE Dinâmico
  ****************************************************************/
 $where = " WHERE 1=1 ";
-if (!empty($data_inicial)) {
-    $where .= " AND c.data_recebido >= '{$data_inicial} 00:00:00' ";
-}
-if (!empty($data_final)) {
-    $where .= " AND c.data_recebido <= '{$data_final} 23:59:59' ";
+// Verifica se o filtro de período foi selecionado e se as datas foram enviadas
+if (isset($_GET['filterColumn']) && $_GET['filterColumn'] === 'period' && !empty($_GET['data_inicial']) && !empty($_GET['data_final'])) {
+  $data_inicial = $_GET['data_inicial'];
+  $data_final   = $_GET['data_final'];
+
+  // Verifica se os checkboxes de Data Recebido e Data Conclusão foram marcados
+  $filterByRecebido  = isset($_GET['period_recebido']);
+  $filterByConclusao = isset($_GET['period_conclusao']);
+
+  if ($filterByRecebido && $filterByConclusao) {
+      // Se ambos os checkboxes estiverem marcados, filtra registros onde OU a data_recebido OU a data_conclusao estejam dentro do intervalo
+      $where .= " AND (
+                     c.data_recebido BETWEEN '{$data_inicial} 00:00:00' AND '{$data_final} 23:59:59'
+                     OR
+                     c.data_conclusao BETWEEN '{$data_inicial} 00:00:00' AND '{$data_final} 23:59:59'
+                  ) ";
+  } elseif ($filterByRecebido) {
+      // Se somente o checkbox de Data Recebido estiver marcado
+      $where .= " AND c.data_recebido BETWEEN '{$data_inicial} 00:00:00' AND '{$data_final} 23:59:59' ";
+  } elseif ($filterByConclusao) {
+      // Se somente o checkbox de Data Conclusão estiver marcado
+      $where .= " AND c.data_conclusao BETWEEN '{$data_inicial} 00:00:00' AND '{$data_final} 23:59:59' ";
+  }
+  // Se nenhum checkbox for marcado, não adiciona nenhuma condição sobre as datas
 }
 if ($analistaID > 0) {
   $where .= " AND c.analista_id = {$analistaID} ";
@@ -70,6 +90,46 @@ if (!empty($_GET['sistema'])) {
 // Filtro por status
 if (!empty($_GET['status'])) {
   $where .= " AND c.status_id = '" . $_GET['status'] . "'";
+}
+// Filtro por metas
+if (!empty($_GET['metas'])) {
+  switch ($_GET['metas']) {
+      case 'dentro':
+          // Dentro do prazo: não concluído nem cancelado e que ainda esteja dentro do prazo
+          $where .= " AND c.status_id NOT IN (1, 5) 
+                      AND NOW() < CASE 
+                                     WHEN TIME(c.data_recebido) < '15:00:00' THEN CONCAT(DATE(c.data_recebido), ' 15:00:00')
+                                     ELSE CONCAT(DATE(c.data_recebido + INTERVAL 1 DAY), ' 15:00:00')
+                                   END ";
+          break;
+      case 'atrasadas':
+          // Atrasadas: status em fila, análise ou dar prioridade e que já passaram do prazo
+          $where .= " AND c.status_id IN (3, 4, 6)
+                      AND (
+                            (TIME(c.data_recebido) < '15:00:00' AND NOW() >= CONCAT(DATE(c.data_recebido), ' 15:00:00'))
+                            OR
+                            (TIME(c.data_recebido) >= '15:00:00' AND NOW() >= CONCAT(DATE(c.data_recebido + INTERVAL 1 DAY), ' 15:00:00'))
+                      ) ";
+          break;
+      case 'nao_batida':
+          // Meta não batida: concluído com data de conclusão diferente do prazo
+          $where .= " AND c.status_id = 1
+                      AND (
+                            (TIME(c.data_recebido) < '15:00:00' AND DATE(c.data_conclusao) <> DATE(c.data_recebido))
+                            OR
+                            (TIME(c.data_recebido) >= '15:00:00' AND c.data_conclusao >= CONCAT(DATE(c.data_recebido + INTERVAL 1 DAY), ' 15:00:00'))
+                      ) ";
+          break;
+      case 'batida':
+          // Batida (No prazo): concluído com data de conclusão conforme o prazo
+          $where .= " AND c.status_id = 1
+                      AND (
+                            (TIME(c.data_recebido) < '15:00:00' AND DATE(c.data_conclusao) = DATE(c.data_recebido))
+                            OR
+                            (TIME(c.data_recebido) >= '15:00:00' AND c.data_conclusao < CONCAT(DATE(c.data_recebido + INTERVAL 1 DAY), ' 15:00:00'))
+                      ) ";
+          break;
+  }
 }
 
 /****************************************************************
@@ -494,7 +554,7 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
                             <span class="badge rounded-pill bg-danger"><?= $countMetaNaoBatida; ?></span>
                           </div>
                           <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fa-solid fa-check me-1 ms-1"></i> No prazo</span>
+                            <span><i class="fa-solid fa-check me-1 ms-1"></i>Entregues no prazo</span>
                             <span class="badge rounded-pill bg-success"><?= $countMetaBatida; ?></span>
                           </div>
                         </div>
@@ -642,7 +702,7 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
          <!-- Área de listagem utilizando o novo layout Kanban -->
      <!-- Área de listagem utilizando o novo layout Kanban -->
      <div class="kanban-board">
- <!-- Coluna: Em Fila -->
+    <!-- Coluna: Em Fila -->
 <div class="kanban-column">
   <h3>Em Fila</h3>
   <?php while ($rowF = $resFila->fetch_assoc()): ?>
@@ -773,7 +833,7 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
   <?php endwhile; ?>
 </div>
 
-  <!-- Coluna: Em Andamento -->
+<!-- Coluna: Em Andamento -->
 <div class="kanban-column">
   <h3>Em Andamento</h3>
   <?php while ($rowO = $resOutros->fetch_assoc()): ?>
@@ -1336,22 +1396,32 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
             <select class="form-select" id="filterColumn" name="filterColumn">
               <option value="period" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'period') echo "selected"; ?>>Período</option>
               <option value="analista" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'analista') echo "selected"; ?>>Analista</option>
+              <option value="metas" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'metas') echo "selected"; ?>>Metas</option>
               <option value="sistema" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'sistema') echo "selected"; ?>>Sistema</option>
               <option value="status" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'status') echo "selected"; ?>>Status</option>
             </select>
           </div>
-          <!-- Campos de filtro, exibidos conforme a seleção -->
+          <!-- Campo para filtro por Período com os dois checkboxes -->
           <div id="filterPeriod" style="display: none;">
-              <div class="row">
-                  <div class="col-md-6 mb-3">
-                      <label for="data_inicial" class="form-label">Data Início:</label>
-                      <input type="date" class="form-control" id="data_inicial" name="data_inicial" value="<?php echo isset($_GET['data_inicial']) ? $_GET['data_inicial'] : ''; ?>">
-                  </div>
-                  <div class="col-md-6 mb-3">
-                      <label for="data_final" class="form-label">Data Fim:</label>
-                      <input type="date" class="form-control" id="data_final" name="data_final" value="<?php echo isset($_GET['data_final']) ? $_GET['data_final'] : ''; ?>">
-                  </div>
+            <!-- Checkboxes para selecionar qual campo será filtrado -->
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" id="period_recebido" name="period_recebido" value="1" <?php if(isset($_GET['period_recebido'])) echo "checked"; ?> checked>
+              <label class="form-check-label" for="period_recebido">Filtrar por Data Recebido</label>
+            </div>
+            <div class="mb-3 form-check">
+              <input type="checkbox" class="form-check-input" id="period_conclusao" name="period_conclusao" value="1" <?php if(isset($_GET['period_conclusao'])) echo "checked"; ?>>
+              <label class="form-check-label" for="period_conclusao">Filtrar por Data Conclusão</label>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="data_inicial" class="form-label">Data Início:</label>
+                <input type="date" class="form-control" id="data_inicial" name="data_inicial" value="<?php echo isset($_GET['data_inicial']) ? $_GET['data_inicial'] : ''; ?>">
               </div>
+              <div class="col-md-6 mb-3">
+                <label for="data_final" class="form-label">Data Fim:</label>
+                <input type="date" class="form-control" id="data_final" name="data_final" value="<?php echo isset($_GET['data_final']) ? $_GET['data_final'] : ''; ?>">
+              </div>
+            </div>
           </div>
           <div id="filterAnalista" style="display: none;">
             <div class="mb-3">
@@ -1387,6 +1457,19 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
               </select>
             </div>
           </div>
+          <!-- Novo campo para filtros de Metas -->
+          <div id="filterMetas" style="display: none;">
+            <div class="mb-3">
+              <label for="metas" class="form-label">Metas:</label>
+              <select class="form-select" id="metas" name="metas">
+                <option value="">Selecione</option>
+                <option value="dentro" <?php if(isset($_GET['metas']) && $_GET['metas'] == 'dentro') echo "selected"; ?>>Dentro do prazo</option>
+                <option value="atrasadas" <?php if(isset($_GET['metas']) && $_GET['metas'] == 'atrasadas') echo "selected"; ?>>Atrasadas</option>
+                <option value="nao_batida" <?php if(isset($_GET['metas']) && $_GET['metas'] == 'nao_batida') echo "selected"; ?>>Meta não batida</option>
+                <option value="batida" <?php if(isset($_GET['metas']) && $_GET['metas'] == 'batida') echo "selected"; ?>>Entregues no prazo</option>
+              </select>
+            </div>
+          </div>
         </div>
         <div class="modal-footer">
           <!-- Alterado o link para incluir o parâmetro clear=1 -->
@@ -1412,7 +1495,8 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
     document.getElementById("filterAnalista").style.display = "none";
     document.getElementById("filterSistema").style.display = "none";
     document.getElementById("filterStatus").style.display = "none";
-    // Exibe apenas o container da opção selecionada
+    document.getElementById("filterMetas").style.display = "none";
+    // Exibe o container da opção selecionada
     if (filterColumn === "period") {
       document.getElementById("filterPeriod").style.display = "block";
     } else if (filterColumn === "analista") {
@@ -1421,6 +1505,8 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
       document.getElementById("filterSistema").style.display = "block";
     } else if (filterColumn === "status") {
       document.getElementById("filterStatus").style.display = "block";
+    } else if (filterColumn === "metas") {
+      document.getElementById("filterMetas").style.display = "block";
     }
   }
   document.addEventListener("DOMContentLoaded", function() {
