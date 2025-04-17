@@ -5,7 +5,7 @@ include '../Config/Database.php'; // Conexão com o banco de dados
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $contato = $_POST['contato'];
-    $serial = $_POST['serial'] ?: NULL;
+    $serial = $_POST['serial'] ;
     $retrabalho = $_POST['retrabalho'];
     $sistema_id = $_POST['sistema_id'];
     $prazo_entrega = $_POST['prazo_entrega'];

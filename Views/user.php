@@ -104,303 +104,258 @@ if ($result_ranking) {
 ?>
 
 <!DOCTYPE html>
-<html lang="pt">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Minhas Análises e Fichas</title>
-    <!-- Bootstrap CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <!-- CSS personalizado para a área do usuário -->
-    <link href="../Public/user.css" rel="stylesheet" />
-    <!-- Ícones personalizados -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-    />
-    <link rel="icon" href="../Public/Image/icone2.png" type="image/png" />
-  </head>
-  <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-dark bg-dark">
-      <div class="container d-flex justify-content-between align-items-center">
-        <!-- Botão Hamburguer com Dropdown -->
-          <div class="dropdown">
-            <button class="navbar-toggler" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-              <span class="navbar-toggler-icon"></span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="menuDropdown">
-              <?php if ($cargo === 'Admin' || $cargo === 'Conversor'  || $cargo === 'Viewer'): ?>
-                <li><a class="dropdown-item" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a></li>
-              <?php endif; ?>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Meu Painel</title>
+  <!-- Fontes, Bootstrap, Font‑Awesome e CSS -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link href="../Public/user.css" rel="stylesheet">
+  <link rel="icon" href="../Public/Image/icone2.png" type="image/png">
+</head>
+<body class="bg-light">
+  <div class="d-flex-wrapper">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <a class="light-logo mb-4" href="user.php">
+        <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
+      </a>
+      <nav class="nav flex-column">
+        <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
+        <?php if(in_array($cargo,['Admin','Conversor','Viewer'])): ?>
+          <a class="nav-link" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
+        <?php endif;?>
+        <?php if($cargo==='Admin'): ?>
+          <a class="nav-link" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
+          <a class="nav-link" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
+        <?php endif;?>
+        <?php if(in_array($cargo,['Admin','Viewer'])): ?>
+          <a class="nav-link" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
+        <?php endif;?>
+        <?php if(in_array($cargo,['Admin','Conversor','User'])): ?>
+          <a class="nav-link" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
+        <?php endif;?>
+        <a class="nav-link active" href="user.php"><i class="fa-solid fa-users-rectangle me-2"></i>Meu Painel</a>
+        <?php if($cargo==='Admin'): ?>
+          <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
+          <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2"></i>Totalizadores</a>
+          <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
+        <?php endif;?>
+      </nav>
+    </div>
 
-              <?php if ($cargo === 'Admin'): ?>
-                <li><a class="dropdown-item" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a></li>
-              <?php endif; ?>
-
-              <?php if ($cargo === 'Admin'): ?>
-                <li><a class="dropdown-item" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a></li>
-              <?php endif; ?>
-
-              <?php if ($cargo === 'Admin' || $cargo === 'Viewer'): ?>
-                <li><a class="dropdown-item" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a></li>
-              <?php endif; ?>
-
-              <?php if ($cargo === 'Admin' || $cargo === 'Conversor' || $cargo === 'User'): ?>
-                <li><a class="dropdown-item" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a></li>
-              <?php endif; ?>
-
-              <?php if ($cargo === 'Admin'): ?>
-                <li><a class="dropdown-item" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a></li>
-              <?php endif; ?>
-
-              <?php if ($cargo === 'Admin'): ?>
-                <li><a class="dropdown-item" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a></li>
-                <li><a class="dropdown-item" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a></li>
-              <?php endif; ?>
-              
-            </ul>
-          </div>
-
-        <span class="text-white">
-          Bem-vindo, <?php echo $_SESSION['usuario_nome']; ?>!
-        </span>
-        <a href="menu.php" class="btn btn-danger">
-          <i class="fa-solid fa-arrow-left me-2" style="font-size: 0.8em;"></i>Voltar
-        </a>
-      </div>
-    </nav>
-
-    <!-- Conteúdo Principal -->
-    <div class="container user-container mt-4">
-      <div class="row mb-4">
-        <!-- Linha com Média de Notas -->
-        <div class="col-lg-6 col-md-6 mb-3">
-          <div class="card text-center border-secondary">
-            <div class="card-body">
-              <h5 class="card-title">Média das Notas</h5>
-              <p class="card-text display-6 mt-4 <?php echo $classeMedia; ?>">
-                <?php echo $mediaFormatada; ?>
-              </p>
-              <p class="<?php echo $classeMedia; ?>">
-                <?php echo $textoMedia; ?>
-              </p>
-            </div>
-          </div>
+   <!-- ÁREA PRINCIPAL -->
+   <div class="w-100">
+      <!-- HEADER (inalterado) -->
+      <div class="header">
+        <h3>Meu Painel</h3>
+        <div class="user-info">
+          <span>Bem‑vindo, <?php echo htmlspecialchars($_SESSION['usuario_nome']); ?>!</span>
+          <a href="logout.php" class="btn btn-danger btn-sm">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </a>
         </div>
+      </div>
 
-        <!-- Ranking dos Melhores Usuários -->
-        <div class="col-lg-6 mb-3">
-          <div class="card text-center border-dark">
-            <div class="card-body">
-              <h5 class="card-title">Ranking</h5>
-              <?php if (count($ranking) > 0): ?>
-                <div class="ranking-scroll">
-                  <!-- Área com scroll -->
-                  <ul class="list-group">
-                    <?php foreach ($ranking as $index => $rank): ?>
-                      <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <?php
-                          if ($index == 0) {
-                            echo "🥇  " . $rank['usuario_nome'];
-                          } elseif ($index == 1) {
-                            echo "🥈  " . $rank['usuario_nome'];
-                          } elseif ($index == 2) {
-                            echo "🥉  " . $rank['usuario_nome'];
-                          } else {
-                            echo ($index + 1) . "º  " . $rank['usuario_nome'];
-                          }
-                        ?>
-                        <span class="badge bg-primary rounded-pill">
-                          <?php echo number_format($rank['mediaNotas'], 2, ',', '.'); ?>
+      <!-- CONTENT (Layout 4) -->
+      <div class="content">
+        <div class="row gy-4">
+          <!-- COLUNA ESQUERDA: MÉTRICAS -->
+          <div class="col-lg-4 d-flex flex-column gap-4">
+            <!-- Média das Notas -->
+            <div class="card border-start border-4 border-secondary shadow-sm bg-tint-secondary">
+              <div class="card-body d-flex align-items-center">
+                <div class="bg-secondary text-white rounded-circle icon-circle me-3">
+                  <i class="fa-solid fa-star"></i>
+                </div>
+                <div>
+                  <small class="text-muted">Média das Notas</small>
+                  <h5 class="<?php echo $classeMedia; ?>"><?php echo $mediaFormatada; ?></h5>
+                  <small class="<?php echo $classeMedia; ?>"><?php echo $textoMedia; ?></small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ranking -->
+            <div class="card border-start border-4 border-warning shadow-sm bg-tint-warning">
+              <div class="card-body d-flex flex-column">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="bg-warning text-white rounded-circle icon-circle me-2">
+                    <i class="fa-solid fa-trophy"></i>
+                  </div>
+                  <h6 class="mb-0">Ranking</h6>
+                </div>
+                <?php if(count($ranking)>0): ?>
+                  <ul class="list-unstyled small  ranking-scroll mb-0">
+                    <?php foreach($ranking as $i=>$r): ?>
+                      <li class="d-flex justify-content-between py-2 border-bottom">
+                        <span>
+                          <?php 
+                            echo ($i<3? ['🥇','🥈','🥉'][$i] : ($i+1).'º')
+                              .' '.htmlspecialchars($r['usuario_nome']);
+                          ?>
+                        </span>
+                        <span class="badge bg-secondary rounded-pill">
+                          <?php echo number_format($r['mediaNotas'],2,',','.'); ?>
                         </span>
                       </li>
                     <?php endforeach; ?>
                   </ul>
-                </div>
-              <?php else: ?>
-                <p>Nenhum ranking disponível.</p>
-              <?php endif; ?>
-            </div>
-          </div>
-        </div>
-
-        <!-- Total de Análises -->
-        <div class="col-lg-6 col-md-6 mb-3">
-          <div class="card text-center border-primary">
-            <div class="card-body">
-              <h5 class="card-title text-primary">Total de Análises</h5>
-              <p class="card-text display-6">
-                <?php echo $totalAnalises; ?>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Total de Fichas -->
-        <div class="col-lg-6 col-md-6 mb-3">
-          <div class="card text-center border-info">
-            <div class="card-body">
-              <h5 class="card-title text-info">Total de Fichas</h5>
-              <p class="card-text display-6">
-                <?php echo $totalFichas; ?>
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Seções de Análises e Fichas -->
-      <div class="row">
-        <!-- Seção de Análises -->
-        <div class="col-md-6 mb-4">
-          <div class="card">
-            <div class="card-header bg-primary text-white">
-              Análises
-            </div>
-            <div class="card-body">
-              <?php if ($totalAnalises > 0): ?>
-                <div class="table-responsive table-scroll">
-                  <table class="table table-striped mt-0 ">
-                    <thead>
-                      <tr>
-                        <th>Descrição</th>
-                        <th>Nº da Ficha</th>
-                        <th>Data</th>
-                        <th>Nota</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <?php foreach ($analises as $analise):
-                        $nota = $analise['Nota'];
-                        if ($nota == 5) {
-                          $classeNota = 'nota-verde';
-                        } elseif ($nota == 4) {
-                          $classeNota = 'nota-teal';
-                        } elseif ($nota == 3) {
-                          $classeNota = 'nota-amarela';
-                        } elseif ($nota == 2) {
-                          $classeNota = 'nota-laranja';
-                        } elseif ($nota == 1) {
-                          $classeNota = 'nota-vermelha';
-                        } elseif ($nota == 0) {
-                          $classeNota = 'nota-neutra';
-                        } else {
-                          $classeNota = '';
-                        }
-                      ?>
-                        <!-- Linha clicável para exibir a justificativa -->
-                        <tr class="clickable"
-                            data-justificativa="<?php echo htmlspecialchars($analise['justificativa'], ENT_QUOTES, 'UTF-8'); ?>"
-                            data-usuario="<?php echo htmlspecialchars($analise['Usuario'], ENT_QUOTES, 'UTF-8'); ?>"
-                            onclick="mostrarJustificativaModal(this.getAttribute('data-justificativa'), this.getAttribute('data-usuario'))">
-                            <td><?php echo $analise['Descricao']; ?></td>
-                            <td><?php echo $analise['numeroFicha'] ?? '-'; ?></td>
-                            <td><?php echo $analise['Hora_ini']; ?></td>
-                            <td class="<?php echo $classeNota; ?>"><?php echo $nota; ?></td>
-                        </tr>
-                      <?php endforeach; ?>
-                    </tbody>
-                  </table>
-                </div>
-              <?php else: ?>
-                <div class="alert alert-info">
-                  Nenhuma análise cadastrada.
-                </div>
-              <?php endif; ?>
-            </div>
-          </div>
-        </div>
-
-        <!-- Modal para exibir a Justificativa -->
-        <div class="modal fade" id="justificativaModal" tabindex="-1" aria-labelledby="justificativaModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <!-- Cabeçalho do Modal -->
-              <div class="modal-header">
-                <div class="d-flex flex-column">
-                  <h5 class="modal-title" id="justificativaModalLabel">
-                    Justificativa da Nota
-                  </h5>
-                  <small class="text-muted">
-                    Atribuído por: <span id="modalUsuario"></span>
-                  </small>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                <?php else: ?>
+                  <small class="text-muted">Nenhum ranking disponível</small>
+                <?php endif; ?>
               </div>
-              <!-- Corpo do Modal -->
-              <div class="modal-body" id="justificativaModalBody">
-                <!-- Conteúdo da justificativa inserido dinamicamente -->
+            </div>
+
+            <!-- Total de Análises -->
+            <div class="card border-start border-4 border-primary shadow-sm bg-tint-primary">
+              <div class="card-body d-flex align-items-center">
+                <div class="bg-primary text-white rounded-circle icon-circle me-3">
+                  <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div>
+                  <small class="text-muted">Total de Análises</small>
+                  <h4 class="mb-0"><?php echo $totalAnalises; ?></h4>
+                </div>
               </div>
-              <!-- Rodapé do Modal -->
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+
+            <!-- Total de Fichas -->
+            <div class="card border-start border-4 border-info shadow-sm bg-tint-info">
+              <div class="card-body d-flex align-items-center">
+                <div class="bg-info text-white rounded-circle icon-circle me-3">
+                  <i class="fa-solid fa-clipboard-list"></i>
+                </div>
+                <div>
+                  <small class="text-muted">Total de Fichas</small>
+                  <h4 class="mb-0"><?php echo $totalFichas; ?></h4>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Seção de Fichas -->
-        <div class="col-md-6 mb-4">
-          <div class="card">
-            <div class="card-header bg-info text-white">
-              Fichas
-            </div>
-            <div class="card-body">
-              <?php if ($totalFichas > 0): ?>
-                <div class="table-responsive table-scroll">
-                  <table class="table table-striped mt-0">
-                    <thead>
-                      <tr>
-                        <th>Nº da Ficha</th>
-                        <th>Data</th>
-                        <th>Ação</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <?php foreach ($fichas_por_numero as $numeroFicha => $fichas): ?>
-                        <?php foreach ($fichas as $ficha): ?>
-                          <tr>
-                            <td><?php echo $ficha['numeroFicha']; ?></td>
-                            <td><?php echo $ficha['Hora_ini']; ?></td>
-                            <td>
-                              <a href="https://zmap.zpos.com.br/#/detailsIncidente/<?php echo $ficha['numeroFicha']; ?>" target="_blank" class="btn btn-sm btn-outline-primary">
-                                Acessar
-                              </a>
-                            </td>
-                          </tr>
-                        <?php endforeach; ?>
-                      <?php endforeach; ?>
-                    </tbody>
-                  </table>
+          <!-- COLUNA DIREITA: TABELAS -->
+          <div class="col-lg-8 d-flex flex-column gap-4">
+            <!-- Análises Recentes -->
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-header bg-transparent border-bottom-0 d-flex align-items-center">
+                <i class="fa-solid fa-magnifying-glass-chart text-primary fa-lg me-2"></i>
+                <h6 class="mb-0">Análises Recentes</h6>
+              </div>
+              <div class="table-responsive table-scroll" style="max-height:350px; overflow:auto;">
+                <div class="grid-table">
+                  <!-- header sem # -->
+                  <div class="grid-header">
+                    <div><i class="fa-solid fa-align-left me-1"></i>Descrição</div>
+                    <div><i class="fa-solid fa-hashtag me-1"></i>Ficha</div>
+                    <div><i class="fa-solid fa-calendar-day me-1"></i>Data</div>
+                    <div><i class="fa-solid fa-star me-1"></i>Nota</div>
+                  </div>
+                  <!-- linhas -->
+                  <?php foreach($analises as $a): ?>
+                  <div class="grid-row clickable nota-<?php echo $a['Nota']; ?>"
+                      data-justificativa="<?php echo htmlspecialchars($a['justificativa'],ENT_QUOTES); ?>"
+                      data-usuario="<?php echo htmlspecialchars($a['Usuario'],ENT_QUOTES); ?>"
+                      onclick="mostrarJustificativaModal(this.dataset.justificativa,this.dataset.usuario)">
+                    <div class="sobrepor"><?php echo htmlspecialchars($a['Descricao']); ?></div>
+                    <div><?php echo $a['numeroFicha']?: '-'; ?></div>
+                    <div><?php echo htmlspecialchars($a['Hora_ini']); ?></div>
+                    <div class="nota"><?php echo $a['Nota']; ?> <i class="fa-solid fa-star text-warning ms-1"></i></div>
+                  </div>
+                  <?php endforeach; ?>
+                  <?php if(empty($analises)): ?>
+                  <div class="grid-row">
+                    <div colspan="4" class="text-center text-muted">Nenhuma análise cadastrada.</div>
+                  </div>
+                  <?php endif; ?>
                 </div>
-              <?php else: ?>
-                <div class="alert alert-info">
-                  Nenhuma ficha cadastrada.
-                </div>
-              <?php endif; ?>
+              </div>
             </div>
+
+            <!-- Fichas Recentes -->
+            <div class="card border-0 shadow-sm h-100 mt-4">
+              <div class="card-header bg-transparent border-bottom-0 d-flex align-items-center">
+                <i class="fa-solid fa-file-lines text-info fa-lg me-2"></i>
+                <h6 class="mb-0">Fichas Recentes</h6>
+              </div>
+              <div class="table-responsive table-scroll" style="max-height:350px; overflow:auto;">
+                <div class="grid-table">
+                  <!-- header sem # -->
+                  <div class="grid-header">
+                    <div><i class="fa-solid fa-hashtag me-1"></i>Ficha</div>
+                    <div><i class="fa-solid fa-calendar-day me-1"></i>Data</div>
+                    <div style="justify-content:center;"><i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Ação</div>
+                  </div>
+                  <!-- linhas -->
+                  <?php foreach($fichas_por_numero as $fs): foreach($fs as $f): ?>
+                  <div class="grid-row">
+                    <div><?php echo htmlspecialchars($f['numeroFicha']); ?></div>
+                    <div><?php echo htmlspecialchars($f['Hora_ini']); ?></div>
+                    <div>
+                      <a href="https://zmap.zpos.com.br/#/detailsIncidente/<?php echo htmlspecialchars($f['numeroFicha']); ?>"
+                        target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> ZMap
+                      </a>
+                    </div>
+                  </div>
+                  <?php endforeach; endforeach; ?>
+                  <?php if(empty($fichas_por_numero)): ?>
+                  <div class="grid-row">
+                    <div colspan="3" class="text-center text-muted">Nenhuma ficha cadastrada.</div>
+                  </div>
+                  <?php endif; ?>
+                </div>
+              </div>
+            </div>
+          </div>
+
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Bootstrap Bundle com Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      function mostrarJustificativaModal(justificativa, usuario) {
-        // Insere a justificativa no corpo do modal
-        document.getElementById("justificativaModalBody").innerText = justificativa;
-        // Atualiza o campo de usuário no modal
-        document.getElementById("modalUsuario").innerText = usuario;
-        // Cria a instância do modal e exibe-o
-        var modalElement = document.getElementById("justificativaModal");
-        var modal = new bootstrap.Modal(modalElement);
-        modal.show();
-      }
-    </script>
-  </body>
+
+  <!-- Modal para exibir a Justificativa -->
+  <div class="modal fade" id="justificativaModal" tabindex="-1" aria-labelledby="justificativaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <!-- Cabeçalho do Modal -->
+        <div class="modal-header">
+          <div class="d-flex flex-column">
+            <h5 class="modal-title" id="justificativaModalLabel">
+              Justificativa da Nota
+            </h5>
+            <small class="text-muted" style="color: #fff">
+              Atribuído por: <span id="modalUsuario"></span>
+            </small>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <!-- Corpo do Modal -->
+        <div class="modal-body" style="overflow-wrap: break-word; " id="justificativaModalBody">
+        <!-- Conteúdo da justificativa inserido dinamicamente -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle com Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function mostrarJustificativaModal(justificativa, usuario) {
+      // Insere a justificativa no corpo do modal
+      document.getElementById("justificativaModalBody").innerText = justificativa;
+      // Atualiza o campo de usuário no modal
+      document.getElementById("modalUsuario").innerText = usuario;
+      // Cria a instância do modal e exibe-o
+      var modalElement = document.getElementById("justificativaModal");
+      var modal = new bootstrap.Modal(modalElement);
+      modal.show();
+    }
+  </script>
+</body>
 </html>

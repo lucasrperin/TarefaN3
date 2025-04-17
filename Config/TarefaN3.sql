@@ -125,7 +125,7 @@ INSERT INTO TB_SISTEMA_CONVER (nome) VALUES
     ('Conc. p/ ClippPro'), ('Clipp p/ ClippPro'), ('Zeta p/ ClippPro'), ('Conc. p/ ClippFacil'), ('Clipp p/ ClippFacil'),
     ('Zeta p/ Clipp360'), ('Small p/ Clipp360'), ('Conc. p/ Clipp360'), ('Clipp p/ Clipp360'), ('Conc. p/ ClippMEI'),
     ('Clipp p/ ClippMEI'), ('Clipp p/ ZetaWeb'), ('Conc p/ ZetaWeb'), ('Small p/ ZetaWeb'), ('Gdoor p/ ZetaWeb'),
-    ('Gdoor p/ ClippPro'), ('AC p/ Clipp360'), ('ClippMei p/ ClippPro'), ('AC p/ ClippPRO');
+    ('Gdoor p/ ClippPro'), ('AC p/ Clipp360'), ('ClippMei p/ ClippPro'), ('AC p/ ClippPro');
 
 CREATE TABLE TB_STATUS_CONVER (
     id INT AUTO_INCREMENT PRIMARY KEY,

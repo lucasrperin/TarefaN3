@@ -974,9 +974,6 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
   <?php endwhile; ?>
 </div>
 
-
-
-  
  <!-- Coluna: Finalizadas -->
  <div class="kanban-column">
   <h3>Finalizadas</h3>
