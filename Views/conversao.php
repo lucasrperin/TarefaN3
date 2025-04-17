@@ -466,8 +466,8 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
         <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User' || $cargo === 'Conversor'): ?>
           <a class="nav-link" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
         <?php endif; ?>
-        <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
-          <a class="nav-link" href="user.php"><i class="fa-solid fa-layer-group me-2"></i>Meu Painel</a>
+        <?php if ($cargo === 'Admin' || $cargo === 'Viewer' || $cargo === 'User' || $cargo === 'Conversor'): ?>
+          <a class="nav-link" href="user.php"><i class="fa-solid fa-users-rectangle me-2"></i>Meu Painel</a>
         <?php endif; ?>
         <?php if ($cargo === 'Admin'): ?>
           <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
@@ -475,11 +475,11 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
         <?php if ($cargo === 'Admin'): ?>
           <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
         <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
-          <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
-        <?php endif; ?>
         <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
           <a class="nav-link" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
+          <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
         <?php endif; ?>
       </nav>
     </div>
@@ -1703,6 +1703,7 @@ document.querySelectorAll('.kanban-column').forEach(column => {
   new Sortable(column, {
     group: 'shared',
     draggable: '.kanban-card',
+    
     animation: 150,
     onEnd: function(evt) {
       let card = evt.item;

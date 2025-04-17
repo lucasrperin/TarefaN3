@@ -183,18 +183,22 @@ foreach ($rows as $row) {
             <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User'): ?>
             <a class="nav-link" href="Views/indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
             <?php endif; ?>
+            <?php if ($cargo === 'Admin' || $cargo === 'Viewer' || $cargo === 'User' || $cargo === 'Conversor'): ?>
+            <a class="nav-link" href="Views/user.php"><i class="fa-solid fa-users-rectangle me-2"></i>Meu Painel</a>
+            <?php endif; ?>
             <?php if ($cargo === 'Admin'): ?>
             <a class="nav-link active" href="index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
             <?php endif; ?>
             <?php if ($cargo === 'Admin'): ?>
             <a class="nav-link" href="Views/dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
             <?php endif; ?>
-            <?php if ($cargo === 'Admin'): ?>
-            <a class="nav-link" href="Views/usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
-            <?php endif; ?>
             <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
             <a class="nav-link" href="Views/treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
             <?php endif; ?>
+            <?php if ($cargo === 'Admin'): ?>
+            <a class="nav-link" href="Views/usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
+            <?php endif; ?>
+            
         </nav>
         </div>
         
