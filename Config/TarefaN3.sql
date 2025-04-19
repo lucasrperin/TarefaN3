@@ -54,7 +54,8 @@ INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Lucas Perin', 'lucas
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Guilherme Ferri', 'guilherme.ferri@zucchetti.com', 1234, 'Admin');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Gabriel Battistella', 'gabriel.battistella@zucchetti.com', 1234, 'Admin');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Bernardo Rachadel', 'bernardo.rachadel@zucchetti.com', 1234, 'Admin');
-INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Douglas da Silva', 'douglas.silva@zucchetti.com', 1234, 'Viewer');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Douglas da Silva', 'douglas.silva@zucchetti.com', 1234, 'Admin');
+INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Guilherme Stallbaum', 'guilherme.stallbaum@zucchetti.com', 1234, 'Admin');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Vagner Wilske', 'vagner.wilske@zucchetti.com', 1234, 'Viewer');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Germano Santos', 'germano.santos@zucchetti.com', 1234, 'Viewer');
 INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) VALUES ('Leandro Haefliger', 'leandro.haefliger@zucchetti.com', 1234, 'User');

@@ -12,12 +12,40 @@ if ($cargo !== 'Admin') {
     exit;
 }
 
+// ----------- Filtro de Período (Data Início e Data Fim) ------------
+$dataInicio = "";
+$dataFim = "";
+
+// Verifica se foram enviados parâmetros via GET
+if (isset($_GET['data_inicio']) && !empty($_GET['data_inicio'])) {
+    $dataInicio = $_GET['data_inicio'];
+}
+if (isset($_GET['data_fim']) && !empty($_GET['data_fim'])) {
+    $dataFim = $_GET['data_fim'];
+}
+
+// Monta a condição para o WHERE com base no período
+$dataFilterCondition = "";
+if (!empty($dataInicio) && empty($dataFim)) {
+    // Apenas data início
+    $dataFilterCondition = " AND DATE(e.data_escuta) >= '" . $conn->real_escape_string($dataInicio) . "' ";
+} else if (empty($dataInicio) && !empty($dataFim)) {
+    // Apenas data fim
+    $dataFilterCondition = " AND DATE(e.data_escuta) <= '" . $conn->real_escape_string($dataFim) . "' ";
+} else if (!empty($dataInicio) && !empty($dataFim)) {
+    // Intervalo completo
+    $dataFilterCondition = " AND DATE(e.data_escuta) BETWEEN '" . $conn->real_escape_string($dataInicio) . "' 
+                                                    AND '" . $conn->real_escape_string($dataFim) . "' ";
+}
+
+// -------------------------------------------------------------------
 // Consulta os usuários (analistas) que possuem escutas registradas
 $query = "SELECT DISTINCT e.user_id, u.nome AS usuario_nome 
           FROM TB_ESCUTAS e
           JOIN TB_USUARIO u ON e.user_id = u.id 
           WHERE (u.cargo = 'User' OR u.id IN (17, 18))
-          AND u.id NOT IN (8)
+            AND u.id NOT IN (8)
+            $dataFilterCondition
           ORDER BY u.nome";
 $result = $conn->query($query);
 $analistas = [];
@@ -28,9 +56,14 @@ if ($result) {
     $result->free();
 }
 
-// Recupera os usuários com cargo "User" para preencher o select do modal de cadastro
+// Recupera os usuários com cargo "User" (para modal de cadastro)
 $users = [];
-$queryUsers = "SELECT u.id, u.nome FROM TB_USUARIO u WHERE (u.cargo = 'User' OR u.id IN (17, 18)) AND u.id NOT IN (8)";
+$queryUsers = "SELECT 
+                u.id, 
+                u.nome
+              FROM TB_USUARIO u 
+              WHERE (u.cargo = 'User' OR u.id IN (17, 18)) 
+              AND u.id NOT IN (8)";
 $resultUsers = $conn->query($queryUsers);
 if ($resultUsers) {
     while ($row = $resultUsers->fetch_assoc()) {
@@ -39,7 +72,27 @@ if ($resultUsers) {
     $resultUsers->free();
 }
 
-// Recupera os usuários com cargo "User" para preencher o select do modal de cadastro
+// Recupera os usuários com cargo "User" (para modal de cadastro) que não possuem 5 analises
+$userscadastro = [];
+$queryUsersCad = "SELECT 
+                    u.id, 
+                    u.nome,
+                    (5 - COUNT(e.id)) AS faltantes 
+                  FROM TB_USUARIO u 
+                  LEFT JOIN TB_ESCUTAS e ON e.user_id = u.id
+                  WHERE (u.cargo = 'User' OR u.id IN (17, 18)) 
+                  AND u.id NOT IN (8)
+                  GROUP BY u.id
+                  HAVING faltantes > 0";
+$resultUsersCad = $conn->query($queryUsersCad);
+if ($resultUsersCad) {
+    while ($row = $resultUsersCad->fetch_assoc()) {
+        $userscadastro[] = $row;
+    }
+    $resultUsersCad->free();
+}
+
+// Recupera as classificações (para modal de cadastro)
 $classis = [];
 $queryClassi = "SELECT id, descricao FROM TB_CLASSIFICACAO";
 $resultClassi = $conn->query($queryClassi);
@@ -52,17 +105,16 @@ if ($resultClassi) {
 
 // ----------------------------------------------------
 // 1. Escutas por Analista (usuários com cargo 'User')
-// ----------------------------------------------------
 $sqlEscutasAnalista = "SELECT 
                         u.nome, 
                         COUNT(e.id) AS total
                       FROM TB_USUARIO u
                       JOIN TB_ESCUTAS e ON e.user_id = u.id
                       WHERE (u.cargo = 'User' OR u.id IN (17, 18))
-                      AND u.id NOT IN (8)
+                        AND u.id NOT IN (8)
+                        $dataFilterCondition
                       GROUP BY u.id
-                      ORDER BY u.nome
-";
+                      ORDER BY u.nome";
 $resAnalista = $conn->query($sqlEscutasAnalista);
 $escutasAnalista = [];
 if ($resAnalista) {
@@ -72,13 +124,13 @@ if ($resAnalista) {
 }
 
 // ----------------------------------------------------
-// 2. Escutas por Supervisor (usuários com cargo 'Supervisor')
-// ----------------------------------------------------
+// 2. Escutas por Supervisor (usuários com cargo 'Admin')
 $sqlEscutasSupervisor = "
     SELECT u.nome, COUNT(e.id) AS total
     FROM TB_USUARIO u
     JOIN TB_ESCUTAS e ON e.admin_id = u.id
     WHERE u.cargo = 'Admin'
+    $dataFilterCondition
     GROUP BY u.id
     ORDER BY u.nome
 ";
@@ -91,20 +143,18 @@ if ($resSupervisor) {
 }
 
 // ----------------------------------------------------
-// 3. Escutas Faltantes (para cada analista 'User', considerando meta de 5 escutas)
-// --Usuarios que são do Conversor
-// --Usuarios que são do Email
-// ----------------------------------------------------
+// 3. Escutas Faltantes (para cada analista 'User', meta de 5 escutas)
 $sqlEscutasFaltantes = "SELECT 
-                          u.nome, (5 - COUNT(e.id)) AS faltantes
+                          u.nome, 
+                          COUNT(e.id) AS totalEscutas, 
+                          (5 - COUNT(e.id)) AS faltantes
                         FROM TB_USUARIO u
                         LEFT JOIN TB_ESCUTAS e ON e.user_id = u.id
                         WHERE (u.cargo = 'User' OR u.id IN (17, 18))
                           AND u.id NOT IN (8)
+                          $dataFilterCondition
                         GROUP BY u.id
-                        HAVING faltantes > 0
-                        ORDER BY u.nome
-";
+                        ORDER BY u.nome";
 $resFaltantes = $conn->query($sqlEscutasFaltantes);
 $escutasFaltantes = [];
 if ($resFaltantes) {
@@ -112,30 +162,45 @@ if ($resFaltantes) {
         $escutasFaltantes[] = $row;
     }
 }
-?>
 
+// ----------------------------------------------------
+// 4. Meta Geral de Escutas
+$totalAnalistas = count($users);
+$metaGeral = $totalAnalistas * 5;
+$sqlTotalEscutas = "SELECT COUNT(e.id) as total 
+                    FROM TB_ESCUTAS e
+                    JOIN TB_USUARIO u ON e.user_id = u.id
+                    WHERE (u.cargo = 'User' OR u.id IN (17, 18))
+                      AND u.id NOT IN (8)
+                      $dataFilterCondition";
+$resultTotal = $conn->query($sqlTotalEscutas);
+$totalEscutasRealizadas = 0;
+if ($resultTotal) {
+    $rowTotal = $resultTotal->fetch_assoc();
+    $totalEscutasRealizadas = $rowTotal['total'];
+}
+$percentMetaGeral = ($metaGeral > 0) ? ($totalEscutasRealizadas * 100 / $metaGeral) : 0;
+if ($percentMetaGeral > 100) {
+    $percentMetaGeral = 100;
+}
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tarefas N3</title>
-    <!-- Arquivo CSS personalizado -->
+    <!-- CSS personalizado -->
     <link href="../Public/escutas.css" rel="stylesheet">
-
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-   
-    <!-- Ícones personalizados -->
+    <!-- Ícones Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
-    <link rel="icon" href="Public\Image\icone2.png" type="image/png">
-    
+    <link rel="icon" href="Public/Image/icone2.png" type="image/png">
 </head>
 <body>
 <nav class="navbar navbar-dark bg-dark">
   <div class="container d-flex justify-content-between align-items-center">
-    <!-- Dropdown de navegação -->
     <div class="dropdown">
       <button class="navbar-toggler" type="button" data-bs-toggle="dropdown">
         <span class="navbar-toggler-icon"></span>
@@ -153,17 +218,17 @@ if ($resFaltantes) {
   </div>
 </nav>
 
-<!-- Container do Toast no canto superior direito -->
+<!-- Container do Toast -->
 <div class="toast-container">
     <div id="toastSucesso" class="toast">
         <div class="toast-body">
-            <i class="fa-solid fa-check-circle"></i> <span id="toastMensagem"></span>
+          <i class="fa-solid fa-check-circle"></i> <span id="toastMensagem"></span>
         </div>
     </div>
 </div>
 
-<!-- Script para exibir o toast -->
-<script dref>
+<!-- Script para exibir o Toast -->
+<script defer>
 document.addEventListener("DOMContentLoaded", function () {
     const urlParams = new URLSearchParams(window.location.search);
     const success = urlParams.get("success");
@@ -176,9 +241,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 break;
             case "2":
                 mensagem = "Escuta cadastrada com sucesso!";
-                break;
-            case "3":
-                mensagem = "Escuta editada com sucesso!";
                 break;
             case "4":
                 mensagem = "Escuta excluída com sucesso!";
@@ -193,142 +255,143 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 });
-
 </script>
 
-<div class="container mt-3">
-  <!-- Linha dos Totalizadores -->
-  <div class="row justify-content-center mb-4">
-    <!-- Escutas por Analista -->
-    <div class="col-md-3">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Escutas por Analista</h5>
-          <?php if (count($escutasAnalista) > 0): ?>
-            <ul class="list-group scroll-container">
-                <!-- Supondo que $escutasAnalista seja um array com nome e total de escutas -->
-                <?php foreach($escutasAnalista as $analista): ?>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <?= htmlspecialchars($analista['nome']); ?>
-                  <span class="badge bg-info rounded-pill"><?= $analista['total']; ?></span>
-                </li>
-                <?php endforeach; ?>
-            </ul>
-            <?php else: ?>
-            <p>Nenhum registro exibido</p>
-          <?php endif; ?>
-        </div>
-      </div>
-    </div>
+<!-- Container principal para o layout -->
+<div class="container mt-4">
+  <!-- .row com align-items-stretch e g-3 para espaçamento -->
+  <div class="row justify-content-center align-items-stretch g-3">
 
-    <!-- Escutas por Supervisor -->
-    <div class="col-md-3">
-      <div class="card">
-        <div class="card-body">
-          <h5 class="card-title">Escutas por Supervisor</h5>
-          <?php if (count($escutasSupervisor) > 0): ?>
-            <ul class="list-group scroll-container">
-                <!-- Supondo que $escutasSupervisor seja um array com nome e total de escutas de supervisores -->
-                <?php foreach($escutasSupervisor as $supervisor): ?>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <?= htmlspecialchars($supervisor['nome']); ?>
-                  <span class="badge bg-primary rounded-pill"><?= $supervisor['total']; ?></span>
-                </li>
-                <?php endforeach; ?>
-            </ul>
-            <?php else: ?>
-            <p>Nenhum registro exibido</p>
-          <?php endif; ?>
-        </div>
-      </div>
-    </div>
-
-    <!-- Escutas Faltantes -->
-    <div class="col-md-3">
-      <div class="card">
+    <!-- Coluna 1: Escutas Faltantes -->
+    <div class="col-md-3 d-flex flex-column">
+      <div class="card flex-fill">
         <div class="card-body">
           <h5 class="card-title">Escutas Faltantes</h5>
           <?php if (count($escutasFaltantes) > 0): ?>
-          <ul class="list-group scroll-container">
-              <!-- Para cada analista com cargo 'User', calcular quantas escutas faltam (5 - total) -->
+            <ul class="list-group scroll-container">
               <?php foreach($escutasFaltantes as $analista): ?>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                   <span class="analista-name"><?= htmlspecialchars($analista['nome']); ?></span>
-                  <span class="analista-total badge bg-danger rounded-pill"><?= $analista['faltantes']; ?></span>
+                  <?php if ($analista['faltantes'] <= 0): ?>
+                    <span class="analista-total badge bg-success rounded-pill">
+                      <i class="fa-solid fa-check-circle"></i>
+                    </span>
+                  <?php else: ?>
+                    <span class="analista-total badge bg-danger rounded-pill">
+                      <?= $analista['faltantes']; ?>
+                    </span>
+                  <?php endif; ?>
                 </li>
               <?php endforeach; ?>
-          </ul>
+            </ul>
           <?php else: ?>
             <p>Nenhum registro exibido</p>
           <?php endif; ?>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-
-
-<div class="container mt-5">
-  <div class="row mb-2">
-    <div class="col-md-12 mb-3">
-      <!-- Botão para abrir modal de cadastro -->
-      <div class="d-flex justify-content-end mb-4 gap-2">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrarUser">
-          Cadastrar Usuário
-        </button>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrar">
-          Cadastrar Nova Escuta
-        </button>
+    <!-- Coluna 2: Meta Geral e Escutas por Supervisor -->
+    <div class="col-md-3 d-flex flex-column">
+      <!-- Card: Meta Geral (ocupa o espaço vertical restante) -->
+      <div class="card flex-fill mb-3">
+        <div class="card-body">
+          <h5 class="card-title mb-2">Meta Geral de Escutas</h5>
+          <p class="mb-1"><strong>Meta Geral:</strong> <?= $metaGeral; ?> escutas</p>
+          <p><strong>Escutas Realizadas:</strong> <?= $totalEscutasRealizadas; ?></p>
+          <div class="progress mt-2">
+            <div class="progress-bar" role="progressbar"
+                 style="width: <?= $percentMetaGeral; ?>%;"
+                 aria-valuenow="<?= $percentMetaGeral; ?>"
+                 aria-valuemin="0" aria-valuemax="100">
+              <?= round($percentMetaGeral); ?>%
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Card: Escutas por Supervisor -->
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Escutas por Supervisor</h5>
+          <?php if (count($escutasSupervisor) > 0): ?>
+            <ul class="list-group scroll-container">
+              <?php foreach($escutasSupervisor as $supervisor): ?>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <?= htmlspecialchars($supervisor['nome']); ?>
+                  <span class="badge bg-primary rounded-pill"><?= $supervisor['total']; ?></span>
+                </li>
+              <?php endforeach; ?>
+            </ul>
+          <?php else: ?>
+            <p>Nenhum registro exibido</p>
+          <?php endif; ?>
+        </div>
       </div>
     </div>
 
-    <div class="card">
-  <div class="card-body">
-    <h5 class="card-title">Escutas por Analista</h5>
-    <?php if (count($escutasAnalista) > 0): ?>
-      <ul class="list-group">
-        <?php foreach($escutasAnalista as $analista): ?>
-          <?php 
-            // Total de escutas para o analista
-            $totalEscutas = $analista['total'];
-            // Calcula o percentual com base na meta de 5 escutas
-            $percentual = ($totalEscutas * 100) / 5;
-            // Limita o percentual a 100%
-            if ($percentual > 100) {
-              $percentual = 100;
-            }
-          ?>
-          <li class="list-group-item">
-            <div class="d-flex justify-content-between align-items-center">
-              <span><?= htmlspecialchars($analista['nome']); ?></span>
-              <span><?= $totalEscutas; ?> escutas</span>
+    <!-- Coluna 3: Filtro de Período (também se estica) -->
+    <div class="col-md-3 d-flex flex-column">
+      <div class="card flex-fill">
+        <div class="card-body">
+          <h5 class="card-title">Filtrar Período</h5>
+          <form method="GET">
+            <div class="mb-3 mt-4">
+              <label for="data_inicio" class="form-label">Data início</label>
+              <input type="date" class="form-control" id="data_inicio" name="data_inicio" 
+                     value="<?= htmlspecialchars($dataInicio); ?>">
             </div>
-            <div class="progress mt-2">
-              <div class="progress-bar" role="progressbar" style="width: <?= $percentual; ?>%;" aria-valuenow="<?= $percentual; ?>" aria-valuemin="0" aria-valuemax="100">
-                <?= round($percentual); ?>%
-              </div>
+            <div class="mb-4">
+              <label for="data_fim" class="form-label">Data fim</label>
+              <input type="date" class="form-control" id="data_fim" name="data_fim"
+                     value="<?= htmlspecialchars($dataFim); ?>">
             </div>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    <?php else: ?>
-      <p>Nenhum registro exibido</p>
-    <?php endif; ?>
-  </div>
-</div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+              <a href="escutas.php" class="btn btn-secondary btn-sm">Limpar Filtro</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
+  </div> <!-- fim row -->
+</div> <!-- fim container -->
+
+
+
+<!-- Seção: Escutas por Analista -->
+<div class="container mt-4">
+  <!-- Título + Botões -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0">Escutas por Analista</h3>
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrarUser">
+        Cadastrar Usuário
+      </button>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastrar">
+        Cadastrar Nova Escuta
+      </button>
+    </div>
   </div>
 
-  <h3 class="mb-4">Escutas por Analista</h3>
   <div class="row">
     <?php if (count($analistas) > 0): ?>
       <?php foreach ($analistas as $analista): ?>
-        <div class="col-md-4 mb-3">
+        <div class="col-md-3 mb-3">
           <div class="card h-100">
             <div class="card-body text-center">
-              <h5 class="card-title"><?php echo $analista['usuario_nome']; ?></h5>
-              <a href="escutas_por_analista.php?user_id=<?php echo $analista['user_id']; ?>" class="btn btn-primary">
+              <h5 class="card-title"><?= htmlspecialchars($analista['usuario_nome']); ?></h5>
+              <!-- Ao clicar, propaga data_inicio e data_fim para escutas_por_analista.php -->
+              <a href="escutas_por_analista.php?user_id=<?= $analista['user_id']; ?>
+                 <?php
+                   if (!empty($dataInicio)) {
+                       echo '&data_inicio=' . urlencode($dataInicio);
+                   }
+                   if (!empty($dataFim)) {
+                       echo '&data_fim=' . urlencode($dataFim);
+                   }
+                 ?>"
+                 class="btn btn-primary">
                 Ver Escutas
               </a>
             </div>
@@ -349,45 +412,39 @@ document.addEventListener("DOMContentLoaded", function () {
       <form method="POST" action="cadastrar_escuta.php">
         <div class="row mb-2">
           <div class="col-md-6 mb-3">
-            <div class="mb-3">
-              <label for="cad_user_id" class="form-label">Selecione o Usuário</label>
-              <select name="user_id" id="cad_user_id" class="form-select" required>
-                <option value="">Escolha o usuário</option>
-                <?php foreach($users as $user): ?>
-                  <option value="<?php echo $user['id']; ?>"><?php echo $user['nome']; ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
+            <label for="cad_user_id" class="form-label">Selecione o Usuário</label>
+            <select name="user_id" id="cad_user_id" class="form-select" required>
+              <option value="">Escolha o usuário</option>
+              <?php foreach($userscadastro as $usercad): ?>
+                <option value="<?= $usercad['id']; ?>"><?= htmlspecialchars($usercad['nome']); ?></option>
+              <?php endforeach; ?>
+            </select>
           </div>
           <div class="col-md-6 mb-3">
-            <div class="mb-3">
-              <label for="cad_classi_id" class="form-label">Classificação</label>
-              <select name="classi_id" id="cad_classi_id" class="form-select" required>
-                <option value="">Escolha a classificação</option>
-                <?php foreach($classis as $classi): ?>
-                  <option value="<?php echo $classi['id']; ?>"><?php echo $classi['descricao']; ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
+            <label for="cad_classi_id" class="form-label">Classificação</label>
+            <select name="classi_id" id="cad_classi_id" class="form-select" required>
+              <option value="">Escolha a classificação</option>
+              <?php foreach($classis as $classi): ?>
+                <option value="<?= $classi['id']; ?>"><?= htmlspecialchars($classi['descricao']); ?></option>
+              <?php endforeach; ?>
+            </select>
           </div>
         </div>
 
         <div class="row mb-2">
           <div class="col-md-6 mb-3">
-            <div class="mb-3">
-              <label for="tipo_escuta" class="form-label">Escuta Positiva</label>
-              <select name="positivo" id="tipo_escuta" class="form-select">
-                <option value="">Selecione...</option>
-                <option value="Sim">Sim</option>
-                <option value="Nao">Nao</option>
-              </select>
-            </div>
+            <label for="tipo_escuta" class="form-label">Escuta Positiva</label>
+            <select name="positivo" id="tipo_escuta" class="form-select">
+              <option value="">Selecione...</option>
+              <option value="Sim">Sim</option>
+              <option value="Nao">Nao</option>
+            </select>
           </div>
           <div class="col-md-6 mb-3">
-            <div class="mb-3">
-              <label for="cad_data_escuta" class="form-label">Data da Escuta</label>
-              <input type="date" name="data_escuta" id="cad_data_escuta" class="form-control" required value="<?php echo date('Y-m-d'); ?>">
-            </div>
+            <label for="cad_data_escuta" class="form-label">Data da Escuta</label>
+            <input type="date" name="data_escuta" id="cad_data_escuta" 
+                   class="form-control" required 
+                   value="<?= date('Y-m-d'); ?>">
           </div>
         </div>
 
@@ -416,25 +473,19 @@ document.addEventListener("DOMContentLoaded", function () {
       <form method="POST" action="cadastrar_usuario.php">
         <div class="row mb-2">
           <div class="col-md-6 mb-3">
-            <div class="mb-3">
-              <label for="cad_new_user_id" class="form-label">E-mail</label>
-              <input type="email" class="form-control" id="email" name="email" required>
-            </div>
+            <label for="email" class="form-label">E-mail</label>
+            <input type="email" class="form-control" id="email" name="email" required>
           </div>
           <div class="col-md-6 mb-3">
-            <div class="mb-3">
-              <label for="user_name" class="form-label">Nome</label>
-              <input type="text" class="form-control" id="name" name="nome" maxlength="50" required>
-            </div>
+            <label for="name" class="form-label">Nome</label>
+            <input type="text" class="form-control" id="name" name="nome" maxlength="50" required>
           </div>
         </div>
 
         <div class="row mb-2">
           <div class="col-md-6 mb-3">
-            <div class="mb-3">
-              <label for="tipo_escuta" class="form-label">Senha</label>
-              <input type="password" class="form-control" id="senha" name="senha" required>
-            </div>
+            <label for="senha" class="form-label">Senha</label>
+            <input type="password" class="form-control" id="senha" name="senha" required>
           </div>
         </div>
         <div class="d-flex justify-content-end">
@@ -445,6 +496,8 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
   </div>
 </div>
-</body>
+
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>
