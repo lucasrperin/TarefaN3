@@ -42,11 +42,13 @@ $sql = "SELECT
           f.data_inicio,
           f.data_fim,
           f.tipo,
-          COALESCE(f.justificativa, '') AS justificativa
+          COALESCE(f.justificativa,'') AS justificativa
         FROM TB_FOLGA f
         JOIN TB_USUARIO u ON f.usuario_id = u.Id";
+
 $conditions = [];
-// Se algum filtro for aplicado, faz join com TB_EQUIPE_NIVEL_ANALISTA
+
+/* se aplicar filtro de equipe / nível faz o JOIN extra */
 if ($idEquipeFilter != 'Todos' || $idNivelFilter != 'Todos') {
     $sql .= " JOIN TB_EQUIPE_NIVEL_ANALISTA eva ON u.Id = eva.idUsuario";
 }
@@ -56,31 +58,39 @@ if ($idEquipeFilter != 'Todos') {
 if ($idNivelFilter != 'Todos') {
     $conditions[] = "eva.idNivel = " . intval($idNivelFilter);
 }
+
+/* ▼ NOVO: traz apenas períodos ainda vigentes ou futuros */
+$conditions[] = "f.data_fim >= CURDATE()";
+/* ▲ NOVO --------------------------------------------------- */
+
 if (!empty($conditions)) {
-    $sql .= " WHERE " . implode(" AND ", $conditions);
+    $sql .= " WHERE " . implode(' AND ', $conditions);
 }
+
 $sql .= " ORDER BY f.data_inicio";
 $result = $conn->query($sql);
 
+/* ------------------------- monta o $aggregator ------------------------- */
 $aggregator = [];
 if ($result && $result->num_rows > 0) {
-  while ($row = $result->fetch_assoc()) {
-    $start = strtotime($row['data_inicio']);
-    $end   = strtotime($row['data_fim']);
-    for ($d = $start; $d <= $end; $d += 86400) {
-        $dayStr = date('Y-m-d', $d);
-        $aggregator[$dayStr][] = [
-            'id'            => $row['id'],
-            'usuarioId'     => $row['usuario_id'],
-            'nome'          => $row['nome_colaborador'],
-            'tipo'          => $row['tipo'],
-            'inicio'        => $row['data_inicio'],
-            'fim'           => $row['data_fim'],
-            'justificativa' => $row['justificativa']
-        ];
+    while ($row = $result->fetch_assoc()) {
+        $start = strtotime($row['data_inicio']);
+        $end   = strtotime($row['data_fim']);            // já ≥ hoje
+        for ($d = $start; $d <= $end; $d += 86400) {
+            $dayStr = date('Y-m-d', $d);
+            $aggregator[$dayStr][] = [
+                'id'            => $row['id'],
+                'usuarioId'     => $row['usuario_id'],
+                'nome'          => $row['nome_colaborador'],
+                'tipo'          => $row['tipo'],
+                'inicio'        => $row['data_inicio'],
+                'fim'           => $row['data_fim'],
+                'justificativa' => $row['justificativa']
+            ];
+        }
     }
 }
-}
+
 
 // ===================== CONSULTA PARA COLABORADORES (para os selects) =====================
 // Se houver filtro, retorna apenas os colaboradores que atendem à equipe e nível
@@ -692,26 +702,40 @@ $resultFolga = $conn->query($sqlListarFolga);
         return arg.text.toUpperCase().replace(/\./g, '');
       },
       dayCellDidMount: function (info) {
-        var dayStr   = info.date.toISOString().split('T')[0];
-        var dayFrame = info.el.querySelector('.fc-daygrid-day-frame');
-        if (dayFrame) {
-          dayFrame.style.position = 'relative';
-          if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
-            dayFrame.style.backgroundColor = '#E2F0D9';
-            var badge = document.createElement('span');
-            badge.classList.add('badge', 'bg-primary', 'badge-colab-center');
-            badge.textContent = aggregator[dayStr].length;
-            dayFrame.appendChild(badge);
-          }
-          dayFrame.addEventListener('click', function () {
-            document.querySelectorAll('.fc-daygrid-day-frame.selected-day')
-                    .forEach(function (cell) { cell.classList.remove('selected-day'); });
-            dayFrame.classList.add('selected-day');
-            selectedDay = dayStr; // NOVO – salva a escolha para o modal de cadastro
-            updateSidePanel(dayStr);
-          });
-        }
-      }
+  const dayStr   = info.date.toISOString().split('T')[0];
+  const dayFrame = info.el.querySelector('.fc-daygrid-day-frame');
+  if (!dayFrame) return;
+
+  dayFrame.style.position = 'relative';
+
+  /* ---------- marca folgas/férias ---------- */
+  if (aggregator[dayStr] && aggregator[dayStr].length) {
+    dayFrame.style.backgroundColor = '#E2F0D9';
+    const badge = document.createElement('span');
+    badge.classList.add('badge', 'bg-primary', 'badge-colab-center');
+    badge.textContent = aggregator[dayStr].length;
+    dayFrame.appendChild(badge);
+  }
+
+  /* ---------- NOVO: desativa dias passados ---------- */
+  const todayISO = new Date().toISOString().split('T')[0];
+  if (dayStr < todayISO) {
+    dayFrame.classList.add('past-day');          // só estilo
+    dayFrame.style.pointerEvents = 'none';       // bloqueia clique
+    return;                                      // não registra o listener
+  }
+  /* -------------------------------------------------- */
+
+  /* listener normal para dias válidos */
+  dayFrame.addEventListener('click', function () {
+    document.querySelectorAll('.fc-daygrid-day-frame.selected-day')
+            .forEach(c => c.classList.remove('selected-day'));
+    dayFrame.classList.add('selected-day');
+    selectedDay = dayStr;            // mantém sua lógica
+    updateSidePanel(dayStr);
+  });
+}
+
     });
     calendar.render();
 
