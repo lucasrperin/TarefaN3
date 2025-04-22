@@ -35,7 +35,14 @@ if (!$resultNiveis) {
 }
 
 // ===================== QUERY PRINCIPAL PARA O CALENDÁRIO (Aggregador) =====================
-$sql = "SELECT f.id, u.Nome AS nome_colaborador, f.data_inicio, f.data_fim, f.tipo
+$sql = "SELECT
+          f.id,
+          f.usuario_id,
+          u.Nome AS nome_colaborador,
+          f.data_inicio,
+          f.data_fim,
+          f.tipo,
+          COALESCE(f.justificativa, '') AS justificativa
         FROM TB_FOLGA f
         JOIN TB_USUARIO u ON f.usuario_id = u.Id";
 $conditions = [];
@@ -57,17 +64,22 @@ $result = $conn->query($sql);
 
 $aggregator = [];
 if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $start = strtotime($row['data_inicio']);
-        $end   = strtotime($row['data_fim']);
-        for ($d = $start; $d <= $end; $d += 86400) {
-            $dayStr = date('Y-m-d', $d);
-            $aggregator[$dayStr][] = [
-                'nome' => $row['nome_colaborador'],
-                'tipo' => $row['tipo']
-            ];
-        }
+  while ($row = $result->fetch_assoc()) {
+    $start = strtotime($row['data_inicio']);
+    $end   = strtotime($row['data_fim']);
+    for ($d = $start; $d <= $end; $d += 86400) {
+        $dayStr = date('Y-m-d', $d);
+        $aggregator[$dayStr][] = [
+            'id'            => $row['id'],
+            'usuarioId'     => $row['usuario_id'],
+            'nome'          => $row['nome_colaborador'],
+            'tipo'          => $row['tipo'],
+            'inicio'        => $row['data_inicio'],
+            'fim'           => $row['data_fim'],
+            'justificativa' => $row['justificativa']
+        ];
     }
+}
 }
 
 // ===================== CONSULTA PARA COLABORADORES (para os selects) =====================
@@ -575,32 +587,90 @@ $resultFolga = $conn->query($sqlListarFolga);
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-  // Função para formatar data de YYYY-MM-DD para DD/MM/YYYY
+  // Função para formatar data de YYYY‑MM‑DD para DD/MM/YYYY
   function formatDate(dateStr) {
     var parts = dateStr.split('-');
     return parts[2] + '/' + parts[1] + '/' + parts[0];
   }
 
+  // ← NOVO: guarda o último dia clicado no calendário principal
+  var selectedDay = null;
+
   // Atualiza o painel de detalhes para uma data específica
   function updateSidePanel(dayStr) {
-    var details = document.getElementById('details');
+    var details       = document.getElementById('details');
     var formattedDate = formatDate(dayStr);
     details.innerHTML = '<h5>' + formattedDate + '</h5><hr>';
+
     if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
-      aggregator[dayStr].forEach(function(item) {
-        details.innerHTML += '<p>' + item.nome + ' (' + item.tipo + ')</p>';
+      aggregator[dayStr].forEach(function (item) {
+        details.innerHTML +=
+          '<div class="d-flex justify-content-between align-items-center mb-2">' +
+            '<span>' + item.nome + ' (' + item.tipo + ')</span>' +
+            '<button type="button" ' +
+              'class="btn btn-sm btn-outline-primary edit-side-btn" ' +
+              'data-id="'            + item.id            + '" ' +
+              'data-usuarioid="'     + item.usuarioId     + '" ' +
+              'data-tipo="'          + item.tipo          + '" ' +
+              'data-inicio="'        + item.inicio        + '" ' +
+              'data-fim="'           + item.fim           + '" ' +
+              'data-justificativa="' + item.justificativa + '" ' +
+              'title="Editar">' +
+              '<i class="fa-solid fa-pen"></i>' +
+            '</button>' +
+          '</div>';
       });
     } else {
       details.innerHTML += '<p>Nenhum evento agendado.</p>';
     }
   }
 
+  /* -------- delegação de clique para os ícones criados dinamicamente */
+  document.getElementById('details').addEventListener('click', function (e) {
+    var btn = e.target.closest('.edit-side-btn');
+    if (!btn) return; // clicou em outra área
+
+    document.getElementById('edit_id').value            = btn.dataset.id;
+    document.getElementById('edit_usuario_id').value    = btn.dataset.usuarioid;
+    document.getElementById('edit_tipo').value          = btn.dataset.tipo;
+    document.getElementById('edit_data_inicio').value   = btn.dataset.inicio;
+    document.getElementById('edit_data_fim').value      = btn.dataset.fim;
+    document.getElementById('edit_justificativa').value = btn.dataset.justificativa;
+    document.getElementById('justificativaGroupEdit').style.display =
+      (btn.dataset.tipo === 'Folga') ? 'block' : 'none';
+
+    if (typeof calendarEditInstance !== 'undefined' && calendarEditInstance) {
+      calendarEditInstance.setDate([btn.dataset.inicio, btn.dataset.fim], true);
+    }
+    new bootstrap.Modal(document.getElementById('modalEditar')).show();
+  });
+  /* ----------------------------------------------------------------------- */
+
+  // Mantém os botões de edição estáticos das tabelas
+  document.querySelectorAll('.editar-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      document.getElementById('edit_id').value            = this.dataset.id;
+      document.getElementById('edit_usuario_id').value    = this.dataset.usuarioid;
+      document.getElementById('edit_tipo').value          = this.dataset.tipo;
+      document.getElementById('edit_data_inicio').value   = this.dataset.inicio;
+      document.getElementById('edit_data_fim').value      = this.dataset.fim;
+      document.getElementById('edit_justificativa').value = this.dataset.justificativa || '';
+      document.getElementById('justificativaGroupEdit').style.display =
+        (this.dataset.tipo === 'Folga') ? 'block' : 'none';
+
+      if (calendarEditInstance) {
+        calendarEditInstance.setDate([this.dataset.inicio, this.dataset.fim], true);
+      }
+      new bootstrap.Modal(document.getElementById('modalEditar')).show();
+    });
+  });
+
   // Passa o array aggregator do PHP para o JavaScript
   var aggregator = <?php echo json_encode($aggregator); ?>;
   console.log('Aggregator:', aggregator);
 
   // Inicializa o FullCalendar com timeZone configurado para "local"
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) {
       console.error("Elemento 'calendar' não encontrado!");
@@ -615,16 +685,14 @@ $resultFolga = $conn->query($sqlListarFolga);
         center: 'title',
         right: ''
       },
-      buttonText: {
-        today: 'Hoje'
-      },
+      buttonText: { today: 'Hoje' },
       height: 350,
       expandRows: true,
-      dayHeaderContent: function(arg) {
+      dayHeaderContent: function (arg) {
         return arg.text.toUpperCase().replace(/\./g, '');
       },
-      dayCellDidMount: function(info) {
-        var dayStr = info.date.toISOString().split('T')[0];
+      dayCellDidMount: function (info) {
+        var dayStr   = info.date.toISOString().split('T')[0];
         var dayFrame = info.el.querySelector('.fc-daygrid-day-frame');
         if (dayFrame) {
           dayFrame.style.position = 'relative';
@@ -635,11 +703,11 @@ $resultFolga = $conn->query($sqlListarFolga);
             badge.textContent = aggregator[dayStr].length;
             dayFrame.appendChild(badge);
           }
-          dayFrame.addEventListener('click', function() {
-            document.querySelectorAll('.fc-daygrid-day-frame.selected-day').forEach(function(cell) {
-              cell.classList.remove('selected-day');
-            });
+          dayFrame.addEventListener('click', function () {
+            document.querySelectorAll('.fc-daygrid-day-frame.selected-day')
+                    .forEach(function (cell) { cell.classList.remove('selected-day'); });
             dayFrame.classList.add('selected-day');
+            selectedDay = dayStr; // NOVO – salva a escolha para o modal de cadastro
             updateSidePanel(dayStr);
           });
         }
@@ -651,7 +719,7 @@ $resultFolga = $conn->query($sqlListarFolga);
     updateSidePanel(todayStr);
   });
 
-  let calendarInstance = null;
+  let calendarInstance     = null;
   let calendarEditInstance = null;
 
   // Inicializa o Flatpickr para o modal de cadastro
@@ -663,22 +731,19 @@ $resultFolga = $conn->query($sqlListarFolga);
         inline: true,
         dateFormat: 'Y-m-d',
         showMonths: 2,
-        onDayCreate: function(dateObj, dateStr, instance, dayElem) {
-          if (!dateObj || typeof dateObj.getFullYear !== 'function') {
-            console.warn("onDayCreate: dateObj inválido:", dateObj);
-            return;
-          }
+        onDayCreate: function (dateObj, dateStr, instance, dayElem) {
+          if (!dateObj || typeof dateObj.getFullYear !== 'function') return;
           let cleanDate = dateStr.slice(0, 10);
           if (aggregator[cleanDate] && aggregator[cleanDate].length > 0) {
             dayElem.classList.add("used-day");
           }
         },
-        onChange: function(selectedDates, dateStr, instance) {
+        onChange: function (selectedDates, dateStr, instance) {
           let conflict = false;
           let conflictDays = [];
           if (selectedDates.length === 2) {
             let start = new Date(selectedDates[0]);
-            let end = new Date(selectedDates[1]);
+            let end   = new Date(selectedDates[1]);
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
               let dayFormatted = instance.formatDate(d, 'Y-m-d');
               if (aggregator[dayFormatted] && aggregator[dayFormatted].length > 0) {
@@ -693,44 +758,56 @@ $resultFolga = $conn->query($sqlListarFolga);
               notificationElem = document.createElement('div');
               notificationElem.id = 'conflictNotification';
               notificationElem.className = 'alert alert-warning mt-2';
-              instance.calendarContainer.parentNode.insertBefore(notificationElem, instance.calendarContainer.nextSibling);
+              instance.calendarContainer.parentNode.insertBefore(
+                notificationElem, instance.calendarContainer.nextSibling
+              );
             }
-            notificationElem.innerText = 'Já há colaboradores com folga/férias nos dias: ' + 
-              conflictDays.map(function(day) { return day.split('-')[2]; }).join(', ');
+            notificationElem.innerText =
+              'Já há colaboradores com folga/férias nos dias: ' +
+              conflictDays.map(function (day) { return day.split('-')[2]; }).join(', ');
           } else if (notificationElem) {
             notificationElem.parentNode.removeChild(notificationElem);
           }
           if (selectedDates.length === 2) {
             document.getElementById('data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
-            document.getElementById('data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
+            document.getElementById('data_fim').value    = instance.formatDate(selectedDates[1], 'Y-m-d');
           }
         }
       });
     }
+
+    /* -------- NOVO: se o usuário clicou num dia, já destaca aqui -------- */
+    if (selectedDay && calendarInstance) {
+      calendarInstance.clear();               // limpa seleção anterior
+      calendarInstance.setDate(selectedDay, true); // seleciona o dia único
+      // também preenche hidden de início (fim fica vazio até o usuário escolher)
+      document.getElementById('data_inicio').value = selectedDay;
+      document.getElementById('data_fim').value    = '';
+    }
   });
 
   // Ouvinte para exibir/ocultar o campo de justificativa conforme o tipo selecionado no modal de cadastro
-  const tipoSelect = document.getElementById('tipo');
+  const tipoSelect         = document.getElementById('tipo');
   const justificativaGroup = document.getElementById('justificativaGroup');
-  tipoSelect.addEventListener('change', function() {
+  tipoSelect.addEventListener('change', function () {
     justificativaGroup.style.display = (tipoSelect.value === 'Folga') ? 'block' : 'none';
   });
 
   // Inicializa o Flatpickr para o modal de edição
   const modalEditar = document.getElementById('modalEditar');
-  modalEditar.addEventListener('shown.bs.modal', function() {
+  modalEditar.addEventListener('shown.bs.modal', function () {
     if (!calendarEditInstance) {
       calendarEditInstance = flatpickr('#calendarioInlineEdit', {
         mode: 'range',
         inline: true,
         dateFormat: 'Y-m-d',
         showMonths: 2,
-        onChange: function(selectedDates, dateStr, instance) {
+        onChange: function (selectedDates, dateStr, instance) {
           let conflict = false;
           let conflictDays = [];
           if (selectedDates.length === 2) {
             let start = new Date(selectedDates[0]);
-            let end = new Date(selectedDates[1]);
+            let end   = new Date(selectedDates[1]);
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
               let dayFormatted = instance.formatDate(d, 'Y-m-d');
               if (aggregator[dayFormatted] && aggregator[dayFormatted].length > 0) {
@@ -745,42 +822,52 @@ $resultFolga = $conn->query($sqlListarFolga);
               notificationElem = document.createElement('div');
               notificationElem.id = 'editConflictNotification';
               notificationElem.className = 'alert alert-warning mt-2';
-              instance.calendarContainer.parentNode.insertBefore(notificationElem, instance.calendarContainer.nextSibling);
+              instance.calendarContainer.parentNode.insertBefore(
+                notificationElem, instance.calendarContainer.nextSibling
+              );
             }
-            notificationElem.innerText = 'Já há colaboradores com folga/férias nos dias: ' +
-              conflictDays.map(function(day) { return day.split('-')[2]; }).join(', ');
+            notificationElem.innerText =
+              'Já há colaboradores com folga/férias nos dias: ' +
+              conflictDays.map(function (day) { return day.split('-')[2]; }).join(', ');
           } else if (notificationElem) {
             notificationElem.parentNode.removeChild(notificationElem);
           }
           if (selectedDates.length === 2) {
             document.getElementById('edit_data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
-            document.getElementById('edit_data_fim').value = instance.formatDate(selectedDates[1], 'Y-m-d');
+            document.getElementById('edit_data_fim').value    = instance.formatDate(selectedDates[1], 'Y-m-d');
           }
         }
       });
     } else {
       calendarEditInstance.redraw();
     }
+
+    // garante seleção atual do colaborador
+    var di = document.getElementById('edit_data_inicio').value;
+    var df = document.getElementById('edit_data_fim').value;
+    if (di && df && calendarEditInstance) {
+      calendarEditInstance.setDate([di, df], true);
+    }
   });
 
   // Preenche o modal de edição com os dados do evento selecionado e atualiza a visibilidade do campo justificativa
   document.querySelectorAll('.editar-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const id = this.getAttribute('data-id');
-      const usuarioId = this.getAttribute('data-usuarioid');
-      const tipo = this.getAttribute('data-tipo');
-      const dataInicio = this.getAttribute('data-inicio');
-      const dataFim = this.getAttribute('data-fim');
+    btn.addEventListener('click', function () {
+      const id            = this.getAttribute('data-id');
+      const usuarioId     = this.getAttribute('data-usuarioid');
+      const tipo          = this.getAttribute('data-tipo');
+      const dataInicio    = this.getAttribute('data-inicio');
+      const dataFim       = this.getAttribute('data-fim');
       const justificativa = this.getAttribute('data-justificativa') || '';
 
-      document.getElementById('edit_id').value = id;
-      document.getElementById('edit_usuario_id').value = usuarioId;
-      document.getElementById('edit_tipo').value = tipo;
-      document.getElementById('edit_data_inicio').value = dataInicio;
-      document.getElementById('edit_data_fim').value = dataFim;
+      document.getElementById('edit_id').value            = id;
+      document.getElementById('edit_usuario_id').value    = usuarioId;
+      document.getElementById('edit_tipo').value          = tipo;
+      document.getElementById('edit_data_inicio').value   = dataInicio;
+      document.getElementById('edit_data_fim').value      = dataFim;
       document.getElementById('edit_justificativa').value = justificativa;
-
-      document.getElementById('justificativaGroupEdit').style.display = (tipo === 'Folga') ? 'block' : 'none';
+      document.getElementById('justificativaGroupEdit').style.display =
+        (tipo === 'Folga') ? 'block' : 'none';
 
       if (calendarEditInstance) {
         if (dataInicio && dataFim) {
@@ -791,6 +878,13 @@ $resultFolga = $conn->query($sqlListarFolga);
       }
     });
   });
+
+  // força reload da página após fechar o modal de edição
+  document.getElementById('modalEditar')
+          .addEventListener('hidden.bs.modal', () => location.reload());
 </script>
+
+
+
 </body>
 </html>
