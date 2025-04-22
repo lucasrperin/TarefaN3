@@ -7,6 +7,13 @@ if (!isset($_SESSION['usuario_id'])) {
     header("Location: login.php");
     exit();
 }
+// Variáveis de sessão
+$usuario_id   = $_SESSION['usuario_id'];
+$cargo        = $_SESSION['cargo'] ?? '';
+$usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
  
 // Seleciona todos os clientes (ativos e inativos)
 $query = "SELECT * FROM TB_CLIENTES ORDER BY cliente";
