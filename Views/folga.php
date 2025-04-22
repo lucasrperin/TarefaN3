@@ -42,11 +42,13 @@ $sql = "SELECT
           f.data_inicio,
           f.data_fim,
           f.tipo,
-          COALESCE(f.justificativa, '') AS justificativa
+          COALESCE(f.justificativa,'') AS justificativa
         FROM TB_FOLGA f
         JOIN TB_USUARIO u ON f.usuario_id = u.Id";
+
 $conditions = [];
-// Se algum filtro for aplicado, faz join com TB_EQUIPE_NIVEL_ANALISTA
+
+/* se aplicar filtro de equipe / nível faz o JOIN extra */
 if ($idEquipeFilter != 'Todos' || $idNivelFilter != 'Todos') {
     $sql .= " JOIN TB_EQUIPE_NIVEL_ANALISTA eva ON u.Id = eva.idUsuario";
 }
@@ -56,31 +58,39 @@ if ($idEquipeFilter != 'Todos') {
 if ($idNivelFilter != 'Todos') {
     $conditions[] = "eva.idNivel = " . intval($idNivelFilter);
 }
+
+/* ▼ NOVO: traz apenas períodos ainda vigentes ou futuros */
+$conditions[] = "f.data_fim >= CURDATE()";
+/* ▲ NOVO --------------------------------------------------- */
+
 if (!empty($conditions)) {
-    $sql .= " WHERE " . implode(" AND ", $conditions);
+    $sql .= " WHERE " . implode(' AND ', $conditions);
 }
+
 $sql .= " ORDER BY f.data_inicio";
 $result = $conn->query($sql);
 
+/* ------------------------- monta o $aggregator ------------------------- */
 $aggregator = [];
 if ($result && $result->num_rows > 0) {
-  while ($row = $result->fetch_assoc()) {
-    $start = strtotime($row['data_inicio']);
-    $end   = strtotime($row['data_fim']);
-    for ($d = $start; $d <= $end; $d += 86400) {
-        $dayStr = date('Y-m-d', $d);
-        $aggregator[$dayStr][] = [
-            'id'            => $row['id'],
-            'usuarioId'     => $row['usuario_id'],
-            'nome'          => $row['nome_colaborador'],
-            'tipo'          => $row['tipo'],
-            'inicio'        => $row['data_inicio'],
-            'fim'           => $row['data_fim'],
-            'justificativa' => $row['justificativa']
-        ];
+    while ($row = $result->fetch_assoc()) {
+        $start = strtotime($row['data_inicio']);
+        $end   = strtotime($row['data_fim']);            // já ≥ hoje
+        for ($d = $start; $d <= $end; $d += 86400) {
+            $dayStr = date('Y-m-d', $d);
+            $aggregator[$dayStr][] = [
+                'id'            => $row['id'],
+                'usuarioId'     => $row['usuario_id'],
+                'nome'          => $row['nome_colaborador'],
+                'tipo'          => $row['tipo'],
+                'inicio'        => $row['data_inicio'],
+                'fim'           => $row['data_fim'],
+                'justificativa' => $row['justificativa']
+            ];
+        }
     }
 }
-}
+
 
 // ===================== CONSULTA PARA COLABORADORES (para os selects) =====================
 // Se houver filtro, retorna apenas os colaboradores que atendem à equipe e nível
@@ -669,6 +679,15 @@ $resultFolga = $conn->query($sqlListarFolga);
   var aggregator = <?php echo json_encode($aggregator); ?>;
   console.log('Aggregator:', aggregator);
 
+  // helper: verifica se existe folga de OUTRO colaborador (ignora o próprio e o evento em edição)
+  function hasForeignEvent(dayKey, uid, currId) {
+    if (!aggregator[dayKey]) return false;
+    return aggregator[dayKey].some(ev =>
+      String(ev.usuarioId) !== String(uid) &&
+      (currId === null || String(ev.id) !== String(currId))
+    );
+  }
+
   // Inicializa o FullCalendar com timeZone configurado para "local"
   document.addEventListener('DOMContentLoaded', function () {
     var calendarEl = document.getElementById('calendar');
@@ -738,17 +757,17 @@ $resultFolga = $conn->query($sqlListarFolga);
             dayElem.classList.add("used-day");
           }
         },
-        onChange: function (selectedDates, dateStr, instance) {
+        onChange: function (selectedDates, _, instance) {
           let conflict = false;
           let conflictDays = [];
           if (selectedDates.length === 2) {
             let start = new Date(selectedDates[0]);
             let end   = new Date(selectedDates[1]);
             for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-              let dayFormatted = instance.formatDate(d, 'Y-m-d');
-              if (aggregator[dayFormatted] && aggregator[dayFormatted].length > 0) {
+              let key = instance.formatDate(d, 'Y-m-d');
+              if (aggregator[key] && aggregator[key].length > 0) {
                 conflict = true;
-                conflictDays.push(dayFormatted);
+                conflictDays.push(key);
               }
             }
           }
@@ -776,65 +795,68 @@ $resultFolga = $conn->query($sqlListarFolga);
       });
     }
 
-    /* -------- NOVO: se o usuário clicou num dia, já destaca aqui -------- */
+    // se o usuário já escolheu um dia no principal, destaca aqui
     if (selectedDay && calendarInstance) {
-      calendarInstance.clear();               // limpa seleção anterior
-      calendarInstance.setDate(selectedDay, true); // seleciona o dia único
-      // também preenche hidden de início (fim fica vazio até o usuário escolher)
+      calendarInstance.clear();
+      calendarInstance.setDate(selectedDay, true);
       document.getElementById('data_inicio').value = selectedDay;
       document.getElementById('data_fim').value    = '';
     }
   });
 
-  // Ouvinte para exibir/ocultar o campo de justificativa conforme o tipo selecionado no modal de cadastro
+  // Ouvinte para exibir/ocultar o campo de justificativa no cadastro
   const tipoSelect         = document.getElementById('tipo');
   const justificativaGroup = document.getElementById('justificativaGroup');
   tipoSelect.addEventListener('change', function () {
     justificativaGroup.style.display = (tipoSelect.value === 'Folga') ? 'block' : 'none';
   });
 
-  // Inicializa o Flatpickr para o modal de edição
-  const modalEditar = document.getElementById('modalEditar');
-  modalEditar.addEventListener('shown.bs.modal', function () {
+  /* --------- Flatpickr – modal de EDIÇÃO (ajustado) --------- */
+  const modalEditarElem = document.getElementById('modalEditar');
+  modalEditarElem.addEventListener('shown.bs.modal', function () {
     if (!calendarEditInstance) {
       calendarEditInstance = flatpickr('#calendarioInlineEdit', {
         mode: 'range',
         inline: true,
         dateFormat: 'Y-m-d',
         showMonths: 2,
-        onChange: function (selectedDates, dateStr, instance) {
-          let conflict = false;
-          let conflictDays = [];
+        onChange: function (selectedDates, _, instance) {
+          const uid    = document.getElementById('edit_usuario_id').value; // ★
+          const currId = document.getElementById('edit_id').value;        // ★
+          let conflict = false, days = [];
+
           if (selectedDates.length === 2) {
-            let start = new Date(selectedDates[0]);
-            let end   = new Date(selectedDates[1]);
-            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-              let dayFormatted = instance.formatDate(d, 'Y-m-d');
-              if (aggregator[dayFormatted] && aggregator[dayFormatted].length > 0) {
+            for (let d = new Date(selectedDates[0]); d <= selectedDates[1]; d.setDate(d.getDate() + 1)) {
+              const key = instance.formatDate(d, 'Y-m-d');
+              if (hasForeignEvent(key, uid, currId)) { // ★
                 conflict = true;
-                conflictDays.push(dayFormatted);
+                days.push(key);
               }
             }
           }
-          let notificationElem = document.getElementById('editConflictNotification');
+
+          let warn = document.getElementById('editConflictNotification');
           if (conflict) {
-            if (!notificationElem) {
-              notificationElem = document.createElement('div');
-              notificationElem.id = 'editConflictNotification';
-              notificationElem.className = 'alert alert-warning mt-2';
+            if (!warn) {
+              warn = document.createElement('div');
+              warn.id = 'editConflictNotification';
+              warn.className = 'alert alert-warning mt-2';
               instance.calendarContainer.parentNode.insertBefore(
-                notificationElem, instance.calendarContainer.nextSibling
+                warn, instance.calendarContainer.nextSibling
               );
             }
-            notificationElem.innerText =
-              'Já há colaboradores com folga/férias nos dias: ' +
-              conflictDays.map(function (day) { return day.split('-')[2]; }).join(', ');
-          } else if (notificationElem) {
-            notificationElem.parentNode.removeChild(notificationElem);
+            warn.textContent =
+              'Há outros colaboradores com folga/férias nos dias: ' +
+              days.map(k => k.split('-')[2]).join(', ');
+          } else if (warn) {
+            warn.remove();
           }
+
           if (selectedDates.length === 2) {
-            document.getElementById('edit_data_inicio').value = instance.formatDate(selectedDates[0], 'Y-m-d');
-            document.getElementById('edit_data_fim').value    = instance.formatDate(selectedDates[1], 'Y-m-d');
+            document.getElementById('edit_data_inicio').value =
+              instance.formatDate(selectedDates[0], 'Y-m-d');
+            document.getElementById('edit_data_fim').value    =
+              instance.formatDate(selectedDates[1], 'Y-m-d');
           }
         }
       });
@@ -842,7 +864,7 @@ $resultFolga = $conn->query($sqlListarFolga);
       calendarEditInstance.redraw();
     }
 
-    // garante seleção atual do colaborador
+    // mantém o período atual já aparecido
     var di = document.getElementById('edit_data_inicio').value;
     var df = document.getElementById('edit_data_fim').value;
     if (di && df && calendarEditInstance) {
@@ -850,38 +872,8 @@ $resultFolga = $conn->query($sqlListarFolga);
     }
   });
 
-  // Preenche o modal de edição com os dados do evento selecionado e atualiza a visibilidade do campo justificativa
-  document.querySelectorAll('.editar-btn').forEach(btn => {
-    btn.addEventListener('click', function () {
-      const id            = this.getAttribute('data-id');
-      const usuarioId     = this.getAttribute('data-usuarioid');
-      const tipo          = this.getAttribute('data-tipo');
-      const dataInicio    = this.getAttribute('data-inicio');
-      const dataFim       = this.getAttribute('data-fim');
-      const justificativa = this.getAttribute('data-justificativa') || '';
-
-      document.getElementById('edit_id').value            = id;
-      document.getElementById('edit_usuario_id').value    = usuarioId;
-      document.getElementById('edit_tipo').value          = tipo;
-      document.getElementById('edit_data_inicio').value   = dataInicio;
-      document.getElementById('edit_data_fim').value      = dataFim;
-      document.getElementById('edit_justificativa').value = justificativa;
-      document.getElementById('justificativaGroupEdit').style.display =
-        (tipo === 'Folga') ? 'block' : 'none';
-
-      if (calendarEditInstance) {
-        if (dataInicio && dataFim) {
-          calendarEditInstance.setDate([dataInicio, dataFim], true);
-        } else {
-          calendarEditInstance.clear();
-        }
-      }
-    });
-  });
-
   // força reload da página após fechar o modal de edição
-  document.getElementById('modalEditar')
-          .addEventListener('hidden.bs.modal', () => location.reload());
+  modalEditarElem.addEventListener('hidden.bs.modal', () => location.reload());
 </script>
 
 
