@@ -14,28 +14,48 @@ $usuario_id = isset($_GET['usuario_id']) ? intval($_GET['usuario_id']) : $_SESSI
 
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 
+// 1) Captura valores do filtro
+$filterColumn  = $_GET['filterColumn'] ?? 'period';
+$dataInicial   = $_GET['data_inicial'] ?? '';
+$dataFinal     = $_GET['data_final']   ?? '';
+
+// 2) Monta array de condições
+$filters = [];
+
+// --- Período ---
+if ($filterColumn === 'period' && $dataInicial && $dataFinal) {
+  $filters[] = "a.Hora_ini BETWEEN '$dataInicial 00:00:00' AND '$dataFinal 23:59:59'";
+}
+
+// 3) Transforma em SQL
+$whereSql = $filters
+  ? ' AND ' . implode(' AND ', $filters)
+  : '';
+
 // Consulta para obter análises (incluindo o campo Nota) do usuário logado
-$sql_analises = "SELECT
-            a.Id,
-            a.Descricao,
-            a.Nota,
-            a.numeroFicha,
-            DATE_FORMAT(a.Hora_ini, '%d/%m %H:%i:%s') as Hora_ini,
-            a.justificativa as justificativa,
-            u.Nome as Usuario
-         FROM TB_ANALISES a
-         LEFT JOIN TB_USUARIO u ON u.Id = a.idUsuario
-         WHERE a.idAtendente = ? AND a.idSituacao = 1 AND a.idStatus = 1";
-$stmt_analises = $conn->prepare($sql_analises);
-$stmt_analises->bind_param("i", $usuario_id);
-$stmt_analises->execute();
-$resultado_analises = $stmt_analises->get_result();
+$sql_analises = "
+  SELECT
+    a.Id, a.Descricao, a.Nota, a.numeroFicha,
+    DATE_FORMAT(a.Hora_ini,'%d/%m %H:%i:%s') AS Hora_ini,
+    a.justificativa, u.Nome AS Usuario
+  FROM TB_ANALISES a
+  LEFT JOIN TB_USUARIO u ON u.Id = a.idUsuario
+  WHERE a.idAtendente = ? 
+    AND a.idSituacao = 1 
+    AND a.idStatus   = 1
+    {$whereSql}
+";
+$stmt = $conn->prepare($sql_analises);
+$stmt->bind_param('i', $usuario_id);
+$stmt->execute();
+$resultado_analises = $stmt->get_result();
 
 // Armazenar análises em um array
 $analises = [];
 while ($row = $resultado_analises->fetch_assoc()) {
     $analises[] = $row;
 }
+
 $totalAnalises = count($analises);
 
 // Calcular a média das notas do usuário logado
@@ -59,22 +79,22 @@ if ($mediaValor >= 4.5) {
 }
 
 // Consulta para obter fichas do usuário logado
-$sql_fichas = "SELECT
-                  a.Id,
-                  a.Descricao,
-                  a.numeroFicha,
-                  DATE_FORMAT(a.Hora_ini, '%d/%m %H:%i:%s') as Hora_ini
-              FROM TB_ANALISES a
-              WHERE a.idAtendente = ? AND a.idSituacao = 3";
-$stmt_fichas = $conn->prepare($sql_fichas);
-$stmt_fichas->bind_param("i", $usuario_id);
-$stmt_fichas->execute();
-$resultado_fichas = $stmt_fichas->get_result();
-
-// Organizar fichas por número
+$sql_fichas = "
+  SELECT
+    a.Id, a.Descricao, a.numeroFicha,
+    DATE_FORMAT(a.Hora_ini,'%d/%m %H:%i:%s') AS Hora_ini
+  FROM TB_ANALISES a
+  WHERE a.idAtendente = ? 
+    AND a.idSituacao  = 3
+    {$whereSql}
+";
+$stmt = $conn->prepare($sql_fichas);
+$stmt->bind_param('i', $usuario_id);
+$stmt->execute();
+$resultado_fichas = $stmt->get_result();
 $fichas_por_numero = [];
-while ($ficha = $resultado_fichas->fetch_assoc()) {
-    $fichas_por_numero[$ficha['numeroFicha']][] = $ficha;
+while ($f = $resultado_fichas->fetch_assoc()) {
+  $fichas_por_numero[$f['numeroFicha']][] = $f;
 }
 
 // Calcular total de fichas
@@ -84,34 +104,36 @@ foreach ($fichas_por_numero as $numeroFicha => $fichas) {
 }
 
 // Consulta para ranking: top 5 usuários com maior média de notas
-// A média é truncada para uma casa decimal: FLOOR(AVG(a.Nota)*10)/10
-$sql_ranking = "SELECT 
-                  a.idAtendente, 
-                  u.Nome as usuario_nome, 
-                  AVG(a.Nota) as mediaNotas
-                FROM TB_ANALISES a
-                JOIN TB_USUARIO u ON a.idAtendente = u.Id
-                WHERE a.idStatus = 1
-                GROUP BY a.idAtendente, u.Nome
-                ORDER BY mediaNotas DESC";
-$result_ranking = $conn->query($sql_ranking);
-$ranking = [];
-if ($result_ranking) {
-    while ($row = $result_ranking->fetch_assoc()) {
-         $ranking[] = $row;
-    }
-}
+
+$sql_ranking = "
+  SELECT 
+    a.idAtendente, u.Nome AS usuario_nome,
+    AVG(a.Nota) AS mediaNotas
+  FROM TB_ANALISES a
+  JOIN TB_USUARIO u ON a.idAtendente = u.Id
+  WHERE a.idStatus = 1
+    {$whereSql}
+  GROUP BY a.idAtendente, u.Nome
+  ORDER BY mediaNotas DESC
+";
+$result = $conn->query($sql_ranking);
+$ranking = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+
+
+// logo após criar o $whereSql, antes de qualquer consulta de posição:
+$colocacaoAtual   = null;
+$colocacaoAnterior = null;
+
 
 // ————————————————————————————————
 // 1) Verifica se tem análises no MÊS ATUAL
 // ————————————————————————————————
 $sql_cnt_atual = "
   SELECT COUNT(*) AS cnt
-  FROM TB_ANALISES
-  WHERE idAtendente = ?
-    AND YEAR(Hora_ini) = YEAR(CURRENT_DATE())
-    AND MONTH(Hora_ini) = MONTH(CURRENT_DATE())
-    AND idStatus = 1
+  FROM TB_ANALISES a
+  WHERE a.idAtendente = ?
+    AND a.idStatus = 1
+    {$whereSql}
 ";
 $stmt_cnt = $conn->prepare($sql_cnt_atual);
 $stmt_cnt->bind_param("i", $usuario_id);
@@ -119,34 +141,36 @@ $stmt_cnt->execute();
 $res_cnt = $stmt_cnt->get_result()->fetch_assoc();
 $cntAtual = (int) $res_cnt['cnt'];
 
+// 1) Posição no mês atual (Dense Rank)
 if ($cntAtual > 0) {
-  // Só roda essa query se existir pelo menos 1 análise
   $sql_posicao_atual = "
-    SELECT COUNT(*)+1 AS posicaoAtual
+    SELECT COUNT(DISTINCT mediaMes)+1 AS posicaoAtual
     FROM (
-      SELECT idAtendente, AVG(Nota) AS mediaMes
-      FROM TB_ANALISES
-      WHERE YEAR(Hora_ini) = YEAR(CURRENT_DATE())
-        AND MONTH(Hora_ini) = MONTH(CURRENT_DATE())
-        AND idStatus = 1
-      GROUP BY idAtendente
-      HAVING mediaMes > (
-        SELECT AVG(Nota)
-        FROM TB_ANALISES
-        WHERE idAtendente = ?
-          AND YEAR(Hora_ini) = YEAR(CURRENT_DATE())
-          AND MONTH(Hora_ini) = MONTH(CURRENT_DATE())
-          AND idStatus = 1
-      )
-    ) AS ranking_atual
+      SELECT AVG(a.Nota) AS mediaMes
+      FROM TB_ANALISES a
+      WHERE a.idStatus = 1
+        {$whereSql}
+      GROUP BY a.idAtendente
+    ) AS t
+    WHERE t.mediaMes > (
+      SELECT AVG(Nota)
+      FROM TB_ANALISES a
+      WHERE a.idAtendente = ?
+        AND a.idStatus = 1
+        {$whereSql}
+    )
   ";
   $stmt = $conn->prepare($sql_posicao_atual);
-  $stmt->bind_param("i", $usuario_id);
+  $stmt->bind_param('i', $usuario_id);
   $stmt->execute();
-  $row = $stmt->get_result()->fetch_assoc();
-  $colocacaoAtual = $row['posicaoAtual'];
-} else {
-  $colocacaoAtual = null;
+  $res = $stmt->get_result();
+
+  if ($res && $res->num_rows > 0) {
+      $row = $res->fetch_assoc();
+      $colocacaoAtual = (int)$row['posicaoAtual'];
+  } else {
+      $colocacaoAtual = null;  // ou 0, ou '-' — como já faz no render
+  }
 }
 
 // ————————————————————————————————
@@ -154,11 +178,11 @@ if ($cntAtual > 0) {
 // ————————————————————————————————
 $sql_cnt_ant = "
   SELECT COUNT(*) AS cnt
-  FROM TB_ANALISES
-  WHERE idAtendente = ?
-    AND YEAR(Hora_ini) = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
-    AND MONTH(Hora_ini) = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
-    AND idStatus = 1
+  FROM TB_ANALISES a
+  WHERE a.idAtendente = ?
+    AND YEAR(a.Hora_ini) = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+    AND MONTH(a.Hora_ini) = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+    AND a.idStatus = 1
 ";
 $stmt_cnt = $conn->prepare($sql_cnt_ant);
 $stmt_cnt->bind_param("i", $usuario_id);
@@ -166,33 +190,41 @@ $stmt_cnt->execute();
 $res_cnt = $stmt_cnt->get_result()->fetch_assoc();
 $cntAnt = (int) $res_cnt['cnt'];
 
+// 2) Posição no mês anterior (Dense Rank)
 if ($cntAnt > 0) {
   $sql_posicao_anterior = "
-    SELECT COUNT(*)+1 AS posicaoAnterior
-    FROM (
-      SELECT idAtendente, AVG(Nota) AS mediaMes
-      FROM TB_ANALISES
-      WHERE YEAR(Hora_ini) = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
-        AND MONTH(Hora_ini) = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
-        AND idStatus = 1
+    WITH PrevMonthAvg AS (
+      SELECT 
+        a.idAtendente, 
+        AVG(a.Nota) AS mediaMes
+      FROM TB_ANALISES a
+      WHERE a.idStatus   = 1
+        AND YEAR(a.Hora_ini)  = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+        AND MONTH(a.Hora_ini) = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+        {$whereSql}
       GROUP BY idAtendente
-      HAVING mediaMes > (
-        SELECT AVG(Nota)
-        FROM TB_ANALISES
-        WHERE idAtendente = ?
-          AND YEAR(Hora_ini) = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
-          AND MONTH(Hora_ini) = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
-          AND idStatus = 1
-      )
-    ) AS ranking_passado
+    )
+    SELECT posicaoAnterior
+    FROM (
+      SELECT 
+        idAtendente,
+        DENSE_RANK() OVER (ORDER BY mediaMes DESC) AS posicaoAnterior
+      FROM PrevMonthAvg
+    ) AS ranked
+    WHERE idAtendente = ?  
   ";
   $stmt = $conn->prepare($sql_posicao_anterior);
-  $stmt->bind_param("i", $usuario_id);
+  $stmt->bind_param('i', $usuario_id);
   $stmt->execute();
-  $row = $stmt->get_result()->fetch_assoc();
-  $colocacaoAnterior = $row['posicaoAnterior'];
-} else {
-  $colocacaoAnterior = null;
+
+  $res = $stmt->get_result();
+  $row = $res ? $res->fetch_assoc() : null;
+
+  if (is_array($row) && array_key_exists('posicaoAnterior', $row)) {
+      $colocacaoAnterior = (int) $row['posicaoAnterior'];
+  } else {
+      $colocacaoAnterior = null;
+  }
 }
 
 // define a função (sem alteração)
@@ -274,6 +306,10 @@ $clsAnterior = is_int($colocacaoAnterior) && $colocacaoAnterior > 0
     <div class="row gx-4 gy-4 ">
       <!-- PRIMEIRA ROW: MÉTRICAS (4 cards lado a lado) -->
       <div class="col-12">
+        <!-- Botão para abrir o modal de filtro -->
+    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
+      <i class="fa-solid fa-filter"></i>
+    </button>
         <div class="row gx-4 gy-4 justify-content-center ">
           <!-- Coluna 1: Média das Notas + Colocação -->
           <div class="col-sm-6 col-md-3 d-flex flex-column">
@@ -539,6 +575,48 @@ $clsAnterior = is_int($colocacaoAnterior) && $colocacaoAnterior > 0
     </div>
   </div>
 
+  <!-- Modal de Filtro com Controle por Coluna -->
+  <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+      <div class="modal-content">
+        <form method="GET" action="user.php">
+          <div class="modal-header">
+            <h5 class="modal-title" id="filterModalLabel">Filtro</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Seletor de Coluna para filtrar -->
+            <div class="mb-3">
+              <label for="filterColumn" class="form-label">Filtrar por Coluna:</label>
+              <select class="form-select" id="filterColumn" name="filterColumn">
+                <option value="period" <?php if(isset($_GET['filterColumn']) && $_GET['filterColumn'] == 'period') echo "selected"; ?>>Período</option>
+              </select>
+            </div>
+            <!-- Campo para filtro por Período com os dois checkboxes -->
+            <div id="filterPeriod" style="display: none;">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="data_inicial" class="form-label">Data Início:</label>
+                  <input type="date" class="form-control" id="data_inicial" name="data_inicial" value="<?php echo isset($_GET['data_inicial']) ? $_GET['data_inicial'] : ''; ?>">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="data_final" class="form-label">Data Fim:</label>
+                  <input type="date" class="form-control" id="data_final" name="data_final" value="<?php echo isset($_GET['data_final']) ? $_GET['data_final'] : ''; ?>">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <!-- Alterado o link para incluir o parâmetro clear=1 -->
+            <button type="button" class="btn btn-secondary" onclick="window.location.href='user.php?clear=1'">Limpar Filtro</button>
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+          </div>
+          <input type="hidden" name="filterColumn" id="filterColumnHidden">
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Bootstrap Bundle com Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
@@ -552,6 +630,23 @@ $clsAnterior = is_int($colocacaoAnterior) && $colocacaoAnterior > 0
       var modal = new bootstrap.Modal(modalElement);
       modal.show();
     }
+  </script>
+  <!-- Script para alternar entre os campos de filtro -->
+  <script>
+    function adjustFilterFields() {
+      let filterColumn = document.getElementById("filterColumn").value;
+      document.getElementById("filterColumnHidden").value = filterColumn;
+      // Esconde todos os containers
+      document.getElementById("filterPeriod").style.display = "none";
+      // Exibe o container da opção selecionada
+      if (filterColumn === "period") {
+        document.getElementById("filterPeriod").style.display = "block";
+      } 
+    }
+    document.addEventListener("DOMContentLoaded", function() {
+      adjustFilterFields();
+      document.getElementById("filterColumn").addEventListener("change", adjustFilterFields);
+    });
   </script>
 </body>
 </html>
