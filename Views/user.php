@@ -147,176 +147,216 @@ if ($result_ranking) {
       </nav>
     </div>
 
-   <!-- ÁREA PRINCIPAL -->
-   <div class="w-100">
-      <!-- HEADER (inalterado) -->
-      <div class="header">
-        <h3>Meu Painel</h3>
-        <div class="user-info">
-          <span>Bem‑vindo, <?php echo htmlspecialchars($_SESSION['usuario_nome']); ?>!</span>
-          <a href="logout.php" class="btn btn-danger btn-sm">
-            <i class="fa-solid fa-right-from-bracket"></i>
-          </a>
+  <!-- ÁREA PRINCIPAL -->
+  <div class="w-100">
+    <!-- HEADER (inalterado) -->
+    <div class="header">
+      <h3>Meu Painel</h3>
+      <div class="user-info">
+        <span>Bem‑vindo, <?php echo htmlspecialchars($_SESSION['usuario_nome']); ?>!</span>
+        <a href="logout.php" class="btn btn-danger btn-sm">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- 1) Resumo Geral -->
+      <div class="row summary-cards gx-4 mb-5 align-items-stretch">
+      <!-- Média das Notas -->
+      <div class="col-sm-6 col-lg-3">
+        <div class="card summary-card modern h-100">
+          <div class="card-body text-center p-4">
+            <div class="icon-circle bg-primary mb-3">
+              <i class="fa-solid fa-star text-white"></i>
+            </div>
+            <small class="label">Média das Notas</small>
+            <div class="count <?php echo $classeMedia; ?>">
+              <?php echo $mediaFormatada; ?>
+            </div>
+            <small class="text-<?php echo $classeMedia; ?>">
+              <?php echo $textoMedia; ?>
+            </small>
+          </div>
         </div>
       </div>
 
-      <!-- CONTENT (Layout 4) -->
-      <div class="content">
-        <div class="row gy-4">
-          <!-- COLUNA ESQUERDA: MÉTRICAS -->
-          <div class="col-lg-4 d-flex flex-column gap-4">
-            <!-- Média das Notas -->
-            <div class="card border-start border-4 border-secondary shadow-sm bg-tint-secondary">
-              <div class="card-body d-flex align-items-center">
-                <div class="bg-secondary text-white rounded-circle icon-circle me-3">
-                  <i class="fa-solid fa-star"></i>
-                </div>
-                <div>
-                  <small class="text-muted">Média das Notas</small>
-                  <h5 class="<?php echo $classeMedia; ?>"><?php echo $mediaFormatada; ?></h5>
-                  <small class="<?php echo $classeMedia; ?>"><?php echo $textoMedia; ?></small>
-                </div>
-              </div>
+      <!-- Ranking Completo -->
+      <div class="col-sm-6 col-lg-3">
+        <div class="card summary-card modern h-100">
+          <div class="card-body text-center p-4">
+            <div class="icon-circle bg-warning mb-3">
+              <i class="fa-solid fa-trophy text-white"></i>
             </div>
+            <small class="label">Ranking Completo</small>
+            <ul class="ranking-scroll modern-scroll text-start small mb-0 ps-0">
+              <?php if(count($ranking)>0): ?>
+                <?php foreach($ranking as $i=>$r): ?>
+                <li class="d-flex justify-content-between py-1 border-bottom">
+                  <span>
+                    <?php echo ($i<3?['🥇','🥈','🥉'][$i]:($i+1).'º') 
+                              .' '.htmlspecialchars($r['usuario_nome']); ?>
+                  </span>
+                  <span><?php echo number_format($r['mediaNotas'],2,',','.'); ?></span>
+                </li>
+                <?php endforeach; ?>
+              <?php else: ?>
+                <li class="text-center text-muted py-2">Nenhum ranking</li>
+              <?php endif; ?>
+            </ul>
+          </div>
+        </div>
+      </div>
 
-            <!-- Ranking -->
-            <div class="card border-start border-4 border-warning shadow-sm bg-tint-warning">
-              <div class="card-body d-flex flex-column">
-                <div class="d-flex align-items-center mb-2">
-                  <div class="bg-warning text-white rounded-circle icon-circle me-2">
-                    <i class="fa-solid fa-trophy"></i>
-                  </div>
-                  <h6 class="mb-0">Ranking</h6>
-                </div>
-                <?php if(count($ranking)>0): ?>
-                  <ul class="list-unstyled small  ranking-scroll mb-0">
-                    <?php foreach($ranking as $i=>$r): ?>
-                      <li class="d-flex justify-content-between py-2 border-bottom">
-                        <span>
-                          <?php 
-                            echo ($i<3? ['🥇','🥈','🥉'][$i] : ($i+1).'º')
-                              .' '.htmlspecialchars($r['usuario_nome']);
-                          ?>
-                        </span>
-                        <span class="badge bg-secondary rounded-pill">
-                          <?php echo number_format($r['mediaNotas'],2,',','.'); ?>
-                        </span>
-                      </li>
-                    <?php endforeach; ?>
-                  </ul>
-                <?php else: ?>
-                  <small class="text-muted">Nenhum ranking disponível</small>
-                <?php endif; ?>
-              </div>
+      <!-- Total de Análises -->
+      <div class="col-sm-6 col-lg-3">
+        <div class="card summary-card modern h-100">
+          <div class="card-body text-center p-4">
+            <div class="icon-circle bg-primary mb-3">
+              <i class="fa-solid fa-chart-line text-white"></i>
             </div>
-
-            <!-- Total de Análises -->
-            <div class="card border-start border-4 border-primary shadow-sm bg-tint-primary">
-              <div class="card-body d-flex align-items-center">
-                <div class="bg-primary text-white rounded-circle icon-circle me-3">
-                  <i class="fa-solid fa-chart-line"></i>
-                </div>
-                <div>
-                  <small class="text-muted">Total de Análises</small>
-                  <h4 class="mb-0"><?php echo $totalAnalises; ?></h4>
-                </div>
-              </div>
-            </div>
-
-            <!-- Total de Fichas -->
-            <div class="card border-start border-4 border-info shadow-sm bg-tint-info">
-              <div class="card-body d-flex align-items-center">
-                <div class="bg-info text-white rounded-circle icon-circle me-3">
-                  <i class="fa-solid fa-clipboard-list"></i>
-                </div>
-                <div>
-                  <small class="text-muted">Total de Fichas</small>
-                  <h4 class="mb-0"><?php echo $totalFichas; ?></h4>
-                </div>
-              </div>
+            <small class="label">Total de Análises</small>
+            <div class="count">
+              <?php echo number_format($totalAnalises,0,',','.'); ?>
             </div>
           </div>
+        </div>
+      </div>
 
-          <!-- COLUNA DIREITA: TABELAS -->
-          <div class="col-lg-8 d-flex flex-column gap-4">
-            <!-- Análises Recentes -->
-            <div class="card border-0 shadow-sm h-100">
-              <div class="card-header bg-transparent border-bottom-0 d-flex align-items-center">
-                <i class="fa-solid fa-magnifying-glass-chart text-primary fa-lg me-2"></i>
-                <h6 class="mb-0">Análises Recentes</h6>
-              </div>
-              <div class="table-responsive table-scroll" style="max-height:350px; overflow:auto;">
-                <div class="grid-table">
-                  <!-- header sem # -->
-                  <div class="grid-header">
-                    <div><i class="fa-solid fa-align-left me-1"></i>Descrição</div>
-                    <div><i class="fa-solid fa-hashtag me-1"></i>Ficha</div>
-                    <div><i class="fa-solid fa-calendar-day me-1"></i>Data</div>
-                    <div><i class="fa-solid fa-star me-1"></i>Nota</div>
-                  </div>
-                  <!-- linhas -->
-                  <?php foreach($analises as $a): ?>
-                  <div class="grid-row clickable nota-<?php echo $a['Nota']; ?>"
-                      data-justificativa="<?php echo htmlspecialchars($a['justificativa'],ENT_QUOTES); ?>"
-                      data-usuario="<?php echo htmlspecialchars($a['Usuario'],ENT_QUOTES); ?>"
-                      onclick="mostrarJustificativaModal(this.dataset.justificativa,this.dataset.usuario)">
-                    <div class="sobrepor"><?php echo htmlspecialchars($a['Descricao']); ?></div>
-                    <div><?php echo $a['numeroFicha']?: '-'; ?></div>
-                    <div><?php echo htmlspecialchars($a['Hora_ini']); ?></div>
-                    <div class="nota"><?php echo $a['Nota']; ?> <i class="fa-solid fa-star text-warning ms-1"></i></div>
-                  </div>
-                  <?php endforeach; ?>
-                  <?php if(empty($analises)): ?>
-                  <div class="grid-row">
-                    <div colspan="4" class="text-center text-muted">Nenhuma análise cadastrada.</div>
-                  </div>
-                  <?php endif; ?>
-                </div>
-              </div>
+      <!-- Total de Fichas -->
+      <div class="col-sm-6 col-lg-3">
+        <div class="card summary-card modern h-100">
+          <div class="card-body text-center p-4">
+            <div class="icon-circle bg-info mb-3">
+              <i class="fa-solid fa-clipboard-list text-white"></i>
             </div>
-
-            <!-- Fichas Recentes -->
-            <div class="card border-0 shadow-sm h-100 mt-4">
-              <div class="card-header bg-transparent border-bottom-0 d-flex align-items-center">
-                <i class="fa-solid fa-file-lines text-info fa-lg me-2"></i>
-                <h6 class="mb-0">Fichas Recentes</h6>
-              </div>
-              <div class="table-responsive table-scroll" style="max-height:350px; overflow:auto;">
-                <div class="grid-table">
-                  <!-- header sem # -->
-                  <div class="grid-header">
-                    <div><i class="fa-solid fa-hashtag me-1"></i>Ficha</div>
-                    <div><i class="fa-solid fa-calendar-day me-1"></i>Data</div>
-                    <div style="justify-content:center;"><i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Ação</div>
-                  </div>
-                  <!-- linhas -->
-                  <?php foreach($fichas_por_numero as $fs): foreach($fs as $f): ?>
-                  <div class="grid-row">
-                    <div><?php echo htmlspecialchars($f['numeroFicha']); ?></div>
-                    <div><?php echo htmlspecialchars($f['Hora_ini']); ?></div>
-                    <div>
-                      <a href="https://zmap.zpos.com.br/#/detailsIncidente/<?php echo htmlspecialchars($f['numeroFicha']); ?>"
-                        target="_blank" class="btn btn-sm btn-outline-primary">
-                        <i class="fa-solid fa-arrow-up-right-from-square me-1"></i> ZMap
-                      </a>
-                    </div>
-                  </div>
-                  <?php endforeach; endforeach; ?>
-                  <?php if(empty($fichas_por_numero)): ?>
-                  <div class="grid-row">
-                    <div colspan="3" class="text-center text-muted">Nenhuma ficha cadastrada.</div>
-                  </div>
-                  <?php endif; ?>
-                </div>
-              </div>
+            <small class="label">Total de Fichas</small>
+            <div class="count">
+              <?php echo number_format($totalFichas,0,',','.'); ?>
             </div>
-          </div>
-
           </div>
         </div>
       </div>
     </div>
   </div>
+
+
+  <div class="row gx-4 p-4">
+    <div class="col-md-6">
+      <!-- Seção Análises -->
+      <div class="section-group">
+        <div class="section-title">
+          <i class="fa-solid fa-magnifying-glass-chart"></i>
+          Análises
+        </div>
+        <div class="section-content">
+          <div class="accordion" id="analisesAccordion">
+            <?php foreach($analises as $i => $a): 
+              
+              $nota = $a['Nota'];
+              if ($nota >= 4.5) {
+                $notaClass = 'nota-verde';
+              } elseif ($nota <= 2.99) {
+                $notaClass = 'nota-vermelha';
+              } else {
+                $notaClass = 'nota-amarela';
+              }
+
+              ?>
+              
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="analiseHeading<?= $i ?>">
+                <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#analiseCollapse<?= $i ?>"
+                        aria-expanded="false"
+                        aria-controls="analiseCollapse<?= $i ?>">
+                  <span class="desc flex-fill text-truncate">
+                    <?php echo htmlspecialchars($a['Descricao']); ?>
+                  </span>
+                  <span class="badge ms-auto nota-<?php echo $a['Nota']; ?>">
+                    <?php echo $a['Nota']; ?> <i class="fa-solid fa-star text-white ms-1"></i>
+                  </span>
+                </button>
+              </h2>
+              <div id="analiseCollapse<?= $i ?>"
+                  class="accordion-collapse collapse"
+                  aria-labelledby="analiseHeading<?= $i ?>"
+                  data-bs-parent="#analisesAccordion">
+                <div class="accordion-body">
+                  <div class="info-line">
+                    <span class="info-label">Ficha:</span>
+                    <span class="info-value"><?php echo $a['numeroFicha']?:'-'; ?></span>
+                  </div>
+                  <div class="info-line">
+                    <span class="info-label">Data:</span>
+                    <span class="info-value"><?php echo htmlspecialchars($a['Hora_ini']); ?></span>
+                  </div>
+                  <div class="info-line">
+                    <span class="info-label">Justificativa:</span>
+                    <span class="info-value"><?php echo htmlspecialchars($a['justificativa']); ?></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <?php endforeach; ?>
+            <?php if(count($analises)===0): ?>
+            <div class="text-center text-muted py-4">Nenhuma análise cadastrada.</div>
+            <?php endif; ?>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <!-- Seção Fichas -->
+      <div class="section-group">
+        <div class="section-title">
+          <i class="fa-solid fa-file-lines"></i>
+          Fichas
+        </div>
+        <div class="section-content">
+          <div class="accordion" id="fichasAccordion">
+            <?php $idx=0; foreach($fichas_por_numero as $fs): foreach($fs as $f): $idx++; ?>
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="fichaHeading<?= $idx ?>">
+                <button class="accordion-button collapsed" type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#fichaCollapse<?= $idx ?>"
+                        aria-expanded="false"
+                        aria-controls="fichaCollapse<?= $idx ?>">
+                  <span class="desc flex-fill text-truncate">
+                    <?php echo htmlspecialchars($f['numeroFicha']); ?>
+                  </span>
+                  <small class="text-muted ms-auto"><?php echo htmlspecialchars($f['Hora_ini']); ?></small>
+                </button>
+              </h2>
+              <div id="fichaCollapse<?= $idx ?>"
+                  class="accordion-collapse collapse"
+                  aria-labelledby="fichaHeading<?= $idx ?>"
+                  data-bs-parent="#fichasAccordion">
+                <div class="accordion-body d-flex justify-content-end">
+                  <a href="https://zmap.zpos.com.br/#/detailsIncidente/<?php echo htmlspecialchars($f['numeroFicha']); ?>"
+                    target="_blank" class="btn btn-sm btn-outline-primary">
+                    <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Abrir no ZMap
+                  </a>
+                </div>
+              </div>
+            </div>
+            <?php endforeach; endforeach; ?>
+            <?php if(count($fichas_por_numero)===0): ?>
+            <div class="text-center text-muted py-4">Nenhuma ficha cadastrada.</div>
+            <?php endif; ?>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
 
 
   <!-- Modal para exibir a Justificativa -->
