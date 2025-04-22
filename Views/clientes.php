@@ -31,6 +31,7 @@ $result = mysqli_query($conn, $query);
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <!-- CSS customizado -->
+  <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
   <link rel="stylesheet" href="../Public/treinamento.css">
 </head>
 <body>

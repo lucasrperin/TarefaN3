@@ -437,7 +437,7 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../Public/conversao.css">
-  <link rel="icon" href="../Public/Image/icone2.png" type="image/png">
+  <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
 </head>
 <body class="bg-light">
   <div class="d-flex-wrapper">

@@ -98,6 +98,7 @@ $resultWeb = $conn->query($sqlWeb);
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <!-- CSS externos -->
+  <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
   <link rel="stylesheet" href="../Public/incidentes.css">
   <link rel="stylesheet" href="../Public/usuarios.css">
 </head>

@@ -213,6 +213,7 @@ $resultFolga = $conn->query($sqlListarFolga);
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- CSS customizado -->
+  <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
   <link rel="stylesheet" href="../Public/folga.css">
 </head>
 <body>
@@ -875,8 +876,5 @@ $resultFolga = $conn->query($sqlListarFolga);
   // força reload da página após fechar o modal de edição
   modalEditarElem.addEventListener('hidden.bs.modal', () => location.reload());
 </script>
-
-
-
 </body>
 </html>

@@ -189,7 +189,7 @@ if ($percentMetaGeral > 100) $percentMetaGeral = 100;
  
   <link rel="stylesheet" href="../Public/escutas.css">
 
-  <link rel="icon" href="Public/Image/icone2.png" type="image/png">
+  <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
 </head>
 <body class="bg-light">
 <div class="d-flex-wrapper">

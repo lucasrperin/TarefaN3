@@ -54,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="icon" href="../Public/Image/icone2.png" type="image/png">
+    <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
 </head>
 <body>
     <div class="login-wrapper">

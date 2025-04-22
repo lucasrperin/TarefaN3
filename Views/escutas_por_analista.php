@@ -210,7 +210,7 @@ $stmtGrafico->close();
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <link rel="icon" href="Public\Image\icone2.png" type="image/png">
+  <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
 </head>
 <body class="bg-light">
 <div class="d-flex-wrapper">
