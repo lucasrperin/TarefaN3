@@ -114,7 +114,7 @@ if ($result_ranking) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link href="../Public/user.css" rel="stylesheet">
-  <link rel="icon" href="../Public/Image/icone2.png" type="image/png">
+  <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
 </head>
 <body class="bg-light">
   <div class="d-flex-wrapper">

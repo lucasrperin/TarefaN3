@@ -158,6 +158,7 @@ if ($resultTotalizadores && $resultTotalizadores->num_rows > 0) {
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- CSS externo -->
+  <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
   <link rel="stylesheet" href="../Public/destaque.css">
   <!-- JQuery -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

@@ -59,6 +59,7 @@ $treinamentoEmAndamento = mysqli_fetch_assoc($resultInProgress);
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <!-- Seu CSS -->
   <link rel="stylesheet" href="../Public/treinamento.css">
+  <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" />
   <!-- FullCalendar tradução -->
