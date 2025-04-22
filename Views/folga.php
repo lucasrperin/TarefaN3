@@ -35,7 +35,14 @@ if (!$resultNiveis) {
 }
 
 // ===================== QUERY PRINCIPAL PARA O CALENDÁRIO (Aggregador) =====================
-$sql = "SELECT f.id, u.Nome AS nome_colaborador, f.data_inicio, f.data_fim, f.tipo
+$sql = "SELECT
+          f.id,
+          f.usuario_id,
+          u.Nome AS nome_colaborador,
+          f.data_inicio,
+          f.data_fim,
+          f.tipo,
+          COALESCE(f.justificativa, '') AS justificativa
         FROM TB_FOLGA f
         JOIN TB_USUARIO u ON f.usuario_id = u.Id";
 $conditions = [];
@@ -57,17 +64,22 @@ $result = $conn->query($sql);
 
 $aggregator = [];
 if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $start = strtotime($row['data_inicio']);
-        $end   = strtotime($row['data_fim']);
-        for ($d = $start; $d <= $end; $d += 86400) {
-            $dayStr = date('Y-m-d', $d);
-            $aggregator[$dayStr][] = [
-                'nome' => $row['nome_colaborador'],
-                'tipo' => $row['tipo']
-            ];
-        }
+  while ($row = $result->fetch_assoc()) {
+    $start = strtotime($row['data_inicio']);
+    $end   = strtotime($row['data_fim']);
+    for ($d = $start; $d <= $end; $d += 86400) {
+        $dayStr = date('Y-m-d', $d);
+        $aggregator[$dayStr][] = [
+            'id'            => $row['id'],
+            'usuarioId'     => $row['usuario_id'],
+            'nome'          => $row['nome_colaborador'],
+            'tipo'          => $row['tipo'],
+            'inicio'        => $row['data_inicio'],
+            'fim'           => $row['data_fim'],
+            'justificativa' => $row['justificativa']
+        ];
     }
+}
 }
 
 // ===================== CONSULTA PARA COLABORADORES (para os selects) =====================
@@ -586,14 +598,69 @@ $resultFolga = $conn->query($sqlListarFolga);
     var details = document.getElementById('details');
     var formattedDate = formatDate(dayStr);
     details.innerHTML = '<h5>' + formattedDate + '</h5><hr>';
+    
     if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
       aggregator[dayStr].forEach(function(item) {
-        details.innerHTML += '<p>' + item.nome + ' (' + item.tipo + ')</p>';
+        details.innerHTML +=
+          '<div class="d-flex justify-content-between align-items-center mb-2">' +
+            '<span>'+ item.nome +' ('+ item.tipo +')</span>' +
+            '<button type="button" ' +
+              'class="btn btn-sm btn-outline-primary edit-side-btn" ' +
+              'data-id="'+ item.id +'" ' +
+              'data-usuarioid="'+ item.usuarioId +'" ' +
+              'data-tipo="'+ item.tipo +'" ' +
+              'data-inicio="'+ item.inicio +'" ' +
+              'data-fim="'+ item.fim +'" ' +
+              'data-justificativa="'+ item.justificativa +'" ' +
+              'title="Editar">' +
+              '<i class="fa-solid fa-pen"></i>' +
+            '</button>' +
+          '</div>';
       });
     } else {
       details.innerHTML += '<p>Nenhum evento agendado.</p>';
     }
   }
+
+  /* -------- delegação de clique para os ícones criados dinamicamente */
+  document.getElementById('details').addEventListener('click', function (e) {
+    var btn = e.target.closest('.edit-side-btn');
+    if (!btn) return;                               // clicou em outra área
+
+    document.getElementById('edit_id').value            = btn.dataset.id;
+    document.getElementById('edit_usuario_id').value    = btn.dataset.usuarioid;
+    document.getElementById('edit_tipo').value          = btn.dataset.tipo;
+    document.getElementById('edit_data_inicio').value   = btn.dataset.inicio;
+    document.getElementById('edit_data_fim').value      = btn.dataset.fim;
+    document.getElementById('edit_justificativa').value = btn.dataset.justificativa;
+    document.getElementById('justificativaGroupEdit').style.display =
+      (btn.dataset.tipo === 'Folga') ? 'block' : 'none';
+
+    if (typeof calendarEditInstance !== 'undefined' && calendarEditInstance) {
+      calendarEditInstance.setDate([btn.dataset.inicio, btn.dataset.fim], true);
+    }
+    new bootstrap.Modal(document.getElementById('modalEditar')).show();
+  });
+  /* ----------------------------------------------------------------------- */
+
+  // Mantém os botões de edição estáticos das tabelas
+  document.querySelectorAll('.editar-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.getElementById('edit_id').value            = this.dataset.id;
+      document.getElementById('edit_usuario_id').value    = this.dataset.usuarioid;
+      document.getElementById('edit_tipo').value          = this.dataset.tipo;
+      document.getElementById('edit_data_inicio').value   = this.dataset.inicio;
+      document.getElementById('edit_data_fim').value      = this.dataset.fim;
+      document.getElementById('edit_justificativa').value = this.dataset.justificativa || '';
+      document.getElementById('justificativaGroupEdit').style.display =
+        (this.dataset.tipo === 'Folga') ? 'block' : 'none';
+
+      if (calendarEditInstance) {
+        calendarEditInstance.setDate([this.dataset.inicio, this.dataset.fim], true);
+      }
+      new bootstrap.Modal(document.getElementById('modalEditar')).show();
+    });
+  });
 
   // Passa o array aggregator do PHP para o JavaScript
   var aggregator = <?php echo json_encode($aggregator); ?>;
@@ -761,6 +828,14 @@ $resultFolga = $conn->query($sqlListarFolga);
     } else {
       calendarEditInstance.redraw();
     }
+
+    /* -------- NOVO: garante seleção dos dias do colaborador -------- */
+    var di = document.getElementById('edit_data_inicio').value;
+    var df = document.getElementById('edit_data_fim').value;
+    if (di && df && calendarEditInstance) {
+      calendarEditInstance.setDate([di, df], true);
+    }
+    /* ---------------------------------------------------------------- */
   });
 
   // Preenche o modal de edição com os dados do evento selecionado e atualiza a visibilidade do campo justificativa
@@ -791,6 +866,14 @@ $resultFolga = $conn->query($sqlListarFolga);
       }
     });
   });
+
+  const modalEditarElem = document.getElementById('modalEditar');
+
+  modalEditarElem.addEventListener('hidden.bs.modal', () => {
+    // força o refresh da página principal
+    window.location.href = 'folga.php';      // ou  location.reload();
+  });
 </script>
+
 </body>
 </html>
