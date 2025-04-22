@@ -221,7 +221,7 @@ body {
 .content {
     background: #ffffff;
     border-radius: 10px;
-   
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
     padding: 2rem;
   }
   
@@ -319,429 +319,61 @@ body {
   .grid-row .nota { font-weight: 600; }
 
   .sobrepor {
-  max-width: 1fr;
+  max-width: 20rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Primary Metric */
-.primary-metric {
-    background: linear-gradient(90deg, #0d6efd, #6610f2);
-    color: #fff;
-    border-radius: 10px;
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-  .primary-metric .icon-circle {
-    width: 64px;
-    height: 64px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-  }
-  
-  /* Secondary Metrics */
-  .row-secondary .card {
-    border-left: 6px solid currentColor;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-  }
-  .secondary-icon {
-    width: 48px;
-    height: 48px;
-    background: rgba(0,0,0,0.05);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-  }
-  
-  /* Section Header */
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    margin-bottom: .75rem;
-    border-bottom: 2px solid #e9ecef;
-    padding-bottom: .25rem;
-  }
-  .section-header h5 {
-    font-size: 1.1rem;
-    font-weight: 600;
-  }
-  
-  /* List-Group Custom */
-  .list-group-custom {
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  }
-  .list-group-custom .list-group-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: .75rem 1rem;
-    border: none;
-    border-bottom: 1px solid #e9ecef;
-    transition: background .2s;
-  }
-  .list-group-custom .list-group-item:last-child {
-    border-bottom: none;
-  }
-  .list-group-custom .list-group-item:hover {
-    background: rgba(0,0,0,0.03);
-  }
-  .list-group-custom .item-header {
-    background: #f8f9fa;
-    font-weight: 600;
-    color: #495057;
-    text-transform: uppercase;
-    font-size: .85rem;
-  }
-  .list-group-custom .badge-star {
-    font-size: .9rem;
-    color: #ffc107;
-  }
-  
-  /* Nav‑pills do dashboard */
-.nav-pills .nav-link {
-  border-radius: 8px;
-  margin-right: .5rem;
-  padding: .5rem 1rem;
-}
-.nav-pills .nav-link.active {
-  background-color: #0d6efd;
-  color: #fff;
-}
-
-/* Primary Metric */
-.primary-metric { border-radius: 10px; }
-.primary-metric .icon-circle { font-size: 1.5rem; }
-
-/* Secondary Metrics */
-.secondary-metric { border-radius: 8px; }
-
-/* List‑group cards */
-.table-card { border-radius: 8px; overflow: hidden; }
-.list-group-item { padding: .75rem 1rem; }
-.badge-star { background: none; font-size: 1rem; color: #ffc107; }
-
-/* Scroll containers */
-.table-scroll {
-  overflow-y: auto;
-}
-/* optional: custom scrollbar styling as before */
-/* Summary Cards */
-.summary-card {
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  }
-  .icon-circle {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .primary-metric { color: #fff; }
-  .summary-card h3 { margin-bottom: .25rem; }
-  
-  /* Section Cards */
-  .section-card {
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  }
-  .section-heading {
-    border-bottom: 1px solid #e9ecef;
-  }
-  .list-group-item {
-    border: none;
-    border-bottom: 1px solid #f0f0f0;
-  }
-  .list-group-item:last-child {
-    border-bottom: none;
-  }
-  .clickable { cursor: pointer; }
-  
-  /* Scroll */
-  .table-scroll {
-    overflow-y: auto;
-  }
-  .table-scroll::-webkit-scrollbar {
-    width: 6px;
-  }
-  .table-scroll::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.2);
-    border-radius: 3px;
+.metric-card {
+    width: 100%;       /* 100% da coluna */
+    min-height: 134px; /* altura fixa mínima */
+    /* ou height: 160px; para altura fixa exata */
   }
 
-/*/////////////////*/
-
- /* === Cards Modernos de Totalizadores === */
- .summary-card.modern {
-    background: linear-gradient(135deg, #ffffff, #f4f6f8);
-    border-radius: 12px;
-    /* sombra maior por padrão */
-    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-    transition: transform 0.2s ease; /* só mantêm a leve transição se quiser */
-  }
-
-  .summary-card.modern:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-  }
-
-  .summary-card.modern .card-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    height: 100%;
+  /* Card personalizado */
+.card-ranking {
+    border-start-width: 6px !important;
+    border-start-color: #6c757d !important; /* mesma cor do header */
+    border-radius: .75rem;
   }
   
-  /* Ícone circular com sombra suave */
-  .summary-card .icon-circle {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    transition: box-shadow 0.2s ease;
-  }
-  .summary-card .icon-circle:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  /* Cabeçalho */
+  .card-ranking .card-header {
+    border-top-left-radius: .75rem;
+    border-top-right-radius: .75rem;
+    background: #6c757d; /* cinza escuro */
   }
   
-  /* Label pequena */
-  .summary-card .label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #777;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-  
-  /* Números principais */
-  .summary-card .count {
-    font-size: 2.25rem;
+  /* Posição Atual – destaque maior */
+  .position-current {
+    font-size: 2rem;
     font-weight: 700;
-    color: #333;
-    margin-bottom: 0.25rem;
+    color: #343a40; /* quase preto */
   }
   
-  /* Scroll para ranking */
-  .ranking-scroll.modern-scroll {
-    max-height: 140px;
-    overflow-y: auto;
-    padding-right: 4px;
-    list-style: none;
-  }
-  .ranking-scroll.modern-scroll li {
-    margin: 0;
-    padding: 0;
-  }
-  .ranking-scroll.modern-scroll::-webkit-scrollbar {
-    width: 4px;
-  }
-  .ranking-scroll.modern-scroll::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.2);
-    border-radius: 2px;
-  }
-  
-  /* Cores das notas (mantido) */
-  .nota-neutra { color: #686868 !important; }
-  .nota-laranja { color: #fd7e14 !important; }
-  .nota-amarela { color: #ffc107 !important; }
-  .nota-teal   { color: #20c997 !important; }
-  .nota-verde  { color: #28a745 !important; }
-  
-
-
-
-
-
-/* Accordion Clean & Modern */
-.accordion .accordion-item {
-    border: none;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    margin-bottom: 1rem;
-    overflow: hidden;
-  }
-  
-  .accordion-body {
-    padding: 1rem;
-    background: #ffffff;
-    font-size: 0.9rem;
-    color: #555;
-  }
-  .accordion-body .info-line {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: .5rem;
-  }
-  .accordion-body .info-label {
-    font-weight: 600;
-    color: #333;
-  }
-  .accordion-body .info-value {
-    color: #666;
-  }
-  .accordion-body .btn-sm {
-    padding: .25rem .5rem;
-    font-size: .85rem;
-  }
-
-  /* Container para scroll em cada accordion */
-.accordion {
-    max-height: 350px;
-    overflow-y: auto;
-    padding-right: 4px;
-  }
-  /* Ajusta as colunas para terem mesmo espaçamento */
-  .row-accordions {
-    display: flex;
-    gap: 1rem;
-  }
-  /* Cada coluna ocupa metade da largura no desktop */
-  .col-accordion {
-    flex: 1;
-    min-width: 0; /* para que o overflow funcione */
-  }
-  
-  
-/* Info‑line: label + value em flex com wrap */
-.info-line {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;        /* espaçamento entre label e value */
-  }
-  
-  /* Label fixa sem wrap */
-  .info-label {
-    flex: 0 0 auto;
-    white-space: nowrap;
-    font-weight: 600;
-  }
-  
-  /* Value flexível com wrap */
-  .info-value {
-    flex: 1 1 0;
-    min-width: 0;       /* essencial para permitir shrink + wrap em flex */
-    white-space: pre-wrap;      /* preserva quebras manuais */
-    word-break: break-word;     /* quebra palavras longas */
-    overflow-wrap: anywhere;    /* quebra em qualquer ponto se necessário */
-  }
-
-  /* Agrupa título + conteúdo */
-.section-group {
-    margin-bottom: 2rem;
-  }
-  
-  /* Título da seção */
-  .section-title {
-    position: relative;
-    background: #ffffff;
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  /* Posição Anterior – mais suave */
+  .position-previous {
     font-size: 1.25rem;
-    font-weight: 700;
-    color: #333;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  /* Barra lateral colorida no título */
-  .section-title::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 12%;
-    bottom: 12%;
-    width: 6px;
-    background: linear-gradient(180deg,#0d6efd,#6610f2);
-    border-radius: 3px;
+    font-weight: 600;
+    color: #adb5bd; /* cinza claro */
   }
   
-  /* Conteúdo “filho” */
-  .section-content {
-    margin-top: 0.75rem;
-    margin-left: 1.5rem;
-    border-left: 4px solid #6610f2;
-    padding-left: 1rem;
+  /* Separador vertical entre as colunas */
+  .row > .col.border-start {
+    border-left: 1px solid #e9ecef;
   }
   
-  /* Accordion items sem borda extra */
-  .section-content .accordion-item {
-    border: none;
-    margin-bottom: 0.5rem;
-    border-radius: 6px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  /* Destaque de posições */
+.text-rank-1 {
+    color: #FFD700 !important; /* ouro */
   }
-
- 
-  /* Accordion body */
-  .section-content .accordion-body {
-    background: #ffffff;
-    padding: 1rem;
-    font-size: 0.9rem;
-    color: #555;
-    border-top: 1px solid #e9ecef;
+  .text-rank-2 {
+    color: #C0C0C0 !important; /* prata */
   }
-  /* Info-line wrap */
-  .info-line { display:flex; align-items:flex-start; gap:.5rem; }
-  .info-label { flex:0 0 auto; white-space:nowrap; font-weight:600; }
-  .info-value {
-    flex:1 1 0; min-width:0;
-    white-space:pre-wrap; word-break:break-word;
+  .text-rank-3 {
+    color: #CD7F32 !important; /* bronze */
   }
-  
-  /* Primeiro título: ícone colorido */
-  .section-title i {
-    font-size:1.3rem;
-    color:#0d6efd;
+  .text-rank-default {
+    color: #000 !important;    /* preto para 4º em diante */
   }
-  
-/* Pills de Nota 1–5 */
-.badge.nota-1 {
-    background-color: #dc3545; /* vermelho */
-    color: #fff;
-  }
-  .badge.nota-2 {
-    background-color: #fd7e14; /* laranja */
-    color: #fff;
-  }
-  .badge.nota-3 {
-    background-color: #ffc107; /* amarelo */
-    color: #212529;
-  }
-  .badge.nota-4 {
-    background-color: #8ec920; /* verde-água */
-    color: #fff;
-  }
-  .badge.nota-5 {
-    background-color: #28a745; /* verde */
-    color: #fff;
-  }
-  
-  /* Ajuste de padding e borda arredondada */
-  .badge {
-    padding: 0.35em 0.65em;
-    font-size: 0.85rem;
-    border-radius: 10rem;
-  }
-  
-  
-  
