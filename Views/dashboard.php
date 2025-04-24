@@ -429,26 +429,26 @@ document.addEventListener('DOMContentLoaded', function() {
     ?>
 
     const ctx = document.getElementById('graficoNotas').getContext('2d');
-    const graficoNotas = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: {
-                    title: { display: true, text: 'Mês' }
-                },
-                y: {
-                    title: { display: true, text: 'Média das Notas' },
-                    beginAtZero: true
-                }
-            },
-            plugins: { legend: { position: 'top' } }
+     const graficoNotas = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      scales: {
+        x: { title: { display: true, text: 'Mês' } },
+        y: {
+          title: { display: true, text: 'Média das Notas' },
+          min: 0,
+          max: 6,
+          ticks: {
+            stepSize: 1,              // 0,1,2,3,4,5
+            callback: v => v          // mostra apenas o número inteiro
+          }
         }
-    });
+      },
+      plugins: { legend: { position: 'top' } }
+    }
+  });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
