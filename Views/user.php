@@ -9,6 +9,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
 require '../Config/Database.php';
 
+
 // Se um usuário foi passado via GET, use-o; caso contrário, use o usuário logado
 $usuario_id = isset($_GET['usuario_id']) ? intval($_GET['usuario_id']) : $_SESSION['usuario_id'];
 
@@ -271,6 +272,38 @@ $clsAtual    = is_int($colocacaoAtual) && $colocacaoAtual > 0
 $clsAnterior = is_int($colocacaoAnterior) && $colocacaoAnterior > 0
                 ? classeRank($colocacaoAnterior)
                 : 'text-rank-default';
+
+// 5) Folgas
+$hoje = date('Y-m-d');
+$sql_passadas = "
+  SELECT tipo,
+         DATE_FORMAT(data_inicio,'%d/%m/%Y') AS inicio,
+         DATE_FORMAT(data_fim,'%d/%m/%Y')    AS fim,
+         quantidade_dias,
+         justificativa
+  FROM TB_FOLGA
+  WHERE usuario_id = ? AND data_fim < ?
+  ORDER BY data_inicio DESC
+";
+$stmt = $conn->prepare($sql_passadas);
+$stmt->bind_param('is',$usuario_id,$hoje);
+$stmt->execute();
+$folgas_passadas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+$sql_prox = "
+  SELECT tipo,
+         DATE_FORMAT(data_inicio,'%d/%m/%Y') AS inicio,
+         DATE_FORMAT(data_fim,'%d/%m/%Y')    AS fim,
+         quantidade_dias,
+         justificativa
+  FROM TB_FOLGA
+  WHERE usuario_id = ? AND data_inicio >= ?
+  ORDER BY data_inicio ASC
+";
+$stmt = $conn->prepare($sql_prox);
+$stmt->bind_param('is',$usuario_id,$hoje);
+$stmt->execute();
+$folgas_proximas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -448,43 +481,43 @@ $clsAnterior = is_int($colocacaoAnterior) && $colocacaoAnterior > 0
 
         <!-- 1) Menu navegável -->
         <ul class="nav nav-tabs nav-fill mb-4" id="mainMenu" role="tablist">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link active"
-                    id="analises-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#analises"
-                    type="button"
-                    role="tab"
-                    aria-controls="analises"
-                    aria-selected="true">
-              <i class="fa-solid fa-magnifying-glass-chart me-1"></i> Análises
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link"
-                    id="folgas-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#folgas"
-                    type="button"
-                    role="tab"
-                    aria-controls="folgas"
-                    aria-selected="false">
-              <i class="fa-solid fa-calendar-days me-1"></i> Folgas
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link"
-                    id="indicacoes-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#indicacoes"
-                    type="button"
-                    role="tab"
-                    aria-controls="indicacoes"
-                    aria-selected="false">
-              <i class="fa-solid fa-handshake-angle me-1"></i> Indicações
-            </button>
-          </li>
-        </ul>
+  <li class="nav-item">
+    <button class="nav-link active"
+            id="analises-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#analises"
+            type="button"
+            role="tab"
+            aria-controls="analises"
+            aria-selected="true">
+      <i class="fa-solid fa-magnifying-glass-chart me-1"></i> Análises
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link"
+            id="folgas-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#folgas"
+            type="button"
+            role="tab"
+            aria-controls="folgas"
+            aria-selected="false">
+      <i class="fa-solid fa-calendar-days me-1"></i> Folgas
+    </button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link"
+            id="indicacoes-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#indicacoes"
+            type="button"
+            role="tab"
+            aria-controls="indicacoes"
+            aria-selected="false">
+      <i class="fa-solid fa-handshake-angle me-1"></i> Indicações
+    </button>
+  </li>
+</ul>
 
       <!-- 2) Conteúdo das tabs -->
       <div class="tab-content">
@@ -562,23 +595,105 @@ $clsAnterior = is_int($colocacaoAnterior) && $colocacaoAnterior > 0
               </div>
             </div>
           </div>
-          <!-- 2.2) Aba Folgas -->
-          <div class="tab-pane fade" id="folgas" role="tabpanel" aria-labelledby="folgas-tab">
-            <!-- Aqui você insere seu conteúdo de Folgas -->
-            <?php include 'folgas.php'; ?>
-          </div>
-
-          <!-- 2.3) Aba Indicações -->
-          <div class="tab-pane fade" id="indicacoes" role="tabpanel" aria-labelledby="indicacoes-tab">
-            <!-- Aqui você insere seu conteúdo de Indicações -->
-            <?php include 'indicacoes.php'; ?>
-          </div>
         </div>
+
+        <!-- 2.2) Aba Folgas -->
+        <div class="tab-pane fade" id="folgas" role="tabpanel" aria-labelledby="folgas-tab">
+  <div class="p-3">
+  <div class="row gx-4">
+      <!-- Próximas Folgas -->
+      <div class="col-md-6">
+        <h5 class="mb-3">
+          <i class="fa-solid fa-calendar-plus text-primary me-2"></i>Próximas Folgas
+        </h5>
+        <?php if(count($folgas_proximas)): ?>
+          <ul class="timeline">
+            <?php foreach($folgas_proximas as $idx => $f): 
+              $isNext = $idx === 0;
+              $icon   = $f['tipo']==='Ferias' ? 'fa-umbrella-beach' : 'fa-calendar-day';
+              $bg     = $isNext ? 'bg-warning' : 'bg-primary';
+            ?>
+            <li class="timeline-event">
+              <div class="timeline-icon <?= $bg ?>">
+                <i class="fa-solid <?= $icon ?>"></i>
+              </div>
+              
+              <div class="timeline-content">
+              <?php if($isNext): ?>
+                <div class="ribbon-label"><b>Próxima</b></div>
+              <?php endif; ?>
+                <h6 class="mb-1">
+                  <?= htmlspecialchars($f['tipo']) ?>
+                  <span class="badge <?= $isNext ? 'bg-warning text-dark' : 'bg-primary' ?> ms-2">
+                    <?= $f['quantidade_dias'] ?>d
+                  </span>
+                </h6>
+                <small class="text-muted d-block mb-1">
+                  <i class="fa-regular fa-calendar me-1"></i>
+                  <?= $f['inicio'] ?> → <?= $f['fim'] ?>
+                </small>
+                <?php if(trim($f['justificativa'])): ?>
+                <p class="small text-muted mb-0">
+                  <i class="fa-solid fa-comment-dots me-1"></i>
+                  <?= htmlspecialchars($f['justificativa']) ?>
+                </p>
+                <?php endif; ?>
+              </div>
+            </li>
+            <?php endforeach; ?>
+          </ul>
+        <?php else: ?>
+          <div class="text-muted">Nenhuma folga futura agendada.</div>
+        <?php endif; ?>
+      </div>
+
+      <!-- Folgas Passadas -->
+      <div class="col-md-6">
+        <h5 class="mb-3">
+          <i class="fa-solid fa-clock-rotate-left text-secondary me-2"></i>Folgas Passadas
+        </h5>
+        <?php if(count($folgas_passadas)): ?>
+          <ul class="timeline">
+            <?php foreach($folgas_passadas as $f): ?>
+            <li class="timeline-event">
+              <div class="timeline-icon bg-secondary">
+                <i class="fa-solid <?= $f['tipo']==='Ferias' ? 'fa-umbrella-beach' : 'fa-calendar-day' ?>"></i>
+              </div>
+              <div class="timeline-content ps-4">
+                <h6>
+                  <?= htmlspecialchars($f['tipo']) ?>
+                  <span class="badge bg-secondary ms-2"><?= $f['quantidade_dias'] ?>d</span>
+                </h6>
+                <small>
+                  <i class="fa-regular fa-calendar me-1"></i>
+                  <?= $f['inicio'] ?> → <?= $f['fim'] ?>
+                </small>
+                <?php if(trim($f['justificativa'])): ?>
+                <p>
+                  <i class="fa-solid fa-comment-dots me-1"></i>
+                  <?= htmlspecialchars($f['justificativa']) ?>
+                </p>
+                <?php endif; ?>
+              </div>
+            </li>
+            <?php endforeach; ?>
+          </ul>
+        <?php else: ?>
+          <div class="text-muted">Nenhuma folga passada.</div>
+        <?php endif; ?>
       </div>
     </div>
   </div>
 </div>
 
+        <!-- 2.3) Aba Indicações -->
+        <div class="tab-pane fade" id="indicacoes" role="tabpanel" aria-labelledby="indicacoes-tab">
+         
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
   <!-- Modal para exibir a Justificativa -->
   <div class="modal fade" id="justificativaModal" tabindex="-1" aria-labelledby="justificativaModalLabel" aria-hidden="true">

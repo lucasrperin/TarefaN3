@@ -1,4 +1,7 @@
 <?php
+// força o fuso-horário de São Paulo (UTC−3)
+date_default_timezone_set('America/Sao_Paulo');
+
 include '../Config/Database.php';
 
 session_start();
@@ -17,7 +20,6 @@ $usuario_id = $_SESSION['usuario_id'];
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 
 // Para preencher os selects do filtro, buscamos os dados dos usuários e demais categorias
-
 
 /****************************************************************
  * 1) Capturar Filtros (GET)
@@ -1482,35 +1484,35 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-<!-- Script para alternar entre os campos de filtro -->
-<script>
-  function adjustFilterFields() {
-    let filterColumn = document.getElementById("filterColumn").value;
-    document.getElementById("filterColumnHidden").value = filterColumn;
-    // Esconde todos os containers
-    document.getElementById("filterPeriod").style.display = "none";
-    document.getElementById("filterAnalista").style.display = "none";
-    document.getElementById("filterSistema").style.display = "none";
-    document.getElementById("filterStatus").style.display = "none";
-    document.getElementById("filterMetas").style.display = "none";
-    // Exibe o container da opção selecionada
-    if (filterColumn === "period") {
-      document.getElementById("filterPeriod").style.display = "block";
-    } else if (filterColumn === "analista") {
-      document.getElementById("filterAnalista").style.display = "block";
-    } else if (filterColumn === "sistema") {
-      document.getElementById("filterSistema").style.display = "block";
-    } else if (filterColumn === "status") {
-      document.getElementById("filterStatus").style.display = "block";
-    } else if (filterColumn === "metas") {
-      document.getElementById("filterMetas").style.display = "block";
+  <!-- Script para alternar entre os campos de filtro -->
+  <script>
+    function adjustFilterFields() {
+      let filterColumn = document.getElementById("filterColumn").value;
+      document.getElementById("filterColumnHidden").value = filterColumn;
+      // Esconde todos os containers
+      document.getElementById("filterPeriod").style.display = "none";
+      document.getElementById("filterAnalista").style.display = "none";
+      document.getElementById("filterSistema").style.display = "none";
+      document.getElementById("filterStatus").style.display = "none";
+      document.getElementById("filterMetas").style.display = "none";
+      // Exibe o container da opção selecionada
+      if (filterColumn === "period") {
+        document.getElementById("filterPeriod").style.display = "block";
+      } else if (filterColumn === "analista") {
+        document.getElementById("filterAnalista").style.display = "block";
+      } else if (filterColumn === "sistema") {
+        document.getElementById("filterSistema").style.display = "block";
+      } else if (filterColumn === "status") {
+        document.getElementById("filterStatus").style.display = "block";
+      } else if (filterColumn === "metas") {
+        document.getElementById("filterMetas").style.display = "block";
+      }
     }
-  }
-  document.addEventListener("DOMContentLoaded", function() {
-    adjustFilterFields();
-    document.getElementById("filterColumn").addEventListener("change", adjustFilterFields);
-  });
-</script>
+    document.addEventListener("DOMContentLoaded", function() {
+      adjustFilterFields();
+      document.getElementById("filterColumn").addEventListener("change", adjustFilterFields);
+    });
+  </script>
 
   <script>
     // Chart.js para o gráfico de barras
