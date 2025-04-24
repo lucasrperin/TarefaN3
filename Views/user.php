@@ -304,6 +304,41 @@ $stmt = $conn->prepare($sql_prox);
 $stmt->bind_param('is',$usuario_id,$hoje);
 $stmt->execute();
 $folgas_proximas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+// ————————————————————————————————
+// BUSCA A PRÓXIMA FOLGA DO USUÁRIO
+// ————————————————————————————————
+$sql_prox_folga = "
+  SELECT 
+    tipo, 
+    data_inicio, 
+    data_fim,
+    justificativa,
+    quantidade_dias
+  FROM TB_FOLGA
+  WHERE usuario_id = ?
+    AND data_inicio >= CURDATE()
+  ORDER BY data_inicio ASC
+  LIMIT 1
+";
+$stmt_pf = $conn->prepare($sql_prox_folga);
+$stmt_pf->bind_param("i", $usuario_id);
+$stmt_pf->execute();
+$res_pf = $stmt_pf->get_result();
+
+if ($f = $res_pf->fetch_assoc()) {
+    $proximaFolga_tipo   = $f['tipo'];                                   // 'Ferias' ou 'Folga'
+    $proximaFolga_inicio = date('d/m', strtotime($f['data_inicio']));
+    $proximaFolga_fim    = date('d/m', strtotime($f['data_fim']));
+    $proximaFolga_justificativa   = $f['justificativa'];
+    $proximaFolga_qtdDias   = $f['quantidade_dias'];
+} else {
+    $proximaFolga_tipo          = null;
+    $proximaFolga_inicio        = null;
+    $proximaFolga_fim           = null;
+    $proximaFolga_justificativa = null;
+    $proximaFolga_qtdDias       = null;
+}
 ?>
 
 <!DOCTYPE html>
@@ -369,14 +404,14 @@ $folgas_proximas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
       <!-- PRIMEIRA ROW: MÉTRICAS (4 cards lado a lado) -->
       <div class="col-12">
         <!-- Botão para abrir o modal de filtro -->
-    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
-      <i class="fa-solid fa-filter"></i>
-    </button>
+        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
+          <i class="fa-solid fa-filter"></i>
+        </button>
         <div class="row gx-4 gy-4 justify-content-center ">
           <!-- Coluna 1: Média das Notas + Colocação -->
           <div class="col-sm-6 col-md-3 d-flex flex-column">
             <!-- 1) Card Média das Notas -->
-            <div class="card border-start border-4 border-secondary shadow-sm bg-tint-secondary mb-3 h-100">
+            <div class="card border-start border-4 border-secondary shadow-sm mb-3 h-100">
               <div class="card-body d-flex align-items-center">
                 <div class="bg-secondary text-white rounded-circle icon-circle me-3">
                   <i class="fa-solid fa-star"></i>
@@ -420,7 +455,7 @@ $folgas_proximas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
           </div>
           <div class="col-sm-6 col-md-3">
             <!-- Ranking -->
-            <div class="card border-start border-4 border-warning shadow-sm bg-tint-warning">
+            <div class="card border-start border-4 border-warning shadow-sm ">
               <div class="card-body d-flex flex-column">
                 <div class="d-flex align-items-center mb-2">
                   <div class="bg-warning text-white rounded-circle icon-circle me-2">
@@ -452,7 +487,7 @@ $folgas_proximas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
           </div>
           <div class="col-sm-6 col-md-3">
             <!-- Total de Análises -->
-            <div class="card metric-card border-start border-4 border-primary shadow-sm bg-tint-primary mb-2">
+            <div class="card metric-card border-start border-4 border-primary shadow-sm mb-2">
               <div class="card-body d-flex align-items-center">
                 <div class="bg-primary text-white rounded-circle icon-circle me-3">
                   <i class="fa-solid fa-chart-line"></i>
@@ -464,7 +499,7 @@ $folgas_proximas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
               </div>
             </div>
             <!-- Total de Fichas -->
-            <div class="card metric-card border-start border-4 border-info shadow-sm bg-tint-info">
+            <div class="card metric-card border-start border-4 border-info shadow-sm">
               <div class="card-body d-flex align-items-center">
                 <div class="bg-info text-white rounded-circle icon-circle me-3">
                   <i class="fa-solid fa-clipboard-list"></i>
@@ -476,48 +511,105 @@ $folgas_proximas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
               </div>
             </div>
           </div>
+          <!-- 4) Próxima Folga -->
+          <div class="col-sm-6 col-md-3">
+          <div class="card metric-card border-start border-4 border-teal shadow-sm mb-2">
+    <div class="card-body">
+
+      <!-- Label -->
+      <small class="text-muted">Próxima Folga</small>
+
+      <?php if($proximaFolga_inicio !== null): ?>
+      <!-- Badges juntinhos -->
+      <div class="d-flex align-items-center flex-wrap gap-2 my-2">
+        <!-- Tipo -->
+        <span class="badge bg-teal rounded-pill px-2 py-1">
+          <i class="fa-solid <?= $proximaFolga_tipo==='Ferias'?'fa-umbrella-beach':'fa-calendar-day' ?> me-1"></i>
+          <?= htmlspecialchars($proximaFolga_tipo) ?>
+        </span>
+        <!-- Período -->
+        <span class="badge bg-light-pill text-teal rounded-pill px-2 py-1">
+          <i class="fa-regular fa-calendar me-1"></i>
+          <?= "{$proximaFolga_inicio} → {$proximaFolga_fim}" ?>
+        </span>
+        <!-- Dias -->
+        <span class="badge bg-light-pill text-teal rounded-pill px-2 py-1">
+          <i class="fa-solid fa-clock me-1"></i>
+          <?= $proximaFolga_qtdDias ?>d
+        </span>
+      </div>
+
+      <!-- Justificativa -->
+      <?php if(!empty($proximaFolga_justificativa)): ?>
+      <p class="justification-text mb-0 small">
+        <i class="fa-solid fa-comment-dots me-1 text-teal"></i>
+        <?= htmlspecialchars($proximaFolga_justificativa) ?>
+      </p>
+      <?php endif; ?>
+
+      <?php else: ?>
+        <h5 class="mb-0 text-center">–</h5>
+      <?php endif; ?>
+
+    </div>
+  </div>
+       
+            <!-- 5) Total Faturado (Indicações) -->
+            <div class="card metric-card border-start border-4 border-success shadow-sm">
+              <div class="card-body d-flex align-items-center">
+                <div class="bg-success text-white rounded-circle icon-circle me-3">
+                  <i class="fa-solid fa-hand-holding-dollar"></i>
+                </div>
+                <div>
+                  <small class="text-muted">Total Faturado</small>
+                  <!-- Ajuste $totalFaturado para sua variável -->
+                  <h5 class="mb-0"><?= number_format($totalFaturado ?? 0, 2, ',', '.') ?></h5>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
         <!-- 1) Menu navegável -->
         <ul class="nav nav-tabs nav-fill mb-4" id="mainMenu" role="tablist">
-  <li class="nav-item">
-    <button class="nav-link active"
-            id="analises-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#analises"
-            type="button"
-            role="tab"
-            aria-controls="analises"
-            aria-selected="true">
-      <i class="fa-solid fa-magnifying-glass-chart me-1"></i> Análises
-    </button>
-  </li>
-  <li class="nav-item">
-    <button class="nav-link"
-            id="folgas-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#folgas"
-            type="button"
-            role="tab"
-            aria-controls="folgas"
-            aria-selected="false">
-      <i class="fa-solid fa-calendar-days me-1"></i> Folgas
-    </button>
-  </li>
-  <li class="nav-item">
-    <button class="nav-link"
-            id="indicacoes-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#indicacoes"
-            type="button"
-            role="tab"
-            aria-controls="indicacoes"
-            aria-selected="false">
-      <i class="fa-solid fa-handshake-angle me-1"></i> Indicações
-    </button>
-  </li>
-</ul>
+        <li class="nav-item">
+          <button class="nav-link active"
+                  id="analises-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#analises"
+                  type="button"
+                  role="tab"
+                  aria-controls="analises"
+                  aria-selected="true">
+            <i class="fa-solid fa-magnifying-glass-chart me-1"></i> Análises
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link"
+                  id="folgas-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#folgas"
+                  type="button"
+                  role="tab"
+                  aria-controls="folgas"
+                  aria-selected="false">
+            <i class="fa-solid fa-calendar-days me-1"></i> Folgas
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link"
+                  id="indicacoes-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#indicacoes"
+                  type="button"
+                  role="tab"
+                  aria-controls="indicacoes"
+                  aria-selected="false">
+            <i class="fa-solid fa-handshake-angle me-1"></i> Indicações
+          </button>
+        </li>
+      </ul>
 
       <!-- 2) Conteúdo das tabs -->
       <div class="tab-content">
@@ -599,92 +691,92 @@ $folgas_proximas = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
         <!-- 2.2) Aba Folgas -->
         <div class="tab-pane fade" id="folgas" role="tabpanel" aria-labelledby="folgas-tab">
-  <div class="p-3">
-  <div class="row gx-4">
-      <!-- Próximas Folgas -->
-      <div class="col-md-6">
-        <h5 class="mb-3">
-          <i class="fa-solid fa-calendar-plus text-primary me-2"></i>Próximas Folgas
-        </h5>
-        <?php if(count($folgas_proximas)): ?>
-          <ul class="timeline">
-            <?php foreach($folgas_proximas as $idx => $f): 
-              $isNext = $idx === 0;
-              $icon   = $f['tipo']==='Ferias' ? 'fa-umbrella-beach' : 'fa-calendar-day';
-              $bg     = $isNext ? 'bg-warning' : 'bg-primary';
-            ?>
-            <li class="timeline-event">
-              <div class="timeline-icon <?= $bg ?>">
-                <i class="fa-solid <?= $icon ?>"></i>
-              </div>
-              
-              <div class="timeline-content">
-              <?php if($isNext): ?>
-                <div class="ribbon-label"><b>Próxima</b></div>
-              <?php endif; ?>
-                <h6 class="mb-1">
-                  <?= htmlspecialchars($f['tipo']) ?>
-                  <span class="badge <?= $isNext ? 'bg-warning text-dark' : 'bg-primary' ?> ms-2">
-                    <?= $f['quantidade_dias'] ?>d
-                  </span>
-                </h6>
-                <small class="text-muted d-block mb-1">
-                  <i class="fa-regular fa-calendar me-1"></i>
-                  <?= $f['inicio'] ?> → <?= $f['fim'] ?>
-                </small>
-                <?php if(trim($f['justificativa'])): ?>
-                <p class="small text-muted mb-0">
-                  <i class="fa-solid fa-comment-dots me-1"></i>
-                  <?= htmlspecialchars($f['justificativa']) ?>
-                </p>
+          <div class="p-3">
+            <div class="row gx-4">
+              <!-- Próximas Folgas -->
+              <div class="col-md-6">
+                <h5 class="mb-3">
+                  <i class="fa-solid fa-calendar-plus text-primary me-2"></i>Próximas Folgas
+                </h5>
+                <?php if(count($folgas_proximas)): ?>
+                  <ul class="timeline">
+                    <?php foreach($folgas_proximas as $idx => $f): 
+                      $isNext = $idx === 0;
+                      $icon   = $f['tipo']==='Ferias' ? 'fa-umbrella-beach' : 'fa-calendar-day';
+                      $bg     = $isNext ? 'bg-warning' : 'bg-primary';
+                    ?>
+                    <li class="timeline-event">
+                      <div class="timeline-icon <?= $bg ?>">
+                        <i class="fa-solid <?= $icon ?>"></i>
+                      </div>
+                      
+                      <div class="timeline-content">
+                      <?php if($isNext): ?>
+                        <div class="ribbon-label"><b>Próxima</b></div>
+                      <?php endif; ?>
+                        <h6 class="mb-1">
+                          <?= htmlspecialchars($f['tipo']) ?>
+                          <span class="badge <?= $isNext ? 'bg-warning text-dark' : 'bg-primary' ?> ms-2">
+                            <?= $f['quantidade_dias'] ?>d
+                          </span>
+                        </h6>
+                        <small class="text-muted d-block mb-1">
+                          <i class="fa-regular fa-calendar me-1"></i>
+                          <?= $f['inicio'] ?> → <?= $f['fim'] ?>
+                        </small>
+                        <?php if(trim($f['justificativa'])): ?>
+                        <p class="small text-muted mb-0">
+                          <i class="fa-solid fa-comment-dots me-1"></i>
+                          <?= htmlspecialchars($f['justificativa']) ?>
+                        </p>
+                        <?php endif; ?>
+                      </div>
+                    </li>
+                    <?php endforeach; ?>
+                  </ul>
+                <?php else: ?>
+                  <div class="text-muted">Nenhuma folga futura agendada.</div>
                 <?php endif; ?>
               </div>
-            </li>
-            <?php endforeach; ?>
-          </ul>
-        <?php else: ?>
-          <div class="text-muted">Nenhuma folga futura agendada.</div>
-        <?php endif; ?>
-      </div>
 
-      <!-- Folgas Passadas -->
-      <div class="col-md-6">
-        <h5 class="mb-3">
-          <i class="fa-solid fa-clock-rotate-left text-secondary me-2"></i>Folgas Passadas
-        </h5>
-        <?php if(count($folgas_passadas)): ?>
-          <ul class="timeline">
-            <?php foreach($folgas_passadas as $f): ?>
-            <li class="timeline-event">
-              <div class="timeline-icon bg-secondary">
-                <i class="fa-solid <?= $f['tipo']==='Ferias' ? 'fa-umbrella-beach' : 'fa-calendar-day' ?>"></i>
-              </div>
-              <div class="timeline-content ps-4">
-                <h6>
-                  <?= htmlspecialchars($f['tipo']) ?>
-                  <span class="badge bg-secondary ms-2"><?= $f['quantidade_dias'] ?>d</span>
-                </h6>
-                <small>
-                  <i class="fa-regular fa-calendar me-1"></i>
-                  <?= $f['inicio'] ?> → <?= $f['fim'] ?>
-                </small>
-                <?php if(trim($f['justificativa'])): ?>
-                <p>
-                  <i class="fa-solid fa-comment-dots me-1"></i>
-                  <?= htmlspecialchars($f['justificativa']) ?>
-                </p>
+              <!-- Folgas Passadas -->
+              <div class="col-md-6">
+                <h5 class="mb-3">
+                  <i class="fa-solid fa-clock-rotate-left text-secondary me-2"></i>Folgas Passadas
+                </h5>
+                <?php if(count($folgas_passadas)): ?>
+                  <ul class="timeline">
+                    <?php foreach($folgas_passadas as $f): ?>
+                    <li class="timeline-event">
+                      <div class="timeline-icon bg-secondary">
+                        <i class="fa-solid <?= $f['tipo']==='Ferias' ? 'fa-umbrella-beach' : 'fa-calendar-day' ?>"></i>
+                      </div>
+                      <div class="timeline-content ps-4">
+                        <h6>
+                          <?= htmlspecialchars($f['tipo']) ?>
+                          <span class="badge bg-secondary ms-2"><?= $f['quantidade_dias'] ?>d</span>
+                        </h6>
+                        <small>
+                          <i class="fa-regular fa-calendar me-1"></i>
+                          <?= $f['inicio'] ?> → <?= $f['fim'] ?>
+                        </small>
+                        <?php if(trim($f['justificativa'])): ?>
+                        <p>
+                          <i class="fa-solid fa-comment-dots me-1"></i>
+                          <?= htmlspecialchars($f['justificativa']) ?>
+                        </p>
+                        <?php endif; ?>
+                      </div>
+                    </li>
+                    <?php endforeach; ?>
+                  </ul>
+                <?php else: ?>
+                  <div class="text-muted">Nenhuma folga passada.</div>
                 <?php endif; ?>
               </div>
-            </li>
-            <?php endforeach; ?>
-          </ul>
-        <?php else: ?>
-          <div class="text-muted">Nenhuma folga passada.</div>
-        <?php endif; ?>
-      </div>
-    </div>
-  </div>
-</div>
+            </div>
+          </div>
+        </div>
 
         <!-- 2.3) Aba Indicações -->
         <div class="tab-pane fade" id="indicacoes" role="tabpanel" aria-labelledby="indicacoes-tab">
