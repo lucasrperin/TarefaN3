@@ -402,3 +402,25 @@ CREATE TABLE TB_NOTIFICACOES (
     cliente_id INT,
     FOREIGN KEY (cliente_id) REFERENCES TB_CLIENTES(id)
 );
+
+CREATE TABLE IF NOT EXISTS `TB_RECORRENTES` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `situacao` VARCHAR(100) NOT NULL,
+  `resolvido` TINYINT(1) NOT NULL DEFAULT 0,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `completed_at` DATETIME NULL,
+  `resposta` TEXT NULL,
+  INDEX (`resolvido`),
+  INDEX (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `TB_RECORRENTES_CARDS` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `recorrente_id` INT UNSIGNED NOT NULL,
+  `card_num` VARCHAR(20) NOT NULL COMMENT 'Ex: 22640',
+  PRIMARY KEY (`id`),
+  KEY `idx_recorrente` (`recorrente_id`),
+  CONSTRAINT `fk_recorrentes_cards`
+    FOREIGN KEY (`recorrente_id`) REFERENCES `TB_RECORRENTES`(`id`)
+      ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

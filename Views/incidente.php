@@ -1,6 +1,10 @@
 <?php
 include '../Config/Database.php';
 session_start();
+// Define aba ativa com query param
+$activeTab = $_GET['tab'] ?? 'incidentes';
+// Determina aba ativa de recorrentes
+$rec_success = isset($_GET['msg']) && $_GET['msg'] === 'rec_success';
 
 // Verifica se o usuário está logado; se não, redireciona para o login
 if (!isset($_SESSION['usuario_id'])) {
@@ -15,6 +19,12 @@ $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// pendentes (resolvido=0) primeiro, depois os já resolvidos, e sempre os mais recentes acima
+$resultRec = $conn->query("
+    SELECT *
+      FROM TB_RECORRENTES
+  ORDER BY resolvido ASC, created_at DESC
+");
 // Função para mapear o nome do sistema para o caminho do ícone correspondente
 function getIconPath($system) {
     switch($system) {
@@ -85,6 +95,8 @@ $sqlWeb = "
     ORDER BY hora_inicio DESC
 ";
 $resultWeb = $conn->query($sqlWeb);
+
+$rec_success = (isset($_GET['msg']) && $_GET['msg']==='rec_success');
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -160,7 +172,33 @@ $resultWeb = $conn->query($sqlWeb);
       </div>
       <!-- Conteúdo principal -->
       <div class="content container-fluid">
-        <h2 class="mb-4">Incidentes Registrados</h2>
+
+
+<ul class="nav nav-tabs mb-4" id="mainTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link <?php echo $activeTab==='incidentes'?'active':''; ?>" 
+            id="tab-incidentes" 
+            data-bs-toggle="tab" 
+            data-bs-target="#pane-incidentes" 
+            type="button">
+      Incidentes
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link <?php echo $activeTab==='recorrentes'?'active':''; ?>" 
+            id="tab-recorrentes" 
+            data-bs-toggle="tab" 
+            data-bs-target="#pane-recorrentes" 
+            type="button">
+      Recorrentes
+    </button>
+  </li>
+</ul>
+<div class="tab-content" id="mainTabsContent">
+  <div class="tab-pane fade <?php echo $activeTab==='incidentes'?'show active':''; ?>" 
+       id="pane-incidentes" 
+       role="tabpanel"> 
+
         
         <!-- Alerta de sucesso -->
         <?php if (isset($_GET['msg'])): ?>
@@ -168,6 +206,65 @@ $resultWeb = $conn->query($sqlWeb);
               <div class="alert alert-success" role="alert" id="alert-msg">
                   Incidente registrado com sucesso!
               </div>
+        <div class="tab-pane fade <?php if ($rec_success) echo 'show active'; ?>" id="pane-recorrentes" role="tabpanel">
+          <h2 class="mb-4">Recorrentes Registrados</h2>
+          <!-- Botão de cadastro -->
+          <div class="mb-4">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastroRecorrente">
+              Registrar Recorrente
+            </button>
+          </div>
+          <!-- Tabela de recorrentes -->
+          <div class="card">
+            <div class="card-body p-0">
+              <?php if(isset($resultRec) && $resultRec->num_rows): ?>
+                <table class="table table-striped mb-0">
+                  <thead>
+                    <tr>
+                      <th>ID</th><th>Situação</th><th>Cards</th><th>Cadastrado em</th><th>Status</th><th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php while($r = $resultRec->fetch_assoc()):
+                      $cardsRes = $conn->query("SELECT card_num FROM TB_RECORRENTES_CARDS WHERE recorrente_id={$r['id']}");
+                      $cards = [];
+                      while($c = $cardsRes->fetch_assoc()) $cards[] = $c['card_num'];
+                    ?>
+                    <tr>
+                      <td><?= $r['id'] ?></td>
+                      <td><?= htmlspecialchars($r['situacao']) ?></td>
+                      <td>
+                        <?php foreach($cards as $n): ?>
+                          <a href="https://zmap.zpos.com.br/#/detailsIncidente/<?= $n ?>" target="_blank"><?= $n ?></a><br>
+                        <?php endforeach; ?>
+                      </td>
+                      <td><?= $r['created_at'] ?></td>
+                      <td>
+                        <?php if($r['resolvido']): ?>
+                          <span class="badge bg-success">Resolvido</span>
+                        <?php else: ?>
+                          <span class="badge bg-warning text-dark">Pendente</span>
+                        <?php endif; ?>
+                      </td>
+                      <td>
+                        <a href="resolver_recorrente.php?id=<?= $r['id'] ?>"
+                           class="btn btn-sm <?= $r['resolvido'] ? 'btn-secondary' : 'btn-success' ?>"
+                           onclick="return confirm('Tem certeza?');">
+                          <?= $r['resolvido'] ? 'Reabrir' : 'Marcar resolvido' ?>
+                        </a>
+                      </td>
+                    </tr>
+                    <?php endwhile; ?>
+                  </tbody>
+                </table>
+              <?php else: ?>
+                <p class="m-3 text-muted">Nenhum caso recorrente cadastrado.</p>
+              <?php endif; ?>
+            </div>
+          </div>
+        </div>
+    </div> <!-- fim mainTabsContent -->
+
           <?php elseif ($_GET['msg'] == 'edit_success'): ?>
               <div class="alert alert-success" role="alert" id="alert-msg">
                   Incidente atualizado com sucesso!
@@ -598,6 +695,7 @@ $resultWeb = $conn->query($sqlWeb);
     </div> <!-- Fim do Main Content -->
   </div> <!-- Fim do d-flex-wrapper -->
 
+  <?php include 'recorrentes.php'; ?>
   <!-- Scripts JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -735,6 +833,40 @@ $resultWeb = $conn->query($sqlWeb);
     document.getElementById('hora_inicio').addEventListener('change', calcularTempoTotal);
     document.getElementById('hora_fim').addEventListener('change', calcularTempoTotal);
   </script>
+
+<!-- Modal Cadastro Recorrente -->
+<div class="modal fade" id="modalCadastroRecorrente" tabindex="-1" aria-labelledby="modalCadastroRecorrenteLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="cadastrar_recorrente.php" method="post">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalCadastroRecorrenteLabel">Cadastrar Recorrente</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="situacao_rec" class="form-label">Situação</label>
+            <select class="form-select" id="situacao_rec" name="situacao" required>
+              <option value="">Selecione</option>
+              <option value="Movimentações">Movimentações</option>
+              <option value="Comissões">Comissões</option>
+              <option value="Notas que não geram receitas">Notas que não geram receitas</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="card_nums_rec" class="form-label">Números de Card (um por linha)</label>
+            <textarea class="form-control" id="card_nums_rec" name="card_nums" rows="6" placeholder="22640&#10;22023&#10;21988" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+          <button type="submit" class="btn btn-primary">Gravar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
 <?php
