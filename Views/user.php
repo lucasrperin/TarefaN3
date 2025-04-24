@@ -14,23 +14,42 @@ $usuario_id = isset($_GET['usuario_id']) ? intval($_GET['usuario_id']) : $_SESSI
 
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 
-// 1) Captura valores do filtro
-$filterColumn  = $_GET['filterColumn'] ?? 'period';
-$dataInicial   = $_GET['data_inicial'] ?? '';
-$dataFinal     = $_GET['data_final']   ?? '';
+// 1) Se vier ?clear=1, zera tudo sem redirect
+$clear = isset($_GET['clear']);
 
-// 2) Monta array de condições
-$filters = [];
+// 2) Captura valores do filtro (ou defaults DO MÊS ATUAL,
+//    mas só se não estivermos limpando)
+date_default_timezone_set('America/Sao_Paulo');
 
-// --- Período ---
-if ($filterColumn === 'period' && $dataInicial && $dataFinal) {
-  $filters[] = "a.Hora_ini BETWEEN '$dataInicial 00:00:00' AND '$dataFinal 23:59:59'";
+if ($clear) {
+    // força mostrar TODOS os dados
+    $filterColumn = null;
+    $dataInicial  = '';
+    $dataFinal    = '';
+} else {
+    // se o usuário não submeteu nada, assume mês atual
+    $filterColumn = $_GET['filterColumn'] ?? 'period';
+    $dataInicial  = $_GET['data_inicial']  ?? date('Y-m-01');
+    $dataFinal    = $_GET['data_final']    ?? date('Y-m-t');
 }
 
-// 3) Transforma em SQL
+// 3) Monta as cláusulas de filtro
+$filters = [];
+if (!$clear && $filterColumn === 'period' && $dataInicial && $dataFinal) {
+    $filters[] = "a.Hora_ini BETWEEN '{$dataInicial} 00:00:00' AND '{$dataFinal} 23:59:59'";
+}
 $whereSql = $filters
   ? ' AND ' . implode(' AND ', $filters)
   : '';
+
+// supondo $dataInicial = '2025-03-01' e $dataFinal = '2025-03-31'
+$dt = new DateTime($dataInicial);
+$dt->modify('-1 month');
+$prevInicial = $dt->format('Y-m-01');  // ex: '2025-02-01'
+$prevFinal   = $dt->format('Y-m-t');   // ex: '2025-02-28'
+
+// cláusula WHERE para o período ANTERIOR
+$whereSqlPrev = " AND a.Hora_ini BETWEEN '{$prevInicial} 00:00:00' AND '{$prevFinal} 23:59:59'";
 
 // Consulta para obter análises (incluindo o campo Nota) do usuário logado
 $sql_analises = "
@@ -107,14 +126,15 @@ foreach ($fichas_por_numero as $numeroFicha => $fichas) {
 
 $sql_ranking = "
   SELECT 
-    a.idAtendente, u.Nome AS usuario_nome,
-    AVG(a.Nota) AS mediaNotas
+    a.idAtendente,
+    u.Nome       AS usuario_nome,
+    AVG(a.Nota)  AS mediaNotas
   FROM TB_ANALISES a
-  JOIN TB_USUARIO u ON a.idAtendente = u.Id
+  JOIN TB_USUARIO u ON u.Id = a.idAtendente
   WHERE a.idStatus = 1
-    {$whereSql}
+    {$whereSql}         
   GROUP BY a.idAtendente, u.Nome
-  ORDER BY mediaNotas DESC
+  ORDER BY mediaNotas DESC, usuario_nome ASC
 ";
 $result = $conn->query($sql_ranking);
 $ranking = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
@@ -144,22 +164,29 @@ $cntAtual = (int) $res_cnt['cnt'];
 // 1) Posição no mês atual (Dense Rank)
 if ($cntAtual > 0) {
   $sql_posicao_atual = "
-    SELECT COUNT(DISTINCT mediaMes)+1 AS posicaoAtual
-    FROM (
-      SELECT AVG(a.Nota) AS mediaMes
-      FROM TB_ANALISES a
-      WHERE a.idStatus = 1
-        {$whereSql}
-      GROUP BY a.idAtendente
-    ) AS t
-    WHERE t.mediaMes > (
-      SELECT AVG(Nota)
-      FROM TB_ANALISES a
-      WHERE a.idAtendente = ?
-        AND a.idStatus = 1
-        {$whereSql}
-    )
-  ";
+  WITH MonthlyAvg AS (
+    SELECT 
+      a.idAtendente,
+      u.Nome    AS usuario_nome,
+      AVG(a.Nota) AS mediaMes
+    FROM TB_ANALISES a
+    JOIN TB_USUARIO u ON u.Id = a.idAtendente
+    WHERE a.idStatus = 1
+      {$whereSql}
+    GROUP BY a.idAtendente, u.Nome
+  )
+  SELECT posicaoAtual
+  FROM (
+    SELECT
+      idAtendente,
+      ROW_NUMBER() OVER (
+        ORDER BY mediaMes DESC, usuario_nome ASC
+      ) AS posicaoAtual
+    FROM MonthlyAvg
+  ) AS ranked
+  WHERE idAtendente = ?
+";
+
   $stmt = $conn->prepare($sql_posicao_atual);
   $stmt->bind_param('i', $usuario_id);
   $stmt->execute();
@@ -195,23 +222,25 @@ if ($cntAnt > 0) {
   $sql_posicao_anterior = "
     WITH PrevMonthAvg AS (
       SELECT 
-        a.idAtendente, 
-        AVG(a.Nota) AS mediaMes
+        a.idAtendente,
+        u.Nome       AS usuario_nome,
+        AVG(a.Nota)  AS mediaMes
       FROM TB_ANALISES a
-      WHERE a.idStatus   = 1
-        AND YEAR(a.Hora_ini)  = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
-        AND MONTH(a.Hora_ini) = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
-        {$whereSql}
-      GROUP BY idAtendente
+      JOIN TB_USUARIO u ON u.Id = a.idAtendente
+      WHERE a.idStatus = 1
+        {$whereSqlPrev}
+      GROUP BY a.idAtendente, u.Nome
     )
     SELECT posicaoAnterior
     FROM (
       SELECT 
         idAtendente,
-        DENSE_RANK() OVER (ORDER BY mediaMes DESC) AS posicaoAnterior
+        ROW_NUMBER() OVER (
+          ORDER BY mediaMes DESC, usuario_nome ASC
+        ) AS posicaoAnterior
       FROM PrevMonthAvg
     ) AS ranked
-    WHERE idAtendente = ?  
+    WHERE idAtendente = ?
   ";
   $stmt = $conn->prepare($sql_posicao_anterior);
   $stmt->bind_param('i', $usuario_id);
@@ -597,11 +626,11 @@ $clsAnterior = is_int($colocacaoAnterior) && $colocacaoAnterior > 0
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label for="data_inicial" class="form-label">Data Início:</label>
-                  <input type="date" class="form-control" id="data_inicial" name="data_inicial" value="<?php echo isset($_GET['data_inicial']) ? $_GET['data_inicial'] : ''; ?>">
+                  <input type="date" class="form-control" id="data_inicial" name="data_inicial" value="<?= htmlspecialchars($dataInicial) ?>">
                 </div>
                 <div class="col-md-6 mb-3">
                   <label for="data_final" class="form-label">Data Fim:</label>
-                  <input type="date" class="form-control" id="data_final" name="data_final" value="<?php echo isset($_GET['data_final']) ? $_GET['data_final'] : ''; ?>">
+                  <input type="date" class="form-control" id="data_final" name="data_final" value="<?= htmlspecialchars($dataFinal) ?>">
                 </div>
               </div>
             </div>
