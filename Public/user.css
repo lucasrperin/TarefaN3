@@ -445,3 +445,54 @@ body {
 }
 
 
+.card-next-folga {
+  position: relative;
+  border: none;
+  border-radius: .5rem;
+  overflow: hidden;
+}
+.card-next-folga .card-accent {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background-color: #0d6efd; /* mesma cor do border-info */
+}
+.card-next-folga .icon-bg {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  width: 3rem; height: 3rem;
+  background: rgba(13,110,253,0.2);
+  border-radius: .75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-next-folga .card-body {
+  padding-left: 5rem; /* espaço para o ícone */
+}
+
+.justification-text {
+  display: -webkit-box;            /* container flexível para multi-line clamp */
+  -webkit-box-orient: vertical;    /* orienta o box verticalmente */
+  -webkit-line-clamp: 2;           /* mostra no máximo 2 linhas */
+  overflow: hidden;                /* esconde o que ultrapassar */
+  text-overflow: ellipsis;         /* adiciona “…” ao final */
+  word-wrap: break-word;           /* quebra palavras longas */
+}
+
+/* Teal para folgas */
+.border-teal {
+  border-color: #c95020 !important;
+}
+.bg-tint-teal {
+  background-color: rgba(162, 32, 201, 0.1) !important;
+}
+.bg-teal {
+  background-color: #c95020 !important;
+  color: #fff !important;
+}
+.bg-light-pill {
+  background-color: #fff !important;
+  color: #c95020 !important;
+}
