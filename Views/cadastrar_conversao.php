@@ -1,6 +1,15 @@
 <?php
+// 1) Debug ativo
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
-include '../Config/Database.php'; // Conexão com o banco de dados
+
+// 2) Inclui conexão (usa __DIR__ para evitar erro de caminho)
+require __DIR__ . '/../Config/Database.php';
+
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 1) Recebe inputs do formulário
@@ -51,14 +60,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $query = "
         INSERT INTO TB_CONVERSOES 
         (contato, serial, retrabalho, sistema_id, prazo_entrega, status_id, 
-         data_recebido, data_inicio, data_conclusao, analista_id, observacao, tempo_total) 
+         data_recebido, data_inicio, data_conclusao, analista_id, observacao) 
         VALUES 
-        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TIMEDIFF(?, ?))
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ";
 
     $stmt = $conn->prepare($query);
     $stmt->bind_param(
-        'sssisssssssss',
+        'sssisssssss',
         $contato,
         $serial,
         $retrabalho,
@@ -69,9 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data_inicio,
         $data_conclusao,
         $analista_id,
-        $observacao,
-        $data_recebido,
-        $data_conclusao
+        $observacao
+    
     );
 
     if (!$stmt->execute()) {

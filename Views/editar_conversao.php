@@ -1,6 +1,9 @@
 <?php
+
+require __DIR__ . '/../Config/Database.php';
+
 session_start();
-include '../Config/Database.php'; // Conexão com o banco de dados
+
 
 // (Opcional) debug de erros
 error_reporting(E_ALL);
@@ -10,13 +13,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Captura dos campos
     $id             = $_POST['id'];
     $contato        = $_POST['contato'];
-    $serial         = $_POST['serial'] ?: NULL;
+    $serial         = $_POST['serial'];
     $retrabalho     = $_POST['retrabalho'];       // 'Sim' ou 'Não'
     $sistema_id     = $_POST['sistema_id'];       // ID válido em TB_SISTEMA_CONVER
     $status_id      = $_POST['status_id'];        // ID válido em TB_STATUS_CONVER
     $data_recebido  = $_POST['data_recebido'];    // DATETIME
     $prazo_entrega  = $_POST['prazo_entrega'];    // DATETIME
-    $data_inicio    = $_POST['data_inicio'];      // DATETIME
+    $data_inicio    = $_POST['data_inicio'] ?: NULL;     // DATETIME
     $data_conclusao = $_POST['data_conclusao'] ?: NULL; // DATETIME ou NULL
     $analista_id    = $_POST['analista_id'];      // ID válido em TB_ANALISTA_CONVER
     $observacao     = $_POST['observacao'];

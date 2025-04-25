@@ -2,7 +2,7 @@
 // força o fuso-horário de São Paulo (UTC−3)
 date_default_timezone_set('America/Sao_Paulo');
 
-include '../Config/Database.php';
+require '../Config/Database.php';
 
 session_start();
 
