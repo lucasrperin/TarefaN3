@@ -201,6 +201,7 @@ $resultFolga = $conn->query($sqlListarFolga);
 <head>
   <meta charset="UTF-8">
   <title>Controle de Férias e Folgas</title>
+  <link rel="stylesheet" href="../Public/folga.css">
   <!-- Bootstrap 5 CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
   <!-- FullCalendar CSS -->
@@ -214,7 +215,7 @@ $resultFolga = $conn->query($sqlListarFolga);
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- CSS customizado -->
   <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
-  <link rel="stylesheet" href="../Public/folga.css">
+  
 </head>
 <body>
   <!-- Início do layout unificado: Sidebar e Cabeçalho -->
@@ -477,55 +478,57 @@ $resultFolga = $conn->query($sqlListarFolga);
           <h4 class="mb-0">Ferias</h4>
         </div>
         <div class="card-body p-0">
-          <table class="table table-hover table-striped mb-0">
-            <thead class="table-light">
-              <tr>
-                <th>Colaborador</th>
-                <th>Data Início</th>
-                <th>Data Fim</th>
-                <th>Dias</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php if ($resultFerias && $resultFerias->num_rows > 0): ?>
-                <?php while($row = $resultFerias->fetch_assoc()): ?>
-                  <tr>
-                    <td><?php echo $row['nome_colaborador']; ?></td>
-                    <td><?php echo date("d/m/Y", strtotime($row['data_inicio'])); ?></td>
-                    <td><?php echo date("d/m/Y", strtotime($row['data_fim'])); ?></td>
-                    <td><?php echo $row['quantidade_dias']; ?></td>
-                    <td>
-                      <div class="d-flex flex-column align-items-start">
-                        <button 
-                          class="btn btn-sm btn-outline-primary editar-btn" 
-                          data-bs-toggle="modal" 
-                          data-bs-target="#modalEditar"
-                          data-id="<?php echo $row['id']; ?>"
-                          data-usuarioid="<?php echo $row['usuario_id']; ?>"  
-                          data-tipo="Ferias"
-                          data-inicio="<?php echo $row['data_inicio']; ?>"
-                          data-fim="<?php echo $row['data_fim']; ?>"
-                          data-justificativa="">
-                          <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <a 
-                          href="deletar_folga.php?id=<?php echo $row['id']; ?>" 
-                          class="btn btn-sm btn-outline-danger"
-                          onclick="return confirm('Confirma a exclusão?');">
-                          <i class="fa-solid fa-trash"></i>
-                        </a>
-                      </div>
-                    </td>
-                  </tr>
-                <?php endwhile; ?>
-              <?php else: ?>
+          <div class="table-scroll">
+            <table class="table table-hover table-striped mb-0">
+              <thead class="table-light">
                 <tr>
-                  <td colspan="5" class="text-center text-muted">Nenhum registro de Ferias encontrado.</td>
+                  <th>Colaborador</th>
+                  <th>Data Início</th>
+                  <th>Data Fim</th>
+                  <th>Dias</th>
+                  <th>Ações</th>
                 </tr>
-              <?php endif; ?>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                <?php if ($resultFerias && $resultFerias->num_rows > 0): ?>
+                  <?php while($row = $resultFerias->fetch_assoc()): ?>
+                    <tr>
+                      <td><?php echo $row['nome_colaborador']; ?></td>
+                      <td><?php echo date("d/m/Y", strtotime($row['data_inicio'])); ?></td>
+                      <td><?php echo date("d/m/Y", strtotime($row['data_fim'])); ?></td>
+                      <td><?php echo $row['quantidade_dias']; ?></td>
+                      <td>
+                        <div class="d-flex flex-column align-items-start">
+                          <button 
+                            class="btn btn-sm btn-outline-primary editar-btn" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalEditar"
+                            data-id="<?php echo $row['id']; ?>"
+                            data-usuarioid="<?php echo $row['usuario_id']; ?>"  
+                            data-tipo="Ferias"
+                            data-inicio="<?php echo $row['data_inicio']; ?>"
+                            data-fim="<?php echo $row['data_fim']; ?>"
+                            data-justificativa="">
+                            <i class="fa-solid fa-pen"></i>
+                          </button>
+                          <a 
+                            href="deletar_folga.php?id=<?php echo $row['id']; ?>" 
+                            class="btn btn-sm btn-outline-danger"
+                            onclick="return confirm('Confirma a exclusão?');">
+                            <i class="fa-solid fa-trash"></i>
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  <?php endwhile; ?>
+                <?php else: ?>
+                  <tr>
+                    <td colspan="5" class="text-center text-muted">Nenhum registro de Ferias encontrado.</td>
+                  </tr>
+                <?php endif; ?>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -536,56 +539,58 @@ $resultFolga = $conn->query($sqlListarFolga);
           <h4 class="mb-0">Folgas</h4>
         </div>
         <div class="card-body p-0">
-          <table class="table table-hover table-striped mb-0">
-            <thead class="table-light">
-              <tr>
-                <th>Colaborador</th>
-                <th>Data Início</th>
-                <th>Data Fim</th>
-                <th>Dias</th>
-                <th>Justificativa</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php if ($resultFolga && $resultFolga->num_rows > 0): ?>
-                <?php while($row = $resultFolga->fetch_assoc()): ?>
-                  <tr>
-                    <td><?php echo $row['nome_colaborador']; ?></td>
-                    <td><?php echo date("d/m/Y", strtotime($row['data_inicio'])); ?></td>
-                    <td><?php echo date("d/m/Y", strtotime($row['data_fim'])); ?></td>
-                    <td><?php echo $row['quantidade_dias']; ?></td>
-                    <td><?php echo nl2br($row['justificativa'] ?? ''); ?></td>
-                    <td>
-                      <div class="d-flex flex-column align-items-start">
-                        <button 
-                          class="btn btn-sm btn-outline-primary editar-btn"
-                          data-bs-toggle="modal" 
-                          data-bs-target="#modalEditar"
-                          data-id="<?php echo $row['id']; ?>"
-                          data-usuarioid="<?php echo $row['usuario_id']; ?>" 
-                          data-tipo="Folga"
-                          data-inicio="<?php echo $row['data_inicio']; ?>"
-                          data-fim="<?php echo $row['data_fim']; ?>"
-                          data-justificativa="<?php echo $row['justificativa']; ?>">
-                          <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <a href="deletar_folga.php?id=<?php echo $row['id']; ?>" 
-                           class="btn btn-sm btn-outline-danger"
-                           onclick="return confirm('Confirma a exclusão?');">
-                          <i class="fa-solid fa-trash"></i>
-                        </a>
-                      </div>
-                    </td>
-                  </tr>
-                <?php endwhile; ?>
-              <?php else: ?>
+          <div class="table-scroll">
+            <table class="table table-hover table-striped mb-0">
+              <thead class="table-light">
                 <tr>
-                  <td colspan="6" class="text-center text-muted">Nenhum registro de Folga encontrado.</td>
+                  <th>Colaborador</th>
+                  <th>Data Início</th>
+                  <th>Data Fim</th>
+                  <th>Dias</th>
+                  <th>Justificativa</th>
+                  <th>Ações</th>
                 </tr>
-              <?php endif; ?>
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                <?php if ($resultFolga && $resultFolga->num_rows > 0): ?>
+                  <?php while($row = $resultFolga->fetch_assoc()): ?>
+                    <tr>
+                      <td><?php echo $row['nome_colaborador']; ?></td>
+                      <td><?php echo date("d/m/Y", strtotime($row['data_inicio'])); ?></td>
+                      <td><?php echo date("d/m/Y", strtotime($row['data_fim'])); ?></td>
+                      <td><?php echo $row['quantidade_dias']; ?></td>
+                      <td class="sobrepor"><?php echo nl2br($row['justificativa'] ?? ''); ?></td>
+                      <td>
+                        <div class="d-flex flex-column align-items-start">
+                          <button 
+                            class="btn btn-sm btn-outline-primary editar-btn"
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalEditar"
+                            data-id="<?php echo $row['id']; ?>"
+                            data-usuarioid="<?php echo $row['usuario_id']; ?>" 
+                            data-tipo="Folga"
+                            data-inicio="<?php echo $row['data_inicio']; ?>"
+                            data-fim="<?php echo $row['data_fim']; ?>"
+                            data-justificativa="<?php echo $row['justificativa']; ?>">
+                            <i class="fa-solid fa-pen"></i>
+                          </button>
+                          <a href="deletar_folga.php?id=<?php echo $row['id']; ?>" 
+                            class="btn btn-sm btn-outline-danger"
+                            onclick="return confirm('Confirma a exclusão?');">
+                            <i class="fa-solid fa-trash"></i>
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  <?php endwhile; ?>
+                <?php else: ?>
+                  <tr>
+                    <td colspan="6" class="text-center text-muted">Nenhum registro de Folga encontrado.</td>
+                  </tr>
+                <?php endif; ?>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

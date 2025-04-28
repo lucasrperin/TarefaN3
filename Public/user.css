@@ -172,11 +172,11 @@ body {
     width: 8px;
 }
 .ranking-scroll::-webkit-scrollbar-thumb {
-    background: #888; 
+    background: #ffffff; 
     border-radius: 10px;
 }
 .ranking-scroll::-webkit-scrollbar-thumb:hover {
-    background: #555; 
+    background: #d3d3d3; 
 }
 
 .clickable {
@@ -319,20 +319,20 @@ body {
   .grid-row .nota { font-weight: 600; }
 
   .sobrepor {
-  max-width: 20rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+    max-width: 20rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-.metric-card {
+  .metric-card {
     width: 100%;       /* 100% da coluna */
     min-height: 134px; /* altura fixa mínima */
     /* ou height: 160px; para altura fixa exata */
   }
 
   /* Card personalizado */
-.card-ranking {
+  .card-ranking {
     border-start-width: 6px !important;
     border-start-color: #6c757d !important; /* mesma cor do header */
     border-radius: .75rem;
@@ -365,7 +365,7 @@ body {
   }
   
   /* Destaque de posições */
-.text-rank-1 {
+  .text-rank-1 {
     color: #FFD700 !important; /* ouro */
   }
   .text-rank-2 {
@@ -377,7 +377,6 @@ body {
   .text-rank-default {
     color: #000 !important;    /* preto para 4º em diante */
   }
-
 
 
   /* Timeline base */
@@ -444,7 +443,6 @@ body {
   box-shadow: 0 0 0 2px rgba(255,193,7,0.2);
 }
 
-
 .card-next-folga {
   position: relative;
   border: none;
@@ -473,6 +471,7 @@ body {
 }
 
 .justification-text {
+  max-width: 20rem;
   display: -webkit-box;            /* container flexível para multi-line clamp */
   -webkit-box-orient: vertical;    /* orienta o box verticalmente */
   -webkit-line-clamp: 2;           /* mostra no máximo 2 linhas */
@@ -495,4 +494,17 @@ body {
 .bg-light-pill {
   background-color: #fff !important;
   color: #c95020 !important;
+}
+
+.sobrepor-ranking{
+  max-width: 9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; 
+}
+
+.justificativa-folga {
+  display: -webkit-box;            /* container flexível para multi-line clamp */
+  -webkit-box-orient: vertical;    /* orienta o box verticalmente */       /* mostra no máximo 2 linhas */
+  word-wrap: break-word;           /* quebra palavras longas */
 }

@@ -327,7 +327,7 @@ $stmt_pf->execute();
 $res_pf = $stmt_pf->get_result();
 
 if ($f = $res_pf->fetch_assoc()) {
-    $proximaFolga_tipo   = $f['tipo'];                                   // 'Ferias' ou 'Folga'
+    $proximaFolga_tipo   = $f['tipo']; // 'Ferias' ou 'Folga'
     $proximaFolga_inicio = date('d/m', strtotime($f['data_inicio']));
     $proximaFolga_fim    = date('d/m', strtotime($f['data_fim']));
     $proximaFolga_justificativa   = $f['justificativa'];
@@ -467,7 +467,7 @@ if ($f = $res_pf->fetch_assoc()) {
                   <ul class="list-unstyled small ranking-scroll mb-0">
                     <?php foreach($ranking as $i=>$r): ?>
                       <li class="d-flex justify-content-between py-2 border-bottom">
-                        <span>
+                        <span class="sobrepor-ranking">
                           <?php 
                             echo ($i<3? ['🥇','🥈','🥉'][$i] : ($i+1).'º')
                               .' '.htmlspecialchars($r['usuario_nome']);
@@ -513,46 +513,46 @@ if ($f = $res_pf->fetch_assoc()) {
           </div>
           <!-- 4) Próxima Folga -->
           <div class="col-sm-6 col-md-3">
-          <div class="card metric-card border-start border-4 border-teal shadow-sm mb-2">
-    <div class="card-body">
+            <div class="card metric-card border-start border-4 border-teal shadow-sm mb-2">
+              <div class="card-body">
 
-      <!-- Label -->
-      <small class="text-muted">Próxima Folga</small>
+                <!-- Label -->
+                <small class="text-muted">Próxima Folga</small>
 
-      <?php if($proximaFolga_inicio !== null): ?>
-      <!-- Badges juntinhos -->
-      <div class="d-flex align-items-center flex-wrap gap-2 my-2">
-        <!-- Tipo -->
-        <span class="badge bg-teal rounded-pill px-2 py-1">
-          <i class="fa-solid <?= $proximaFolga_tipo==='Ferias'?'fa-umbrella-beach':'fa-calendar-day' ?> me-1"></i>
-          <?= htmlspecialchars($proximaFolga_tipo) ?>
-        </span>
-        <!-- Período -->
-        <span class="badge bg-light-pill text-teal rounded-pill px-2 py-1">
-          <i class="fa-regular fa-calendar me-1"></i>
-          <?= "{$proximaFolga_inicio} → {$proximaFolga_fim}" ?>
-        </span>
-        <!-- Dias -->
-        <span class="badge bg-light-pill text-teal rounded-pill px-2 py-1">
-          <i class="fa-solid fa-clock me-1"></i>
-          <?= $proximaFolga_qtdDias ?>d
-        </span>
-      </div>
+                <?php if($proximaFolga_inicio !== null): ?>
+                <!-- Badges juntos -->
+                <div class="d-flex align-items-center flex-wrap gap-2 my-2">
+                  <!-- Tipo -->
+                  <span class="badge bg-teal rounded-pill px-2 py-1">
+                    <i class="fa-solid <?= $proximaFolga_tipo==='Ferias'?'fa-umbrella-beach':'fa-calendar-day' ?> me-1"></i>
+                    <?= htmlspecialchars($proximaFolga_tipo) ?>
+                  </span>
+                  <!-- Período -->
+                  <span class="badge bg-light-pill text-teal rounded-pill px-2 py-1">
+                    <i class="fa-regular fa-calendar me-1"></i>
+                    <?= "{$proximaFolga_inicio} → {$proximaFolga_fim}" ?>
+                  </span>
+                  <!-- Dias -->
+                  <span class="badge bg-light-pill text-teal rounded-pill px-2 py-1">
+                    <i class="fa-solid fa-clock me-1"></i>
+                    <?= $proximaFolga_qtdDias ?>d
+                  </span>
+                </div>
 
-      <!-- Justificativa -->
-      <?php if(!empty($proximaFolga_justificativa)): ?>
-      <p class="justification-text mb-0 small">
-        <i class="fa-solid fa-comment-dots me-1 text-teal"></i>
-        <?= htmlspecialchars($proximaFolga_justificativa) ?>
-      </p>
-      <?php endif; ?>
+                <!-- Justificativa -->
+                <?php if(!empty($proximaFolga_justificativa)): ?>
+                <p class="justification-text mb-0 small">
+                  <i class="fa-solid fa-comment-dots me-1 text-teal"></i>
+                  <?= htmlspecialchars($proximaFolga_justificativa) ?>
+                </p>
+                <?php endif; ?>
 
-      <?php else: ?>
-        <h5 class="mb-0 text-center">–</h5>
-      <?php endif; ?>
+                <?php else: ?>
+                  <h5 class="mb-0 text-center">–</h5>
+                <?php endif; ?>
 
-    </div>
-  </div>
+              </div>
+            </div>
        
             <!-- 5) Total Faturado (Indicações) -->
             <div class="card metric-card border-start border-4 border-success shadow-sm">
@@ -725,7 +725,7 @@ if ($f = $res_pf->fetch_assoc()) {
                           <?= $f['inicio'] ?> → <?= $f['fim'] ?>
                         </small>
                         <?php if(trim($f['justificativa'])): ?>
-                        <p class="small text-muted mb-0">
+                        <p class="justificativa-folga small text-muted mb-0">
                           <i class="fa-solid fa-comment-dots me-1"></i>
                           <?= htmlspecialchars($f['justificativa']) ?>
                         </p>
