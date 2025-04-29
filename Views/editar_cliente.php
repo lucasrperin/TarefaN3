@@ -2,45 +2,80 @@
 include '../Config/Database.php';
 session_start();
 
-// Em ambiente de produção você pode desativar a exibição de erros
+// Em produção, desative a exibição de erros
 ini_set('display_errors', 0);
 error_reporting(0);
 
-header("Content-Type: application/json");
+header('Content-Type: application/json');
 
-// Verifica se o usuário está autenticado
+// Verifica autenticação
 if (!isset($_SESSION['usuario_id'])) {
-    echo json_encode(['status' => 'error', 'message' => 'Acesso não autorizado']);
+    echo json_encode(['status'=>'error','message'=>'Acesso não autorizado']);
     exit();
 }
 
-$id = $_POST['id'] ?? '';
-$cliente = trim($_POST['cliente'] ?? '');
-$cnpjcpf = trim($_POST['cnpjcpf'] ?? '');
-$serial = trim($_POST['serial'] ?? '');
-$horas_adquiridas = intval($_POST['horas_adquiridas'] ?? 0);
-$whatsapp = trim($_POST['whatsapp'] ?? '');
-$data_conclusao = trim($_POST['data_conclusao'] ?? '');
+// Recebe e sanitiza os dados do POST
+$id                = intval($_POST['id'] ?? 0);
+$cliente           = mysqli_real_escape_string($conn, trim($_POST['cliente'] ?? ''));
+$cnpjcpf           = mysqli_real_escape_string($conn, trim($_POST['cnpjcpf'] ?? ''));
+$serial            = mysqli_real_escape_string($conn, trim($_POST['serial'] ?? ''));
+$horas_adquiridas  = intval($_POST['horas_adquiridas'] ?? 0);
+$whatsapp          = mysqli_real_escape_string($conn, trim($_POST['whatsapp'] ?? ''));
+$data_conclusao    = trim($_POST['data_conclusao'] ?? '');
 
-// Valida os campos obrigatórios
-if (empty($id) || empty($cliente) || $horas_adquiridas <= 0) {
-    echo json_encode(['status' => 'error', 'message' => 'Campos obrigatórios não informados.']);
+// Faturamento e valor
+$faturamento_raw   = $_POST['faturamento'] ?? '';
+$faturamento       = in_array($faturamento_raw, ['BRINDE','FATURADO'])
+                     ? $faturamento_raw 
+                     : 'BRINDE';
+$valor_raw         = $_POST['valor_faturamento'] ?? '';
+$valor_faturamento = ($faturamento === 'FATURADO' && $valor_raw !== '')
+                     ? floatval($valor_raw)
+                     : 'NULL';
+
+// Validações básicas
+if ($id <= 0 || $cliente === '' || $horas_adquiridas <= 0) {
+    echo json_encode([
+        'status'=>'error',
+        'message'=>'Campos obrigatórios faltando (id, nome ou minutos adquiridos).'
+    ]);
     exit();
 }
 
-$query = "UPDATE TB_CLIENTES SET cliente = ?, cnpjcpf = ?, serial = ?, horas_adquiridas = ?, whatsapp = ?, data_conclusao = ? WHERE id = ?";
-$stmt = mysqli_prepare($conn, $query);
-if (!$stmt) {
-    echo json_encode(['status' => 'error', 'message' => 'Erro na preparação da query: ' . mysqli_error($conn)]);
-    exit();
-}
-mysqli_stmt_bind_param($stmt, 'sssissi', $cliente, $cnpjcpf, $serial, $horas_adquiridas, $whatsapp, $data_conclusao, $id);
-if (!mysqli_stmt_execute($stmt)) {
-    echo json_encode(['status' => 'error', 'message' => 'Erro ao atualizar cliente: ' . mysqli_error($conn)]);
-    exit();
-}
-mysqli_stmt_close($stmt);
+// Monta o SQL de UPDATE
+$sql = "
+  UPDATE TB_CLIENTES SET
+    cliente           = '$cliente',
+    cnpjcpf           = '$cnpjcpf',
+    serial            = '$serial',
+    horas_adquiridas  = $horas_adquiridas,
+    whatsapp          = '$whatsapp',
+    data_conclusao    = ".($data_conclusao
+                             ? "'".mysqli_real_escape_string($conn,$data_conclusao)."'"
+                             : "NULL").",
+    faturamento       = '$faturamento',
+    valor_faturamento = $valor_faturamento,
+    atualizado_em     = NOW()
+  WHERE id = $id
+";
 
-echo json_encode(['status' => 'success', 'message' => 'Cliente atualizado com sucesso.']);
+// Executa a query
+$res = mysqli_query($conn, $sql);
+$err = mysqli_error($conn);
+$aff = mysqli_affected_rows($conn);
+
+// Retorna JSON de debug e status
+echo json_encode([
+  'status'    => $err
+                 ? 'error'
+                 : ($aff > 0 ? 'success' : 'warning'),
+  'message'   => $err
+                 ? "Erro no MySQL: $err"
+                 : ($aff > 0
+                    ? "Cliente atualizado com sucesso (linhas afetadas: $aff)."
+                    : "Nenhuma linha alterada — verifique se o ID existe e se os dados mudaram."),
+  'sql'       => $sql,
+  'affected'  => $aff
+]);
 exit();
 ?>
