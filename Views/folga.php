@@ -578,37 +578,39 @@ if ($resultFolga) {
         <i class="fa-solid fa-umbrella-beach text-primary me-2"></i>Férias
       </h5>
       <?php if (count($feriasList)): ?>
-        <ul class="table-scroll timeline">
-          <?php foreach ($feriasList as $idx => $f):
-            $isNext     = $idx === 0;
-            $iconBg     = $isNext ? 'bg-warning text-dark' : 'bg-primary';
-            $badgeClass = $isNext ? 'bg-warning text-dark' : 'bg-primary';
-          ?>
-            <li class="timeline-event">
-              <div class="timeline-icon <?= $iconBg ?>">
-                <i class="fa-solid fa-umbrella-beach"></i>
-              </div>
-              <div class="timeline-content">
-                <?php if ($isNext): ?>
-                  <div class="ribbon-label"><b>Próximas Férias</b></div>
-                <?php endif; ?>
+        <div class="table-scroll">
+          <ul class="timeline">
+            <?php foreach ($feriasList as $idx => $f):
+              $isNext     = $idx === 0;
+              $iconBg     = $isNext ? 'bg-warning text-dark' : 'bg-primary';
+              $badgeClass = $isNext ? 'bg-warning text-dark' : 'bg-primary';
+            ?>
+              <li class="timeline-event">
+                <div class="timeline-icon <?= $iconBg ?>">
+                  <i class="fa-solid fa-umbrella-beach"></i>
+                </div>
+                <div class="timeline-content">
+                  <?php if ($isNext): ?>
+                    <div class="ribbon-label"><b>Próximas Férias</b></div>
+                  <?php endif; ?>
 
-                <h6 class="mb-1">
-                  <?= htmlspecialchars($f['nome_colaborador']) ?>
-                  <span class="badge <?= $badgeClass ?> ms-2">
-                    <?= $f['quantidade_dias'] ?>d
-                  </span>
-                </h6>
-                <small class="text-muted d-block mb-1">
-                  <i class="fa-regular fa-calendar me-1"></i>
-                  <?= date("d/m/Y", strtotime($f['data_inicio'])) ?>
-                  →
-                  <?= date("d/m/Y", strtotime($f['data_fim'])) ?>
-                </small>
-              </div>
-            </li>
-          <?php endforeach; ?>
-        </ul>
+                  <h6 class="mb-1">
+                    <?= htmlspecialchars($f['nome_colaborador']) ?>
+                    <span class="badge <?= $badgeClass ?> ms-2">
+                      <?= $f['quantidade_dias'] ?>d
+                    </span>
+                  </h6>
+                  <small class="text-muted d-block mb-1">
+                    <i class="fa-regular fa-calendar me-1"></i>
+                    <?= date("d/m/Y", strtotime($f['data_inicio'])) ?>
+                    →
+                    <?= date("d/m/Y", strtotime($f['data_fim'])) ?>
+                  </small>
+                </div>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
       <?php else: ?>
         <div class="text-muted">Nenhum registro de Férias encontrado.</div>
       <?php endif; ?>
@@ -620,43 +622,45 @@ if ($resultFolga) {
         <i class="fa-solid fa-calendar-day text-primary me-2"></i>Folgas
       </h5>
       <?php if (count($folgasList)): ?>
-        <ul class="table-scroll timeline">
-          <?php foreach ($folgasList as $idx => $f):
-            $isNext     = $idx === 0;
-            $iconBg     = $isNext ? 'bg-warning text-dark' : 'bg-primary text-white';
-            $badgeClass = $isNext ? 'bg-warning text-dark' : 'bg-primary text-white';
-          ?>
-            <li class="timeline-event">
-              <div class="timeline-icon <?= $iconBg ?>">
-                <i class="fa-solid fa-calendar-day"></i>
-              </div>
-              <div class="timeline-content">
-                <?php if ($isNext): ?>
-                  <div class="ribbon-label" ><b>Próxima Folga</b></div>
-                <?php endif; ?>
+        <div class="table-scroll">
+          <ul class="timeline">
+            <?php foreach ($folgasList as $idx => $f):
+              $isNext     = $idx === 0;
+              $iconBg     = $isNext ? 'bg-warning text-dark' : 'bg-primary text-white';
+              $badgeClass = $isNext ? 'bg-warning text-dark' : 'bg-primary text-white';
+            ?>
+              <li class="timeline-event">
+                <div class="timeline-icon <?= $iconBg ?>">
+                  <i class="fa-solid fa-calendar-day"></i>
+                </div>
+                <div class="timeline-content">
+                  <?php if ($isNext): ?>
+                    <div class="ribbon-label" ><b>Próxima Folga</b></div>
+                  <?php endif; ?>
 
-                <h6 class="mb-1">
-                  <?= htmlspecialchars($f['nome_colaborador']) ?>
-                  <span class="badge <?= $badgeClass ?> ms-2">
-                    <?= $f['quantidade_dias'] ?>d
-                  </span>
-                </h6>
-                <small class="text-muted d-block mb-1">
-                  <i class="fa-regular fa-calendar me-1"></i>
-                  <?= date("d/m/Y", strtotime($f['data_inicio'])) ?>
-                  →
-                  <?= date("d/m/Y", strtotime($f['data_fim'])) ?>
-                </small>
-                <?php if (trim($f['justificativa'])): ?>
-                  <p class="justificativa-folga small text-muted mb-0">
-                    <i class="fa-solid fa-comment-dots me-1"></i>
-                    <?= nl2br(htmlspecialchars($f['justificativa'])) ?>
-                  </p>
-                <?php endif; ?>
-              </div>
-            </li>
-          <?php endforeach; ?>
-        </ul>
+                  <h6 class="mb-1">
+                    <?= htmlspecialchars($f['nome_colaborador']) ?>
+                    <span class="badge <?= $badgeClass ?> ms-2">
+                      <?= $f['quantidade_dias'] ?>d
+                    </span>
+                  </h6>
+                  <small class="text-muted d-block mb-1">
+                    <i class="fa-regular fa-calendar me-1"></i>
+                    <?= date("d/m/Y", strtotime($f['data_inicio'])) ?>
+                    →
+                    <?= date("d/m/Y", strtotime($f['data_fim'])) ?>
+                  </small>
+                  <?php if (trim($f['justificativa'])): ?>
+                    <p class="justificativa-folga small text-muted mb-0">
+                      <i class="fa-solid fa-comment-dots me-1"></i>
+                      <?= nl2br(htmlspecialchars($f['justificativa'])) ?>
+                    </p>
+                  <?php endif; ?>
+                </div>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
       <?php else: ?>
         <div class="text-muted">Nenhum registro de Folga encontrado.</div>
       <?php endif; ?>
