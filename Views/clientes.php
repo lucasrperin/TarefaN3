@@ -140,24 +140,24 @@ $result = mysqli_query($conn, $query);
         <table class="table table-bordered">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Cliente</th>
               <th>CNPJ/CPF</th>
               <th>Serial</th>
-              <th>Minutos Adquiridos</th>
-              <th>Minutos Utilizados</th>
+              <th>Adquiridos</th>
+              <th>Utilizados</th>
+              <th>Faturamento</th>
               <th class="acoes">Ações</th>
             </tr>
           </thead>
           <tbody>
             <?php while($row = mysqli_fetch_assoc($result)): ?>
             <tr class="<?= $row['ativo'] == 0 ? 'table-secondary' : '' ?>">
-              <td><?= $row['id'] ?></td>
               <td><?= htmlspecialchars($row['cliente'], ENT_QUOTES, 'UTF-8') ?></td>
               <td><?= htmlspecialchars($row['cnpjcpf'], ENT_QUOTES, 'UTF-8') ?></td>
               <td><?= htmlspecialchars($row['serial'], ENT_QUOTES, 'UTF-8') ?></td>
               <td><?= $row['horas_adquiridas'] ?></td>
               <td><?= $row['horas_utilizadas'] ?></td>
+              <td><?= $row['faturamento']=='FATURADO'?number_format($row['valor_faturamento'],2,',','.'):'BRINDE' ?></td>
               <td class="acoes" style="width:150px; white-space: nowrap; text-align: center;">
                 <div class="acao-container">
                   <button class="btn btn-sm btn-warning acao-btn" onclick="editarCliente(
@@ -167,7 +167,9 @@ $result = mysqli_query($conn, $query);
                     '<?= addslashes($row['serial']) ?>',
                     '<?= $row['horas_adquiridas'] ?>',
                     '<?= addslashes($row['whatsapp']) ?>',
-                    '<?= $row['data_conclusao'] ?>'
+                    '<?= $row['data_conclusao'] ?>',
+                    '<?= $row['faturamento'] ?>',
+                    '<?= $row['valor_faturamento'] ?>'
                   )" title="Editar">
                     <i class="fa-solid fa-pencil"></i>
                   </button>
@@ -200,7 +202,7 @@ $result = mysqli_query($conn, $query);
   <div class="modal fade" id="modalCliente" tabindex="-1" aria-labelledby="modalClienteLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
-        <form id="formCliente" method="post">
+        <form id="formCliente" method="post" action="editar_cliente.php">
           <div class="modal-header">
             <h5 class="modal-title" id="modalClienteLabel">Cadastrar Cliente</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
@@ -226,6 +228,17 @@ $result = mysqli_query($conn, $query);
             <div class="mb-3">
               <label for="data_conclusao" class="form-label">Data de Conclusão do Treinamento</label>
               <input type="date" name="data_conclusao" id="data_conclusao" class="form-control">
+                          <div class="mb-3" id="group_faturamento" style="display:none;">
+                            <label class="form-label">Faturamento</label>
+                            <select name="faturamento" id="faturamento_cliente" class="form-select">
+                              <option value="BRINDE">Brinde</option>
+                              <option value="FATURADO">Faturado</option>
+                            </select>
+                          </div>
+                          <div class="mb-3" id="group_valor_cliente" style="display:none;">
+                            <label class="form-label">Valor (R$)</label>
+                            <input type="number" step="0.01" name="valor_faturamento" id="valor_faturamento" class="form-control">
+                          </div>
             </div>
             <div class="mb-3">
               <label for="horas_adquiridas" class="form-label">Minutos Adquiridos (min)</label>
@@ -340,7 +353,7 @@ $result = mysqli_query($conn, $query);
       modal.show();
     }
     
-    function editarCliente(id, cliente, cnpjcpf, serial, horasAdquiridas, whatsapp, dataConclusao) {
+        function editarCliente(id, cliente, cnpjcpf, serial, horasAdquiridas, whatsapp, dataConclusao, faturamento, valorFaturamento) {
       $('#cliente_id').val(id);
       $('#cliente_nome').val(cliente);
       $('#cliente_cnpjcpf').val(cnpjcpf);
@@ -348,6 +361,10 @@ $result = mysqli_query($conn, $query);
       $('#horas_adquiridas').val(horasAdquiridas);
       $('#cliente_whatsapp').val(whatsapp);
       $('#data_conclusao').val(dataConclusao);
+      $('#faturamento_cliente').val(faturamento);
+      $('#valor_faturamento').val(valorFaturamento);
+      $('#data_conclusao').trigger('change');
+      $('#faturamento_cliente').trigger('change');
       $('#modalClienteLabel').text('Editar Cliente');
       $('#formCliente').attr('action', 'editar_cliente.php');
       var modal = new bootstrap.Modal(document.getElementById('modalCliente'));
@@ -586,6 +603,17 @@ $('#collapseNotificacoes').on('shown.bs.collapse', function(){
   });
 });
 
+    function toggleFields() {
+      var show = !!$('#data_conclusao').val();
+      $('#group_faturamento').toggle(show);
+      var fat = $('#faturamento_cliente').val()==='FATURADO';
+      $('#group_valor_cliente').toggle(fat);
+      if (!fat) $('#valor_faturamento').val('');
+    }
+    $(function() {
+      $('#data_conclusao').on('change', toggleFields);
+      $('#faturamento_cliente').on('change', toggleFields);
+    });
   </script>
   
   <!-- Modal: Notificações Individuais do Cliente -->
