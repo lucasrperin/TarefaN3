@@ -288,3 +288,69 @@ body {
   background-color: #283e51;
   color: #fff;
 }
+
+/* ===================== Painel e cards ===================== */
+#sidePanel {
+  background-color: #fff;
+  border-radius: .5rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+#sidePanel .card-header {
+  background-color: #f8f9fa;
+  border-bottom: none;
+  font-weight: 600;
+  color: #495057;
+}
+
+/* ===================== Abas minimal ===================== */
+#detailsTabs {
+  border-bottom: none;
+  margin-bottom: 1rem;
+}
+#detailsTabs .nav-link {
+  border: none;
+  padding: .5rem 1rem;
+  color: #6c757d;
+  font-weight: 500;
+  transition: color .2s, border-color .2s;
+}
+#detailsTabs .nav-link:not(.active):hover {
+  color: #0d6efd;
+}
+#detailsTabs .nav-link.active {
+  color: #0d6efd;
+  border-bottom: 2px solid #0d6efd;
+  background: transparent;
+}
+
+/* ===================== Itens ===================== */
+.detail-item {
+  padding: .5rem .75rem;
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color .2s;
+}
+.detail-item:last-child {
+  border-bottom: none;
+}
+.detail-item:hover {
+  background-color: #f1f3f5;
+}
+
+/* ===================== Ícones ===================== */
+.detail-btn {
+  background: none;
+  border: none;
+  color: #6c757d;
+  font-size: .9rem;
+  padding: 0;
+  line-height: 1;
+  transition: color .2s;
+}
+.detail-btn:hover {
+  color: #0d6efd;
+}
+.detail-btn.remove-side-btn:hover {
+  color: #dc3545;
+}
+

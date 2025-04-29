@@ -626,69 +626,137 @@ if ($resultFolga) {
 
   // Atualiza o painel de detalhes para uma data específica
   function updateSidePanel(dayStr) {
-  var details       = document.getElementById('details');
-  var formattedDate = formatDate(dayStr);
-  details.innerHTML = '<h5>' + formattedDate + '</h5><hr>';
+    const details = document.getElementById('details');
+    const items   = aggregator[dayStr] || [];
+    const ferias  = items.filter(i => i.tipo === 'Ferias');
+    const folgas  = items.filter(i => i.tipo === 'Folga');
 
-  if (aggregator[dayStr] && aggregator[dayStr].length) {
-    aggregator[dayStr].forEach(function(item) {
-      var justificativa = item.justificativa.replace(/"/g,'&quot;');
-      details.innerHTML +=
-        '<div class="d-flex justify-content-between align-items-center mb-2">' +
-          '<span data-bs-toggle="tooltip" data-bs-placement="top" title="'+ justificativa +'">' +
-            item.nome + ' (' + item.tipo + ')' +
-          '</span>' +
-          '<div class="d-flex gap-1">' +
-            // editar
-            '<button type="button" '+
-                    'class="detail-btn edit-side-btn" '+
-                    'data-id="'+item.id+'" '+
-                    'data-usuarioid="'+item.usuarioId+'" '+
-                    'data-tipo="'+item.tipo+'" '+
-                    'data-inicio="'+item.inicio+'" '+
-                    'data-fim="'+item.fim+'" '+
-                    'data-justificativa="'+justificativa+'" '+
-                    'title="Editar">' +
-              '<i class="fa-solid fa-pen"></i>' +
-            '</button>' +
-            // remover
-            '<button type="button" '+
-              'class="detail-btn remove remove-side-btn" '+
-              'data-id="'+item.id+'" '+
-              'data-nome="'+item.nome+'" '+
-              'data-tipo="'+item.tipo+'" '+
-              'title="Remover">'+
-              '<i class="fa-solid fa-trash"></i>'+
-            '</button>' +
-          '</div>' +
-        '</div>';
-    });
+    // monta as tabs com contador
+    let html =
+      `<ul class="nav nav-tabs mb-3" id="detailsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="ferias-tab"
+                  data-bs-toggle="tab" data-bs-target="#ferias-pane"
+                  type="button" role="tab" aria-controls="ferias-pane"
+                  aria-selected="true">
+            Férias 
+            <span class="badge rounded-pill bg-primary ms-1">${ferias.length}</span>
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="folgas-tab"
+                  data-bs-toggle="tab" data-bs-target="#folgas-pane"
+                  type="button" role="tab" aria-controls="folgas-pane"
+                  aria-selected="false">
+            Folgas 
+            <span class="badge rounded-pill bg-warning text-dark ms-1">${folgas.length}</span>
+          </button>
+        </li>
+      </ul>
+      <div class="tab-content" id="detailsTabContent">
+        <div class="tab-pane fade show active" id="ferias-pane"
+              role="tabpanel" aria-labelledby="ferias-tab">`;
 
-    // (re)inicializa tooltips só dentro do painel
+    if (ferias.length) {
+      ferias.forEach(item => {
+        const just = item.justificativa.replace(/"/g,'&quot;');
+        html += `
+          <div class="detail-item d-flex justify-content-between align-items-center mb-2">
+            <span data-bs-toggle="tooltip" title="${just}">
+              ${item.nome}
+            </span>
+            <div class="d-flex gap-1">
+              <button type="button" class="detail-btn edit-side-btn"
+                      data-id="${item.id}" data-usuarioid="${item.usuarioId}"
+                      data-tipo="${item.tipo}" data-inicio="${item.inicio}"
+                      data-fim="${item.fim}" data-justificativa="${just}"
+                      title="Editar">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button type="button" class="detail-btn remove-side-btn"
+                      data-id="${item.id}" data-nome="${item.nome}"
+                      data-tipo="${item.tipo}"
+                      title="Remover">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>`;
+      });
+    } else {
+      html += `<p class="text-muted">Sem férias neste dia.</p>`;
+    }
+
+    html += `
+        </div>
+        <div class="tab-pane fade" id="folgas-pane"
+              role="tabpanel" aria-labelledby="folgas-tab">`;
+
+    if (folgas.length) {
+      folgas.forEach(item => {
+        const just = item.justificativa.replace(/"/g,'&quot;');
+        html += `
+          <div class="detail-item d-flex justify-content-between align-items-center mb-2">
+            <span data-bs-toggle="tooltip" title="${just}">
+              ${item.nome}
+            </span>
+            <div class="d-flex gap-1">
+              <button type="button" class="detail-btn edit-side-btn"
+                      data-id="${item.id}" data-usuarioid="${item.usuarioId}"
+                      data-tipo="${item.tipo}" data-inicio="${item.inicio}"
+                      data-fim="${item.fim}" data-justificativa="${just}"
+                      title="Editar">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button type="button" class="detail-btn remove-side-btn"
+                      data-id="${item.id}" data-nome="${item.nome}"
+                      data-tipo="${item.tipo}"
+                      title="Remover">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>`;
+      });
+    } else {
+      html += `<p class="text-muted">Sem folgas neste dia.</p>`;
+    }
+
+    html += `</div></div>`;
+
+    details.innerHTML = html;
+
+    // inicializa tooltips nos spans
     details.querySelectorAll('[data-bs-toggle="tooltip"]')
-      .forEach(el => new bootstrap.Tooltip(el));
-  }
-  else {
-    details.innerHTML += '<p>Nenhum evento agendado.</p>';
-  }
+          .forEach(el => new bootstrap.Tooltip(el));
 
-    // Exibe modal de exclusão
+
+    // liga exclusão para abrir modal
     details.querySelectorAll('.remove-side-btn')
-        .forEach(btn => {
-          btn.addEventListener('click', function() {
-            const id   = this.dataset.id;
-            const nome = this.dataset.nome;
-            const tipo = this.dataset.tipo;
-
-            document.getElementById('excluir_folga_id').value   = id;
-            document.getElementById('excluir_folga_nome').textContent = nome;
-            document.getElementById('excluir_folga_tipo').textContent = tipo;
-
-            new bootstrap.Modal(document.getElementById('modalExcluirFolga')).show();
+          .forEach(btn => {
+            btn.addEventListener('click', function() {
+              const id   = this.dataset.id;
+              const nome = this.dataset.nome;
+              const tipo = this.dataset.tipo;
+              document.getElementById('excluir_folga_id').value     = id;
+              document.getElementById('excluir_folga_nome').textContent = nome;
+              document.getElementById('excluir_folga_tipo').textContent = tipo;
+              new bootstrap.Modal(document.getElementById('modalExcluirFolga')).show();
+            });
           });
-        });
   }
 
+  document.getElementById('details').addEventListener('click', function (e) {
+    var btn = e.target.closest('.remove-side-btn');
+    if (!btn) return; // clicou em outra área
+
+    document.getElementById('excluir_folga_id').value     = id;
+    document.getElementById('excluir_folga_nome').textContent = nome;
+    document.getElementById('excluir_folga_tipo').textContent = tipo;
+
+    if (typeof calendarEditInstance !== 'undefined' && calendarEditInstance) {
+      calendarEditInstance.setDate([btn.dataset.inicio, btn.dataset.fim], true);
+    }
+    new bootstrap.Modal(document.getElementById('modalExcluirFolga')).show();
+  });
 
   /* -------- delegação de clique para os ícones criados dinamicamente */
   document.getElementById('details').addEventListener('click', function (e) {
