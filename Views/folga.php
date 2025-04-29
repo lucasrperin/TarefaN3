@@ -491,6 +491,29 @@ if ($resultFolga) {
     </div>
   </div>
 
+  <!-- Modal de Exclusão de Folga/Férias -->
+  <div class="modal fade" id="modalExcluirFolga" tabindex="-1" aria-labelledby="modalExcluirFolgaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header text-white">
+          <h5 class="modal-title" id="modalExcluirFolgaLabel">Excluir Agendamento</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <form action="deletar_folga.php" method="post">
+          <div class="modal-body">
+            <input type="hidden" name="id" id="excluir_folga_id">
+            <p>Tem certeza que deseja excluir a(s) <strong id="excluir_folga_tipo"></strong> de <strong id="excluir_folga_nome"></strong>?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger">Excluir</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
   <!-- Listagem dos registros -->
   <div class="row g-4">
   <!-- ==== FÉRIAS ==== -->
@@ -603,32 +626,69 @@ if ($resultFolga) {
 
   // Atualiza o painel de detalhes para uma data específica
   function updateSidePanel(dayStr) {
-    var details       = document.getElementById('details');
-    var formattedDate = formatDate(dayStr);
-    details.innerHTML = '<h5>' + formattedDate + '</h5><hr>';
+  var details       = document.getElementById('details');
+  var formattedDate = formatDate(dayStr);
+  details.innerHTML = '<h5>' + formattedDate + '</h5><hr>';
 
-    if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
-      aggregator[dayStr].forEach(function (item) {
-        details.innerHTML +=
-          '<div class="d-flex justify-content-between align-items-center mb-2">' +
-            '<span>' + item.nome + ' (' + item.tipo + ')</span>' +
-            '<button type="button" ' +
-              'class="btn btn-sm btn-outline-primary edit-side-btn" ' +
-              'data-id="'            + item.id            + '" ' +
-              'data-usuarioid="'     + item.usuarioId     + '" ' +
-              'data-tipo="'          + item.tipo          + '" ' +
-              'data-inicio="'        + item.inicio        + '" ' +
-              'data-fim="'           + item.fim           + '" ' +
-              'data-justificativa="' + item.justificativa + '" ' +
-              'title="Editar">' +
+  if (aggregator[dayStr] && aggregator[dayStr].length) {
+    aggregator[dayStr].forEach(function(item) {
+      var justificativa = item.justificativa.replace(/"/g,'&quot;');
+      details.innerHTML +=
+        '<div class="d-flex justify-content-between align-items-center mb-2">' +
+          '<span data-bs-toggle="tooltip" data-bs-placement="top" title="'+ justificativa +'">' +
+            item.nome + ' (' + item.tipo + ')' +
+          '</span>' +
+          '<div class="d-flex gap-1">' +
+            // editar
+            '<button type="button" '+
+                    'class="detail-btn edit-side-btn" '+
+                    'data-id="'+item.id+'" '+
+                    'data-usuarioid="'+item.usuarioId+'" '+
+                    'data-tipo="'+item.tipo+'" '+
+                    'data-inicio="'+item.inicio+'" '+
+                    'data-fim="'+item.fim+'" '+
+                    'data-justificativa="'+justificativa+'" '+
+                    'title="Editar">' +
               '<i class="fa-solid fa-pen"></i>' +
             '</button>' +
-          '</div>';
-      });
-    } else {
-      details.innerHTML += '<p>Nenhum evento agendado.</p>';
-    }
+            // remover
+            '<button type="button" '+
+              'class="detail-btn remove remove-side-btn" '+
+              'data-id="'+item.id+'" '+
+              'data-nome="'+item.nome+'" '+
+              'data-tipo="'+item.tipo+'" '+
+              'title="Remover">'+
+              '<i class="fa-solid fa-trash"></i>'+
+            '</button>' +
+          '</div>' +
+        '</div>';
+    });
+
+    // (re)inicializa tooltips só dentro do painel
+    details.querySelectorAll('[data-bs-toggle="tooltip"]')
+      .forEach(el => new bootstrap.Tooltip(el));
   }
+  else {
+    details.innerHTML += '<p>Nenhum evento agendado.</p>';
+  }
+
+    // Exibe modal de exclusão
+    details.querySelectorAll('.remove-side-btn')
+        .forEach(btn => {
+          btn.addEventListener('click', function() {
+            const id   = this.dataset.id;
+            const nome = this.dataset.nome;
+            const tipo = this.dataset.tipo;
+
+            document.getElementById('excluir_folga_id').value   = id;
+            document.getElementById('excluir_folga_nome').textContent = nome;
+            document.getElementById('excluir_folga_tipo').textContent = tipo;
+
+            new bootstrap.Modal(document.getElementById('modalExcluirFolga')).show();
+          });
+        });
+  }
+
 
   /* -------- delegação de clique para os ícones criados dinamicamente */
   document.getElementById('details').addEventListener('click', function (e) {

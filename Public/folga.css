@@ -264,3 +264,27 @@ body {
   -webkit-box-orient: vertical;    /* orienta o box verticalmente */       /* mostra no máximo 2 linhas */
   word-wrap: break-word;           /* quebra palavras longas */
 }
+
+/* botões de ação no painel de detalhes */
+.detail-btn {
+  background: none;
+  border: none;
+  color: #6c757d;       /* cinza */
+  font-size: 1rem;      /* tamanho do ícone */
+  padding: 0.2rem;      /* aperta o padding */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.detail-btn:hover {
+  color: #0d6efd;       /* muda para azul no hover */
+}
+.detail-btn.remove:hover {
+  color: #dc3545;       /* muda para vermelho no hover */
+}
+
+/* Estilos dos modais */
+.modal-header {
+  background-color: #283e51;
+  color: #fff;
+}
