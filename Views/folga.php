@@ -297,40 +297,6 @@ if ($resultFolga) {
       </div>
 
 <div class="container my-5">
-  <!-- Formulário de filtro -->
-  <form method="GET" class="filter mb-4">
-  <div class="row g-3 justify-content-center">
-    <div class="col-auto">
-      <label for="idEquipe" class="form-label fw-semibold">Equipe:</label>
-      <select class="form-select" name="idEquipe" id="idEquipe">
-        <option value="Todos">Todos</option>
-        <?php while($equipe = $resultEquipes->fetch_assoc()): ?>
-          <option value="<?php echo $equipe['id']; ?>" <?php echo ($idEquipeFilter == $equipe['id']) ? 'selected' : ''; ?>>
-            <?php echo $equipe['descricao']; ?>
-          </option>
-        <?php endwhile; ?>
-      </select>
-    </div>
-    <div class="col-auto">
-      <label for="idNivel" class="form-label fw-semibold">Nível:</label>
-      <select class="form-select" name="idNivel" id="idNivel">
-        <option value="Todos">Todos</option>
-        <?php while($nivel = $resultNiveis->fetch_assoc()): ?>
-          <option value="<?php echo $nivel['id']; ?>" <?php echo ($idNivelFilter == $nivel['id']) ? 'selected' : ''; ?>>
-            <?php echo $nivel['descricao']; ?>
-          </option>
-        <?php endwhile; ?>
-      </select>
-    </div>
-    <div class="col-auto align-self-end">
-      <button type="submit" class="btn btn-primary">Filtrar</button>
-    </div>
-    <div class="col-auto align-self-end">
-      <a href="folga.php" class="btn btn-secondary">Limpar Filtros</a>
-    </div>
-  </div>
-</form>
-
   <!-- Linha que agrupa Calendário e Painel de Detalhes -->
   <div class="row calendario-detalhes mb-4">
     <div class="col-md-9">
@@ -350,6 +316,10 @@ if ($resultFolga) {
 
   <!-- Botão para abrir modal de cadastro -->
   <div class="d-flex justify-content-end mb-3">
+    <!-- Botão para abrir o modal de filtro -->
+    <button type="button" class="btn btn-outline-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#filterModal">
+      <i class="fa-solid fa-filter"></i>
+    </button>
     <input type="text" id="searchFolgasFerias" class="form-control me-2" placeholder="Pesquisar folgas / férias…" style="max-width: 200px;">
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">
       <i class="fa-solid fa-plus-circle me-2"></i> Cadastrar
@@ -513,100 +483,185 @@ if ($resultFolga) {
     </div>
   </div>
 
+  <!-- Modal de Filtro -->
+  <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+      <div class="modal-content">
+        <form method="GET" action="folga.php">
+          <div class="modal-header">
+            <h5 class="modal-title" id="filterModalLabel">Filtro</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Escolha de tipo -->
+            <div class="mb-3">
+              <div class="mb-3">
+                <label for="filterType" class="form-label">Filtrar por:</label>
+                <select class="form-select" id="filterType">
+                  <option value="equipe">Equipe</option>
+                  <option value="nivel">Nível</option>
+                </select>
+              </div>
+            </div>
+            
+              <!-- Campo Equipe -->
+              <div class="mb-3">
+                <div class="mb-3" id="equipeField">
+                  <label for="modal_idEquipe" class="form-label">Selecione a Equipe:</label>
+                  <select class="form-select" name="idEquipe" id="modal_idEquipe" required>
+                    <option value="Todos">Todos</option>
+                    <?php 
+                      $resultEquipes->data_seek(0);
+                      while($equipe = $resultEquipes->fetch_assoc()): 
+                    ?>
+                      <option value="<?= $equipe['id'] ?>" <?= ($idEquipeFilter == $equipe['id'] ? 'selected' : '') ?>>
+                        <?= $equipe['descricao'] ?>
+                      </option>
+                    <?php endwhile; ?>
+                  </select>
+                </div>
+              </div>
+              <!-- Campo Nível -->
+              <div class="mb-3">
+                <div class="mb-3" id="nivelField" style="display: none;">
+                  <label for="modal_idNivel" class="form-label">Selecione o Nível:</label>
+                  <select class="form-select" name="idNivel" id="modal_idNivel" required>
+                    <option value="Todos">Todos</option>
+                    <?php 
+                      $resultNiveis->data_seek(0);
+                      while($nivel = $resultNiveis->fetch_assoc()): 
+                    ?>
+                      <option value="<?= $nivel['id'] ?>" <?= ($idNivelFilter == $nivel['id'] ? 'selected' : '') ?>>
+                        <?= $nivel['descricao'] ?>
+                      </option>
+                    <?php endwhile; ?>
+                  </select>
+                </div>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <a href="folga.php" class="btn btn-secondary">Limpar Filtros</a>
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const filterType  = document.getElementById('filterType');
+      const equipeField = document.getElementById('equipeField');
+      const nivelField  = document.getElementById('nivelField');
+
+      function toggleFields() {
+        if (filterType.value === 'equipe') {
+          equipeField.style.display = '';
+          nivelField.style.display  = 'none';
+        } else {
+          equipeField.style.display = 'none';
+          nivelField.style.display  = '';
+        }
+      }
+
+      filterType.addEventListener('change', toggleFields);
+      toggleFields();
+    });
+  </script>
+
 
   <!-- Listagem dos registros -->
   <div class="row g-4">
-  <!-- ==== FÉRIAS ==== -->
-  <div class="col-md-6">
-    <h5 class="mb-3">
-      <i class="fa-solid fa-umbrella-beach text-primary me-2"></i>Férias
-    </h5>
-    <?php if (count($feriasList)): ?>
-      <ul class="table-scroll timeline">
-        <?php foreach ($feriasList as $idx => $f):
-          $isNext     = $idx === 0;
-          $iconBg     = $isNext ? 'bg-warning text-dark' : 'bg-primary';
-          $badgeClass = $isNext ? 'bg-warning text-dark' : 'bg-primary';
-        ?>
-          <li class="timeline-event">
-            <div class="timeline-icon <?= $iconBg ?>">
-              <i class="fa-solid fa-umbrella-beach"></i>
-            </div>
-            <div class="timeline-content">
-              <?php if ($isNext): ?>
-                <div class="ribbon-label"><b>Próximas Férias</b></div>
-              <?php endif; ?>
+    <!-- ==== FÉRIAS ==== -->
+    <div class="col-md-6">
+      <h5 class="mb-3">
+        <i class="fa-solid fa-umbrella-beach text-primary me-2"></i>Férias
+      </h5>
+      <?php if (count($feriasList)): ?>
+        <ul class="table-scroll timeline">
+          <?php foreach ($feriasList as $idx => $f):
+            $isNext     = $idx === 0;
+            $iconBg     = $isNext ? 'bg-warning text-dark' : 'bg-primary';
+            $badgeClass = $isNext ? 'bg-warning text-dark' : 'bg-primary';
+          ?>
+            <li class="timeline-event">
+              <div class="timeline-icon <?= $iconBg ?>">
+                <i class="fa-solid fa-umbrella-beach"></i>
+              </div>
+              <div class="timeline-content">
+                <?php if ($isNext): ?>
+                  <div class="ribbon-label"><b>Próximas Férias</b></div>
+                <?php endif; ?>
 
-              <h6 class="mb-1">
-                <?= htmlspecialchars($f['nome_colaborador']) ?>
-                <span class="badge <?= $badgeClass ?> ms-2">
-                  <?= $f['quantidade_dias'] ?>d
-                </span>
-              </h6>
-              <small class="text-muted d-block mb-1">
-                <i class="fa-regular fa-calendar me-1"></i>
-                <?= date("d/m/Y", strtotime($f['data_inicio'])) ?>
-                →
-                <?= date("d/m/Y", strtotime($f['data_fim'])) ?>
-              </small>
-            </div>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    <?php else: ?>
-      <div class="text-muted">Nenhum registro de Férias encontrado.</div>
-    <?php endif; ?>
+                <h6 class="mb-1">
+                  <?= htmlspecialchars($f['nome_colaborador']) ?>
+                  <span class="badge <?= $badgeClass ?> ms-2">
+                    <?= $f['quantidade_dias'] ?>d
+                  </span>
+                </h6>
+                <small class="text-muted d-block mb-1">
+                  <i class="fa-regular fa-calendar me-1"></i>
+                  <?= date("d/m/Y", strtotime($f['data_inicio'])) ?>
+                  →
+                  <?= date("d/m/Y", strtotime($f['data_fim'])) ?>
+                </small>
+              </div>
+            </li>
+          <?php endforeach; ?>
+        </ul>
+      <?php else: ?>
+        <div class="text-muted">Nenhum registro de Férias encontrado.</div>
+      <?php endif; ?>
+    </div>
+
+    <!-- ==== FOLGAS ==== -->
+    <div class="col-md-6">
+      <h5 class="mb-3">
+        <i class="fa-solid fa-calendar-day text-primary me-2"></i>Folgas
+      </h5>
+      <?php if (count($folgasList)): ?>
+        <ul class="table-scroll timeline">
+          <?php foreach ($folgasList as $idx => $f):
+            $isNext     = $idx === 0;
+            $iconBg     = $isNext ? 'bg-warning text-dark' : 'bg-primary text-white';
+            $badgeClass = $isNext ? 'bg-warning text-dark' : 'bg-primary text-white';
+          ?>
+            <li class="timeline-event">
+              <div class="timeline-icon <?= $iconBg ?>">
+                <i class="fa-solid fa-calendar-day"></i>
+              </div>
+              <div class="timeline-content">
+                <?php if ($isNext): ?>
+                  <div class="ribbon-label" ><b>Próxima Folga</b></div>
+                <?php endif; ?>
+
+                <h6 class="mb-1">
+                  <?= htmlspecialchars($f['nome_colaborador']) ?>
+                  <span class="badge <?= $badgeClass ?> ms-2">
+                    <?= $f['quantidade_dias'] ?>d
+                  </span>
+                </h6>
+                <small class="text-muted d-block mb-1">
+                  <i class="fa-regular fa-calendar me-1"></i>
+                  <?= date("d/m/Y", strtotime($f['data_inicio'])) ?>
+                  →
+                  <?= date("d/m/Y", strtotime($f['data_fim'])) ?>
+                </small>
+                <?php if (trim($f['justificativa'])): ?>
+                  <p class="justificativa-folga small text-muted mb-0">
+                    <i class="fa-solid fa-comment-dots me-1"></i>
+                    <?= nl2br(htmlspecialchars($f['justificativa'])) ?>
+                  </p>
+                <?php endif; ?>
+              </div>
+            </li>
+          <?php endforeach; ?>
+        </ul>
+      <?php else: ?>
+        <div class="text-muted">Nenhum registro de Folga encontrado.</div>
+      <?php endif; ?>
+    </div>
   </div>
-
-  <!-- ==== FOLGAS ==== -->
-  <div class="col-md-6">
-    <h5 class="mb-3">
-      <i class="fa-solid fa-calendar-day text-primary me-2"></i>Folgas
-    </h5>
-    <?php if (count($folgasList)): ?>
-      <ul class="table-scroll timeline">
-        <?php foreach ($folgasList as $idx => $f):
-          $isNext     = $idx === 0;
-          $iconBg     = $isNext ? 'bg-warning text-dark' : 'bg-primary text-white';
-          $badgeClass = $isNext ? 'bg-warning text-dark' : 'bg-primary text-white';
-        ?>
-          <li class="timeline-event">
-            <div class="timeline-icon <?= $iconBg ?>">
-              <i class="fa-solid fa-calendar-day"></i>
-            </div>
-            <div class="timeline-content">
-              <?php if ($isNext): ?>
-                <div class="ribbon-label"><b>Próxima Folga</b></div>
-              <?php endif; ?>
-
-              <h6 class="mb-1">
-                <?= htmlspecialchars($f['nome_colaborador']) ?>
-                <span class="badge <?= $badgeClass ?> ms-2">
-                  <?= $f['quantidade_dias'] ?>d
-                </span>
-              </h6>
-              <small class="text-muted d-block mb-1">
-                <i class="fa-regular fa-calendar me-1"></i>
-                <?= date("d/m/Y", strtotime($f['data_inicio'])) ?>
-                →
-                <?= date("d/m/Y", strtotime($f['data_fim'])) ?>
-              </small>
-              <?php if (trim($f['justificativa'])): ?>
-                <p class="justificativa-folga small text-muted mb-0">
-                  <i class="fa-solid fa-comment-dots me-1"></i>
-                  <?= nl2br(htmlspecialchars($f['justificativa'])) ?>
-                </p>
-              <?php endif; ?>
-            </div>
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    <?php else: ?>
-      <div class="text-muted">Nenhum registro de Folga encontrado.</div>
-    <?php endif; ?>
-  </div>
-</div>
-
 </div>
 
 <!-- Scripts -->
@@ -635,7 +690,7 @@ if ($resultFolga) {
     let html =
       `<ul class="nav nav-tabs mb-3" id="detailsTabs" role="tablist">
         <li class="nav-item" role="presentation">
-          <button class="nav-link active" id="ferias-tab"
+          <button class="title-aba nav-link active" id="ferias-tab"
                   data-bs-toggle="tab" data-bs-target="#ferias-pane"
                   type="button" role="tab" aria-controls="ferias-pane"
                   aria-selected="true">
@@ -644,7 +699,7 @@ if ($resultFolga) {
           </button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="folgas-tab"
+          <button class="title-aba nav-link" id="folgas-tab"
                   data-bs-toggle="tab" data-bs-target="#folgas-pane"
                   type="button" role="tab" aria-controls="folgas-pane"
                   aria-selected="false">
