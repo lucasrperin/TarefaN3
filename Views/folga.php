@@ -160,7 +160,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
 $sqlListarFerias = "SELECT f.id, f.usuario_id, u.Nome AS nome_colaborador, f.data_inicio, f.data_fim, f.quantidade_dias
                     FROM TB_FOLGA f
                     JOIN TB_USUARIO u ON f.usuario_id = u.Id";
-$conditionsFerias = ["f.tipo = 'Ferias'"];
+$conditionsFerias = ["f.tipo = 'Ferias'",
+                     "f.data_fim > CURDATE()" ];
 if ($idEquipeFilter != 'Todos' || $idNivelFilter != 'Todos') {
     $sqlListarFerias .= " JOIN TB_EQUIPE_NIVEL_ANALISTA eva ON u.Id = eva.idUsuario";
 }
@@ -180,7 +181,8 @@ $resultFerias = $conn->query($sqlListarFerias);
 $sqlListarFolga = "SELECT f.id, f.usuario_id, u.Nome AS nome_colaborador, f.data_inicio, f.data_fim, f.quantidade_dias, f.justificativa
                    FROM TB_FOLGA f
                    JOIN TB_USUARIO u ON f.usuario_id = u.Id";
-$conditionsFolga = ["f.tipo = 'Folga'"];
+$conditionsFolga = ["f.tipo = 'Folga'",
+                    "f.data_fim > CURDATE()"];
 if ($idEquipeFilter != 'Todos' || $idNivelFilter != 'Todos') {
     $sqlListarFolga .= " JOIN TB_EQUIPE_NIVEL_ANALISTA eva ON u.Id = eva.idUsuario";
 }
@@ -195,24 +197,43 @@ if (!empty($conditionsFolga)) {
 }
 $sqlListarFolga .= " ORDER BY f.data_inicio ASC";
 $resultFolga = $conn->query($sqlListarFolga);
+
+// 1) Carrega e ordena FÉRIAS
+$feriasList = [];
+if ($resultFerias) {
+  while ($row = $resultFerias->fetch_assoc()) {
+    $feriasList[] = $row;
+  }
+  usort($feriasList, function($a, $b){
+    return strtotime($a['data_inicio']) - strtotime($b['data_inicio']);
+  });
+}
+
+// 2) Carrega e ordena FOLGAS
+$folgasList = [];
+if ($resultFolga) {
+  while ($row = $resultFolga->fetch_assoc()) {
+    $folgasList[] = $row;
+  }
+  usort($folgasList, function($a, $b){
+    return strtotime($a['data_inicio']) - strtotime($b['data_inicio']);
+  });
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <title>Controle de Férias e Folgas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="stylesheet" href="../Public/folga.css">
-  <!-- Bootstrap 5 CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
   <!-- FullCalendar CSS -->
   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-  
   <!-- Flatpickr CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- CSS customizado -->
   <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
   
@@ -329,6 +350,7 @@ $resultFolga = $conn->query($sqlListarFolga);
 
   <!-- Botão para abrir modal de cadastro -->
   <div class="d-flex justify-content-end mb-3">
+    <input type="text" id="searchFolgasFerias" class="form-control me-2" placeholder="Pesquisar folgas / férias…" style="max-width: 200px;">
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">
       <i class="fa-solid fa-plus-circle me-2"></i> Cadastrar
     </button>
@@ -469,132 +491,122 @@ $resultFolga = $conn->query($sqlListarFolga);
     </div>
   </div>
 
-  <!-- Listagem dos registros -->
-  <div class="row g-4">
-    <!-- Card de Ferias -->
-    <div class="col-md-6">
-      <div class="card shadow-sm">
-        <div class="card-header bg-secondary text-white">
-          <h4 class="mb-0">Ferias</h4>
+  <!-- Modal de Exclusão de Folga/Férias -->
+  <div class="modal fade" id="modalExcluirFolga" tabindex="-1" aria-labelledby="modalExcluirFolgaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header text-white">
+          <h5 class="modal-title" id="modalExcluirFolgaLabel">Excluir Agendamento</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
-        <div class="card-body p-0">
-          <div class="table-scroll">
-            <table class="table table-hover table-striped mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Colaborador</th>
-                  <th>Data Início</th>
-                  <th>Data Fim</th>
-                  <th>Dias</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php if ($resultFerias && $resultFerias->num_rows > 0): ?>
-                  <?php while($row = $resultFerias->fetch_assoc()): ?>
-                    <tr>
-                      <td><?php echo $row['nome_colaborador']; ?></td>
-                      <td><?php echo date("d/m/Y", strtotime($row['data_inicio'])); ?></td>
-                      <td><?php echo date("d/m/Y", strtotime($row['data_fim'])); ?></td>
-                      <td><?php echo $row['quantidade_dias']; ?></td>
-                      <td>
-                        <div class="d-flex flex-column align-items-start">
-                          <button 
-                            class="btn btn-sm btn-outline-primary editar-btn" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#modalEditar"
-                            data-id="<?php echo $row['id']; ?>"
-                            data-usuarioid="<?php echo $row['usuario_id']; ?>"  
-                            data-tipo="Ferias"
-                            data-inicio="<?php echo $row['data_inicio']; ?>"
-                            data-fim="<?php echo $row['data_fim']; ?>"
-                            data-justificativa="">
-                            <i class="fa-solid fa-pen"></i>
-                          </button>
-                          <a 
-                            href="deletar_folga.php?id=<?php echo $row['id']; ?>" 
-                            class="btn btn-sm btn-outline-danger"
-                            onclick="return confirm('Confirma a exclusão?');">
-                            <i class="fa-solid fa-trash"></i>
-                          </a>
-                        </div>
-                      </td>
-                    </tr>
-                  <?php endwhile; ?>
-                <?php else: ?>
-                  <tr>
-                    <td colspan="5" class="text-center text-muted">Nenhum registro de Ferias encontrado.</td>
-                  </tr>
-                <?php endif; ?>
-              </tbody>
-            </table>
+        <form action="deletar_folga.php" method="post">
+          <div class="modal-body">
+            <input type="hidden" name="id" id="excluir_folga_id">
+            <p>Tem certeza que deseja excluir a(s) <strong id="excluir_folga_tipo"></strong> de <strong id="excluir_folga_nome"></strong>?</p>
           </div>
-        </div>
-      </div>
-    </div>
-    <!-- Card de Folga -->
-    <div class="col-md-6">
-      <div class="card shadow-sm">
-        <div class="card-header bg-secondary text-white">
-          <h4 class="mb-0">Folgas</h4>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-scroll">
-            <table class="table table-hover table-striped mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Colaborador</th>
-                  <th>Data Início</th>
-                  <th>Data Fim</th>
-                  <th>Dias</th>
-                  <th>Justificativa</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php if ($resultFolga && $resultFolga->num_rows > 0): ?>
-                  <?php while($row = $resultFolga->fetch_assoc()): ?>
-                    <tr>
-                      <td><?php echo $row['nome_colaborador']; ?></td>
-                      <td><?php echo date("d/m/Y", strtotime($row['data_inicio'])); ?></td>
-                      <td><?php echo date("d/m/Y", strtotime($row['data_fim'])); ?></td>
-                      <td><?php echo $row['quantidade_dias']; ?></td>
-                      <td class="sobrepor"><?php echo nl2br($row['justificativa'] ?? ''); ?></td>
-                      <td>
-                        <div class="d-flex flex-column align-items-start">
-                          <button 
-                            class="btn btn-sm btn-outline-primary editar-btn"
-                            data-bs-toggle="modal" 
-                            data-bs-target="#modalEditar"
-                            data-id="<?php echo $row['id']; ?>"
-                            data-usuarioid="<?php echo $row['usuario_id']; ?>" 
-                            data-tipo="Folga"
-                            data-inicio="<?php echo $row['data_inicio']; ?>"
-                            data-fim="<?php echo $row['data_fim']; ?>"
-                            data-justificativa="<?php echo $row['justificativa']; ?>">
-                            <i class="fa-solid fa-pen"></i>
-                          </button>
-                          <a href="deletar_folga.php?id=<?php echo $row['id']; ?>" 
-                            class="btn btn-sm btn-outline-danger"
-                            onclick="return confirm('Confirma a exclusão?');">
-                            <i class="fa-solid fa-trash"></i>
-                          </a>
-                        </div>
-                      </td>
-                    </tr>
-                  <?php endwhile; ?>
-                <?php else: ?>
-                  <tr>
-                    <td colspan="6" class="text-center text-muted">Nenhum registro de Folga encontrado.</td>
-                  </tr>
-                <?php endif; ?>
-              </tbody>
-            </table>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-danger">Excluir</button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   </div>
+
+
+  <!-- Listagem dos registros -->
+  <div class="row g-4">
+  <!-- ==== FÉRIAS ==== -->
+  <div class="col-md-6">
+    <h5 class="mb-3">
+      <i class="fa-solid fa-umbrella-beach text-primary me-2"></i>Férias
+    </h5>
+    <?php if (count($feriasList)): ?>
+      <ul class="table-scroll timeline">
+        <?php foreach ($feriasList as $idx => $f):
+          $isNext     = $idx === 0;
+          $iconBg     = $isNext ? 'bg-warning text-dark' : 'bg-primary';
+          $badgeClass = $isNext ? 'bg-warning text-dark' : 'bg-primary';
+        ?>
+          <li class="timeline-event">
+            <div class="timeline-icon <?= $iconBg ?>">
+              <i class="fa-solid fa-umbrella-beach"></i>
+            </div>
+            <div class="timeline-content">
+              <?php if ($isNext): ?>
+                <div class="ribbon-label"><b>Próximas Férias</b></div>
+              <?php endif; ?>
+
+              <h6 class="mb-1">
+                <?= htmlspecialchars($f['nome_colaborador']) ?>
+                <span class="badge <?= $badgeClass ?> ms-2">
+                  <?= $f['quantidade_dias'] ?>d
+                </span>
+              </h6>
+              <small class="text-muted d-block mb-1">
+                <i class="fa-regular fa-calendar me-1"></i>
+                <?= date("d/m/Y", strtotime($f['data_inicio'])) ?>
+                →
+                <?= date("d/m/Y", strtotime($f['data_fim'])) ?>
+              </small>
+            </div>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    <?php else: ?>
+      <div class="text-muted">Nenhum registro de Férias encontrado.</div>
+    <?php endif; ?>
+  </div>
+
+  <!-- ==== FOLGAS ==== -->
+  <div class="col-md-6">
+    <h5 class="mb-3">
+      <i class="fa-solid fa-calendar-day text-primary me-2"></i>Folgas
+    </h5>
+    <?php if (count($folgasList)): ?>
+      <ul class="table-scroll timeline">
+        <?php foreach ($folgasList as $idx => $f):
+          $isNext     = $idx === 0;
+          $iconBg     = $isNext ? 'bg-warning text-dark' : 'bg-primary text-white';
+          $badgeClass = $isNext ? 'bg-warning text-dark' : 'bg-primary text-white';
+        ?>
+          <li class="timeline-event">
+            <div class="timeline-icon <?= $iconBg ?>">
+              <i class="fa-solid fa-calendar-day"></i>
+            </div>
+            <div class="timeline-content">
+              <?php if ($isNext): ?>
+                <div class="ribbon-label"><b>Próxima Folga</b></div>
+              <?php endif; ?>
+
+              <h6 class="mb-1">
+                <?= htmlspecialchars($f['nome_colaborador']) ?>
+                <span class="badge <?= $badgeClass ?> ms-2">
+                  <?= $f['quantidade_dias'] ?>d
+                </span>
+              </h6>
+              <small class="text-muted d-block mb-1">
+                <i class="fa-regular fa-calendar me-1"></i>
+                <?= date("d/m/Y", strtotime($f['data_inicio'])) ?>
+                →
+                <?= date("d/m/Y", strtotime($f['data_fim'])) ?>
+              </small>
+              <?php if (trim($f['justificativa'])): ?>
+                <p class="justificativa-folga small text-muted mb-0">
+                  <i class="fa-solid fa-comment-dots me-1"></i>
+                  <?= nl2br(htmlspecialchars($f['justificativa'])) ?>
+                </p>
+              <?php endif; ?>
+            </div>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    <?php else: ?>
+      <div class="text-muted">Nenhum registro de Folga encontrado.</div>
+    <?php endif; ?>
+  </div>
+</div>
+
 </div>
 
 <!-- Scripts -->
@@ -614,32 +626,137 @@ $resultFolga = $conn->query($sqlListarFolga);
 
   // Atualiza o painel de detalhes para uma data específica
   function updateSidePanel(dayStr) {
-    var details       = document.getElementById('details');
-    var formattedDate = formatDate(dayStr);
-    details.innerHTML = '<h5>' + formattedDate + '</h5><hr>';
+    const details = document.getElementById('details');
+    const items   = aggregator[dayStr] || [];
+    const ferias  = items.filter(i => i.tipo === 'Ferias');
+    const folgas  = items.filter(i => i.tipo === 'Folga');
 
-    if (aggregator[dayStr] && aggregator[dayStr].length > 0) {
-      aggregator[dayStr].forEach(function (item) {
-        details.innerHTML +=
-          '<div class="d-flex justify-content-between align-items-center mb-2">' +
-            '<span>' + item.nome + ' (' + item.tipo + ')</span>' +
-            '<button type="button" ' +
-              'class="btn btn-sm btn-outline-primary edit-side-btn" ' +
-              'data-id="'            + item.id            + '" ' +
-              'data-usuarioid="'     + item.usuarioId     + '" ' +
-              'data-tipo="'          + item.tipo          + '" ' +
-              'data-inicio="'        + item.inicio        + '" ' +
-              'data-fim="'           + item.fim           + '" ' +
-              'data-justificativa="' + item.justificativa + '" ' +
-              'title="Editar">' +
-              '<i class="fa-solid fa-pen"></i>' +
-            '</button>' +
-          '</div>';
+    // monta as tabs com contador
+    let html =
+      `<ul class="nav nav-tabs mb-3" id="detailsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="ferias-tab"
+                  data-bs-toggle="tab" data-bs-target="#ferias-pane"
+                  type="button" role="tab" aria-controls="ferias-pane"
+                  aria-selected="true">
+            Férias 
+            <span class="badge rounded-pill bg-primary ms-1">${ferias.length}</span>
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="folgas-tab"
+                  data-bs-toggle="tab" data-bs-target="#folgas-pane"
+                  type="button" role="tab" aria-controls="folgas-pane"
+                  aria-selected="false">
+            Folgas 
+            <span class="badge rounded-pill bg-warning text-dark ms-1">${folgas.length}</span>
+          </button>
+        </li>
+      </ul>
+      <div class="tab-content" id="detailsTabContent">
+        <div class="tab-pane fade show active" id="ferias-pane"
+              role="tabpanel" aria-labelledby="ferias-tab">`;
+
+    if (ferias.length) {
+      ferias.forEach(item => {
+        const just = item.justificativa.replace(/"/g,'&quot;');
+        html += `
+          <div class="detail-item d-flex justify-content-between align-items-center mb-2">
+            <span data-bs-toggle="tooltip" title="${just}">
+              ${item.nome}
+            </span>
+            <div class="d-flex gap-1">
+              <button type="button" class="detail-btn edit-side-btn"
+                      data-id="${item.id}" data-usuarioid="${item.usuarioId}"
+                      data-tipo="${item.tipo}" data-inicio="${item.inicio}"
+                      data-fim="${item.fim}" data-justificativa="${just}"
+                      title="Editar">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button type="button" class="detail-btn remove-side-btn"
+                      data-id="${item.id}" data-nome="${item.nome}"
+                      data-tipo="${item.tipo}"
+                      title="Remover">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>`;
       });
     } else {
-      details.innerHTML += '<p>Nenhum evento agendado.</p>';
+      html += `<p class="text-muted">Sem férias neste dia.</p>`;
     }
+
+    html += `
+        </div>
+        <div class="tab-pane fade" id="folgas-pane"
+              role="tabpanel" aria-labelledby="folgas-tab">`;
+
+    if (folgas.length) {
+      folgas.forEach(item => {
+        const just = item.justificativa.replace(/"/g,'&quot;');
+        html += `
+          <div class="detail-item d-flex justify-content-between align-items-center mb-2">
+            <span data-bs-toggle="tooltip" title="${just}">
+              ${item.nome}
+            </span>
+            <div class="d-flex gap-1">
+              <button type="button" class="detail-btn edit-side-btn"
+                      data-id="${item.id}" data-usuarioid="${item.usuarioId}"
+                      data-tipo="${item.tipo}" data-inicio="${item.inicio}"
+                      data-fim="${item.fim}" data-justificativa="${just}"
+                      title="Editar">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button type="button" class="detail-btn remove-side-btn"
+                      data-id="${item.id}" data-nome="${item.nome}"
+                      data-tipo="${item.tipo}"
+                      title="Remover">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>`;
+      });
+    } else {
+      html += `<p class="text-muted">Sem folgas neste dia.</p>`;
+    }
+
+    html += `</div></div>`;
+
+    details.innerHTML = html;
+
+    // inicializa tooltips nos spans
+    details.querySelectorAll('[data-bs-toggle="tooltip"]')
+          .forEach(el => new bootstrap.Tooltip(el));
+
+
+    // liga exclusão para abrir modal
+    details.querySelectorAll('.remove-side-btn')
+          .forEach(btn => {
+            btn.addEventListener('click', function() {
+              const id   = this.dataset.id;
+              const nome = this.dataset.nome;
+              const tipo = this.dataset.tipo;
+              document.getElementById('excluir_folga_id').value     = id;
+              document.getElementById('excluir_folga_nome').textContent = nome;
+              document.getElementById('excluir_folga_tipo').textContent = tipo;
+              new bootstrap.Modal(document.getElementById('modalExcluirFolga')).show();
+            });
+          });
   }
+
+  document.getElementById('details').addEventListener('click', function (e) {
+    var btn = e.target.closest('.remove-side-btn');
+    if (!btn) return; // clicou em outra área
+
+    document.getElementById('excluir_folga_id').value     = id;
+    document.getElementById('excluir_folga_nome').textContent = nome;
+    document.getElementById('excluir_folga_tipo').textContent = tipo;
+
+    if (typeof calendarEditInstance !== 'undefined' && calendarEditInstance) {
+      calendarEditInstance.setDate([btn.dataset.inicio, btn.dataset.fim], true);
+    }
+    new bootstrap.Modal(document.getElementById('modalExcluirFolga')).show();
+  });
 
   /* -------- delegação de clique para os ícones criados dinamicamente */
   document.getElementById('details').addEventListener('click', function (e) {
@@ -880,6 +997,19 @@ $resultFolga = $conn->query($sqlListarFolga);
 
   // força reload da página após fechar o modal de edição
   modalEditarElem.addEventListener('hidden.bs.modal', () => location.reload());
+</script>
+<script>
+  document
+    .getElementById('searchFolgasFerias')
+    .addEventListener('input', function() {
+      const termo = this.value.toLowerCase();
+      document
+        .querySelectorAll('.timeline-event')
+        .forEach(item => {
+          const texto = item.textContent.toLowerCase();
+          item.style.display = texto.includes(termo) ? '' : 'none';
+        });
+    });
 </script>
 </body>
 </html>
