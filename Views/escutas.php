@@ -490,6 +490,7 @@ if ($percentMetaGeral > 100) $percentMetaGeral = 100;
                 <option value="">Selecione...</option>
                 <option value="Sim">Sim</option>
                 <option value="Nao">Nao</option>
+                <option value="Caiu">Ligação Caiu</option>
               </select>
             </div>
             <div class="col-md-4 mb-3">

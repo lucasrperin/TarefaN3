@@ -148,6 +148,7 @@ $stmtEvalAva = $conn->prepare("
     SELECT 
         SUM(CASE WHEN solicitaAva = 'Sim' THEN 1 ELSE 0 END) AS pos_count_ava,
         SUM(CASE WHEN solicitaAva = 'Nao' THEN 1 ELSE 0 END) AS neg_count_ava,
+        SUM(CASE WHEN solicitaAva = 'Caiu' THEN 1 ELSE 0 END) AS caiu_count_ava,
         COUNT(*) AS total_count_ava
     FROM TB_ESCUTAS e
     WHERE e.user_id = ?
@@ -161,9 +162,12 @@ $stmtEvalAva->close();
 
 $pos_count_ava = (int)$evaluationAva['pos_count_ava'];
 $neg_count_ava = (int)$evaluationAva['neg_count_ava'];
+$caiu_count_ava = (int)$evaluationAva['caiu_count_ava'];
 $total_count_ava = (int)$evaluationAva['total_count_ava'];
 $percent_positive_ava = $total_count_ava > 0 ? ($pos_count_ava / $total_count_ava) * 100 : 0;
 $percent_negative_ava = $total_count_ava > 0 ? ($neg_count_ava / $total_count_ava) * 100 : 0;
+$percent_caiu_ava = $total_count_ava > 0 ? ($caiu_count_ava / $total_count_ava) * 100 : 0;
+
 
 /* ------------------------------
    Gráfico Mensal (Positivas x Negativas)
@@ -325,7 +329,7 @@ $stmtGrafico->close();
 
             <!-- Card: Taxa de Avaliação Positiva -->
             <div class="card mt-3">
-              <span data-bs-toggle="tooltip" data-bs-html="true" title="🟩 Sim <br>🟥 Não">
+              <span data-bs-toggle="tooltip" data-bs-html="true" title="🟩 Sim 🟥 Não">
                 <div class="card-body">
                   <h5 class="card-title">Taxa de Avaliação Positiva</h5>
                   <?php if($total_count > 0): ?>
@@ -350,7 +354,7 @@ $stmtGrafico->close();
 
             <!-- Card: Taxa Solicitação de Avaliação -->
             <div class="card mt-3">
-              <span data-bs-toggle="tooltip" data-bs-html="true" title="🟩 Sim <br>🟥 Não">
+              <span data-bs-toggle="tooltip" data-bs-html="true" title="🟩 Sim 🟥 Não 🟨 Caiu">
                 <div class="card-body">
                   <h5 class="card-title">Taxa Solicitação de Avaliação</h5>
                   <?php if($total_count_ava > 0): ?>
@@ -364,6 +368,11 @@ $stmtGrafico->close();
                           style="width: <?= round($percent_negative_ava); ?>%;" 
                           aria-valuenow="<?= round($percent_negative_ava); ?>" aria-valuemin="0" aria-valuemax="100">
                         <?= round($percent_negative_ava); ?>%
+                      </div>
+                      <div class="progress-bar bg-warning" role="progressbar" 
+                          style="width: <?= round($percent_caiu_ava); ?>%;" 
+                          aria-valuenow="<?= round($percent_caiu_ava); ?>" aria-valuemin="0" aria-valuemax="100">
+                        <?= round($percent_caiu_ava); ?>%
                       </div>
                     </div>
                   <?php else: ?>
@@ -703,6 +712,18 @@ function preencherModalExcluir(id, user_id) {
   document.getElementById('delete_user_id').value = user_id;
 }
 </script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Seleciona todos os elementos com data-bs-toggle="tooltip"
+    var tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    // Cria uma instância de Tooltip para cada um
+    tooltipTriggerList.forEach(function (el) {
+      new bootstrap.Tooltip(el);
+    });
+  });
+</script>
+
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
