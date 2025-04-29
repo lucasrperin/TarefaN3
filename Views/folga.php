@@ -320,7 +320,7 @@ if ($resultFolga) {
     <button type="button" class="btn btn-outline-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#filterModal">
       <i class="fa-solid fa-filter"></i>
     </button>
-    <input type="text" id="searchFolgasFerias" class="form-control me-2" placeholder="Pesquisar folgas / férias…" style="max-width: 200px;">
+    <input type="text" id="searchFolgasFerias" class="form-control me-2" placeholder="Pesquisar..." style="max-width: 150px;">
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCadastro">
       <i class="fa-solid fa-plus-circle me-2"></i> Cadastrar
     </button>
