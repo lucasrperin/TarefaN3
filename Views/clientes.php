@@ -33,7 +33,30 @@ $result = mysqli_query($conn, $query);
   <!-- CSS customizado -->
   <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
   <link rel="stylesheet" href="../Public/treinamento.css">
+  
+  
+  <style>
+    /* Ajustes para coluna de ações */
+    th.acoes, td.acoes { width: 100px !important; }
+    /* Botões de ação minimalistas */
+    .acao-btn {
+      background: none;
+      border: none;
+      padding: 4px;
+      margin: 0 2px;
+    }
+    .acao-btn i {
+      font-size: 0.9rem !important;
+      color: #666;
+      opacity: 0.8;
+    }
+    .acao-btn i:hover {
+      opacity: 1;
+      color: #333;
+    }
+  </style>
 </head>
+
 <body>
   <div class="d-flex-wrapper">
     <!-- Sidebar -->
@@ -157,7 +180,13 @@ $result = mysqli_query($conn, $query);
               <td><?= htmlspecialchars($row['serial'], ENT_QUOTES, 'UTF-8') ?></td>
               <td><?= $row['horas_adquiridas'] ?></td>
               <td><?= $row['horas_utilizadas'] ?></td>
-              <td><?= $row['faturamento']=='FATURADO'?number_format($row['valor_faturamento'],2,',','.'):'BRINDE' ?></td>
+              <td>
+  <?php if($row['faturamento']=='FATURADO'): ?>
+    <i class="fa-solid fa-brazilian-real-sign"></i> <?= number_format($row['valor_faturamento'],2,',','.') ?>
+  <?php else: ?>
+    BRINDE
+  <?php endif; ?>
+</td>
               <td class="acoes" style="width:150px; white-space: nowrap; text-align: center;">
                 <div class="acao-container">
                   <button class="btn btn-sm btn-warning acao-btn" onclick="editarCliente(
