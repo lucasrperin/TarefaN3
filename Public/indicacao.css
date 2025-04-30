@@ -265,3 +265,9 @@ td.sobrepor2 {
   border-bottom: 1px solid #dee2e6;
   font-weight: 600;
 }
+
+.card-fixed-height,
+  .card-total-geral        { min-height: 260px; }   /* ajuste se quiser mais/menos */
+  .card-total-mini h5 {          /* mantém “880,50” e “2.375,00” em 1 linha */
+    white-space: nowrap;
+  }

@@ -76,6 +76,17 @@ $resultFaturamento = mysqli_query($conn, $sqlFaturamento);
 $rowFaturamento = mysqli_fetch_assoc($resultFaturamento);
 $totalFaturamento = $rowFaturamento['total_faturamento'] ?: 0;
 
+/* ── Total de Treinamentos Faturados ─────────────────────────── */
+$qTrein = "
+  SELECT SUM(valor_faturamento) AS total_treinamentos
+  FROM TB_CLIENTES
+  WHERE faturamento = 'FATURADO'
+";
+$rTrein            = mysqli_query($conn, $qTrein);
+$totalTreinamentos = (float) mysqli_fetch_assoc($rTrein)['total_treinamentos'];
+
+/* ── Total Geral  = Treinamentos + Indicações ────────────────── */
+$totalGeral = $totalTreinamentos + $totalFaturamento;
 // Totalizador por Plugin
 $sqlPluginsCount = "SELECT 
                       p.nome AS plugin_nome, 
@@ -222,234 +233,251 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
         </div>
       </div>
       
-      <!-- Conteúdo principal -->
-      <div class="content container-fluid">
-        <!-- Accordion para Indicadores do Mês -->
-        <div class="accordion mb-4" id="accordionIndicadores">
-          <div class="accordion-item border-0">
-            <h2 class="accordion-header" id="headingIndicadores">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIndicadores" aria-expanded="true" aria-controls="collapseIndicadores" style="background-color: #fff; border: 1px solid #dee2e6;">
-                <b>Indicadores do Mês - Resumo e Totalizações</b>
-              </button>
-            </h2>
-            <div id="collapseIndicadores" class="accordion-collapse collapse show" aria-labelledby="headingIndicadores" data-bs-parent="#accordionIndicadores">
-              <div class="accordion-body">
-                <div class="row g-3">
-                <?php if ($cargo != 'Comercial'): ?>
-                  <!-- Ranking de Indicações -->
-                  <div class="col-md-4">
-                    <div class="card card-fixed-height shadow">
-                      <div class="card-header border-bottom" style="background-color: #4b79a1;">
-                        <h6 class="mb-0" style="color: #fff"><b>Ranking de Indicações</b></h6>
-                      </div>
-                      <div class="card-body p-2">
-                        <?php if (count($ranking) > 0): ?>
-                          <ul class="list-group list-group-flush">
-                            <?php foreach ($ranking as $index => $rank): ?>
-                              <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                <span>
-                                  <?php
-                                    if ($index == 0) echo "🥇 ";
-                                    elseif ($index == 1) echo "🥈 ";
-                                    elseif ($index == 2) echo "🥉 ";
-                                    else echo ($index + 1) . "º ";
-                                    echo $rank['usuario_nome'];
-                                  ?>
-                                </span>
-                                <span class="badge bg-secondary">
-                                  <?php echo $rank['total_indicacoes']; ?>
-                                </span>
-                              </li>
-                            <?php endforeach; ?>
-                          </ul>
-                        <?php else: ?>
-                          <p class="text-muted mb-0">Nenhum ranking disponível.</p>
-                        <?php endif; ?>
-                      </div>
-                    </div>
+  <!-- CONTEÚDO -------------------------------------------------------->
+  <div class="content container-fluid">
+
+<!-- ACCORDION RESUMO --------------------------------------------->
+<div class="accordion mb-4" id="accordionIndicadores">
+  <div class="accordion-item border-0">
+    <h2 class="accordion-header" id="headingIndicadores">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+              data-bs-target="#collapseIndicadores" aria-expanded="true" 
+              aria-controls="collapseIndicadores" 
+              style="background:#fff;border:1px solid #dee2e6;">
+        <b>Indicadores do Mês – Resumo e Totalizações</b>
+      </button>
+    </h2>
+
+    <div id="collapseIndicadores" class="accordion-collapse collapse show" 
+         aria-labelledby="headingIndicadores" data-bs-parent="#accordionIndicadores">
+
+      <div class="accordion-body">
+        <div class="row g-3 align-items-stretch">
+
+          <?php if($cargo!=='Comercial'): ?>
+          <!-- RANKING DE INDICAÇÕES --------------------------------->
+          <div class="col-md-4 d-flex">
+            <div class="card card-fixed-height shadow w-100">
+              <div class="card-header" style="background:#4b79a1;">
+                <h6 class="mb-0 text-white"><b>Ranking de Indicações</b></h6>
+              </div>
+              <div class="card-body p-2">
+                <?php if($ranking): ?>
+                  <ul class="list-group list-group-flush">
+                    <?php foreach($ranking as $k=>$r): ?>
+                      <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <span>
+                          <?= ['🥇','🥈','🥉'][$k] ?? ($k+1).'º' ?> <?= $r['usuario_nome']; ?>
+                        </span>
+                        <span class="badge bg-secondary"><?= $r['total_indicacoes'] ?></span>
+                      </li>
+                    <?php endforeach ?>
+                  </ul>
+                <?php else: ?>
+                  <p class="text-muted mb-0">Nenhum ranking disponível.</p>
+                <?php endif ?>
+              </div>
+            </div>
+          </div>
+          <?php endif ?>
+
+          <?php if($cargo==='Comercial'): ?>
+          <!-- RANKING DE FATURAMENTO -------------------------------->
+          <div class="col-md-4 d-flex">
+            <div class="card card-fixed-height shadow w-100">
+              <div class="card-header" style="background:#4b79a1;">
+                <h6 class="mb-0 text-white"><b>Ranking de Faturamento</b></h6>
+              </div>
+              <div class="card-body p-2">
+                <?php if($rankingConsult): ?>
+                  <ul class="list-group list-group-flush">
+                    <?php foreach($rankingConsult as $k=>$r): ?>
+                      <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                        <span>
+                          <?= ['🥇','🥈','🥉'][$k] ?? ($k+1).'º' ?> <?= $r['usuario_nome']; ?>
+                        </span>
+                        <span>R$ <?= number_format($r['total_faturado_consult'],2,',','.') ?></span>
+                      </li>
+                    <?php endforeach ?>
+                  </ul>
+                <?php else: ?>
+                  <p class="text-muted mb-0">Nenhum ranking disponível.</p>
+                <?php endif ?>
+              </div>
+            </div>
+          </div>
+          <?php endif ?>
+
+          <!-- TOTAL POR PLUGIN -------------------------------------->
+          <div class="col-md-4 d-flex">
+            <div class="card card-fixed-height shadow w-100">
+              <div class="card-header" style="background:#4b79a1;">
+                <h6 class="mb-0 text-white"><b>Total por Plugin</b></h6>
+              </div>
+              <div class="card-body p-0">
+                <?php if($pluginsCount): ?>
+                  <div class="table-responsive p-1">
+                    <table class="table table-bordered table-sm mb-0">
+                      <thead>
+                        <tr><th style="width:50%">Plugin</th><th>Qtd</th><th>Faturado</th></tr>
+                      </thead>
+                      <tbody>
+                        <?php foreach($pluginsCount as $pc): ?>
+                          <tr>
+                            <td class="d-flex align-items-center gap-2 text-truncate" style="max-width:200px;">
+                              <?php if(isset($logos[$pc['plugin_nome']])): ?>
+                                <img src="../<?= $logos[$pc['plugin_nome']] ?>" style="width:18px;height:18px;"/>
+                              <?php endif ?>
+                              <span><?= $pc['plugin_nome'] ?></span>
+                            </td>
+                            <td class="text-center"><?= $pc['total_indicacoes'] ?></td>
+                            <td class="text-center">R$ <?= number_format($pc['total_faturado'],2,',','.') ?></td>
+                          </tr>
+                        <?php endforeach ?>
+                      </tbody>
+                    </table>
                   </div>
-                  <?php endif; ?>
+                <?php else: ?>
+                  <p class="p-3 text-muted mb-0">Nenhum plugin encontrado.</p>
+                <?php endif ?>
+              </div>
+            </div>
+          </div>
 
-                  <?php if ($cargo === 'Comercial'): ?>
-                    <!-- Ranking de Faturamento -->
-                    <div class="col-md-4" id="rankingFaturamento">
-                      <div class="card card-fixed-height shadow">
-                        <div class="card-header border-bottom" style="background-color: #4b79a1;">
-                          <h6 class="mb-0" style="color: #fff"><b>Ranking de Faturamento</b></h6>
-                        </div>
-                        <div class="card-body p-2">
-                          <?php if (count($rankingConsult) > 0): ?>
-                            <ul class="list-group list-group-flush">
-                              <?php foreach ($rankingConsult as $indexC => $rankC): ?>
-                                <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                                  <span>
-                                    <?php
-                                      if ($indexC == 0) echo "🥇 ";
-                                      elseif ($indexC == 1) echo "🥈 ";
-                                      elseif ($indexC == 2) echo "🥉 ";
-                                      else echo ($indexC + 1) . "º ";
-                                      echo $rankC['usuario_nome'];
-                                    ?>
-                                  </span>
-                                  <span class="text-center">
-                                        R$ <?php echo number_format($rankC['total_faturado_consult'], 2, ',', '.'); ?>
-                                  </span>
-                                </li>
-                              <?php endforeach; ?>
-                            </ul>
-                          <?php else: ?>
-                            <p class="text-muted mb-0">Nenhum ranking disponível.</p>
-                          <?php endif; ?>
-                        </div>
-                      </div>
-                    </div>
-                  <?php endif; ?>
+     <!-- coluna totalizadores -------------------------------------------------->
+<div class="col-md-4">
 
-                  <!-- Total por Plugin -->
-                  <div class="col-md-4">
-                    <div class="card card-fixed-height shadow">
-                      <div class="card-header border-bottom" style="background-color: #4b79a1;">
-                        <h6 class="mb-0" style="color: #fff"><b>Total por Plugin</b></h6>
-                      </div>
-                      <div class="card-body p-0">
-                        <?php if (count($pluginsCount) > 0): ?>
-                          <!-- Torna a tabela responsiva -->
-                          <div class="table-responsive p-4">
-                            <table class="table table-bordered table-sm mb-0" style="table-layout: fixed;">
-                              <thead>
-                                <tr>
-                                  <th style="width: 40%">Plugin</th>
-                                  <th style="width: 30%">Quantidade</th>
-                                  <th style="width: 30%">Faturado</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <?php foreach ($pluginsCount as $pc): ?>
-                                  <tr>
-                                    <!-- Classe para truncar o texto caso o plugin tenha nome muito grande -->
-                                    <td class="text-truncate" style="max-width: 150px;">
-                                      <?php echo $pc['plugin_nome']; ?>
-                                    </td>
-                                    <td class="text-center"><?php echo $pc['total_indicacoes']; ?></td>
-                                    <td class="text-center">
-                                      R$ <?php echo number_format($pc['total_faturado'], 2, ',', '.'); ?>
-                                    </td>
-                                  </tr>
-                                <?php endforeach; ?>
-                              </tbody>
-                            </table>
+<!-- cartão GRANDE : Geral de Faturamento -->
+<div class="card bg-light border-0 text-center shadow-sm mb-3 w-100">
+  <div class="card-body">
+    <i class="fa-solid fa-chart-line fa-2x mb-2 text-primary"></i>
+    <h6 class="card-subtitle mb-1 text-muted">Geral de Faturamento</h6>
+    <h3 class="card-title display-6 m-0">
+      R$ <?= number_format($totalGeral, 2, ',', '.'); ?>
+    </h3>
+  </div>
+</div>
+
+<!-- linha com os DOIS cartões menores ----------------------------------->
+<div class="row g-3">
+
+  <!-- Treinamentos ------------------------------------------------------>
+  <div class="col-6">
+    <div class="card bg-white border-0 text-center shadow-sm h-100">
+      <div class="card-body py-3">
+        <i class="fa-solid fa-chalkboard-user fa-lg mb-2 text-success"></i>
+        <p class="mb-1 text-muted">Treinamentos</p>
+        <h5 class="mb-0">
+          R$ <?= number_format($totalTreinamentos, 2, ',', '.'); ?>
+        </h5>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indicações -------------------------------------------------------->
+  <div class="col-6">
+    <div class="card bg-white border-0 text-center shadow-sm h-100">
+      <div class="card-body py-3">
+        <i class="fa-solid fa-handshake fa-lg mb-2 text-warning"></i>
+        <p class="mb-1 text-muted">Indicações</p>
+        <h5 class="mb-0">
+          R$ <?= number_format($totalFaturamento, 2, ',', '.'); ?>
+        </h5>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /row g-3 -->
+</div><!-- /col-md-4 -->
+    </div>
+  </div>
+</div>
+
+                        <!-- Card com a lista de indicações -->
+                        <div class="card shadow mb-4">
+                          <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">Indicações de Plugins</h4>
+                            <div class="d-flex justify-content-end gap-2">
+                              <input type="text" id="searchInput" class="form-control ms-2" style="max-width: 200px;" placeholder="Pesquisar...">
+                              <?php if ($cargo === 'Admin' || $cargo === 'User' || $cargo === 'Conversor'): ?>
+                                <button class="btn btn-custom ms-2" data-bs-toggle="modal" data-bs-target="#modalNovaIndicacao">
+                                  <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
+                                </button>
+                              <?php endif; ?>
+                            </div>
                           </div>
-                        <?php else: ?>
-                          <p class="p-3 text-muted mb-0">Nenhum plugin encontrado.</p>
-                        <?php endif; ?>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <!-- Total de Faturamento -->
-                  <div class="col-md-4">
-                    <div class="card card-fixed-height shadow">
-                      <div class="card-header border-bottom" style="background-color: #4b79a1;">
-                        <h6 class="mb-0" style="color: #fff"><b>Total de Faturamento</b></h6>
-                      </div>
-                      <div class="card-body d-flex justify-content-center align-items-center">
-                        <h4 class="mb-0" style="font-size: 3rem">
-                          <strong><?php echo "R$ " . number_format($totalFaturamento, 2, ',', '.'); ?></strong>
-                        </h4>
-                      </div>
-                    </div>
-                  </div>
-                </div><!-- /row -->
-              </div><!-- /accordion-body -->
-            </div>
-          </div>
-        </div>
-
-        <!-- Card com a lista de indicações -->
-        <div class="card shadow mb-4">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h4 class="mb-0">Indicações de Plugins</h4>
-            <div class="d-flex justify-content-end gap-2">
-              <input type="text" id="searchInput" class="form-control ms-2" style="max-width: 200px;" placeholder="Pesquisar...">
-              <?php if ($cargo === 'Admin' || $cargo === 'User' || $cargo === 'Conversor'): ?>
-                <button class="btn btn-custom ms-2" data-bs-toggle="modal" data-bs-target="#modalNovaIndicacao">
-                  <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
+                          <div class="card-body">
+                            <div class="table-responsive access-scroll">
+                            <table class="table align-middle mb-0" id="tabela-indicacoes">
+                                  <thead class="table-header-light">    
+                                    <tr>
+                                      <th>Plugin</th>
+                                      <th>Data</th>
+                                      <th>Status</th>
+                                      <th>Consultor(a)</th>
+                                      <th class="text-center">Ações</th>
+                                    </tr>
+                                  </thead>
+                                <tbody>
+                                  <?php foreach ($indicacoes as $i): ?>
+                                    <?php
+                                      // chaves únicas para ligar linha ↔ collapse
+                                      $uid = 'ind_'.$i['id'];
+                                    ?>
+                                    <!-- linha principal -------------------------------------------------->
+                                    <tr class="table-row-hover"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#<?= $uid ?>"
+                                        aria-expanded="false"
+                                        aria-controls="<?= $uid ?>">
+                                        <?php $logo = $logos[$i['plugin_nome']] ?? null; ?>
+                                        <td class="d-flex align-items-center gap-2">
+                                          <?php if ($logo): ?>
+                                            <img src="../<?= $logo; ?>" alt="" style="width:22px;height:22px;">
+                                          <?php endif; ?>
+                                          <span><?= htmlspecialchars($i['plugin_nome']); ?></span>
+                                        </td>
+                                      <td><?= date('d/m/Y', strtotime($i['data'])); ?></td>
+                                      <td>
+                                      <?php
+                                        switch ($i['status']) {
+                                          case 'Faturado':   $badge = 'bg-success';    break;   // verde
+                                          case 'Cancelado':  $badge = 'bg-danger';     break;   // vermelho
+                                          default:           $badge = 'bg-secondary';  break;   // cinza (Pendente, etc.)
+                                        }
+                                      ?>
+                                      <span class="badge <?= $badge; ?>">
+                                        <?= $i['status']; ?>
+                                      </span>
+                                      </td>
+                                      <td><?= htmlspecialchars($i['consultor_nome']); ?></td>
+                                      <td class="text-center">
+                                        <!-- Exemplo de ações -->
+                                        <button class="btn btn-sm btn-primary"
+                        title="Editar"
+                        onclick="event.stopPropagation();
+                                editarIndicacao(
+                                  <?= $i['id'] ?>,
+                                  <?= $i['plugin_id'] ?>,
+                                  '<?= $i['data'] ?>',
+                                  '<?= $i['cnpj'] ?>',
+                                  '<?= $i['serial'] ?>',
+                                  '<?= addslashes($i['contato']) ?>',
+                                  '<?= $i['fone'] ?>',
+                                  <?= $i['idConsultor'] ?>,
+                                  '<?= $i['status'] ?>',
+                                  '<?= $i['vlr_total'] ?? 0 ?>',
+                                  '<?= $i['n_venda'] ?? '' ?>'
+                                );">
+                  <i class="fa-solid fa-pen-to-square"></i>
                 </button>
-              <?php endif; ?>
-            </div>
-          </div>
-          <div class="card-body">
-            <div class="table-responsive access-scroll">
-            <table class="table align-middle mb-0" id="tabela-indicacoes">
-                  <thead class="table-header-light">    
-                    <tr>
-                      <th>Plugin</th>
-                      <th>Data</th>
-                      <th>Status</th>
-                      <th>Consultor(a)</th>
-                      <th class="text-center">Ações</th>
-                    </tr>
-                  </thead>
-                <tbody>
-                  <?php foreach ($indicacoes as $i): ?>
-                    <?php
-                      // chaves únicas para ligar linha ↔ collapse
-                      $uid = 'ind_'.$i['id'];
-                    ?>
-                    <!-- linha principal -------------------------------------------------->
-                    <tr class="table-row-hover"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#<?= $uid ?>"
-                        aria-expanded="false"
-                        aria-controls="<?= $uid ?>">
-                        <?php $logo = $logos[$i['plugin_nome']] ?? null; ?>
-                        <td class="d-flex align-items-center gap-2">
-                          <?php if ($logo): ?>
-                            <img src="../<?= $logo; ?>" alt="" style="width:22px;height:22px;">
-                          <?php endif; ?>
-                          <span><?= htmlspecialchars($i['plugin_nome']); ?></span>
-                        </td>
-                      <td><?= date('d/m/Y', strtotime($i['data'])); ?></td>
-                      <td>
-                      <?php
-                        switch ($i['status']) {
-                          case 'Faturado':   $badge = 'bg-success';    break;   // verde
-                          case 'Cancelado':  $badge = 'bg-danger';     break;   // vermelho
-                          default:           $badge = 'bg-secondary';  break;   // cinza (Pendente, etc.)
-                        }
-                      ?>
-                      <span class="badge <?= $badge; ?>">
-                        <?= $i['status']; ?>
-                      </span>
-                      </td>
-                      <td><?= htmlspecialchars($i['consultor_nome']); ?></td>
-                      <td class="text-center">
-                        <!-- Exemplo de ações -->
-                        <button class="btn btn-sm btn-primary"
-        title="Editar"
-        onclick="event.stopPropagation();
-                 editarIndicacao(
-                   <?= $i['id'] ?>,
-                   <?= $i['plugin_id'] ?>,
-                   '<?= $i['data'] ?>',
-                   '<?= $i['cnpj'] ?>',
-                   '<?= $i['serial'] ?>',
-                   '<?= addslashes($i['contato']) ?>',
-                   '<?= $i['fone'] ?>',
-                   <?= $i['idConsultor'] ?>,
-                   '<?= $i['status'] ?>',
-                   '<?= $i['vlr_total'] ?? 0 ?>',
-                   '<?= $i['n_venda'] ?? '' ?>'
-                 );">
-  <i class="fa-solid fa-pen-to-square"></i>
-</button>
 
-<!-- Botão EXCLUIR --------------------------------------------->
-<button class="btn btn-sm btn-danger"
-        title="Excluir"
-        onclick="event.stopPropagation(); modalExcluir(<?= $i['id'] ?>);">
-  <i class="fa-solid fa-trash"></i>
-</button>
+                <!-- Botão EXCLUIR --------------------------------------------->
+                <button class="btn btn-sm btn-danger"
+                        title="Excluir"
+                        onclick="event.stopPropagation(); modalExcluir(<?= $i['id'] ?>);">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
                       </td>
                     </tr>
 
