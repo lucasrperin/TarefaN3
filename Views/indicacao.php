@@ -16,9 +16,11 @@ $usuario_id = $_SESSION['usuario_id'];
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
 
+$logos = require '../Config/logos.php';
 // Consulta para pegar todas as indicações do mês e ano atuais, incluindo nome do usuário e status
 $sql = "  SELECT 
               i.*, 
+              i.n_venda,
               p.nome AS plugin_nome,
               u.nome AS usuario_nome,
               case
@@ -34,7 +36,10 @@ $sql = "  SELECT
             AND YEAR(i.data) = YEAR(CURRENT_DATE())
           ORDER BY i.data DESC";
 $result = mysqli_query($conn, $sql);
-
+$indicacoes = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $indicacoes[] = $row;   // agora $indicacoes sempre existe (array vazio ou com dados)
+}
 // Consulta para o ranking: quantidade de indicações por usuário
 $sqlRanking = "
   SELECT u.nome AS usuario_nome, COUNT(i.id) AS total_indicacoes
@@ -103,6 +108,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
   <!-- CSS personalizado para Indicações -->
   <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
   <link href="../Public/indicacao.css" rel="stylesheet">
+  
 </head>
 <body class="bg-light">
   <div class="d-flex-wrapper">
@@ -374,65 +380,99 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
           </div>
           <div class="card-body">
             <div class="table-responsive access-scroll">
-              <table class="table table-striped table-bordered tabelaEstilizada">
-                <thead class="thead-dark">
-                  <tr>
-                    <th>Plugin</th>
-                    <th width="5%">Data</th>
-                    <th width="13%">CNPJ</th>
-                    <th width="10%">Serial</th>
-                    <th>Contato</th>
-                    <th>Fone</th>
-                    <th width="10%">Usuário</th>
-                    <th width="5%">Status</th>
-                    <th width="5%">Consultor(a)</th>
-                    <th width="5%">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <?php while($row = mysqli_fetch_assoc($result)): ?> 
+            <table class="table align-middle mb-0" id="tabela-indicacoes">
+                  <thead class="table-header-light">    
                     <tr>
-                      <td class="sobrepor"><?php echo $row['plugin_nome']; ?></td>
-                      <td><?php echo date('d/m/Y', strtotime($row['data'])); ?></td>
-                      <td><?php echo $row['cnpj']; ?></td>
-                      <td><?php echo $row['serial']; ?></td>
-                      <td><?php echo $row['contato']; ?></td>
-                      <td><?php echo $row['fone']; ?></td>
-                      <td><?php echo $row['usuario_nome']; ?></td>
-                      <td><?php echo $row['status']; ?></td>
-                      <td><?php echo $row['consultor_nome']; ?></td>
+                      <th>Plugin</th>
+                      <th>Data</th>
+                      <th>Status</th>
+                      <th>Consultor(a)</th>
+                      <th class="text-center">Ações</th>
+                    </tr>
+                  </thead>
+                <tbody>
+                  <?php foreach ($indicacoes as $i): ?>
+                    <?php
+                      // chaves únicas para ligar linha ↔ collapse
+                      $uid = 'ind_'.$i['id'];
+                    ?>
+                    <!-- linha principal -------------------------------------------------->
+                    <tr class="table-row-hover"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#<?= $uid ?>"
+                        aria-expanded="false"
+                        aria-controls="<?= $uid ?>">
+                        <?php $logo = $logos[$i['plugin_nome']] ?? null; ?>
+                        <td class="d-flex align-items-center gap-2">
+                          <?php if ($logo): ?>
+                            <img src="../<?= $logo; ?>" alt="" style="width:22px;height:22px;">
+                          <?php endif; ?>
+                          <span><?= htmlspecialchars($i['plugin_nome']); ?></span>
+                        </td>
+                      <td><?= date('d/m/Y', strtotime($i['data'])); ?></td>
+                      <td>
+                      <?php
+                        switch ($i['status']) {
+                          case 'Faturado':   $badge = 'bg-success';    break;   // verde
+                          case 'Cancelado':  $badge = 'bg-danger';     break;   // vermelho
+                          default:           $badge = 'bg-secondary';  break;   // cinza (Pendente, etc.)
+                        }
+                      ?>
+                      <span class="badge <?= $badge; ?>">
+                        <?= $i['status']; ?>
+                      </span>
+                      </td>
+                      <td><?= htmlspecialchars($i['consultor_nome']); ?></td>
                       <td class="text-center">
-                        <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $row['user_id'] == $usuario_id): ?>
-                          <div class="d-flex flex-row align-items-center gap-1">
-                            <button type="button" 
-                                    class="btn btn-outline-primary btn-sm"
-                                    title="Editar"
-                                    onclick='editarIndicacao(
-                                      <?php echo htmlspecialchars(json_encode($row["id"]), ENT_QUOTES, "UTF-8"); ?>,
-                                      <?php echo htmlspecialchars(json_encode($row["plugin_id"]), ENT_QUOTES, "UTF-8"); ?>,
-                                      <?php echo htmlspecialchars(json_encode($row["data"]), ENT_QUOTES, "UTF-8"); ?>,
-                                      <?php echo htmlspecialchars(json_encode($row["cnpj"]), ENT_QUOTES, "UTF-8"); ?>,
-                                      <?php echo htmlspecialchars(json_encode($row["serial"]), ENT_QUOTES, "UTF-8"); ?>,
-                                      <?php echo htmlspecialchars(json_encode($row["contato"]), ENT_QUOTES, "UTF-8"); ?>,
-                                      <?php echo htmlspecialchars(json_encode($row["fone"]), ENT_QUOTES, "UTF-8"); ?>,
-                                      <?php echo htmlspecialchars(json_encode($row["idConsultor"]), ENT_QUOTES, "UTF-8"); ?>,
-                                      <?php echo htmlspecialchars(json_encode($row["status"]), ENT_QUOTES, "UTF-8"); ?>,
-                                      <?php echo htmlspecialchars(json_encode($row["vlr_total"]), ENT_QUOTES, "UTF-8"); ?>,
-                                      <?php echo htmlspecialchars(json_encode($row["n_venda"]), ENT_QUOTES, "UTF-8"); ?>
-                                    )'>
-                              <i class="fa-solid fa-pen"></i>
-                            </button>
-                            <a type="button"
-                               class="btn btn-outline-danger btn-sm"
-                               title="Excluir"
-                               onclick="modalExcluir('<?php echo $row['id']; ?>')">
-                              <i class="fa-sharp fa-solid fa-trash"></i>
-                            </a>
-                          </div>
-                        <?php endif; ?>
+                        <!-- Exemplo de ações -->
+                        <button class="btn btn-sm btn-primary"
+        title="Editar"
+        onclick="event.stopPropagation();
+                 editarIndicacao(
+                   <?= $i['id'] ?>,
+                   <?= $i['plugin_id'] ?>,
+                   '<?= $i['data'] ?>',
+                   '<?= $i['cnpj'] ?>',
+                   '<?= $i['serial'] ?>',
+                   '<?= addslashes($i['contato']) ?>',
+                   '<?= $i['fone'] ?>',
+                   <?= $i['idConsultor'] ?>,
+                   '<?= $i['status'] ?>',
+                   '<?= $i['vlr_total'] ?? 0 ?>',
+                   '<?= $i['n_venda'] ?? '' ?>'
+                 );">
+  <i class="fa-solid fa-pen-to-square"></i>
+</button>
+
+<!-- Botão EXCLUIR --------------------------------------------->
+<button class="btn btn-sm btn-danger"
+        title="Excluir"
+        onclick="event.stopPropagation(); modalExcluir(<?= $i['id'] ?>);">
+  <i class="fa-solid fa-trash"></i>
+</button>
                       </td>
                     </tr>
-                  <?php endwhile; ?>
+
+                    <!-- linha de detalhe (collapse) ------------------------------------->
+                    <tr class="collapse bg-light" id="<?= $uid ?>">
+                      <td colspan="5" class="p-3">
+                        <div class="row g-2">
+                          <div class="col-6 col-md-4">
+                            <strong>CNPJ:</strong> <?= $i['cnpj']; ?>
+                          </div>
+                          <div class="col-6 col-md-4">
+                            <strong>Serial:</strong> <?= $i['serial']; ?>
+                          </div>
+                          <div class="col-6 col-md-4">
+                            <strong>Contato:</strong> <?= htmlspecialchars($i['contato']); ?>
+                          </div>
+                          <div class="col-6 col-md-4">
+                            <strong>Fone:</strong> <?= $i['fone']; ?>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  <?php endforeach; ?>
                 </tbody>
               </table>
             </div>
@@ -442,18 +482,50 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
     </div><!-- /Área principal -->
   </div><!-- /d-flex-wrapper -->
   <!-- Função de pesquisa nas tabelas-->
+
   <script>
-      $(document).ready(function(){
-        $("#searchInput").on("keyup", function() {
-          var value = $(this).val().toLowerCase();
-          // Para cada linha em todas as tabelas com a classe 'tabelaEstilizada'
-          $(".tabelaEstilizada tbody tr").filter(function() {
-            // Se o texto da linha conter o valor da pesquisa (ignorando maiúsculas/minúsculas), mostra a linha; caso contrário, oculta
-            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-          });
-        });
-      });
+document.querySelectorAll('#tabela-indicacoes tbody tr[data-bs-toggle]')
+  .forEach(row => {
+    row.addEventListener('show.bs.collapse', () => row.classList.add('table-active'));
+    row.addEventListener('hide.bs.collapse', () => row.classList.remove('table-active'));
+});
+</script>
+<!-- Evita que cliques em botões/links dentro da linha disparem o collapse -->
+<script>
+document.querySelectorAll(
+  '#tabela-indicacoes tbody tr[data-bs-toggle] button,' +
+  '#tabela-indicacoes tbody tr[data-bs-toggle] a'
+).forEach(el => {
+  el.addEventListener('click', e => e.stopPropagation());
+});
+</script>
+  <script>
+$(document).ready(function () {
+  $('#searchInput').on('keyup', function () {
+    const termo = $(this).val().trim().toLowerCase();
+
+    // percorre apenas as linhas principais (as que têm data-bs-toggle)
+    $('#tabela-indicacoes tbody tr[data-bs-toggle]').each(function () {
+      const linha    = $(this);                            // <tr> principal
+      const detalhe  = $('#' + linha.attr('aria-controls')); // <tr> collapse
+
+      // texto da linha + texto do detalhe
+      const texto = (linha.text() + ' ' + detalhe.text()).toLowerCase();
+      const match = texto.indexOf(termo) !== -1;
+
+      if (match) {
+        linha.removeClass('d-none');     // mostra registro
+        detalhe.removeClass('d-none');   // (fica oculto pelo CSS .collapse)
+      } else {
+        linha.addClass('d-none');        // esconde registro
+        detalhe.addClass('d-none');      
+        detalhe.removeClass('show');     // força fechar se estava aberto
+      }
+    });
+  });
+});
   </script>
+  
   <!-- Modal para cadastro de nova indicação -->
   <div class="modal fade" id="modalNovaIndicacao" tabindex="-1" role="dialog" aria-labelledby="modalNovaIndicacaoLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">

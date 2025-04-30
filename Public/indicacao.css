@@ -253,3 +253,15 @@ td.sobrepor2 {
   background-color: #283e51;
   color: #fff;
 }
+/* cursor e realce na linha clicável */
+.table-row-hover { cursor:pointer; }
+.table-row-hover:hover { background:#f2f4f7; }
+
+/* transição suave na abertura */
+.collapse:not(.show) { transition: none; }   /* evita “salto” vertical */
+.table-header-light th {
+  background: #f7f9fc;        /* quase branco */
+  color: #495057;             /* cinza escuro suave */
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+}
