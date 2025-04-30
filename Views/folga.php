@@ -147,7 +147,7 @@ if ($idNivelFilter != 'Todos') {
 if (!empty($conditionsFerias)) {
     $sqlListarFerias .= " WHERE " . implode(" AND ", $conditionsFerias);
 }
-$sqlListarFerias .= " ORDER BY f.id DESC";
+$sqlListarFerias .= " ORDER BY f.data_inicio ASC";
 $resultFerias = $conn->query($sqlListarFerias);
 
 // Para Folga
@@ -167,7 +167,7 @@ if ($idNivelFilter != 'Todos') {
 if (!empty($conditionsFolga)) {
     $sqlListarFolga .= " WHERE " . implode(" AND ", $conditionsFolga);
 }
-$sqlListarFolga .= " ORDER BY f.id DESC";
+$sqlListarFolga .= " ORDER BY f.data_inicio ASC";
 $resultFolga = $conn->query($sqlListarFolga);
 ?>
 <!DOCTYPE html>

@@ -25,11 +25,12 @@ $client = new Client($sid, $token);
 // Número do Sandbox do WhatsApp (para testes)
 $from = "whatsapp:+14155238886";
 
-// Consulta os clientes ativos com data_conclusao preenchida
+// Ajuste na query: filtra clientes ativos com data_conclusao preenchida (não nula nem vazia)
 $query = "SELECT c.id as cliente_id, c.cliente, c.whatsapp, c.data_conclusao 
           FROM TB_CLIENTES c 
           WHERE c.ativo = 1 
-            AND c.data_conclusao IS NOT NULL";
+            AND c.data_conclusao IS NOT NULL 
+            AND c.data_conclusao <> ''";
 $result = mysqli_query($conn, $query);
 
 $notified = [];
@@ -39,7 +40,7 @@ $today    = new DateTime();
 
 while ($row = mysqli_fetch_assoc($result)) {
     
-    // Se não houver número de WhatsApp, pule o cliente
+    // Se não houver número de WhatsApp, pula o cliente
     if (empty($row['whatsapp'])) {
         continue;
     }
@@ -59,7 +60,7 @@ while ($row = mysqli_fetch_assoc($result)) {
         'diffDays'       => $diffDays
     ];
     
-    // Se diffDays for menor que 15, não enviar nada
+    // Se diffDays for menor que 15, não processa o cliente
     if ($diffDays < 15) {
         continue;
     }
@@ -68,107 +69,109 @@ while ($row = mysqli_fetch_assoc($result)) {
     $clientName = $row['cliente'];
     $to = "whatsapp:" . $row['whatsapp'];
     
-    // ---------------------------
-    // Verificação e envio da notificação de 15 dias
-    // ---------------------------
-    $stmt = mysqli_prepare($conn, "SELECT COUNT(*) as cnt FROM TB_NOTIFICACOES WHERE cliente_id = ? AND titulo = 'Treinamento - 15 dias'");
-    mysqli_stmt_bind_param($stmt, "i", $cliente_id);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_bind_result($stmt, $cnt15);
-    mysqli_stmt_fetch($stmt);
-    mysqli_stmt_close($stmt);
-    
-    // Se nenhuma notificação de 15 dias existe, envie a de 15 dias
-    if ($cnt15 == 0) {
-        $title = "Treinamento - 15 dias";
-        $messageBody = "Olá {$clientName}, como está o funcionamento do sistema após o seu treinamento concluído em {$row['data_conclusao']}? (15 dias)";
-        try {
-            $message = $client->messages->create(
-                $to,
-                [
-                    "from" => $from,
-                    "body" => $messageBody
-                ]
-            );
-            $notified[] = "{$clientName} (15 dias, SID: {$message->sid})";
-            
-            $stmtInsert = mysqli_prepare($conn, "INSERT INTO TB_NOTIFICACOES (titulo, mensagem, cliente_id) VALUES (?, ?, ?)");
-            mysqli_stmt_bind_param($stmtInsert, "ssi", $title, $messageBody, $cliente_id);
-            mysqli_stmt_execute($stmtInsert);
-            mysqli_stmt_close($stmtInsert);
-        } catch (Exception $e) {
-            $errors[] = "{$clientName} (15 dias): " . $e->getMessage();
-        }
-        continue; // Após enviar a notificação de 15 dias, passa para o próximo cliente
+    // ============================================================
+    // Envia a notificação de 15 dias se ainda não tiver sido enviada
+    // ============================================================
+    if ($diffDays >= 15) {
+         $stmt = mysqli_prepare($conn, "SELECT COUNT(*) as cnt FROM TB_NOTIFICACOES WHERE cliente_id = ? AND titulo = 'Treinamento - 15 dias'");
+         mysqli_stmt_bind_param($stmt, "i", $cliente_id);
+         mysqli_stmt_execute($stmt);
+         mysqli_stmt_bind_result($stmt, $cnt15);
+         mysqli_stmt_fetch($stmt);
+         mysqli_stmt_close($stmt);
+         
+         if ($cnt15 == 0) {
+             $title = "Treinamento - 15 dias";
+             $messageBody = "Olá {$clientName}, como está o funcionamento do sistema após o seu treinamento concluído em {$row['data_conclusao']}? (15 dias)";
+             try {
+                 $message = $client->messages->create(
+                     $to,
+                     [
+                         "from" => $from,
+                         "body" => $messageBody
+                     ]
+                 );
+                 $notified[] = "{$clientName} (15 dias, SID: {$message->sid})";
+                 
+                 $stmtInsert = mysqli_prepare($conn, "INSERT INTO TB_NOTIFICACOES (titulo, mensagem, cliente_id) VALUES (?, ?, ?)");
+                 mysqli_stmt_bind_param($stmtInsert, "ssi", $title, $messageBody, $cliente_id);
+                 mysqli_stmt_execute($stmtInsert);
+                 mysqli_stmt_close($stmtInsert);
+             } catch (Exception $e) {
+                 $errors[] = "{$clientName} (15 dias): " . $e->getMessage();
+             }
+             // Após enviar a notificação de 15 dias, passa para o próximo cliente
+             continue;
+         }
     }
     
-    // ---------------------------
-    // Se já existe a notificação de 15 dias e diffDays >= 30, verificar e enviar a de 30 dias
-    // ---------------------------
+    // ============================================================
+    // Envia a notificação de 30 dias se o cliente já tem a de 15 dias e ainda não a de 30 dias
+    // ============================================================
     if ($diffDays >= 30) {
-        $stmt = mysqli_prepare($conn, "SELECT COUNT(*) as cnt FROM TB_NOTIFICACOES WHERE cliente_id = ? AND titulo = 'Treinamento - 30 dias'");
-        mysqli_stmt_bind_param($stmt, "i", $cliente_id);
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_bind_result($stmt, $cnt30);
-        mysqli_stmt_fetch($stmt);
-        mysqli_stmt_close($stmt);
-        
-        if ($cnt30 == 0) {
-            $title = "Treinamento - 30 dias";
-            $messageBody = "Olá {$clientName}, lembrando que se passaram 30 dias desde a conclusão do seu treinamento em {$row['data_conclusao']}. Como está o funcionamento do sistema? (30 dias)";
-            try {
-                $message = $client->messages->create(
-                    $to,
-                    [
-                        "from" => $from,
-                        "body" => $messageBody
-                    ]
-                );
-                $notified[] = "{$clientName} (30 dias, SID: {$message->sid})";
-                
-                $stmtInsert = mysqli_prepare($conn, "INSERT INTO TB_NOTIFICACOES (titulo, mensagem, cliente_id) VALUES (?, ?, ?)");
-                mysqli_stmt_bind_param($stmtInsert, "ssi", $title, $messageBody, $cliente_id);
-                mysqli_stmt_execute($stmtInsert);
-                mysqli_stmt_close($stmtInsert);
-            } catch (Exception $e) {
-                $errors[] = "{$clientName} (30 dias): " . $e->getMessage();
-            }
-            continue;
-        }
+         $stmt = mysqli_prepare($conn, "SELECT COUNT(*) as cnt FROM TB_NOTIFICACOES WHERE cliente_id = ? AND titulo = 'Treinamento - 30 dias'");
+         mysqli_stmt_bind_param($stmt, "i", $cliente_id);
+         mysqli_stmt_execute($stmt);
+         mysqli_stmt_bind_result($stmt, $cnt30);
+         mysqli_stmt_fetch($stmt);
+         mysqli_stmt_close($stmt);
+         
+         if ($cnt30 == 0) {
+             $title = "Treinamento - 30 dias";
+             $messageBody = "Olá {$clientName}, lembrando que se passaram 30 dias desde a conclusão do seu treinamento em {$row['data_conclusao']}. Como está o funcionamento do sistema? (30 dias)";
+             try {
+                 $message = $client->messages->create(
+                     $to,
+                     [
+                         "from" => $from,
+                         "body" => $messageBody
+                     ]
+                 );
+                 $notified[] = "{$clientName} (30 dias, SID: {$message->sid})";
+                 
+                 $stmtInsert = mysqli_prepare($conn, "INSERT INTO TB_NOTIFICACOES (titulo, mensagem, cliente_id) VALUES (?, ?, ?)");
+                 mysqli_stmt_bind_param($stmtInsert, "ssi", $title, $messageBody, $cliente_id);
+                 mysqli_stmt_execute($stmtInsert);
+                 mysqli_stmt_close($stmtInsert);
+             } catch (Exception $e) {
+                 $errors[] = "{$clientName} (30 dias): " . $e->getMessage();
+             }
+             continue;
+         }
     }
     
-    // ---------------------------
-    // Se já existem notificações de 15 e 30 dias e diffDays >= 45, verificar e enviar a de 45 dias
-    // ---------------------------
+    // ============================================================
+    // Envia a notificação de 45 dias se o cliente já tem as notificações de 15 e 30 dias e ainda não recebeu a de 45 dias
+    // ============================================================
     if ($diffDays >= 45) {
-        $stmt = mysqli_prepare($conn, "SELECT COUNT(*) as cnt FROM TB_NOTIFICACOES WHERE cliente_id = ? AND titulo = 'Treinamento - 45 dias'");
-        mysqli_stmt_bind_param($stmt, "i", $cliente_id);
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_bind_result($stmt, $cnt45);
-        mysqli_stmt_fetch($stmt);
-        mysqli_stmt_close($stmt);
-        
-        if ($cnt45 == 0) {
-            $title = "Treinamento - 45 dias";
-            $messageBody = "Olá {$clientName}, se passaram 45 dias desde a conclusão do seu treinamento em {$row['data_conclusao']}. Gostaríamos de saber como está o funcionamento do sistema. (45 dias)";
-            try {
-                $message = $client->messages->create(
-                    $to,
-                    [
-                        "from" => $from,
-                        "body" => $messageBody
-                    ]
-                );
-                $notified[] = "{$clientName} (45 dias, SID: {$message->sid})";
-                
-                $stmtInsert = mysqli_prepare($conn, "INSERT INTO TB_NOTIFICACOES (titulo, mensagem, cliente_id) VALUES (?, ?, ?)");
-                mysqli_stmt_bind_param($stmtInsert, "ssi", $title, $messageBody, $cliente_id);
-                mysqli_stmt_execute($stmtInsert);
-                mysqli_stmt_close($stmtInsert);
-            } catch (Exception $e) {
-                $errors[] = "{$clientName} (45 dias): " . $e->getMessage();
-            }
-        }
+         $stmt = mysqli_prepare($conn, "SELECT COUNT(*) as cnt FROM TB_NOTIFICACOES WHERE cliente_id = ? AND titulo = 'Treinamento - 45 dias'");
+         mysqli_stmt_bind_param($stmt, "i", $cliente_id);
+         mysqli_stmt_execute($stmt);
+         mysqli_stmt_bind_result($stmt, $cnt45);
+         mysqli_stmt_fetch($stmt);
+         mysqli_stmt_close($stmt);
+         
+         if ($cnt45 == 0) {
+             $title = "Treinamento - 45 dias";
+             $messageBody = "Olá {$clientName}, se passaram 45 dias desde a conclusão do seu treinamento em {$row['data_conclusao']}. Gostaríamos de saber como está o funcionamento do sistema. (45 dias)";
+             try {
+                 $message = $client->messages->create(
+                     $to,
+                     [
+                         "from" => $from,
+                         "body" => $messageBody
+                     ]
+                 );
+                 $notified[] = "{$clientName} (45 dias, SID: {$message->sid})";
+                 
+                 $stmtInsert = mysqli_prepare($conn, "INSERT INTO TB_NOTIFICACOES (titulo, mensagem, cliente_id) VALUES (?, ?, ?)");
+                 mysqli_stmt_bind_param($stmtInsert, "ssi", $title, $messageBody, $cliente_id);
+                 mysqli_stmt_execute($stmtInsert);
+                 mysqli_stmt_close($stmtInsert);
+             } catch (Exception $e) {
+                 $errors[] = "{$clientName} (45 dias): " . $e->getMessage();
+             }
+         }
     }
 }
 
