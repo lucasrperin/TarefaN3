@@ -247,7 +247,7 @@ if ($resultFolga) {
         <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
       </a>
       <nav class="nav flex-column">
-      <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
+        <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
         <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
           <a class="nav-link" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
         <?php endif; ?>
