@@ -161,7 +161,7 @@ $sqlListarFerias = "SELECT f.id, f.usuario_id, u.Nome AS nome_colaborador, f.dat
                     FROM TB_FOLGA f
                     JOIN TB_USUARIO u ON f.usuario_id = u.Id";
 $conditionsFerias = ["f.tipo = 'Ferias'",
-                     "f.data_fim > CURDATE()" ];
+                     "f.data_fim >= CURDATE()" ];
 if ($idEquipeFilter != 'Todos' || $idNivelFilter != 'Todos') {
     $sqlListarFerias .= " JOIN TB_EQUIPE_NIVEL_ANALISTA eva ON u.Id = eva.idUsuario";
 }
@@ -182,7 +182,7 @@ $sqlListarFolga = "SELECT f.id, f.usuario_id, u.Nome AS nome_colaborador, f.data
                    FROM TB_FOLGA f
                    JOIN TB_USUARIO u ON f.usuario_id = u.Id";
 $conditionsFolga = ["f.tipo = 'Folga'",
-                    "f.data_fim > CURDATE()"];
+                    "f.data_fim >= CURDATE()"];
 if ($idEquipeFilter != 'Todos' || $idNivelFilter != 'Todos') {
     $sqlListarFolga .= " JOIN TB_EQUIPE_NIVEL_ANALISTA eva ON u.Id = eva.idUsuario";
 }
@@ -300,7 +300,9 @@ if ($resultFolga) {
   <!-- Linha que agrupa Calendário e Painel de Detalhes -->
   <div class="row calendario-detalhes mb-4">
     <div class="col-md-9">
-      <div id="calendar" class="p-3 bg-light rounded shadow-sm"></div>
+      <div id="calendar" class="p-3 bg-light rounded shadow-sm">
+        <!-- Conteúdo atualizado via JS -->
+      </div>
     </div>
     <div class="col-md-3">
       <div id="sidePanel" class="card shadow-sm border-0">
@@ -683,6 +685,44 @@ if ($resultFolga) {
   // ← NOVO: guarda o último dia clicado no calendário principal
   var selectedDay = null;
 
+  function filtrarListasPeloDia(diaSelecionado) {
+  
+  // Formato YYYY-MM-DD para comparação direta
+  document.querySelectorAll('.timeline').forEach(timeline => {
+    let algumVisivel = false;
+
+    timeline.querySelectorAll('.timeline-event').forEach(evento => {
+      const periodoTexto = evento.querySelector('small').innerText;
+      const [inicio, fim] = periodoTexto.split('→').map(data => {
+        return data.trim().split('/').reverse().join('-');
+      });
+
+      // Exibe apenas se a data estiver dentro do intervalo
+      if (diaSelecionado >= inicio && diaSelecionado <= fim) {
+        evento.style.display = '';
+        algumVisivel = true;
+      } else {
+        evento.style.display = 'none';
+      }
+    });
+
+    // Remove mensagem existente antes de inserir novamente
+    timeline.querySelectorAll('.no-result-message').forEach(el => el.remove());
+
+    // Se nada visível, insere a mensagem
+    if (!algumVisivel) {
+      const mensagem = document.createElement('li');
+      mensagem.className = 'text-muted no-result-message p-2';
+      const titulo = timeline.closest('.col-md-6').querySelector('h5').innerText.trim();
+      mensagem.innerText = `Não há ${titulo} para o período selecionado.`;
+      timeline.appendChild(mensagem);
+    }
+  });
+}
+
+
+
+
   // Atualiza o painel de detalhes para uma data específica
   function updateSidePanel(dayStr) {
     const details = document.getElementById('details');
@@ -906,10 +946,12 @@ if ($resultFolga) {
           }
           dayFrame.addEventListener('click', function () {
             document.querySelectorAll('.fc-daygrid-day-frame.selected-day')
-                    .forEach(function (cell) { cell.classList.remove('selected-day'); });
+                    .forEach(cell => cell.classList.remove('selected-day'));
+
             dayFrame.classList.add('selected-day');
-            selectedDay = dayStr; // NOVO – salva a escolha para o modal de cadastro
+            selectedDay = dayStr;
             updateSidePanel(dayStr);
+            filtrarListasPeloDia(dayStr);  // ← certifique-se disso aqui
           });
         }
       }
