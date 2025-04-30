@@ -184,8 +184,6 @@ if ($percentMetaGeral > 100) $percentMetaGeral = 100;
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-
-  <!-- Seus CSS externos (ordem: usuários.css depois escutas.css) -->
  
   <link rel="stylesheet" href="../Public/escutas.css">
 

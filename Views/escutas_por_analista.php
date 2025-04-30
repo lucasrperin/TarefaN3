@@ -202,20 +202,24 @@ $stmtGrafico->close();
 <head>
   <meta charset="UTF-8">
   <title>Escutas de <?php echo $usuario_nome; ?></title>
-  <!-- Importa os estilos do layout unificado -->
-  <link href="../Public/usuarios.css" rel="stylesheet">
-  <link href="../Public/escutas_por_analista.css" rel="stylesheet">
+
+  <!-- Google Fonts-->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Font Awesome -->
+
+  <!-- Estilos customizados por último -->
+  <link href="../Public/usuarios.css" rel="stylesheet">
+  <link href="../Public/escutas_por_analista.css" rel="stylesheet">
+
+  <!-- Font Awesome, scripts etc -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
 </head>
+
 <body class="bg-light">
 <div class="d-flex-wrapper">
   <!-- Sidebar -->
@@ -224,7 +228,7 @@ $stmtGrafico->close();
       <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
     </a>
     <nav class="nav flex-column">
-    <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
+        <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
         <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
           <a class="nav-link" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
         <?php endif; ?>
@@ -305,10 +309,10 @@ $stmtGrafico->close();
       </script>
       
       <!-- Layout dos Totalizadores / Gráficos / Filtro -->
-      <div class="container mt-4">
+      <div class="container mt-1 mb-4">
           <div class="row g-3 justify-content-center align-items-stretch">
-      <!-- Coluna 1 -->
-            <div class="col-md-3 d-flex flex-column">
+            <!-- Coluna 1 -->
+            <div class="col-md-4 d-flex flex-column">
               <div class="card flex-fill">
                 <div class="card-body">
                 <h5 class="card-title">Totalizador de Classificações</h5>
@@ -426,7 +430,17 @@ $stmtGrafico->close();
       </div>
       
       <!-- Histórico de Escutas (Tabela) -->
-      <h3 class="mb-4 mt-4">Histórico de Escutas</h3>
+      <div class="card-header">
+        <div class="d-flex align-items-center">
+          <a href="escutas.php" class="me-2 text-decoration-none mb-2" style="color: #283e51; font-size: 18px;">
+            <i class="fa-solid fa-angle-left"></i>
+          </a>
+          <h3 class="mb-2">
+            Histórico de Escutas
+          </h3>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-body">
           <div class="table-responsive scroll-containerTB">

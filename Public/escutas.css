@@ -52,11 +52,6 @@ body {
   background-color: #f1f3f5;
 }
 
-/* === Fim dos Estilos de Layout === */
-
-
-/* === Estilos Específicos do Escutas.css === */
-
 /* Scroll Container */
 .scroll-container { 
   max-height: 250px; /* ajuste a altura conforme necessário */
