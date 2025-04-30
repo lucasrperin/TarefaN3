@@ -196,7 +196,7 @@ body {
     width: 8px;
 }
 .table-scroll::-webkit-scrollbar-thumb {
-    background: #888; 
+    background: #eeeded; 
     border-radius: 10px;
 }
 .table-scroll::-webkit-scrollbar-thumb:hover {

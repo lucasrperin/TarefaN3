@@ -15,6 +15,7 @@ $usuario_id = isset($_GET['usuario_id']) ? intval($_GET['usuario_id']) : $_SESSI
 
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 
+
 // 1) Se vier ?clear=1, zera tudo sem redirect
 $clear = isset($_GET['clear']);
 
@@ -22,16 +23,23 @@ $clear = isset($_GET['clear']);
 //    mas só se não estivermos limpando)
 date_default_timezone_set('America/Sao_Paulo');
 
-if ($clear) {
-    // força mostrar TODOS os dados
-    $filterColumn = null;
-    $dataInicial  = '';
-    $dataFinal    = '';
+if (isset($_GET['clear'])) {
+  // limpa tudo
+  $filterColumn      = null;
+  $dataInicial       = '';
+  $dataFinal         = '';
+  $whereSqlIndicacao = '';               // <<< sem filtro
 } else {
-    // se o usuário não submeteu nada, assume mês atual
-    $filterColumn = $_GET['filterColumn'] ?? 'period';
-    $dataInicial  = $_GET['data_inicial']  ?? date('Y-m-01');
-    $dataFinal    = $_GET['data_final']    ?? date('Y-m-t');
+  // mês atual ou valores submetidos
+  $filterColumn = $_GET['filterColumn'] ?? 'period';
+  $dataInicial  = $_GET['data_inicial']  ?? date('Y-m-01');
+  $dataFinal    = $_GET['data_final']    ?? date('Y-m-t');
+
+  // só monta o filtro de data para indicações quando houver datas válidas
+  $whereSqlIndicacao = "
+    AND ind.data BETWEEN '{$dataInicial} 00:00:00'
+                      AND '{$dataFinal} 23:59:59'
+  ";
 }
 
 // 3) Monta as cláusulas de filtro
@@ -339,6 +347,49 @@ if ($f = $res_pf->fetch_assoc()) {
     $proximaFolga_justificativa = null;
     $proximaFolga_qtdDias       = null;
 }
+
+// Detalhes das indicações faturadas
+$qtdIndic   = 0;
+$somaIndic  = 0.0;
+
+if ($usuario_id) {
+    $sql = "
+      SELECT
+        COUNT(*)                   AS qtd,
+        COALESCE(SUM(ind.vlr_total),0) AS soma
+      FROM TB_INDICACAO ind
+      WHERE ind.status = 'Faturado'
+      {$whereSqlIndicacao}
+        AND ind.user_id = " . intval($usuario_id);
+    $res = mysqli_query($conn, $sql);
+    if ($res) {
+      $row = mysqli_fetch_assoc($res);
+      $qtdIndic  = (int)   $row['qtd'];
+      $somaIndic = (float) $row['soma'];
+    }
+}
+
+ // Detalhes das indicações faturadas
+ $indicacoes = [];
+ $sqlDet = "
+    SELECT
+      plu.nome,
+      ind.data,
+      ind.cnpj,
+      ind.serial,
+      ind.contato,
+      ind.vlr_total
+    FROM TB_INDICACAO ind
+    LEFT JOIN TB_PLUGIN plu
+      ON plu.id = ind.plugin_id
+   WHERE status = 'Faturado'
+     AND user_id = " . intval($usuario_id) . "
+     {$whereSqlIndicacao}
+   ORDER BY ind.data DESC";
+ $resDet = mysqli_query($conn, $sqlDet);
+ while ($row = mysqli_fetch_assoc($resDet)) {
+   $indicacoes[] = $row;
+ }
 ?>
 
 <!DOCTYPE html>
@@ -577,7 +628,7 @@ if ($f = $res_pf->fetch_assoc()) {
                 <div>
                   <small class="text-muted">Total Faturado</small>
                   <!-- Ajuste $totalFaturado para sua variável -->
-                  <h5 class="mb-0"><?= number_format($totalFaturado ?? 0, 2, ',', '.') ?></h5>
+                  <h5 class="mb-0">R$ <?= number_format($somaIndic, 2, ',', '.') ?></h5>
                 </div>
               </div>
             </div>
@@ -793,9 +844,59 @@ if ($f = $res_pf->fetch_assoc()) {
         </div>
 
         <!-- 2.3) Aba Indicações -->
-        <div class="tab-pane fade" id="indicacoes" role="tabpanel" aria-labelledby="indicacoes-tab">
-         
-        </div>
+<!-- Layout 10: List Group com Barra de Progresso -->
+<div class="tab-pane fade" id="indicacoes" role="tabpanel" aria-labelledby="indicacoes-tab">
+  <div class="p-3">
+    <h5 class="mb-4">Minhas Indicações Faturadas</h5>
+
+    <?php if ($qtdIndic > 0): ?>
+      <ul class="table-scroll list-group mb-4">
+        <?php foreach ($indicacoes as $ind):
+          $percent = $somaIndic > 0 ? ($ind['vlr_total'] / $somaIndic * 100) : 0;
+        ?>
+          <li class="list-group-item ">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <div>
+                <i class="fa-solid fa-puzzle-piece me-2 text-primary"></i>
+                <?= htmlspecialchars($ind['nome'], ENT_QUOTES) ?>
+              </div>
+              <div class="text-end">
+                <span class="fw-semibold">R$ <?= number_format($ind['vlr_total'], 2, ',', '.') ?></span><br>
+                <small class="text-muted"><?= number_format($percent, 1, ',', '.') ?>%</small>
+              </div>
+            </div>
+            <div class="progress" style="height: 6px;" title="Percentual de equivalencia do valor total">
+              <div class="progress-bar bg-success" role="progressbar"
+                   style="width: <?= $percent ?>%;"
+                   aria-valuenow="<?= $percent ?>"
+                   aria-valuemin="0"
+                   aria-valuemax="100"> 
+              </div>
+            </div>
+            <div class="small text-muted mt-2">
+              <i class="fa-solid fa-calendar-days me-1"></i><?= date('d/m/Y', strtotime($ind['data'])) ?>
+              &nbsp;|&nbsp;
+              <i class="fa-solid fa-building me-1"></i><?= htmlspecialchars($ind['cnpj'], ENT_QUOTES) ?>
+              &nbsp;|&nbsp;
+              <i class="fa-solid fa-barcode me-1"></i><?= htmlspecialchars($ind['serial'], ENT_QUOTES) ?>
+              &nbsp;|&nbsp;
+              <i class="fa-solid fa-address-book me-1"></i><?= htmlspecialchars($ind['contato'], ENT_QUOTES) ?>
+            </div>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+      <p class="text-end"><strong>Total:</strong> R$ <?= number_format($somaIndic, 2, ',', '.') ?></p>
+    <?php else: ?>
+      <div class="text-center text-muted mt-5">
+        <i class="fa-solid fa-folder-open fa-2x mb-2"></i>
+        <p>Você ainda não tem indicações faturadas.</p>
+      </div>
+    <?php endif; ?>
+  </div>
+</div>
+
+
+
       </div>
     </div>
   </div>
@@ -898,5 +999,8 @@ if ($f = $res_pf->fetch_assoc()) {
       document.getElementById("filterColumn").addEventListener("change", adjustFilterFields);
     });
   </script>
+
+  
+
 </body>
 </html>
