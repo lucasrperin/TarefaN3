@@ -1,35 +1,48 @@
 <?php
 include '../Config/Database.php';
 session_start();
-
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: login.php");
     exit();
 }
 
-$cliente = '';
-$cnpjcpf = '';
-$serial = '';
-$horas_adquiridas = '';
-$id = '';
-$action = "cadastrar_cliente.php";
-
-if(isset($_GET['id'])) {
-    // Edição: busca os dados do cliente
-    $id = $_GET['id'];
-    $query = "SELECT * FROM TB_CLIENTES WHERE id = ?";
+if (isset($_GET['id']) && isset($_GET['ajax'])) {
+    // requisição AJAX: devolve JSON com todos os campos
+    $id = intval($_GET['id']);
+    $query = "
+      SELECT 
+        id,
+        cliente,
+        cnpjcpf,
+        serial,
+        horas_adquiridas,
+        whatsapp,
+        DATE_FORMAT(data_conclusao, '%Y-%m-%d') AS data_conclusao,
+        faturamento,
+        valor_faturamento
+      FROM TB_CLIENTES
+      WHERE id = ?
+    ";
     $stmt = mysqli_prepare($conn, $query);
     mysqli_stmt_bind_param($stmt, 'i', $id);
     mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    if($row = mysqli_fetch_assoc($result)) {
-        $cliente = $row['cliente'];
-        $cnpjcpf = $row['cnpjcpf'];
-        $serial = $row['serial'];
-        $horas_adquiridas = $row['horas_adquiridas'];
+    $res = mysqli_stmt_get_result($stmt);
+    if ($row = mysqli_fetch_assoc($res)) {
+        echo json_encode([
+           'id'               => $row['id'],
+           'cliente'          => $row['cliente'],
+           'cnpjcpf'          => $row['cnpjcpf'],
+           'serial'           => $row['serial'],
+           'horas_adquiridas' => $row['horas_adquiridas'],
+           'whatsapp'         => $row['whatsapp'],
+           'data_conclusao'   => $row['data_conclusao'],
+           'faturamento'      => $row['faturamento'],
+           'valor_faturamento'=> $row['valor_faturamento']
+        ]);
+    } else {
+        echo json_encode(['error'=>'Cliente não encontrado']);
     }
-    mysqli_stmt_close($stmt);
-    $action = "editar_cliente.php";
+    exit();
 }
 ?>
 <!DOCTYPE html>
