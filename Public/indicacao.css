@@ -1,114 +1,145 @@
-/* Estilo global */
+/* indicacao.css */
+
+/* Global Styles */
 body {
-  background-color: #f8f9fa;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
+  background-color: #f0f2f5;
   margin: 0;
   padding: 0;
 }
 
-/* Navbar */
-.navbar {
+.d-flex-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar com as cores do menu */
+.sidebar {
+  background: linear-gradient(135deg, #4b79a1, #283e51);
+  min-width: 220px;
+  padding: 1.5rem;
+  color: #fff;
+}
+.sidebar a {
+  color: #fff;
+  display: block;
+  margin-bottom: 1rem;
+}
+.sidebar a:hover, .sidebar a.active {
+  color: #fff;
+  background-color: #283e51;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #4b79a1, #283e51);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+}
+
+.header .user-info span {
+  margin-right: 1rem;
+}
+
+/* Content */
+.content {
+  padding: 2rem;
+  flex-grow: 1;
+  background-color: #f1f3f5;
+}
+
+/* Card Styles */
+.card {
+  border: none;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background-color: #fff;
+}
+
+.card-header {
+  background-color: #fff;
+  border-bottom: none;
+  padding: 1.5rem 1.75rem;
+}
+
+.card-header h4 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.card-header small {
+  color: #6c757d;
+}
+
+.card-body {
+  padding: 1.75rem;
+}
+
+/* Fixed Height Cards (para ranking, totalizadores, etc.) */
+.card-fixed-height {
+  height: 225px !important;
+  display: flex;
+  flex-direction: column;
   margin-bottom: 20px;
 }
 
-/* Remove qualquer largura máxima que limite o card do Ranking */
-.card-ranking {
-  max-width: none;
-}
-
-/* ----------------------------------
-   Força a mesma altura para TODOS os 3 cards
-   ---------------------------------- */
-.card-fixed-height {
-  /* Altura fixa para cada card */
-  height: 225px !important;  /* Ajuste conforme desejar */
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px; /* Caso queira manter espaçamento entre cards */
-}
 .card-fixed-height .card-header {
-  /* Impede que o header cresça junto com o body */
   flex: 0 0 auto;
 }
+
 .card-fixed-height .card-body {
-  flex: 1;           /* Ocupa todo o espaço vertical restante */
-  overflow-y: auto;  /* Rolagem se o conteúdo exceder 300px */
+  flex: 1;
+  overflow-y: auto;
 }
 
-/* Barra de rolagem personalizada no card-body */
+/* Custom Scrollbar for Cards */
 .card-fixed-height .card-body::-webkit-scrollbar {
   width: 8px;
 }
+
 .card-fixed-height .card-body::-webkit-scrollbar-thumb {
-  background: #888; 
+  background: #888;
   border-radius: 10px;
 }
+
 .card-fixed-height .card-body::-webkit-scrollbar-thumb:hover {
-  background: #555; 
+  background: #555;
 }
 
-/* Ajustes gerais de hover e badge */
-.list-group-item:hover {
-  background-color: #f8f9fa;
-}
-.badge {
-  font-size: 0.7rem;
-  padding: 5px 10px;
-  font-weight: bold;
-}
-
-/* Ranking name: evita quebra de linha e exibe reticências */
-.ranking-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Botões */
-.btn {
-  border-radius: 0;
-}
-.btn-primary {
-  background-color: #007bff;
-  border-color: #007bff;
-}
-.btn-secondary {
-  background-color: #6c757d;
-  border-color: #6c757d;
-}
-
-/* Inputs do modal */
-.modal .form-control {
-  border-radius: 4px;
-}
-
-/* Tabelas */
+/* Table Styles */
 .table {
-  background-color: white;
+  background-color: #fff;
 }
-.table th {
-  text-align: center;
-  vertical-align: middle;
-}
+
+.table th,
 .table td {
   text-align: center;
   vertical-align: middle;
 }
+
 .tabelaEstilizada {
   border-collapse: separate;
   border-spacing: 0 2px;
 }
+
 .tabelaEstilizada tbody tr {
   border-radius: 5px;
   overflow: hidden;
   font-family: 'Nunito', sans-serif;
 }
 
-/* Ajustes no input-group */
+/* Input Group Adjustments */
 .input-group .form-select {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
 }
+
 .input-group .btn-outline-secondary {
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
@@ -118,7 +149,7 @@ body {
   border-left: none;
 }
 
-/* Limitar largura de células com textos longos */
+/* Text Overflow in Table Cells */
 td.sobrepor,
 td.sobrepor2 {
   max-width: 100px;
@@ -127,19 +158,84 @@ td.sobrepor2 {
   text-overflow: ellipsis;
 }
 
+/* Scrollable Container for Tables */
 .access-scroll {
   height: 500px;
   overflow-y: auto;
 }
 
-/* Personalização do scrollbar (Chrome, Edge, Safari) */
 .access-scroll::-webkit-scrollbar {
   width: 8px;
 }
+
 .access-scroll::-webkit-scrollbar-thumb {
-  background: #888; 
+  background: #888;
   border-radius: 10px;
 }
+
 .access-scroll::-webkit-scrollbar-thumb:hover {
-  background: #555; 
+  background: #555;
+}
+
+/* Modal Inputs */
+.modal .form-control {
+  border-radius: 4px;
+}
+
+/* Toast Messages */
+#toast-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1050;
+}
+
+.toast {
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast.success {
+  background-color: #27c03b;
+}
+
+.toast.error {
+  background-color: #e74c3c;
+}
+
+/* Checklist Layout (se aplicável) */
+.niveis-checklist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.niveis-checklist .form-check {
+  flex: 0 0 calc(33.33% - 10px);
+}
+
+.light-logo {
+  filter: brightness(0) invert(1);
+}
+
+/* Remova qualquer fundo no hover ou foco da logo */
+.light-logo:hover,
+.light-logo:focus {
+  background: transparent !important;
+  transform: none !important;
+  margin: 1 !important;
+  padding: 0 !important;
 }

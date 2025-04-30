@@ -128,8 +128,6 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
       </div>
       <?php endif; ?>
       
-
-
       <?php if($cargo==='User' || $cargo==='Conversor' || $cargo==='Treinamento'): ?>
       <div class="col-12 col-sm-6 col-md-4 col-lg-3">
         <div class="menu-card" onclick="location.href='user.php';">
@@ -139,7 +137,6 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
           <h5 class="menu-title">Meu Painel</h5>
         </div>
       </div>
-      
       <?php endif; ?>
 
       <?php if($cargo==='Admin'): ?>
