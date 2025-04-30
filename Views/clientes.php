@@ -116,36 +116,111 @@ $result = mysqli_query($conn, $query);
     </div>
   </div>
   
-  <!-- Conteúdo -->
-  <div class="content container-fluid">
-    <!-- Botão para enviar notificações via WhatsApp -->
-    <div class="mb-3">
-      <button id="btnEnviarNotificacoes" class="btn btn-primary">
-        <i class="fa-solid fa-paper-plane me-1"></i> Enviar Notificações
-      </button>
+ <!-- Conteúdo -->
+<div class="content container-fluid">
+  <!-- Botão para enviar notificações via WhatsApp -->
+  <div class="mb-3">
+    <button id="btnEnviarNotificacoes" class="btn btn-primary">
+      <i class="fa-solid fa-paper-plane me-1"></i> Enviar Notificações
+    </button>
+  </div>
+
+  <!-- Accordion para Notificações Enviadas e Totalizadores -->
+  <div class="accordion mb-4" id="notificacoesAccordion">
+
+    <!-- Notificações Enviadas -->
+    <div class="accordion-item mb-3">
+      <h2 class="accordion-header" id="headingNotificacoes">
+        <button class="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseNotificacoes"
+                aria-expanded="false"
+                aria-controls="collapseNotificacoes">
+          Notificações Enviadas
+        </button>
+      </h2>
+      <div id="collapseNotificacoes"
+           class="accordion-collapse collapse"
+           aria-labelledby="headingNotificacoes"
+           data-bs-parent="#notificacoesAccordion">
+        <div class="accordion-body">
+          <ul class="list-group" id="listaNotificacoes">
+            <li class="list-group-item">Carregando notificações...</li>
+          </ul>
+        </div>
+      </div>
     </div>
-    
-    <!-- Accordion para Notificações Enviadas (global) -->
-    <div class="accordion mb-4" id="notificacoesAccordion">
-      <div class="accordion-item">
-        <h2 class="accordion-header" id="headingNotificacoes">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNotificacoes" aria-expanded="false" aria-controls="collapseNotificacoes">
-            Notificações Enviadas
-          </button>
-        </h2>
-        <div id="collapseNotificacoes" class="accordion-collapse collapse" aria-labelledby="headingNotificacoes" data-bs-parent="#notificacoesAccordion">
-          <div class="accordion-body">
-            <ul class="list-group" id="listaNotificacoes">
-              <li class="list-group-item">Carregando notificações...</li>
-            </ul>
+
+    <!-- Totalizadores -->
+    <div class="accordion-item mb-3">
+      <h2 class="accordion-header" id="headingTotalizadores">
+        <button class="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseTotalizadores"
+                aria-expanded="false"
+                aria-controls="collapseTotalizadores">
+          Totalizadores
+        </button>
+      </h2>
+      <div id="collapseTotalizadores"
+           class="accordion-collapse collapse"
+           aria-labelledby="headingTotalizadores"
+           data-bs-parent="#notificacoesAccordion">
+        <div class="accordion-body">
+          <div class="row">
+            <!-- Gráfico Mensal -->
+            <div class="col-md-6">
+              <canvas id="chartTotalizadores"></canvas>
+            </div>
+            <!-- Totais à direita do gráfico -->
+            <div class="col-md-6">
+                <!-- Total Geral em destaque -->
+                <div class="card bg-light border-0 mb-4 text-center shadow-sm">
+                  <div class="card-body">
+                    <i class="fa-solid fa-chart-line fa-2x mb-2 text-primary"></i>
+                    <h6 class="card-subtitle mb-1 text-muted">Geral de Faturamento</h6>
+                    <h3 id="totalGeral" class="card-title display-6"></h3>
+                  </div>
+                </div>
+
+                <!-- Subtotais em pequenas cartas lado a lado -->
+                <div class="row gx-2">
+                  <div class="col-6">
+                    <div class="card bg-white border-0 text-center shadow-sm">
+                      <div class="card-body py-3">
+                        <i class="fa-solid fa-chalkboard-user fa-lg mb-2 text-success"></i>
+                        <p class="mb-1 text-muted">Treinamentos</p>
+                        <h5 id="totalTreinamentos" class="mb-0"></h5>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="card bg-white border-0 text-center shadow-sm">
+                      <div class="card-body py-3">
+                        <i class="fa-solid fa-handshake fa-lg mb-2 text-warning"></i>
+                        <p class="mb-1 text-muted">Indicações</p>
+                        <h5 id="totalIndicacoes" class="mb-0"></h5>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
           </div>
         </div>
       </div>
     </div>
-    
-    <!-- Card de Lista de Clientes -->
-    <div class="card mb-4">
-      <div class="card-header d-flex justify-content-between align-items-center">
+
+  </div>
+
+  <!-- Espaçamento extra -->
+  <div class="mb-2"></div>
+
+<!-- Card de Lista de Clientes -->
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center">
           <a href="treinamento.php" class="me-2" style="color: #283e51; text-decoration: none;">
             <i class="fa-solid fa-angle-left"></i>
@@ -742,6 +817,62 @@ $('#modalCliente').on('hidden.bs.modal', function () {
       </div>
     </div>
   </div>
-  
+  <!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+ $('#collapseTotalizadores').on('shown.bs.collapse', function() {
+  if (window.totalizadoresLoaded) return;
+  window.totalizadoresLoaded = true;
+
+ $.getJSON('totalizadores_clientes.php', function(resp) {
+  // totais
+  $('#totalGeral')
+    .text((resp.totalGeral).toLocaleString('pt-BR', { style:'currency', currency:'BRL' }));
+  $('#totalTreinamentos')
+    .text((resp.totalTreinamentos).toLocaleString('pt-BR', { style:'currency', currency:'BRL' }));
+  $('#totalIndicacoes')
+    .text((resp.totalIndicacoes).toLocaleString('pt-BR', { style:'currency', currency:'BRL' }));
+
+
+    // Extrai labels e dados
+    const labels       = resp.monthly.map(r => r.mes);
+    const dataBrinde   = resp.monthly.map(r => r.brinde);
+    const dataFaturado = resp.monthly.map(r => r.faturado);
+
+    // Gera o gráfico
+    new Chart(document.getElementById('chartTotalizadores'), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Brinde',
+            data: dataBrinde,
+            backgroundColor: 'rgba(54, 162, 235, 0.5)'
+          },
+          {
+            label: 'Faturado',
+            data: dataFaturado,
+            backgroundColor: 'rgba(75, 192, 192, 0.5)'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            stacked: false
+          },
+          y: {
+            beginAtZero: true,
+            stacked: false
+          }
+        }
+      }
+    });
+  });
+});
+
+</script>
 </body>
 </html>
