@@ -129,54 +129,52 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
       <?php endif; ?>
       
       <?php if($cargo==='User' || $cargo==='Conversor' || $cargo==='Treinamento'): ?>
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="menu-card" onclick="location.href='user.php';">
-          <div class="menu-icon">
-            <i class="fa-solid fa-users-rectangle"></i>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+          <div class="menu-card" onclick="location.href='user.php';">
+            <div class="menu-icon">
+              <i class="fa-solid fa-users-rectangle"></i>
+            </div>
+            <h5 class="menu-title">Meu Painel</h5>
           </div>
-          <h5 class="menu-title">Meu Painel</h5>
         </div>
-      </div>
       <?php endif; ?>
 
       <?php if($cargo==='Admin'): ?>
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="menu-card" onclick="location.href='dashboard.php';">
-          <div class="menu-icon">
-            <i class="fa-solid fa-calculator"></i>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+          <div class="menu-card" onclick="location.href='dashboard.php';">
+            <div class="menu-icon">
+              <i class="fa-solid fa-calculator"></i>
+            </div>
+            <h5 class="menu-title">Totalizadores</h5>
           </div>
-          <h5 class="menu-title">Totalizadores</h5>
         </div>
-      </div>
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="menu-card" onclick="location.href='usuarios.php';">
-          <div class="menu-icon">
-            <i class="fa-solid fa-users-gear"></i>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+          <div class="menu-card" onclick="location.href='usuarios.php';">
+            <div class="menu-icon">
+              <i class="fa-solid fa-users-gear"></i>
+            </div>
+            <h5 class="menu-title">Usuários</h5>
           </div>
-          <h5 class="menu-title">Usuários</h5>
         </div>
-      </div>
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="menu-card" onclick="location.href='destaque.php';">
-          <div class="menu-icon">
-            <i class="fa-solid fa-ranking-star"></i>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+          <div class="menu-card" onclick="location.href='destaque.php';">
+            <div class="menu-icon">
+              <i class="fa-solid fa-ranking-star"></i>
+            </div>
+            <h5 class="menu-title">Destaques</h5>
           </div>
-          <h5 class="menu-title">Destaques</h5>
         </div>
-      </div>
-      
       <?php endif; ?>
 
-      <?php if($cargo==='Admin' || $cargo==='Treinamento'): ?>
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="menu-card" onclick="location.href='treinamento.php';">
-          <div class="menu-icon">
-            <i class="fa-solid fa-calendar-check"></i>
+      <?php if($cargo==='Admin' || $cargo==='Treinamento' || $cargo==='Comercial'): ?>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+          <div class="menu-card" onclick="location.href='treinamento.php';">
+            <div class="menu-icon">
+              <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <h5 class="menu-title">Treinamentos</h5>
           </div>
-          <h5 class="menu-title">Treinamentos</h5>
         </div>
-      </div>
-      
       <?php endif; ?>
     </div>
   </main>
