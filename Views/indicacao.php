@@ -77,6 +77,8 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <!-- CSS personalizado para Indicações -->
   <link href="../Public/indicacao.css" rel="stylesheet">
 </head>
@@ -294,7 +296,7 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
             </div>
           </div>
         </div>
-        
+
         <!-- Card com a lista de indicações -->
         <div class="card shadow mb-4">
           <div class="card-header d-flex justify-content-between align-items-center">
@@ -375,6 +377,20 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
     </div><!-- /Área principal -->
   </div><!-- /d-flex-wrapper -->
 
+
+  <!-- Função de pesquisa nas tabelas-->
+  <script>
+      $(document).ready(function(){
+        $("#searchInput").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          // Para cada linha em todas as tabelas com a classe 'tabelaEstilizada'
+          $(".tabelaEstilizada tbody tr").filter(function() {
+            // Se o texto da linha conter o valor da pesquisa (ignorando maiúsculas/minúsculas), mostra a linha; caso contrário, oculta
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+          });
+        });
+      });
+  </script>
   <!-- Modal para cadastro de nova indicação -->
   <div class="modal fade" id="modalNovaIndicacao" tabindex="-1" role="dialog" aria-labelledby="modalNovaIndicacaoLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -586,71 +602,202 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-    // Função de pesquisa nas tabelas
-    $(document).ready(function(){
-      $("#searchInput").on("keyup", function() {
-        var value = $(this).val().toLowerCase();
-        $(".tabelaEstilizada tbody tr").filter(function() {
-          $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-        });
+  // Exibe/oculta campos do modal de edição quando status é "Faturado"
+  function verificarStatus() {
+    var status = document.getElementById("editar_status");
+    var faturadoContainer = document.getElementById("faturadoContainer");
+    var valor = document.getElementById("editar_valor");
+    var venda = document.getElementById("editar_venda");
+
+    var statusSelecionado = status.options[status.selectedIndex].text.trim();
+    if (statusSelecionado === "Faturado") {
+      faturadoContainer.style.display = "block";
+      valor.setAttribute("required", "true");
+      venda.setAttribute("required", "true");
+    } else {
+      faturadoContainer.style.display = "none";
+      valor.removeAttribute("required");
+      venda.removeAttribute("required");
+    }
+  }
+</script>
+<script>
+  // Formatação do campo de valor (duas casas decimais)
+  function formatCurrency(digits) {
+    digits = digits.replace(/\D/g, "");
+    while (digits.length < 4) {
+      digits = "0" + digits;
+    }
+    var intPart = digits.slice(0, digits.length - 4);
+    var decPart = digits.slice(-4);
+    intPart = intPart.replace(/^0+/, "") || "0";
+    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return "R$" + intPart + "," + decPart;
+  }
+  function updateValorField() {
+    var input = document.getElementById("editar_valor");
+    if (!input) return;
+    var digits = input.value.replace(/\D/g, "");
+    input.value = formatCurrency(digits);
+  }
+  document.addEventListener("DOMContentLoaded", function() {
+    var input = document.getElementById("editar_valor");
+    if (input) {
+      if (!input.value || input.value.replace(/\D/g, "") === "") {
+        input.value = formatCurrency("0");
+      } else {
+        input.value = formatCurrency(input.value.replace(/\D/g, ""));
+      }
+      input.addEventListener("input", updateValorField);
+    }
+
+    $('#modalEditarIndicacao').on('shown.bs.modal', function () {
+      if (input) updateValorField();
+    });
+  });
+</script>
+<script>
+  // Cadastrar novo plugin via AJAX (modal de cadastro)
+  $(document).ready(function(){
+    $('#btnCadastrarPlugin').click(function(){
+      var novoPlugin = $('#novo_plugin').val().trim();
+      if(novoPlugin === ''){
+        alert('Informe o nome do novo plugin.');
+        return;
+      }
+      $.ajax({
+        url: 'cadastrar_plugin.php',
+        type: 'POST',
+        data: { nome: novoPlugin },
+        dataType: 'json',
+        success: function(resp){
+          if (resp.duplicate === true) {
+            alert(resp.message);
+            $('#plugin_id').val(resp.id);
+          } else if (resp.id) {
+            $('#plugin_id').append('<option value="' + resp.id + '">' + resp.nome + '</option>');
+            $('#plugin_id').val(resp.id);
+            alert('Plugin cadastrado com sucesso!');
+          } else {
+            alert('Erro: ' + resp.message);
+          }
+          $('#novo_plugin').val('');
+          $('#novoPluginCollapse, #novoPluginCollapseEdicao').collapse('hide');
+        },
+        error: function(jqXHR, textStatus, errorThrown){
+          alert('Erro na requisição: ' + errorThrown);
+        }
       });
     });
-  </script>
-  <script>
-    // Exibe/oculta campos do modal de edição conforme o status selecionado
-    function verificarStatus() {
-      var status = document.getElementById("editar_status");
-      var faturadoContainer = document.getElementById("faturadoContainer");
-      var valor = document.getElementById("editar_valor");
-      var venda = document.getElementById("editar_venda");
+  });
 
-      var statusSelecionado = status.options[status.selectedIndex].text.trim();
-      if (statusSelecionado === "Faturado") {
-        faturadoContainer.style.display = "block";
-        valor.setAttribute("required", "true");
-        venda.setAttribute("required", "true");
-      } else {
-        faturadoContainer.style.display = "none";
-        valor.removeAttribute("required");
-        venda.removeAttribute("required");
+  // Cadastrar novo plugin via AJAX (modal de edição)
+  $(document).ready(function(){
+    $('#btnCadastrarPluginEdit').click(function(){
+      var novoPluginEdit = $('#novo_plugin_edit').val().trim();
+      if(novoPluginEdit === ''){
+        alert('Informe o nome do novo plugin.');
+        return;
       }
-    }
-  </script>
-  <script>
-    // Função para popular o modal de edição com os dados da indicação
-    function editarIndicacao(id, plugin_id, data, cnpj, serial, contato, fone, status, editar_valor, editar_venda) {
-      document.getElementById("editar_id").value = id;
-      document.getElementById("editar_plugin_id").value = plugin_id;
-      document.getElementById("editar_data").value = data;
-      document.getElementById("editar_cnpj").value = cnpj;
-      document.getElementById("editar_serial").value = serial;
-      document.getElementById("editar_contato").value = contato;
-      document.getElementById("editar_fone").value = fone;
-
-      if (document.getElementById("editar_status")) {
-        document.getElementById("editar_status").value = status;
-        if (status === "Faturado") {
-          if (document.getElementById("editar_valor")) {
-            document.getElementById("editar_valor").value = editar_valor;
+      $.ajax({
+        url: 'cadastrar_plugin.php',
+        type: 'POST',
+        data: { nome: novoPluginEdit },
+        dataType: 'json',
+        success: function(resp){
+          if (resp.duplicate === true) {
+            alert(resp.message);
+            $('#editar_plugin_id').val(resp.id);
+          } else if (resp.id) {
+            $('#editar_plugin_id').append('<option value="' + resp.id + '">' + resp.nome + '</option>');
+            $('#editar_plugin_id').val(resp.id);
+            alert('Plugin cadastrado com sucesso!');
+          } else {
+            alert('Erro: ' + resp.message);
           }
-          if (document.getElementById("editar_venda")) {
-            document.getElementById("editar_venda").value = editar_venda;
-          }
-        } else {
-          if (document.getElementById("editar_valor")) {
-            document.getElementById("editar_valor").value = "";
-          }
-          if (document.getElementById("editar_venda")) {
-            document.getElementById("editar_venda").value = "";
-          }
+          $('#novo_plugin_edit').val('');
+          $('#novoPluginCollapse, #novoPluginCollapseEdicao').collapse('hide');
+        },
+        error: function(jqXHR, textStatus, errorThrown){
+          alert('Erro na requisição: ' + errorThrown);
         }
-        verificarStatus();
-      } else if (document.getElementById("editar_status_hidden")) {
-        document.getElementById("editar_status_hidden").value = status;
-      }
+      });
+    });
+  });
+</script>
+<script>
+  // Máscara de CNPJ para #cnpj e #editar_cnpj
+  document.addEventListener("DOMContentLoaded", function(){
+    var cnpjInputs = document.querySelectorAll("#cnpj, #editar_cnpj");
+    cnpjInputs.forEach(function(input) {
+      input.addEventListener("input", function(e) {
+        var v = e.target.value.replace(/\D/g, "");
+        // Formata: 00.000.000/0000-00
+        v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+        v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+        v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+        v = v.replace(/(\d{4})(\d)/, "$1-$2");
+        e.target.value = v;
+      });
+      input.addEventListener("blur", function(e) {
+        var formattedValue = e.target.value;
+        var errorSpanId = e.target.id + "-error";
+        var errorSpan = document.getElementById(errorSpanId);
+        if (formattedValue.length !== 18) {
+          if (!errorSpan) {
+            errorSpan = document.createElement("span");
+            errorSpan.id = errorSpanId;
+            errorSpan.style.color = "red";
+            errorSpan.style.fontSize = "0.9em";
+            e.target.parentNode.appendChild(errorSpan);
+          }
+          errorSpan.textContent = "CNPJ inválido. Revise e tente novamente!";
+          setTimeout(function(){
+            if(e.target.value.length !== 18) {
+              e.target.focus();
+            }
+            errorSpan.textContent = "";
+          }, 3000);
+        }
+      });
+    });
+  });
+</script>
+<script>
+  // Função para popular o modal de edição com os dados recebidos
+  function editarIndicacao(id, plugin_id, data, cnpj, serial, contato, fone, status, editar_valor, editar_venda) {
+    document.getElementById("editar_id").value = id;
+    document.getElementById("editar_plugin_id").value = plugin_id;
+    document.getElementById("editar_data").value = data;
+    document.getElementById("editar_cnpj").value = cnpj;
+    document.getElementById("editar_serial").value = serial;
+    document.getElementById("editar_contato").value = contato;
+    document.getElementById("editar_fone").value = fone;
 
-      $('#modalEditarIndicacao').modal('show');
+    if (document.getElementById("editar_status")) {
+      document.getElementById("editar_status").value = status;
+      if (status === "Faturado") {
+        if (document.getElementById("editar_valor")) {
+          document.getElementById("editar_valor").value = editar_valor;
+        }
+        if (document.getElementById("editar_venda")) {
+          document.getElementById("editar_venda").value = editar_venda;
+        }
+      } else {
+        if (document.getElementById("editar_valor")) {
+          document.getElementById("editar_valor").value = "";
+        }
+        if (document.getElementById("editar_venda")) {
+          document.getElementById("editar_venda").value = "";
+        }
+      }
+      verificarStatus();
+    } else if (document.getElementById("editar_status_hidden")) {
+      document.getElementById("editar_status_hidden").value = status;
     }
-  </script>
+
+    $('#modalEditarIndicacao').modal('show');
+  }
+</script>
 </body>
 </html>
