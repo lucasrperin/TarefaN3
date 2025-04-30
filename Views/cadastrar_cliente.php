@@ -33,20 +33,52 @@ if (empty($cliente) || $horas_adquiridas <= 0) {
 }
 
 // Verifica se já existe um cliente com o mesmo CNPJ/CPF ou Serial (se informados)
-$queryDuplicate = "SELECT id, cliente FROM TB_CLIENTES WHERE (cnpjcpf = ? AND ? <> '') OR (serial = ? AND ? <> '')";
+$queryDuplicate = "
+  SELECT 
+    id,
+    cliente,
+    cnpjcpf,
+    serial,
+    horas_adquiridas,
+    whatsapp,
+    DATE_FORMAT(data_conclusao, '%Y-%m-%d') AS data_conclusao,
+    faturamento,
+    valor_faturamento
+  FROM TB_CLIENTES
+  WHERE (cnpjcpf = ? AND ? <> '')
+     OR (serial   = ? AND ? <> '')
+";
 $stmtDup = mysqli_prepare($conn, $queryDuplicate);
 mysqli_stmt_bind_param($stmtDup, "ssss", $cnpjcpf, $cnpjcpf, $serial, $serial);
 mysqli_stmt_execute($stmtDup);
-mysqli_stmt_bind_result($stmtDup, $dupId, $dupCliente);
-$duplicateFound = mysqli_stmt_fetch($stmtDup);
-mysqli_stmt_close($stmtDup);
+mysqli_stmt_bind_result(
+    $stmtDup,
+    $dupId,
+    $dupCliente,
+    $dupCnpjCpf,
+    $dupSerial,
+    $dupHoras,
+    $dupWhatsapp,
+    $dupDataConclusao,
+    $dupFaturamento,
+    $dupValorFaturamento
+  );
+  $duplicateFound = mysqli_stmt_fetch($stmtDup);
+  mysqli_stmt_close($stmtDup);
 
-if ($duplicateFound) {
+  if ($duplicateFound) {
     echo json_encode([
-        'status'  => 'duplicate',
-        'message' => 'Já existe um cliente com esse CNPJ/CPF ou Serial.',
-        'id'      => $dupId,
-        'cliente' => $dupCliente
+        'status'           => 'duplicate',
+        'message'          => 'Já existe um cliente com esse CNPJ/CPF ou Serial.',
+        'id'               => $dupId,
+        'cliente'          => $dupCliente,
+        'cnpjcpf'          => $dupCnpjCpf,
+        'serial'           => $dupSerial,
+        'horas_adquiridas' => $dupHoras,
+        'whatsapp'         => $dupWhatsapp,
+        'data_conclusao'   => $dupDataConclusao,
+        'faturamento'      => $dupFaturamento,
+        'valor_faturamento'=> $dupValorFaturamento
     ]);
     exit();
 }

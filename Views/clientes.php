@@ -227,61 +227,63 @@ $result = mysqli_query($conn, $query);
 
 
 
-  <!-- Modal para Cadastro/Editar Cliente -->
-  <div class="modal fade" id="modalCliente" tabindex="-1" aria-labelledby="modalClienteLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <form id="formCliente" method="post" action="editar_cliente.php">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalClienteLabel">Cadastrar Cliente</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-          </div>
-          <div class="modal-body">
-            <input type="hidden" name="id" id="cliente_id">
-            <div class="mb-3">
+<!-- Modal Cadastrar/Editar Cliente -->
+<div class="modal fade" id="modalCliente" tabindex="-1" aria-labelledby="modalClienteLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="formCliente" method="post" action="">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalClienteLabel">Cadastrar Cliente</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="id" id="cliente_id">
+          <div class="row">
+            <div class="col-md-6 mb-3">
               <label for="cliente_nome" class="form-label">Nome do Cliente</label>
               <input type="text" name="cliente" id="cliente_nome" class="form-control" required>
             </div>
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
               <label for="cliente_cnpjcpf" class="form-label">CNPJ/CPF</label>
               <input type="text" name="cnpjcpf" id="cliente_cnpjcpf" class="form-control">
             </div>
-            <div class="mb-3">
+            <div class="col-md-6 mb-3">
               <label for="cliente_serial" class="form-label">Serial</label>
               <input type="text" name="serial" id="cliente_serial" class="form-control">
             </div>
-            <div class="mb-3">
-              <label for="cliente_whatsapp" class="form-label">Número do WhatsApp</label>
+            <div class="col-md-6 mb-3">
+              <label for="cliente_whatsapp" class="form-label">WhatsApp</label>
               <input type="text" name="whatsapp" id="cliente_whatsapp" class="form-control" placeholder="+55XXXXXXXXXXX">
             </div>
-            <div class="mb-3">
-              <label for="data_conclusao" class="form-label">Data de Conclusão do Treinamento</label>
+            <div class="col-md-6 mb-3">
+              <label for="data_conclusao" class="form-label">Data de Conclusão</label>
               <input type="date" name="data_conclusao" id="data_conclusao" class="form-control">
-                          <div class="mb-3" id="group_faturamento" style="display:none;">
-                            <label class="form-label">Faturamento</label>
-                            <select name="faturamento" id="faturamento_cliente" class="form-select">
-                              <option value="BRINDE">Brinde</option>
-                              <option value="FATURADO">Faturado</option>
-                            </select>
-                          </div>
-                          <div class="mb-3" id="group_valor_cliente" style="display:none;">
-                            <label class="form-label">Valor (R$)</label>
-                            <input type="number" step="0.01" name="valor_faturamento" id="valor_faturamento" class="form-control">
-                          </div>
             </div>
-            <div class="mb-3">
+            <div class="col-md-6 mb-3" id="group_faturamento" style="display:none;">
+              <label for="faturamento_cliente" class="form-label">Faturamento</label>
+              <select name="faturamento" id="faturamento_cliente" class="form-select">
+                <option value="BRINDE">Brinde</option>
+                <option value="FATURADO">Faturado</option>
+              </select>
+            </div>
+            <div class="col-md-6 mb-3" id="group_valor_cliente" style="display:none;">
+              <label for="valor_faturamento" class="form-label">Valor (R$)</label>
+              <input type="number" step="0.01" name="valor_faturamento" id="valor_faturamento" class="form-control">
+            </div>
+            <div class="col-md-6 mb-3">
               <label for="horas_adquiridas" class="form-label">Minutos Adquiridos (min)</label>
               <input type="number" name="horas_adquiridas" id="horas_adquiridas" class="form-control" required>
             </div>
-          </div>
-          <div class="modal-footer">
-            <button type="submit" class="btn btn-primary">Salvar</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          </div>
-        </form>
-      </div>
+          </div><!-- /.row -->
+        </div><!-- /.modal-body -->
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Salvar</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </div>
+      </form>
     </div>
   </div>
+</div>
   
   <!-- Modal de Confirmação de Duplicata -->
   <div class="modal fade" id="modalDuplicate" tabindex="-1" aria-labelledby="modalDuplicateLabel" aria-hidden="true">
@@ -369,36 +371,55 @@ $result = mysqli_query($conn, $query);
     let duplicateClientData = null;
     
     function novoCliente() {
-      $('#cliente_id').val('');
-      $('#cliente_nome').val('');
-      $('#cliente_cnpjcpf').val('');
-      $('#cliente_serial').val('');
-      $('#cliente_whatsapp').val('');
-      $('#data_conclusao').val('');
-      $('#horas_adquiridas').val('');
-      $('#modalClienteLabel').text('Cadastrar Cliente');
-      $('#formCliente').attr('action', 'cadastrar_cliente.php');
-      var modal = new bootstrap.Modal(document.getElementById('modalCliente'));
-      modal.show();
-    }
+  // limpa campos básicos
+  $('#cliente_id').val('');
+  $('#cliente_nome').val('');
+  $('#cliente_cnpjcpf').val('');
+  $('#cliente_serial').val('');
+  $('#cliente_whatsapp').val('');
+  $('#data_conclusao').val('');
+  $('#horas_adquiridas').val('');
+
+  // limpa e reseta faturamento/valor
+  $('#faturamento_cliente').val('BRINDE');    // ou selectedIndex = 0
+  $('#valor_faturamento').val('');
+
+  // esconde os grupos opcionais
+  $('#group_faturamento').hide();
+  $('#group_valor_cliente').hide();
+
+  // ajusta título e ação do form
+  $('#modalClienteLabel').text('Cadastrar Cliente');
+  $('#formCliente').attr('action', 'cadastrar_cliente.php');
+
+  // exibe o modal
+  var modal = new bootstrap.Modal(document.getElementById('modalCliente'));
+  modal.show();
+}
     
-        function editarCliente(id, cliente, cnpjcpf, serial, horasAdquiridas, whatsapp, dataConclusao, faturamento, valorFaturamento) {
-      $('#cliente_id').val(id);
-      $('#cliente_nome').val(cliente);
-      $('#cliente_cnpjcpf').val(cnpjcpf);
-      $('#cliente_serial').val(serial);
-      $('#horas_adquiridas').val(horasAdquiridas);
-      $('#cliente_whatsapp').val(whatsapp);
-      $('#data_conclusao').val(dataConclusao);
-      $('#faturamento_cliente').val(faturamento);
-      $('#valor_faturamento').val(valorFaturamento);
-      $('#data_conclusao').trigger('change');
-      $('#faturamento_cliente').trigger('change');
-      $('#modalClienteLabel').text('Editar Cliente');
-      $('#formCliente').attr('action', 'editar_cliente.php');
-      var modal = new bootstrap.Modal(document.getElementById('modalCliente'));
-      modal.show();
-    }
+function editarCliente(
+  id, cliente, cnpjcpf, serial,
+  horasAdquiridas, whatsapp,
+  dataConclusao, faturamento, valorFaturamento
+) {
+  $('#cliente_id').val(id);
+  $('#cliente_nome').val(cliente);
+  $('#cliente_cnpjcpf').val(cnpjcpf);
+  $('#cliente_serial').val(serial);
+  $('#horas_adquiridas').val(horasAdquiridas);
+  $('#cliente_whatsapp').val(whatsapp);
+  $('#data_conclusao').val(dataConclusao);
+
+  // dispara o toggle para faturamento/valor
+  $('#data_conclusao').trigger('change');
+  $('#faturamento_cliente').val(faturamento).trigger('change');
+  $('#valor_faturamento').val(valorFaturamento);
+
+  $('#modalClienteLabel').text('Editar Cliente');
+  $('#formCliente').attr('action','editar_cliente.php');
+  new bootstrap.Modal(document.getElementById('modalCliente')).show();
+}
+
     
     // Submissão via Ajax para cadastro/edição de cliente
     $('#formCliente').on('submit', function(e) {
@@ -427,16 +448,26 @@ $result = mysqli_query($conn, $query);
     });
     
     $('#btnAbrirCadastro').on('click', function() {
-      var duplicateModal = bootstrap.Modal.getInstance(document.getElementById('modalDuplicate'));
-      duplicateModal.hide();
-      editarCliente(
-        duplicateClientData.id,
-        duplicateClientData.cliente,
-        duplicateClientData.cnpjcpf,
-        duplicateClientData.serial,
-        duplicateClientData.horas_adquiridas
-      );
-    });
+  // fecha modal de aviso
+  var dupModal = bootstrap.Modal.getInstance(document.getElementById('modalDuplicate'));
+  dupModal.hide();
+
+  // busca o cliente completo no servidor, pedindo JSON (ajax=1)
+  $.getJSON('form_cliente.php', { id: duplicateClientData.id, ajax:1 }, function(data) {
+    editarCliente(
+      data.id,
+      data.cliente,
+      data.cnpjcpf,
+      data.serial,
+      data.horas_adquiridas,
+      data.whatsapp,
+      data.data_conclusao,
+      data.faturamento,
+      data.valor_faturamento
+    );
+  });
+});
+    
     
     // Botão para enviar notificações via WhatsApp (global)
     $('#btnEnviarNotificacoes').on('click', function(){
@@ -643,6 +674,16 @@ $('#collapseNotificacoes').on('shown.bs.collapse', function(){
       $('#data_conclusao').on('change', toggleFields);
       $('#faturamento_cliente').on('change', toggleFields);
     });
+
+    // Remove qualquer backdrop que fique “perdido” quando o modal for fechado
+$('#modalCliente').on('hidden.bs.modal', function () {
+  // remove a classe que bloqueia o scroll/foco
+  $('body').removeClass('modal-open');
+  // remove backdrops órfãs
+  $('.modal-backdrop').remove();
+  // devolve o foco ao botão “Novo Cliente”
+  $('#clientSearch').focus(); 
+});
   </script>
   
   <!-- Modal: Notificações Individuais do Cliente -->
