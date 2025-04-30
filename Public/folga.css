@@ -219,13 +219,13 @@ body {
   margin-bottom: 20px;
 }
 .timeline::before {
-  content: '';
   position: absolute;
-  left: 1rem;
+  content: '';
+  width: 2px;
+  background: #dee2e6; /* cinza claro */
   top: 0;
   bottom: 0;
-  width: 2px;
-  background: #dee2e6;
+  left: 1rem;
 }
 .timeline-icon {
   position: absolute;
@@ -355,4 +355,15 @@ body {
 
 .title-aba{
   font-size: .92rem;
+}
+
+.timeline .no-result-message {
+  padding: 0.75rem 1rem;
+  font-style: italic;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border-left: 3px solid #ced4da;
+  color: #6c757d;
+  position: relative;
+  z-index: 1;
 }
