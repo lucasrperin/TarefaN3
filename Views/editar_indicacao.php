@@ -56,8 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     serial = '$serial',
                     contato = '$contato',
                     fone = '$fone',
-                    status = '$status'
-                    idConsultor = '$consultor',
+                    status = '$status',
+                    idConsultor = '$consultor'
                 WHERE id = '$id'
             ";
         } else {
@@ -70,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     serial = '$serial',
                     contato = '$contato',
                     fone = '$fone',
+                    status = 'Pendente',
                     idConsultor = '$consultor'
                 WHERE id = '$id'
             ";

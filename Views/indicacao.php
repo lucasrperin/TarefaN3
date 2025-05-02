@@ -95,7 +95,7 @@ $sqlPluginsCount = "SELECT
                     FROM TB_INDICACAO i
                     JOIN TB_PLUGIN p ON i.plugin_id = p.id
                     GROUP BY p.id
-                    ORDER BY total_indicacoes DESC";
+                    ORDER BY i.vlr_total DESC";
 $resultPluginsCount = mysqli_query($conn, $sqlPluginsCount);
 $pluginsCount = array();
 while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
@@ -364,7 +364,7 @@ $dadosTreinJson = json_encode($dadosTrein);
                             <span><?=$pc['plugin_nome']?></span>
                           </td>
                           <td class="text-center"><?=$pc['total_indicacoes']?></td>
-                          <td class="text-center">R$ <?=number_format($pc['total_faturado'],2,',','.');?></td>
+                          <td class="text-center text-nowrap">R$ <?=number_format($pc['total_faturado'],2,',','.');?></td>
                         </tr>
                       <?php endforeach;?>
                     </tbody>
@@ -465,12 +465,12 @@ $dadosTreinJson = json_encode($dadosTrein);
                                         aria-expanded="false"
                                         aria-controls="<?= $uid ?>">
                                         <?php $logo = $logos[$i['plugin_nome']] ?? null; ?>
-                                        <td class="d-flex align-items-center gap-2">
-                                          <?php if ($logo): ?>
-                                            <img src="../<?= $logo; ?>" alt="" style="width:22px;height:22px;">
-                                          <?php endif; ?>
-                                          <span><?= htmlspecialchars($i['plugin_nome']); ?></span>
-                                        </td>
+                                        <td class="d-flex align-items-center gap-2 w-100">
+                                        <?php if ($logo): ?>
+                                          <img src="../<?= $logo; ?>" alt="" style="width:25px;height:31px;">
+                                        <?php endif; ?>
+                                        <span><?= htmlspecialchars($i['plugin_nome']); ?></span>
+                                      </td>
                                       <td><?= date('d/m/Y', strtotime($i['data'])); ?></td>
                                       <td>
                                       <?php
@@ -515,25 +515,44 @@ $dadosTreinJson = json_encode($dadosTrein);
                       </td>
                     </tr>
 
-                    <!-- linha de detalhe (collapse) ------------------------------------->
-                    <tr class="collapse bg-light" id="<?= $uid ?>">
-                      <td colspan="5" class="p-3">
-                        <div class="row g-2">
-                          <div class="col-6 col-md-4">
-                            <strong>CNPJ:</strong> <?= $i['cnpj']; ?>
-                          </div>
-                          <div class="col-6 col-md-4">
-                            <strong>Serial:</strong> <?= $i['serial']; ?>
-                          </div>
-                          <div class="col-6 col-md-4">
-                            <strong>Contato:</strong> <?= htmlspecialchars($i['contato']); ?>
-                          </div>
-                          <div class="col-6 col-md-4">
-                            <strong>Fone:</strong> <?= $i['fone']; ?>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
+                                  <!-- linha de detalhe (collapse) ------------------------------------->
+                                      <tr class="collapse" id="<?= $uid ?>">
+                                        <td colspan="5" class="p-0 border-0">
+                                          <div class="card rounded-0 rounded-bottom bg-light-subtle">
+                                            <div class="card-body py-2">
+
+                                              <div class="row gy-2 align-items-center">
+
+                                                <div class="col-6 col-md-3 d-flex align-items-center gap-1">
+                                                  <i class="fa-solid fa-id-card text-primary"></i>
+                                                  <span class="fw-semibold small text-muted">CNPJ:</span>
+                                                  <span class="small"><?= $i['cnpj']; ?></span>
+                                                </div>
+
+                                                <div class="col-6 col-md-3 d-flex align-items-center gap-1">
+                                                  <i class="fa-solid fa-key text-secondary"></i>
+                                                  <span class="fw-semibold small text-muted">Serial:</span>
+                                                  <span class="small"><?= $i['serial']; ?></span>
+                                                </div>
+
+                                                <div class="col-6 col-md-3 d-flex align-items-center gap-1">
+                                                  <i class="fa-solid fa-user text-success"></i>
+                                                  <span class="fw-semibold small text-muted">Contato:</span>
+                                                  <span class="small"><?= htmlspecialchars($i['contato']); ?></span>
+                                                </div>
+
+                                                <div class="col-6 col-md-3 d-flex align-items-center gap-1">
+                                                  <i class="fa-solid fa-phone text-warning"></i>
+                                                  <span class="fw-semibold small text-muted">Fone:</span>
+                                                  <span class="small"><?= $i['fone']; ?></span>
+                                                </div>
+
+                                              </div><!-- /row -->
+
+                                            </div><!-- /card-body -->
+                                          </div><!-- /card -->
+                                        </td>
+                                      </tr>
                   <?php endforeach; ?>
                 </tbody>
               </table>

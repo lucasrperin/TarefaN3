@@ -271,3 +271,14 @@ td.sobrepor2 {
   .card-total-mini h5 {          /* mantém “880,50” e “2.375,00” em 1 linha */
     white-space: nowrap;
   }
+  /* remove sombra dupla ao colapsar, mantendo o card “grudado” na linha principal */
+#tabela-indicacoes tr.table-row-hover + tr.collapse .card {
+  border-top: 0;
+}
+
+/* quando a linha principal fica em hover ou ativa,
+   ilumina levemente o card detalhe para parecer integrado */
+#tabela-indicacoes tr.table-row-hover:hover + tr.collapse .card,
+#tabela-indicacoes tr.table-active + tr.collapse .card {
+  background-color: #eef4ff;
+}
