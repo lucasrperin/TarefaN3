@@ -79,8 +79,8 @@ $totalFaturamento = $rowFaturamento['total_faturamento'] ?: 0;
 /* ── Total de Treinamentos Faturados ─────────────────────────── */
 $qTrein = "
   SELECT SUM(valor_faturamento) AS total_treinamentos
-  FROM TB_CLIENTES
-  WHERE faturamento = 'FATURADO'
+  FROM   TB_CLIENTES
+  WHERE  faturamento = 'FATURADO'
 ";
 $rTrein            = mysqli_query($conn, $qTrein);
 $totalTreinamentos = (float) mysqli_fetch_assoc($rTrein)['total_treinamentos'];
@@ -101,6 +101,54 @@ $pluginsCount = array();
 while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
     $pluginsCount[] = $rowPC;
 }
+
+/* ── Faturamento mensal (últimos 12 meses) ───────────────────────── */
+$qInd  = "
+  SELECT DATE_FORMAT(data,'%Y-%m') mes, SUM(vlr_total) tot
+  FROM   TB_INDICACAO
+  WHERE  status='Faturado'
+  GROUP  BY mes";
+/* ── Faturamento mensal (Treinamentos) ─────────────────────────── */
+$qTrein = "
+  SELECT DATE_FORMAT(data_conclusao,'%Y-%m') mes,
+         SUM(valor_faturamento)               tot
+  FROM   TB_CLIENTES
+  WHERE  faturamento = 'FATURADO'
+  GROUP  BY mes
+";
+
+$indPorMes   = [];
+$treinPorMes = [];
+
+/* joga resultado em arrays [YYYY‑MM] => valor */
+$res = mysqli_query($conn,$qInd);
+while($r = mysqli_fetch_assoc($res))   $indPorMes[$r['mes']]   = (float)$r['tot'];
+
+$res = mysqli_query($conn,$qTrein);
+while($r = mysqli_fetch_assoc($res))   $treinPorMes[$r['mes']] = (float)$r['tot'];
+
+/* constrói os 12 rótulos retroativos (jan/2025, fev/2025, …) – sem strftime */
+$mesesAbv = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
+$labels     = [];
+$dadosInd   = [];
+$dadosTrein = [];
+
+for ($i = 11; $i >= 0; $i--) {
+  $ts  = strtotime("first day of -$i month");   // timestamp do mês desejado
+  $mes = date('Y-m', $ts);                      // ex.: 2025-03
+
+  // label “mar/2025”
+  $labels[] = $mesesAbv[(int)date('n', $ts) - 1] . '/' . date('Y', $ts);
+
+  $dadosInd[]   = $indPorMes[$mes]   ?? 0;
+  $dadosTrein[] = $treinPorMes[$mes] ?? 0;
+}
+
+/* serializa para o JS */
+$labelsJson     = json_encode($labels,     JSON_UNESCAPED_UNICODE);
+$dadosIndJson   = json_encode($dadosInd);
+$dadosTreinJson = json_encode($dadosTrein);
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -220,178 +268,164 @@ while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
       });
     </script>
     
-    <!-- Área principal -->
-    <div class="w-100">
+      <!-- Área principal -->
+      <div class="w-100">
       <!-- Header -->
       <div class="header">
         <h3>Controle de Indicações</h3>
         <div class="user-info">
-          <span>Bem-vindo(a), <?php echo htmlspecialchars($usuario_nome, ENT_QUOTES, 'UTF-8'); ?>!</span>
+          <span>Bem‑vindo(a), <?=htmlspecialchars($usuario_nome,ENT_QUOTES,'UTF-8');?>!</span>
           <a href="logout.php" class="btn btn-danger">
             <i class="fa-solid fa-right-from-bracket me-1"></i> Sair
           </a>
         </div>
       </div>
-      
-  <!-- CONTEÚDO -------------------------------------------------------->
-  <div class="content container-fluid">
 
-<!-- ACCORDION RESUMO --------------------------------------------->
+      <!-- CONTEÚDO ------------------------------------------------------>
+      <div class="content container-fluid">
+
+<!-- ACCORDION RESUMO -------------------------------------------------->
 <div class="accordion mb-4" id="accordionIndicadores">
   <div class="accordion-item border-0">
     <h2 class="accordion-header" id="headingIndicadores">
-      <button class="accordion-button" type="button" data-bs-toggle="collapse" 
-              data-bs-target="#collapseIndicadores" aria-expanded="true" 
-              aria-controls="collapseIndicadores" 
+      <button class="accordion-button" type="button" data-bs-toggle="collapse"
+              data-bs-target="#collapseIndicadores" aria-expanded="true"
+              aria-controls="collapseIndicadores"
               style="background:#fff;border:1px solid #dee2e6;">
         <b>Indicadores do Mês – Resumo e Totalizações</b>
       </button>
     </h2>
 
-    <div id="collapseIndicadores" class="accordion-collapse collapse show" 
+    <div id="collapseIndicadores" class="accordion-collapse collapse show"
          aria-labelledby="headingIndicadores" data-bs-parent="#accordionIndicadores">
 
-      <div class="accordion-body">
-        <div class="row g-3 align-items-stretch">
+      <!-- ===== GRID 2 × 2 ===== -->
+      <div class="accordion-body"><div class="row g-3">
 
-          <?php if($cargo!=='Comercial'): ?>
-          <!-- RANKING DE INDICAÇÕES --------------------------------->
-          <div class="col-md-4 d-flex">
-            <div class="card card-fixed-height shadow w-100">
-              <div class="card-header" style="background:#4b79a1;">
-                <h6 class="mb-0 text-white"><b>Ranking de Indicações</b></h6>
+        <!-- COL‑1 / LINHA‑1 : Ranking -->
+        <div class="col-lg-6 d-flex">
+<?php if($cargo!=='Comercial'): /* Ranking de Indicações */ ?>
+          <div class="card card-fixed-height shadow w-100">
+            <div class="card-header" style="background:#4b79a1;">
+              <h6 class="mb-0 text-white"><b>Ranking de Indicações</b></h6>
+            </div>
+            <div class="card-body p-2">
+              <?php if($ranking): ?>
+                <ul class="list-group list-group-flush">
+                  <?php foreach($ranking as $k=>$r): ?>
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                      <span><?=['🥇','🥈','🥉'][$k]??($k+1).'º'?> <?=$r['usuario_nome'];?></span>
+                      <span class="badge bg-secondary"><?=$r['total_indicacoes']?></span>
+                    </li>
+                  <?php endforeach;?>
+                </ul>
+              <?php else: ?><p class="text-muted mb-0">Nenhum ranking disponível.</p><?php endif;?>
+            </div>
+          </div>
+<?php else:              /* Ranking de Faturamento */ ?>
+          <div class="card card-fixed-height shadow w-100">
+            <div class="card-header" style="background:#4b79a1;">
+              <h6 class="mb-0 text-white"><b>Ranking de Faturamento</b></h6>
+            </div>
+            <div class="card-body p-2">
+              <?php if($rankingConsult): ?>
+                <ul class="list-group list-group-flush">
+                  <?php foreach($rankingConsult as $k=>$r): ?>
+                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
+                      <span><?=['🥇','🥈','🥉'][$k]??($k+1).'º'?> <?=$r['usuario_nome'];?></span>
+                      <span>R$ <?=number_format($r['total_faturado_consult'],2,',','.');?></span>
+                    </li>
+                  <?php endforeach;?>
+                </ul>
+              <?php else: ?><p class="text-muted mb-0">Nenhum ranking disponível.</p><?php endif;?>
+            </div>
+          </div>
+<?php endif;?>
+        </div>
+
+        <!-- COL‑2 / LINHA‑1 : Total por Plugin -->
+        <div class="col-lg-6 d-flex">
+          <div class="card card-fixed-height shadow w-100">
+            <div class="card-header" style="background:#4b79a1;">
+              <h6 class="mb-0 text-white"><b>Total por Plugin</b></h6>
+            </div>
+            <div class="card-body p-0">
+              <?php if($pluginsCount): ?>
+                <div class="table-responsive p-1">
+                  <table class="table table-bordered table-sm mb-0">
+                    <thead><tr><th>Plugin</th><th>Qtd</th><th>Faturado</th></tr></thead>
+                    <tbody>
+                      <?php foreach($pluginsCount as $pc): ?>
+                        <tr>
+                        <td class="d-flex align-items-center gap-2">
+                            <?php if(isset($logos[$pc['plugin_nome']])): ?>
+                              <img src="../<?=$logos[$pc['plugin_nome']]?>" style="width:18px;height:18px;">
+                            <?php endif;?>
+                            <span><?=$pc['plugin_nome']?></span>
+                          </td>
+                          <td class="text-center"><?=$pc['total_indicacoes']?></td>
+                          <td class="text-center">R$ <?=number_format($pc['total_faturado'],2,',','.');?></td>
+                        </tr>
+                      <?php endforeach;?>
+                    </tbody>
+                  </table>
+                </div>
+              <?php else: ?><p class="p-3 text-muted mb-0">Nenhum plugin encontrado.</p><?php endif;?>
+            </div>
+          </div>
+        </div>
+
+        <!-- COL‑1 / LINHA‑2 : Totalizadores -->
+        <div class="col-lg-6">
+          <div class="card bg-light border-0 text-center shadow-sm mb-3 w-100">
+          <div class="card-header" style="background:#4b79a1;">
+          <h6 class="mb-0 text-white"><b>Faturamento Geral</b></h6>
+          </div>
+            <div class="card-body">
+              <i class="fa-solid fa-chart-line fa-2x mb-2 text-primary"></i>
+              <h6 class="card-subtitle mb-1 text-muted">Geral de Faturamento</h6>
+              <h3 class="card-title display-6 m-0">R$ <?=number_format($totalGeral,2,',','.');?></h3>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="card bg-white border-0 text-center shadow-sm h-100">
+                <div class="card-body py-3">
+                  <i class="fa-solid fa-chalkboard-user fa-lg mb-2 text-success"></i>
+                  <p class="mb-1 text-muted">Treinamentos</p>
+                  <h5 class="mb-0">R$ <?=number_format($totalTreinamentos,2,',','.');?></h5>
+                </div>
               </div>
-              <div class="card-body p-2">
-                <?php if($ranking): ?>
-                  <ul class="list-group list-group-flush">
-                    <?php foreach($ranking as $k=>$r): ?>
-                      <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                        <span>
-                          <?= ['🥇','🥈','🥉'][$k] ?? ($k+1).'º' ?> <?= $r['usuario_nome']; ?>
-                        </span>
-                        <span class="badge bg-secondary"><?= $r['total_indicacoes'] ?></span>
-                      </li>
-                    <?php endforeach ?>
-                  </ul>
-                <?php else: ?>
-                  <p class="text-muted mb-0">Nenhum ranking disponível.</p>
-                <?php endif ?>
+            </div>
+            <div class="col-6">
+              <div class="card bg-white border-0 text-center shadow-sm h-100">
+                <div class="card-body py-3">
+                  <i class="fa-solid fa-handshake fa-lg mb-2 text-warning"></i>
+                  <p class="mb-1 text-muted">Indicações</p>
+                  <h5 class="mb-0">R$ <?=number_format($totalFaturamento,2,',','.');?></h5>
+                </div>
               </div>
             </div>
           </div>
-          <?php endif ?>
+        </div>
 
-          <?php if($cargo==='Comercial'): ?>
-          <!-- RANKING DE FATURAMENTO -------------------------------->
-          <div class="col-md-4 d-flex">
-            <div class="card card-fixed-height shadow w-100">
-              <div class="card-header" style="background:#4b79a1;">
-                <h6 class="mb-0 text-white"><b>Ranking de Faturamento</b></h6>
-              </div>
-              <div class="card-body p-2">
-                <?php if($rankingConsult): ?>
-                  <ul class="list-group list-group-flush">
-                    <?php foreach($rankingConsult as $k=>$r): ?>
-                      <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                        <span>
-                          <?= ['🥇','🥈','🥉'][$k] ?? ($k+1).'º' ?> <?= $r['usuario_nome']; ?>
-                        </span>
-                        <span>R$ <?= number_format($r['total_faturado_consult'],2,',','.') ?></span>
-                      </li>
-                    <?php endforeach ?>
-                  </ul>
-                <?php else: ?>
-                  <p class="text-muted mb-0">Nenhum ranking disponível.</p>
-                <?php endif ?>
-              </div>
+        <!-- COL‑2 / LINHA‑2 : Gráfico mensal -->
+        <div class="col-lg-6 d-flex">
+          <div class="card shadow w-100">
+            <div class="card-header" style="background:#4b79a1;">
+              <h6 class="mb-0 text-white"><b>Faturamento Mensal</b></h6>
+            </div>
+            <div class="card-body">
+              <canvas id="graficoFaturamento" style="height:260px"></canvas>
             </div>
           </div>
-          <?php endif ?>
+        </div>
 
-          <!-- TOTAL POR PLUGIN -------------------------------------->
-          <div class="col-md-4 d-flex">
-            <div class="card card-fixed-height shadow w-100">
-              <div class="card-header" style="background:#4b79a1;">
-                <h6 class="mb-0 text-white"><b>Total por Plugin</b></h6>
-              </div>
-              <div class="card-body p-0">
-                <?php if($pluginsCount): ?>
-                  <div class="table-responsive p-1">
-                    <table class="table table-bordered table-sm mb-0">
-                      <thead>
-                        <tr><th style="width:50%">Plugin</th><th>Qtd</th><th>Faturado</th></tr>
-                      </thead>
-                      <tbody>
-                        <?php foreach($pluginsCount as $pc): ?>
-                          <tr>
-                            <td class="d-flex align-items-center gap-2 text-truncate" style="max-width:200px;">
-                              <?php if(isset($logos[$pc['plugin_nome']])): ?>
-                                <img src="../<?= $logos[$pc['plugin_nome']] ?>" style="width:18px;height:18px;"/>
-                              <?php endif ?>
-                              <span><?= $pc['plugin_nome'] ?></span>
-                            </td>
-                            <td class="text-center"><?= $pc['total_indicacoes'] ?></td>
-                            <td class="text-center">R$ <?= number_format($pc['total_faturado'],2,',','.') ?></td>
-                          </tr>
-                        <?php endforeach ?>
-                      </tbody>
-                    </table>
-                  </div>
-                <?php else: ?>
-                  <p class="p-3 text-muted mb-0">Nenhum plugin encontrado.</p>
-                <?php endif ?>
-              </div>
-            </div>
-          </div>
-
-     <!-- coluna totalizadores -------------------------------------------------->
-<div class="col-md-4">
-
-<!-- cartão GRANDE : Geral de Faturamento -->
-<div class="card bg-light border-0 text-center shadow-sm mb-3 w-100">
-  <div class="card-body">
-    <i class="fa-solid fa-chart-line fa-2x mb-2 text-primary"></i>
-    <h6 class="card-subtitle mb-1 text-muted">Geral de Faturamento</h6>
-    <h3 class="card-title display-6 m-0">
-      R$ <?= number_format($totalGeral, 2, ',', '.'); ?>
-    </h3>
+      </div></div><!-- /accordion-body -->
+    </div><!-- /collapse -->
   </div>
-</div>
+</div><!-- /accordion -->
 
-<!-- linha com os DOIS cartões menores ----------------------------------->
-<div class="row g-3">
-
-  <!-- Treinamentos ------------------------------------------------------>
-  <div class="col-6">
-    <div class="card bg-white border-0 text-center shadow-sm h-100">
-      <div class="card-body py-3">
-        <i class="fa-solid fa-chalkboard-user fa-lg mb-2 text-success"></i>
-        <p class="mb-1 text-muted">Treinamentos</p>
-        <h5 class="mb-0">
-          R$ <?= number_format($totalTreinamentos, 2, ',', '.'); ?>
-        </h5>
-      </div>
-    </div>
-  </div>
-
-  <!-- Indicações -------------------------------------------------------->
-  <div class="col-6">
-    <div class="card bg-white border-0 text-center shadow-sm h-100">
-      <div class="card-body py-3">
-        <i class="fa-solid fa-handshake fa-lg mb-2 text-warning"></i>
-        <p class="mb-1 text-muted">Indicações</p>
-        <h5 class="mb-0">
-          R$ <?= number_format($totalFaturamento, 2, ',', '.'); ?>
-        </h5>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /row g-3 -->
-</div><!-- /col-md-4 -->
-    </div>
-  </div>
-</div>
 
                         <!-- Card com a lista de indicações -->
                         <div class="card shadow mb-4">
@@ -1010,6 +1044,28 @@ $(document).ready(function () {
       document.getElementById('excluir_id').value = id;
       new bootstrap.Modal(document.getElementById('modalExcluir')).show();
     }
+</script>
+<script>
+const lbls       = <?php echo $labelsJson; ?>;
+const indValores = <?php echo $dadosIndJson; ?>;
+const treValores = <?php echo $dadosTreinJson; ?>;
+
+const ctx = document.getElementById('graficoFaturamento').getContext('2d');
+new Chart(ctx,{
+  type:'bar',                                 // mude para 'line' se preferir
+  data:{
+    labels: lbls,
+    datasets:[
+      { label:'Indicações',  data:indValores,  borderWidth:1, backgroundColor:'rgba(75,121,161,.8)' },
+      { label:'Treinamentos',data:treValores,  borderWidth:1, backgroundColor:'rgba(40,62,81,.8)'  }
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    scales:{ y:{ beginAtZero:true } },
+    plugins:{ legend:{ position:'bottom' } }
+  }
+});
 </script>
 </body>
 </html>
