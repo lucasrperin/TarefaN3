@@ -265,6 +265,21 @@ $dadosTreinJson = json_encode($dadosTrein);
           }
           if (msg) showToast(msg, "success");
         }
+        if (erro) {
+          let msg = "";
+          switch (erro) {
+            case "1":
+              msg = "Erro ao Cadastrar Indicação!";
+              break;
+            case "2":
+              msg = "Erro ao Editar Indicação!";
+              break;
+            case "3":
+              msg = "Erro ao Excluír Indicação!";
+              break;
+          }
+          if (msg) showToast(msg, "erro");
+        }
       });
     </script>
     
@@ -281,166 +296,176 @@ $dadosTreinJson = json_encode($dadosTrein);
         </div>
       </div>
 
-      <!-- CONTEÚDO ------------------------------------------------------>
+      <!-- Conteúdo -->
       <div class="content container-fluid">
 
-<!-- ACCORDION RESUMO -------------------------------------------------->
-<div class="accordion mb-4" id="accordionIndicadores">
-  <div class="accordion-item border-0">
-    <h2 class="accordion-header" id="headingIndicadores">
-      <button class="accordion-button" type="button" data-bs-toggle="collapse"
-              data-bs-target="#collapseIndicadores" aria-expanded="true"
-              aria-controls="collapseIndicadores"
-              style="background:#fff;border:1px solid #dee2e6;">
-        <b>Indicadores do Mês – Resumo e Totalizações</b>
-      </button>
-    </h2>
+        <!-- ACCORDION RESUMO -------------------------------------------------->
+        <div class="accordion mb-4" id="accordionIndicadores">
+          <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="headingIndicadores">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                      data-bs-target="#collapseIndicadores" aria-expanded="true"
+                      aria-controls="collapseIndicadores">
+                <b>Indicadores do Mês – Resumo e Totalizações</b>
+              </button>
+            </h2>
 
-    <div id="collapseIndicadores" class="accordion-collapse collapse show"
-         aria-labelledby="headingIndicadores" data-bs-parent="#accordionIndicadores">
+            <div id="collapseIndicadores" class="accordion-collapse collapse show"
+                 aria-labelledby="headingIndicadores" data-bs-parent="#accordionIndicadores">
 
-      <!-- ===== GRID 2 × 2 ===== -->
-      <div class="accordion-body"><div class="row g-3">
+              <!-- LAYOUT 4: PILL VERTICAL + CONTEÚDO -->
+              <div class="d-flex layout4-container me-1">
 
-        <!-- COL‑1 / LINHA‑1 : Ranking -->
-        <div class="col-lg-6 d-flex">
-<?php if($cargo!=='Comercial'): /* Ranking de Indicações */ ?>
-          <div class="card card-fixed-height shadow w-100">
-            <div class="card-header" style="background:#4b79a1;">
-              <h6 class="mb-0 text-white"><b>Ranking de Indicações</b></h6>
-            </div>
-            <div class="card-body p-2">
-              <?php if($ranking): ?>
-                <ul class="list-group list-group-flush">
-                  <?php foreach($ranking as $k=>$r): ?>
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                      <span><?=['🥇','🥈','🥉'][$k]??($k+1).'º'?> <?=$r['usuario_nome'];?></span>
-                      <span class="badge bg-secondary"><?=$r['total_indicacoes']?></span>
-                    </li>
-                  <?php endforeach;?>
-                </ul>
-              <?php else: ?><p class="text-muted mb-0">Nenhum ranking disponível.</p><?php endif;?>
-            </div>
-          </div>
-<?php else:              /* Ranking de Faturamento */ ?>
-          <div class="card card-fixed-height shadow w-100">
-            <div class="card-header" style="background:#4b79a1;">
-              <h6 class="mb-0 text-white"><b>Ranking de Faturamento</b></h6>
-            </div>
-            <div class="card-body p-2">
-              <?php if($rankingConsult): ?>
-                <ul class="list-group list-group-flush">
-                  <?php foreach($rankingConsult as $k=>$r): ?>
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                      <span><?=['🥇','🥈','🥉'][$k]??($k+1).'º'?> <?=$r['usuario_nome'];?></span>
-                      <span>R$ <?=number_format($r['total_faturado_consult'],2,',','.');?></span>
-                    </li>
-                  <?php endforeach;?>
-                </ul>
-              <?php else: ?><p class="text-muted mb-0">Nenhum ranking disponível.</p><?php endif;?>
-            </div>
-          </div>
-<?php endif;?>
-        </div>
+                <!-- NAV LATERAL -->
+                <nav class="nav nav-pills flex-column">
+                  <button class="nav-link active" id="v-tab-ranking" data-bs-toggle="pill"
+                          data-bs-target="#v-pane-ranking" type="button">🥇 Ranking</button>
+                  <button class="nav-link" id="v-tab-plugins" data-bs-toggle="pill"
+                          data-bs-target="#v-pane-plugins" type="button">🧩 Plugins</button>
+                  <button class="nav-link" id="v-tab-geral" data-bs-toggle="pill"
+                          data-bs-target="#v-pane-geral" type="button">💰 Geral</button>
+                  <button class="nav-link" id="v-tab-mensal" data-bs-toggle="pill"
+                          data-bs-target="#v-pane-mensal" type="button">📈 Mensal</button>
+                </nav>
 
-        <!-- COL‑2 / LINHA‑1 : Total por Plugin -->
-        <div class="col-lg-6 d-flex">
-          <div class="card card-fixed-height shadow w-100">
-            <div class="card-header" style="background:#4b79a1;">
-              <h6 class="mb-0 text-white"><b>Total por Plugin</b></h6>
-            </div>
-            <div class="card-body p-0">
-              <?php if($pluginsCount): ?>
-                <div class="table-responsive p-1">
-                  <table class="table table-bordered table-sm mb-0">
-                    <thead><tr><th>Plugin</th><th>Qtd</th><th>Faturado</th></tr></thead>
-                    <tbody>
-                      <?php foreach($pluginsCount as $pc): ?>
-                        <tr>
-                        <td class="d-flex align-items-center gap-2">
-                            <?php if(isset($logos[$pc['plugin_nome']])): ?>
-                              <img src="../<?=$logos[$pc['plugin_nome']]?>" style="width:18px;height:18px;">
-                            <?php endif;?>
-                            <span><?=$pc['plugin_nome']?></span>
-                          </td>
-                          <td class="text-center"><?=$pc['total_indicacoes']?></td>
-                          <td class="text-center text-nowrap">R$ <?=number_format($pc['total_faturado'],2,',','.');?></td>
-                        </tr>
-                      <?php endforeach;?>
-                    </tbody>
-                  </table>
-                </div>
-              <?php else: ?><p class="p-3 text-muted mb-0">Nenhum plugin encontrado.</p><?php endif;?>
-            </div>
-          </div>
-        </div>
+                <!-- CONTEÚDO DAS PILLS -->
+                <div class="tab-content flex-grow-1">
 
-        <!-- COL‑1 / LINHA‑2 : Totalizadores -->
-        <div class="col-lg-6">
-          <div class="card bg-light border-0 text-center shadow-sm mb-3 w-100">
-          <div class="card-header" style="background:#4b79a1;">
-          <h6 class="mb-0 text-white"><b>Faturamento Geral</b></h6>
-          </div>
-            <div class="card-body">
-              <i class="fa-solid fa-chart-line fa-2x mb-2 text-primary"></i>
-              <h6 class="card-subtitle mb-1 text-muted">Geral de Faturamento</h6>
-              <h3 class="card-title display-6 m-0">R$ <?=number_format($totalGeral,2,',','.');?></h3>
-            </div>
-          </div>
-          <div class="row g-3">
-            <div class="col-6">
-              <div class="card bg-white border-0 text-center shadow-sm h-100">
-                <div class="card-body py-3">
-                  <i class="fa-solid fa-chalkboard-user fa-lg mb-2 text-success"></i>
-                  <p class="mb-1 text-muted">Treinamentos</p>
-                  <h5 class="mb-0">R$ <?=number_format($totalTreinamentos,2,',','.');?></h5>
-                </div>
+                  <!-- Ranking com tabela e progress bars -->
+<div class="tab-pane fade show active mt-1" id="v-pane-ranking">
+  <?php 
+    // escolhe o array certo e extrai o maior valor
+    $dados = ($cargo!=='Comercial' ? $ranking : $rankingConsult);
+    $valores = array_map(fn($r) => $cargo!=='Comercial'
+      ? $r['total_indicacoes']
+      : $r['total_faturado_consult']
+    , $dados);
+    $max = max($valores) ?: 1;
+  ?>
+  <div class="table-responsive ranking-scroll">
+    <table class="table table-striped align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Posição</th>
+          <th>Usuário</th>
+          <th class="text-end">Total</th>
+          <th style="width:40%"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach($dados as $k => $r): 
+          $value = $cargo!=='Comercial'
+            ? $r['total_indicacoes']
+            : $r['total_faturado_consult'];
+          $percent = round($value / $max * 100);
+        ?>
+        <tr>
+          <td><?= ['🥇','🥈','🥉'][$k] ?? ($k+1).'º' ?></td>
+          <td><?= htmlspecialchars($r['usuario_nome']) ?></td>
+          <td class="text-end">
+            <?= $cargo!=='Comercial'
+                ? $value
+                : 'R$ '.number_format($value,2,',','.') ?>
+          </td>
+          <td>
+            <div class="progress" style="height: .75rem;">
+              <div 
+                class="progress-bar" 
+                role="progressbar" 
+                style="width: <?= $percent ?>%" 
+                aria-valuenow="<?= $percent ?>" 
+                aria-valuemin="0" 
+                aria-valuemax="100">
               </div>
             </div>
-            <div class="col-6">
-              <div class="card bg-white border-0 text-center shadow-sm h-100">
-                <div class="card-body py-3">
-                  <i class="fa-solid fa-handshake fa-lg mb-2 text-warning"></i>
-                  <p class="mb-1 text-muted">Indicações</p>
-                  <h5 class="mb-0">R$ <?=number_format($totalFaturamento,2,',','.');?></h5>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- COL‑2 / LINHA‑2 : Gráfico mensal -->
-        <div class="col-lg-6 d-flex">
-          <div class="card shadow w-100">
-            <div class="card-header" style="background:#4b79a1;">
-              <h6 class="mb-0 text-white"><b>Faturamento Mensal</b></h6>
-            </div>
-            <div class="card-body">
-              <canvas id="graficoFaturamento" style="height:260px"></canvas>
-            </div>
-          </div>
-        </div>
-
-      </div></div><!-- /accordion-body -->
-    </div><!-- /collapse -->
+          </td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
   </div>
-</div><!-- /accordion -->
+</div>
 
 
-                        <!-- Card com a lista de indicações -->
-                        <div class="card shadow mb-4">
-                          <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0">Indicações de Plugins</h4>
-                            <div class="d-flex justify-content-end gap-2">
-                              <input type="text" id="searchInput" class="form-control ms-2" style="max-width: 200px;" placeholder="Pesquisar...">
-                              <?php if ($cargo === 'Admin' || $cargo === 'User' || $cargo === 'Conversor'): ?>
-                                <button class="btn btn-custom ms-2" data-bs-toggle="modal" data-bs-target="#modalNovaIndicacao">
-                                  <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
-                                </button>
-                              <?php endif; ?>
-                            </div>
-                          </div>
-                          <div class="card-body">
+                  <!-- Plugins em Masonry (fundo claro) -->
+                  <div class="table-scroll tab-pane fade" id="v-pane-plugins">
+                    <div class="masonry-section">
+                      <?php foreach($pluginsCount as $pc): ?>
+                      <div class="masonry-card">
+                        <?php if(isset($logos[$pc['plugin_nome']])): ?>
+                        <img src="../<?=$logos[$pc['plugin_nome']]?>" 
+                             alt="<?=$pc['plugin_nome']?>" 
+                             class="masonry-logo">
+                        <?php endif; ?>
+                        <div class="masonry-title"><?=$pc['plugin_nome']?></div>
+                        <div class="masonry-stats">
+                          <?=$pc['total_indicacoes']?> indicações · 
+                          R$ <?=number_format($pc['total_faturado'],2,',','.')?>
+                        </div>
+                      </div>
+                      <?php endforeach; ?>
+                    </div>
+                  </div>
+
+                  <!-- Geral como cards -->
+<div class="tab-pane fade mt-4" id="v-pane-geral">
+  <div class="row row-cols-1 row-cols-md-3 g-4 p-2">
+    <div class="col">
+      <div class="card general-card text-center">
+        <div class="card-body">
+          <i class="fa-solid fa-coins fa-2x mb-2"></i>
+          <h6 class="card-subtitle mb-1">Total Acumulado</h6>
+          <p class="card-text h5">R$ <?=number_format($totalGeral,2,',','.')?></p>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card general-card text-center">
+        <div class="card-body">
+          <i class="fa-solid fa-chalkboard-user fa-2x mb-2 text-success"></i>
+          <h6 class="card-subtitle mb-1">Treinamentos</h6>
+          <p class="card-text h5">R$ <?=number_format($totalTreinamentos,2,',','.')?></p>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card general-card text-center">
+        <div class="card-body">
+          <i class="fa-solid fa-handshake fa-2x mb-2 text-warning"></i>
+          <h6 class="card-subtitle mb-1">Indicações</h6>
+          <p class="card-text h5">R$ <?=number_format($totalFaturamento,2,',','.')?></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+                  <!-- Mensal -->
+                  <div class="tab-pane fade" id="v-pane-mensal">
+                    <canvas id="graficoFaturamento" class="chart"></canvas>
+                  </div>
+
+                </div>
+              </div>
+              <!-- FIM DO ACCORDION CONTENT -->
+            </div>
+          </div>
+        </div>
+        <!-- FIM DO ACCORDION -->
+
+        <div class="card shadow mb-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Indicações de Plugins</h4>
+            <div class="d-flex justify-content-end gap-2">
+              <input type="text" id="filtro-indicacoes" class="form-control" style="max-width:200px;" placeholder="Pesquisar...">
+              <?php if ($cargo==='Admin'||$cargo==='User'||$cargo==='Conversor'): ?>
+              <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#modalNovaIndicacao">
+                <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
+              </button>
+              <?php endif; ?>
+            </div>
+          </div>
+          <div class="card-body">
                             <div class="table-responsive access-scroll">
                             <table class="table align-middle mb-0" id="tabela-indicacoes">
                                   <thead class="table-header-light">    
@@ -488,159 +513,180 @@ $dadosTreinJson = json_encode($dadosTrein);
                                       <td class="text-center">
                                         <!-- Exemplo de ações -->
                                         <button class="btn btn-sm btn-primary"
-                        title="Editar"
-                        onclick="event.stopPropagation();
-                                editarIndicacao(
-                                  <?= $i['id'] ?>,
-                                  <?= $i['plugin_id'] ?>,
-                                  '<?= $i['data'] ?>',
-                                  '<?= $i['cnpj'] ?>',
-                                  '<?= $i['serial'] ?>',
-                                  '<?= addslashes($i['contato']) ?>',
-                                  '<?= $i['fone'] ?>',
-                                  <?= $i['idConsultor'] ?>,
-                                  '<?= $i['status'] ?>',
-                                  '<?= $i['vlr_total'] ?? 0 ?>',
-                                  '<?= $i['n_venda'] ?? '' ?>'
-                                );">
-                  <i class="fa-solid fa-pen-to-square"></i>
-                </button>
+                                                title="Editar"
+                                                onclick="event.stopPropagation();
+                                                        editarIndicacao(
+                                                          <?= $i['id'] ?>,
+                                                          <?= $i['plugin_id'] ?>,
+                                                          '<?= $i['data'] ?>',
+                                                          '<?= $i['cnpj'] ?>',
+                                                          '<?= $i['serial'] ?>',
+                                                          '<?= addslashes($i['contato']) ?>',
+                                                          '<?= $i['fone'] ?>',
+                                                          <?= $i['idConsultor'] ?>,
+                                                          '<?= $i['status'] ?>',
+                                                          '<?= $i['vlr_total'] ?? 0 ?>',
+                                                          '<?= $i['n_venda'] ?? '' ?>'
+                                                        );">
+                                          <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
 
-                <!-- Botão EXCLUIR --------------------------------------------->
-                <button class="btn btn-sm btn-danger"
-                        title="Excluir"
-                        onclick="event.stopPropagation(); modalExcluir(<?= $i['id'] ?>);">
-                  <i class="fa-solid fa-trash"></i>
-                </button>
+                                        <!-- Botão EXCLUIR --------------------------------------------->
+                                        <button class="btn btn-sm btn-danger"
+                                                title="Excluir"
+                                                onclick="event.stopPropagation(); modalExcluir(<?= $i['id'] ?>);">
+                                          <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                      </td>
+                                   
+                    </tr>
+                <!-- linha de detalhe (collapse) ------------------------------------->
+                    <tr class="collapse" id="<?= $uid ?>">
+                      <td colspan="5" class="p-0 border-0">
+                        <div class="card rounded-0 rounded-bottom bg-light-subtle">
+                          <div class="card-body py-2">
+
+                            <div class="row gy-2 align-items-center">
+
+                            <?php
+                              // remove qualquer caractere que não seja dígito
+                              $cnpjDig = preg_replace('/\D/','',$i['cnpj']);
+                            ?>
+                            <div class="col-6 col-md-3 d-flex align-items-center gap-1">
+                              <i class="fa-solid fa-id-card text-primary"></i>
+                              <span class="fw-semibold small text-muted">CNPJ:</span>
+                              <span class="small"><?= $i['cnpj']; ?></span>
+
+                              <!-- Ícone de consulta -->
+                              <a href="#" class="text-decoration-none consulta-cnpj"
+                                data-cnpj="<?= $cnpjDig ?>" title="Consultar CNPJ">
+                                <i class="fa-solid fa-magnifying-glass small"></i>
+                              </a>
+                            </div>
+
+                              <div class="col-6 col-md-3 d-flex align-items-center gap-1">
+                                <i class="fa-solid fa-key text-secondary"></i>
+                                <span class="fw-semibold small text-muted">Serial:</span>
+                                <span class="small"><?= $i['serial']; ?></span>
+                              </div>
+
+                              <div class="col-6 col-md-3 d-flex align-items-center gap-1">
+                                <i class="fa-solid fa-user text-success"></i>
+                                <span class="fw-semibold small text-muted">Contato:</span>
+                                <span class="small"><?= htmlspecialchars($i['contato']); ?></span>
+                              </div>
+
+                              <div class="col-6 col-md-3 d-flex align-items-center gap-1">
+                                <i class="fa-solid fa-phone text-warning"></i>
+                                <span class="fw-semibold small text-muted">Fone:</span>
+                                <?php
+                                    $foneDig = preg_replace('/\D/','', $i['fone']);   // só dígitos
+                                    if (strlen($foneDig) === 10)     $foneDig = '55'.$foneDig; // acrescenta +55 se faltar
+                                    elseif (strlen($foneDig) === 11) $foneDig = '55'.$foneDig;
+                                  ?>
+                                  <a href="https://wa.me/<?= $foneDig ?>"
+                                    target="_blank" class="text-decoration-none"
+                                    title="Enviar mensagem por WhatsApp">
+                                    <i class="fa-brands fa-whatsapp text-success"></i>
+                                    <?= $i['fone']; ?>
+                                  </a>
+                              </div>
+                              <?php if ($i['status']==='Faturado' && !empty($i['n_venda'])): 
+                                        // ano da venda a partir da data da indicação
+                                        $anoVenda = date('Y', strtotime($i['data']));
+
+                                        // nome do PDF → V000123456.pdf
+                                        $arquivo  = 'V'.str_pad($i['n_venda'], 9, '0', STR_PAD_LEFT).'.pdf';
+
+                                        $urlVenda = "http://atendimento.compufour.com.br/vendas/{$anoVenda}/{$arquivo}";
+                                  ?>
+                                  <div class="col-6 col-md-3 d-flex align-items-center gap-1">
+                                    <i class="fa-solid fa-receipt text-info"></i>
+                                    <span class="fw-semibold small text-muted">Nº Venda:</span>
+                                    <a href="<?= $urlVenda ?>" target="_blank" class="small text-decoration-none">
+                                      <?= htmlspecialchars($i['n_venda']); ?>
+                                    </a>
+                                  </div>
+                                  <?php endif; ?>
+                            </div><!-- /row -->
+
+                          </div><!-- /card-body -->
+                        </div><!-- /card -->
                       </td>
                     </tr>
-
-                                  <!-- linha de detalhe (collapse) ------------------------------------->
-                                      <tr class="collapse" id="<?= $uid ?>">
-                                        <td colspan="5" class="p-0 border-0">
-                                          <div class="card rounded-0 rounded-bottom bg-light-subtle">
-                                            <div class="card-body py-2">
-
-                                              <div class="row gy-2 align-items-center">
-
-                                              <?php
-                                                // remove qualquer caractere que não seja dígito
-                                                $cnpjDig = preg_replace('/\D/','',$i['cnpj']);
-                                              ?>
-                                              <div class="col-6 col-md-3 d-flex align-items-center gap-1">
-                                                <i class="fa-solid fa-id-card text-primary"></i>
-                                                <span class="fw-semibold small text-muted">CNPJ:</span>
-                                                <span class="small"><?= $i['cnpj']; ?></span>
-
-                                                <!-- Ícone de consulta -->
-                                                <a href="#" class="text-decoration-none consulta-cnpj"
-                                                  data-cnpj="<?= $cnpjDig ?>" title="Consultar CNPJ">
-                                                  <i class="fa-solid fa-magnifying-glass small"></i>
-                                                </a>
-                                              </div>
-
-                                                <div class="col-6 col-md-3 d-flex align-items-center gap-1">
-                                                  <i class="fa-solid fa-key text-secondary"></i>
-                                                  <span class="fw-semibold small text-muted">Serial:</span>
-                                                  <span class="small"><?= $i['serial']; ?></span>
-                                                </div>
-
-                                                <div class="col-6 col-md-3 d-flex align-items-center gap-1">
-                                                  <i class="fa-solid fa-user text-success"></i>
-                                                  <span class="fw-semibold small text-muted">Contato:</span>
-                                                  <span class="small"><?= htmlspecialchars($i['contato']); ?></span>
-                                                </div>
-
-                                                <div class="col-6 col-md-3 d-flex align-items-center gap-1">
-                                                  <i class="fa-solid fa-phone text-warning"></i>
-                                                  <span class="fw-semibold small text-muted">Fone:</span>
-                                                  <?php
-                                                      $foneDig = preg_replace('/\D/','', $i['fone']);   // só dígitos
-                                                      if (strlen($foneDig) === 10)     $foneDig = '55'.$foneDig; // acrescenta +55 se faltar
-                                                      elseif (strlen($foneDig) === 11) $foneDig = '55'.$foneDig;
-                                                    ?>
-                                                    <a href="https://wa.me/<?= $foneDig ?>"
-                                                      target="_blank" class="text-decoration-none"
-                                                      title="Enviar mensagem por WhatsApp">
-                                                      <i class="fa-brands fa-whatsapp text-success"></i>
-                                                      <?= $i['fone']; ?>
-                                                    </a>
-                                                </div>
-                                                <?php if ($i['status']==='Faturado' && !empty($i['n_venda'])): 
-                                                          // ano da venda a partir da data da indicação
-                                                          $anoVenda = date('Y', strtotime($i['data']));
-
-                                                          // nome do PDF → V000123456.pdf
-                                                          $arquivo  = 'V'.str_pad($i['n_venda'], 9, '0', STR_PAD_LEFT).'.pdf';
-
-                                                          $urlVenda = "http://atendimento.compufour.com.br/vendas/{$anoVenda}/{$arquivo}";
-                                                    ?>
-                                                    <div class="col-6 col-md-3 d-flex align-items-center gap-1">
-                                                      <i class="fa-solid fa-receipt text-info"></i>
-                                                      <span class="fw-semibold small text-muted">Nº Venda:</span>
-                                                      <a href="<?= $urlVenda ?>" target="_blank" class="small text-decoration-none">
-                                                        <?= htmlspecialchars($i['n_venda']); ?>
-                                                      </a>
-                                                    </div>
-                                                    <?php endif; ?>
-                                              </div><!-- /row -->
-
-                                            </div><!-- /card-body -->
-                                          </div><!-- /card -->
-                                        </td>
-                                      </tr>
                   <?php endforeach; ?>
                 </tbody>
               </table>
             </div>
           </div>
         </div>
+
+        <!-- ... modais de cadastro/edição/exclusão/consulta CNPJ ... -->
+
       </div><!-- /content -->
     </div><!-- /Área principal -->
   </div><!-- /d-flex-wrapper -->
   <!-- Função de pesquisa nas tabelas-->
 
   <script>
-document.querySelectorAll('#tabela-indicacoes tbody tr[data-bs-toggle]')
-  .forEach(row => {
-    row.addEventListener('show.bs.collapse', () => row.classList.add('table-active'));
-    row.addEventListener('hide.bs.collapse', () => row.classList.remove('table-active'));
-});
-</script>
-<!-- Evita que cliques em botões/links dentro da linha disparem o collapse -->
-<script>
-document.querySelectorAll(
-  '#tabela-indicacoes tbody tr[data-bs-toggle] button,' +
-  '#tabela-indicacoes tbody tr[data-bs-toggle] a'
-).forEach(el => {
-  el.addEventListener('click', e => e.stopPropagation());
-});
-</script>
-  <script>
-$(document).ready(function () {
-  $('#searchInput').on('keyup', function () {
-    const termo = $(this).val().trim().toLowerCase();
+    // mantém seu script de collapse
+    document.querySelectorAll('#tabela-indicacoes tbody tr[data-bs-toggle]')
+      .forEach(row => {
+        row.addEventListener('show.bs.collapse', () => row.classList.add('table-active'));
+        row.addEventListener('hide.bs.collapse', () => row.classList.remove('table-active'));
+      });
 
-    // percorre apenas as linhas principais (as que têm data-bs-toggle)
-    $('#tabela-indicacoes tbody tr[data-bs-toggle]').each(function () {
-      const linha    = $(this);                            // <tr> principal
-      const detalhe  = $('#' + linha.attr('aria-controls')); // <tr> collapse
+    // agora o filtro geral
+    document.getElementById('filtro-indicacoes').addEventListener('input', function(){
+      const termo = this.value.toLowerCase();
 
-      // texto da linha + texto do detalhe
-      const texto = (linha.text() + ' ' + detalhe.text()).toLowerCase();
-      const match = texto.indexOf(termo) !== -1;
+      // 1) filtra tabela
+      document.querySelectorAll('#tabela-indicacoes tbody tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(termo) ? '' : 'none';
+      });
 
-      if (match) {
-        linha.removeClass('d-none');     // mostra registro
-        detalhe.removeClass('d-none');   // (fica oculto pelo CSS .collapse)
-      } else {
-        linha.addClass('d-none');        // esconde registro
-        detalhe.addClass('d-none');      
-        detalhe.removeClass('show');     // força fechar se estava aberto
-      }
+      // 2) filtra Masonry
+      document.querySelectorAll('.masonry-card').forEach(card => {
+        const titulo = card.querySelector('.masonry-title').textContent.toLowerCase();
+        card.style.display = titulo.includes(termo) ? '' : 'none';
+      });
     });
-  });
-});
+  </script>
+
+    <!-- Evita que cliques em botões/links dentro da linha disparem o collapse -->
+    <script>
+    document.querySelectorAll(
+      '#tabela-indicacoes tbody tr[data-bs-toggle] button,' +
+      '#tabela-indicacoes tbody tr[data-bs-toggle] a'
+    ).forEach(el => {
+      el.addEventListener('click', e => e.stopPropagation());
+    });
+    </script>
+      <script>
+    $(document).ready(function () {
+      $('#searchInput').on('keyup', function () {
+        const termo = $(this).val().trim().toLowerCase();
+
+        // percorre apenas as linhas principais (as que têm data-bs-toggle)
+        $('#tabela-indicacoes tbody tr[data-bs-toggle]').each(function () {
+          const linha    = $(this);                            // <tr> principal
+          const detalhe  = $('#' + linha.attr('aria-controls')); // <tr> collapse
+
+          // texto da linha + texto do detalhe
+          const texto = (linha.text() + ' ' + detalhe.text()).toLowerCase();
+          const match = texto.indexOf(termo) !== -1;
+
+          if (match) {
+            linha.removeClass('d-none');     // mostra registro
+            detalhe.removeClass('d-none');   // (fica oculto pelo CSS .collapse)
+          } else {
+            linha.addClass('d-none');        // esconde registro
+            detalhe.addClass('d-none');      
+            detalhe.removeClass('show');     // força fechar se estava aberto
+          }
+        });
+      });
+    });
   </script>
   
   <!-- Modal para cadastro de nova indicação -->
@@ -967,11 +1013,11 @@ $(document).ready(function () {
   // Formatação do campo de valor (duas casas decimais)
   function formatCurrency(digits) {
     digits = digits.replace(/\D/g, "");
-    while (digits.length < 4) {
+    while (digits.length < 2) {
       digits = "0" + digits;
     }
-    var intPart = digits.slice(0, digits.length - 4);
-    var decPart = digits.slice(-4);
+    var intPart = digits.slice(0, digits.length - 2);
+    var decPart = digits.slice(-2);
     intPart = intPart.replace(/^0+/, "") || "0";
     intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     return "R$" + intPart + "," + decPart;

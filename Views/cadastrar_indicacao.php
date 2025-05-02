@@ -34,4 +34,6 @@ if (mysqli_query($conn, $sql)) {
     exit();
 } else {
     echo 'Erro ao cadastrar: ' . mysqli_error($conn);
+    header("Location: indicacao.php?erro=1");
+    exit();
 }

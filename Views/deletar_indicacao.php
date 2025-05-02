@@ -18,6 +18,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "Erro ao excluir: " . mysqli_error($conn);
     }
 } else {
-    header("Location: indicacao.php");
+    header("Location: indicacao.php?erro=3");
     exit();
 }

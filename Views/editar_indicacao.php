@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (mysqli_query($conn, $sqlUpdate)) {
-            header("Location: indicacao.php");
+            header("Location: indicacao.php?success=2");
             exit();
         } else {
             echo "Erro ao atualizar: " . mysqli_error($conn);
@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo "Não é possível editar indicações com status incompatível.";
     }
 } else {
-    header("Location: indicacao.php");
+    header("Location: indicacao.php?erro=2");
     exit();
 }
 ?>
