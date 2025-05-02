@@ -566,7 +566,23 @@ $dadosTreinJson = json_encode($dadosTrein);
                                                       <?= $i['fone']; ?>
                                                     </a>
                                                 </div>
+                                                <?php if ($i['status']==='Faturado' && !empty($i['n_venda'])): 
+                                                          // ano da venda a partir da data da indicação
+                                                          $anoVenda = date('Y', strtotime($i['data']));
 
+                                                          // nome do PDF → V000123456.pdf
+                                                          $arquivo  = 'V'.str_pad($i['n_venda'], 9, '0', STR_PAD_LEFT).'.pdf';
+
+                                                          $urlVenda = "http://atendimento.compufour.com.br/vendas/{$anoVenda}/{$arquivo}";
+                                                    ?>
+                                                    <div class="col-6 col-md-3 d-flex align-items-center gap-1">
+                                                      <i class="fa-solid fa-receipt text-info"></i>
+                                                      <span class="fw-semibold small text-muted">Nº Venda:</span>
+                                                      <a href="<?= $urlVenda ?>" target="_blank" class="small text-decoration-none">
+                                                        <?= htmlspecialchars($i['n_venda']); ?>
+                                                      </a>
+                                                    </div>
+                                                    <?php endif; ?>
                                               </div><!-- /row -->
 
                                             </div><!-- /card-body -->
