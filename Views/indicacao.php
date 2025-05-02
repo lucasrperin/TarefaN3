@@ -523,11 +523,21 @@ $dadosTreinJson = json_encode($dadosTrein);
 
                                               <div class="row gy-2 align-items-center">
 
-                                                <div class="col-6 col-md-3 d-flex align-items-center gap-1">
-                                                  <i class="fa-solid fa-id-card text-primary"></i>
-                                                  <span class="fw-semibold small text-muted">CNPJ:</span>
-                                                  <span class="small"><?= $i['cnpj']; ?></span>
-                                                </div>
+                                              <?php
+                                                // remove qualquer caractere que não seja dígito
+                                                $cnpjDig = preg_replace('/\D/','',$i['cnpj']);
+                                              ?>
+                                              <div class="col-6 col-md-3 d-flex align-items-center gap-1">
+                                                <i class="fa-solid fa-id-card text-primary"></i>
+                                                <span class="fw-semibold small text-muted">CNPJ:</span>
+                                                <span class="small"><?= $i['cnpj']; ?></span>
+
+                                                <!-- Ícone de consulta -->
+                                                <a href="#" class="text-decoration-none consulta-cnpj"
+                                                  data-cnpj="<?= $cnpjDig ?>" title="Consultar CNPJ">
+                                                  <i class="fa-solid fa-magnifying-glass small"></i>
+                                                </a>
+                                              </div>
 
                                                 <div class="col-6 col-md-3 d-flex align-items-center gap-1">
                                                   <i class="fa-solid fa-key text-secondary"></i>
@@ -544,7 +554,17 @@ $dadosTreinJson = json_encode($dadosTrein);
                                                 <div class="col-6 col-md-3 d-flex align-items-center gap-1">
                                                   <i class="fa-solid fa-phone text-warning"></i>
                                                   <span class="fw-semibold small text-muted">Fone:</span>
-                                                  <span class="small"><?= $i['fone']; ?></span>
+                                                  <?php
+                                                      $foneDig = preg_replace('/\D/','', $i['fone']);   // só dígitos
+                                                      if (strlen($foneDig) === 10)     $foneDig = '55'.$foneDig; // acrescenta +55 se faltar
+                                                      elseif (strlen($foneDig) === 11) $foneDig = '55'.$foneDig;
+                                                    ?>
+                                                    <a href="https://wa.me/<?= $foneDig ?>"
+                                                      target="_blank" class="text-decoration-none"
+                                                      title="Enviar mensagem por WhatsApp">
+                                                      <i class="fa-brands fa-whatsapp text-success"></i>
+                                                      <?= $i['fone']; ?>
+                                                    </a>
                                                 </div>
 
                                               </div><!-- /row -->
@@ -853,6 +873,53 @@ $(document).ready(function () {
       </div>
     </div>
   </div>
+
+  <!-- Modal Consulta CNPJ -------------------------------------------->
+<div class="modal fade" id="modalConsultaCnpj" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Consulta de CNPJ</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="cnpjCarga" class="text-center py-3 d-none">
+          <div class="spinner-border" role="status"></div>
+          <p class="mt-2">Carregando dados…</p>
+        </div>
+
+        <div id="cnpjErro" class="alert alert-danger d-none"></div>
+
+        <div id="cnpjConteudo" class="d-none">
+          <h6 class="fw-bold" id="cnpjNome"></h6>
+          <p class="mb-1"><span class="fw-semibold">Situação:</span> <span id="cnpjSituacao"></span></p>
+
+          <div class="row">
+            <div class="col-md-6">
+              <p class="mb-1"><span class="fw-semibold">Abertura:</span> <span id="cnpjAbertura"></span></p>
+              <p class="mb-1"><span class="fw-semibold">Porte:</span> <span id="cnpjPorte"></span></p>
+              <p class="mb-1"><span class="fw-semibold">Natureza:</span> <span id="cnpjNatureza"></span></p>
+            </div>
+            <div class="col-md-6">
+              <p class="mb-1"><span class="fw-semibold">Telefone:</span> <span id="cnpjFone"></span></p>
+              <p class="mb-1"><span class="fw-semibold">E‑mail:</span> <span id="cnpjEmail"></span></p>
+              <p class="mb-1"><span class="fw-semibold">Capital social:</span> <span id="cnpjCapital"></span></p>
+            </div>
+          </div>
+
+          <hr>
+          <h6 class="fw-semibold">Endereço</h6>
+          <p id="cnpjEndereco" class="mb-1"></p>
+
+          <hr>
+          <h6 class="fw-semibold">Atividade principal</h6>
+          <p id="cnpjAtividade" class="mb-1"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
   
   <!-- Scripts JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1084,6 +1151,53 @@ new Chart(ctx,{
     scales:{ y:{ beginAtZero:true } },
     plugins:{ legend:{ position:'bottom' } }
   }
+});
+</script>
+<script>
+// clicar na lupa
+document.querySelectorAll('.consulta-cnpj').forEach(btn=>{
+  btn.addEventListener('click', e=>{
+    e.preventDefault();
+    const cnpj   = btn.dataset.cnpj;
+    const modal  = new bootstrap.Modal(document.getElementById('modalConsultaCnpj'));
+    const carga  = document.getElementById('cnpjCarga');
+    const erro   = document.getElementById('cnpjErro');
+    const corpo  = document.getElementById('cnpjConteudo');
+
+    carga.classList.remove('d-none');
+    erro.classList.add('d-none');
+    corpo.classList.add('d-none');
+    modal.show();
+
+    fetch(`../ajax/cnpj_consulta.php?cnpj=${cnpj}`)
+      .then(r=>r.json())
+      .then(data=>{
+        if (data.status==='ERROR'){
+          throw new Error(data.message || 'Erro desconhecido');
+        }
+        // preenche campos
+        document.getElementById('cnpjNome'    ).textContent = data.nome;
+        document.getElementById('cnpjSituacao').textContent = data.situacao;
+        document.getElementById('cnpjAbertura').textContent = data.abertura;
+        document.getElementById('cnpjPorte'   ).textContent = data.porte;
+        document.getElementById('cnpjNatureza').textContent = data.natureza_juridica;
+        document.getElementById('cnpjFone'    ).textContent = data.telefone;
+        document.getElementById('cnpjEmail'   ).textContent = data.email;
+        document.getElementById('cnpjCapital' ).textContent = 'R$ '+Number(data.capital_social).toLocaleString('pt-BR');
+        document.getElementById('cnpjEndereco').textContent =
+          `${data.logradouro}, ${data.numero} - ${data.bairro}, ${data.municipio}/${data.uf}, CEP ${data.cep}`;
+        document.getElementById('cnpjAtividade').textContent =
+          `${data.atividade_principal[0].code} – ${data.atividade_principal[0].text}`;
+
+        carga.classList.add('d-none');
+        corpo.classList.remove('d-none');
+      })
+      .catch(err=>{
+        carga.classList.add('d-none');
+        erro.textContent = err.message;
+        erro.classList.remove('d-none');
+      });
+  });
 });
 </script>
 </body>
