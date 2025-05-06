@@ -30,35 +30,33 @@ $sqlPlugins  = "SELECT id, nome FROM TB_PLUGIN ORDER BY nome";
 $resPlugins  = mysqli_query($conn, $sqlPlugins);
 
 // 2) Lê parâmetros de filtro
-$useCycle   = isset($_GET['use_cycle']);
 $filterColumn = $_GET['filterColumn'] ?? '';
-$dataInicio   = $_GET['data_inicio']  ?? '';
-$dataFim      = $_GET['data_fim']     ?? '';
+$dataInicio   = $_GET['data_inicio']   ?? '';
+$dataFim      = $_GET['data_fim']      ?? '';
+$useCycle     = isset($_GET['use_cycle']);
+$competencia  = $_GET['competencia']    ?? '';  // ex: "2025-03"
 $usuario      = $_GET['usuario']      ?? '';
 $plugin       = $_GET['plugin']       ?? '';
 $status       = $_GET['status']       ?? '';
 
 // 3) Monta cláusula WHERE dinamicamente
 $where = [];
-if ($filterColumn === 'periodo' && $dataInicio) {
-  if ($useCycle) {
-    // ciclo de 45 dias: 1º dia do mês de origem → 15º dia do mês seguinte
-    $cycleStart = date('Y-m-01', strtotime($dataInicio));
+if ($filterColumn === 'periodo') {
+  if ($useCycle && $competencia) {
+    list($year,$month) = explode('-', $competencia);
+    $cycleStart = sprintf('%04d-%02d-01',$year,$month);
     $cycleEnd   = date('Y-m-d', strtotime("$cycleStart +1 month +14 days"));
-    // filtra indicações cadastradas naquele mês...
-    $year  = date('Y', strtotime($dataInicio));
-    $month = date('n', strtotime($dataInicio));
     $where[] = "
       YEAR(i.data) = {$year}
       AND MONTH(i.data) = {$month}
       AND i.data_faturamento BETWEEN '{$cycleStart}' AND '{$cycleEnd}'
     ";
   }
-  else if ($dataFim) {
-    // filtro padrão por data
+  elseif ($dataInicio && $dataFim) {
     $where[] = "i.data BETWEEN '{$dataInicio}' AND '{$dataFim}'";
   }
 }
+
 if ($filterColumn === 'usuario' && $usuario) {
   $campoUsuario = $cargo === 'Comercial'
     ? 'i.idConsultor'
@@ -159,49 +157,85 @@ $resPluginsCount = mysqli_query($conn, $sqlPluginsCount);
 $pluginsCount    = mysqli_fetch_all($resPluginsCount, MYSQLI_ASSOC);
 
 
-/* ── Faturamento mensal (últimos 12 meses) ───────────────────────── */
-$qInd  = "
-  SELECT DATE_FORMAT(data,'%Y-%m') mes, SUM(vlr_total) tot
-  FROM   TB_INDICACAO
-  WHERE  status='Faturado'
-  GROUP  BY mes";
-/* ── Faturamento mensal (Treinamentos) ─────────────────────────── */
-$qTrein = "
-  SELECT DATE_FORMAT(data_conclusao,'%Y-%m') mes,
-         SUM(valor_faturamento)               tot
-  FROM   TB_CLIENTES
-  WHERE  faturamento = 'FATURADO'
-  GROUP  BY mes
+// 1) Monta cláusula WHERE específica para o gráfico de indicações
+$whereChart = ["i.status = 'Faturado'"];
+// para treinamentos, vamos filtrar data_conclusao
+$whereTrain = ["c.faturamento = 'FATURADO'"];
+
+if ($filterColumn === 'periodo' && $useCycle && $competencia) {
+  list($year, $month) = explode('-', $competencia);
+  $cycleStart = sprintf('%04d-%02d-01', $year, $month);
+  $cycleEnd   = date('Y-m-d', strtotime("$cycleStart +44 days"));
+
+  // filtra só o mês de registro + faturamentos dentro dos 45 dias
+  $whereChart[] = "YEAR(i.data) = {$year}";
+  $whereChart[] = "MONTH(i.data) = {$month}";
+  $whereChart[] = "i.data_faturamento BETWEEN '{$cycleStart}' AND '{$cycleEnd}'";
+}
+elseif ($filterColumn === 'periodo' && !$useCycle && $dataInicio && $dataFim) {
+  // Período livre
+  $whereChart[] = "(i.data BETWEEN '$dataInicio' AND '$dataFim')";
+  $whereTrain[] = "(c.data_conclusao BETWEEN '$dataInicio' AND '$dataFim')";
+}
+else {
+  // Sem filtro “Período”: restringe ao ano atual
+  $currentYear = date('Y');
+  $whereChart[] = "YEAR(i.data) = $currentYear";
+  $whereTrain[] = "YEAR(c.data_conclusao) = $currentYear";
+}
+
+$whereChartSql = "WHERE " . implode(' AND ', $whereChart);
+$whereTrainSql = "WHERE " . implode(' AND ', $whereTrain);
+
+// 2) Queries adaptadas
+$qInd = "
+  SELECT 
+    DATE_FORMAT(i.data, '%Y-%m') AS mes,
+    SUM(i.vlr_total)              AS tot
+  FROM TB_INDICACAO i
+  $whereChartSql
+  GROUP BY mes
 ";
 
+$qTrein = "
+  SELECT 
+    DATE_FORMAT(c.data_conclusao, '%Y-%m') AS mes,
+    SUM(c.valor_faturamento)               AS tot
+  FROM TB_CLIENTES c
+  $whereTrainSql
+  GROUP BY mes
+";
+
+// 3) Alimenta os arrays [YYYY-MM] => valor
 $indPorMes   = [];
 $treinPorMes = [];
 
-/* joga resultado em arrays [YYYY‑MM] => valor */
-$res = mysqli_query($conn,$qInd);
-while($r = mysqli_fetch_assoc($res))   $indPorMes[$r['mes']]   = (float)$r['tot'];
+$res = mysqli_query($conn, $qInd);
+while($r = mysqli_fetch_assoc($res)) {
+  $indPorMes[$r['mes']] = (float)$r['tot'];
+}
 
-$res = mysqli_query($conn,$qTrein);
-while($r = mysqli_fetch_assoc($res))   $treinPorMes[$r['mes']] = (float)$r['tot'];
-/* constrói os 12 rótulos retroativos (jan/2025, fev/2025, …) – sem strftime */
+$res = mysqli_query($conn, $qTrein);
+while($r = mysqli_fetch_assoc($res)) {
+  $treinPorMes[$r['mes']] = (float)$r['tot'];
+}
+
+// 4) Gera labels e dados para TODO o ano atual
 $mesesAbv = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-
 $labels     = [];
 $dadosInd   = [];
 $dadosTrein = [];
+$currentYear = date('Y');
 
-for ($i = 11; $i >= 0; $i--) {
-  $ts  = strtotime("first day of -$i month");   // timestamp do mês desejado
-  $mes = date('Y-m', $ts);                      // ex.: 2025-03
-
-  // label “mar/2025”
-  $labels[] = $mesesAbv[(int)date('n', $ts) - 1] . '/' . date('Y', $ts);
-
-  $dadosInd[]   = $indPorMes[$mes]   ?? 0;
-  $dadosTrein[] = $treinPorMes[$mes] ?? 0;
+for ($m = 1; $m <= 12; $m++) {
+  $labels[]     = "{$mesesAbv[$m-1]}/{$currentYear}";
+  $mm           = str_pad($m, 2, '0', STR_PAD_LEFT);
+  $key          = "{$currentYear}-{$mm}";
+  $dadosInd[]   = $indPorMes[$key]   ?? 0;
+  $dadosTrein[] = $treinPorMes[$key] ?? 0;
 }
 
-/* serializa para o JS */
+// 5) Serializa para o JS
 $labelsJson     = json_encode($labels,     JSON_UNESCAPED_UNICODE);
 $dadosIndJson   = json_encode($dadosInd);
 $dadosTreinJson = json_encode($dadosTrein);
@@ -1029,26 +1063,29 @@ $dadosTreinJson = json_encode($dadosTrein);
 
             <!-- Filtrar por Período -->
             <div id="filterPeriod" style="display:none;">
-              <div class="row align-items-end">
-                <div class="col-md-5 mb-3">
+              <div class="col-md-6">
+                <div class="form-check form-switch mt-4 mb-4">
+                  <input class="form-check-input" type="checkbox" role="switch" id="use_cycle" name="use_cycle" <?= isset($_GET['use_cycle']) ? 'checked' : '' ?>>
+                  <label class="form-check-label" for="use_cycle">
+                    Ciclo (45 dias)
+                  </label>
+                </div>
+              </div>
+              <!-- container de data início/fim + checkbox -->
+              <div id="dateRangeContainer" class="row align-items-end mb-2">
+                <div class="col-md-5">
                   <label for="data_inicio" class="form-label">Data Início</label>
-                  <input type="date" class="form-control" id="data_inicio" name="data_inicio"
-                        value="<?= htmlspecialchars($dataInicio) ?>">
+                  <input type="date" class="form-control" id="data_inicio" name="data_inicio" value="<?= htmlspecialchars($dataInicio) ?>">
                 </div>
-                <div class="col-md-5 mb-3">
+                <div class="col-md-5">
                   <label for="data_fim" class="form-label">Data Fim</label>
-                  <input type="date" class="form-control" id="data_fim" name="data_fim"
-                        value="<?= htmlspecialchars($dataFim) ?>">
+                  <input type="date" class="form-control" id="data_fim" name="data_fim" value="<?= htmlspecialchars($dataFim) ?>">
                 </div>
-                <div class="col-md-2 mb-3">
-                  <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="use_cycle" name="use_cycle"
-                          <?= isset($_GET['use_cycle']) ? 'checked' : '' ?>>
-                    <label class="form-check-label" for="use_cycle">
-                      Ciclo<br>(45 dias)
-                    </label>
-                  </div>
-                </div>
+              </div>
+              <!-- novo container de competência (mês/ano) -->
+              <div id="competenciaContainer" class="mb-2" style="display:none;">
+                <label for="competencia" class="form-label">Competência</label>
+                <input type="month" class="form-control" id="competencia" name="competencia" value="<?= htmlspecialchars($competencia ?? '') ?>">
               </div>
             </div>
 
@@ -1480,7 +1517,146 @@ document.querySelectorAll('.consulta-cnpj').forEach(btn=>{
     document.getElementById('filterModal')
             .addEventListener('shown.bs.modal', toggleFilters);
   });
+
+  // alterna entre data-range e competência
+  function toggleCycleMode() {
+    const useCycle = document.getElementById('use_cycle').checked;
+    document.getElementById('dateRangeContainer').style.display     = useCycle ? 'none' : 'flex';
+    document.getElementById('competenciaContainer').style.display   = useCycle ? 'block' : 'none';
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    // quando abrir o modal de filtro, ajusta visibilidade
+    const filterModal = document.getElementById('filterModal');
+    filterModal.addEventListener('shown.bs.modal', toggleCycleMode);
+
+    // ao marcar/desmarcar o checkbox
+    document.getElementById('use_cycle')
+            .addEventListener('change', toggleCycleMode);
+  });
+
+  //SCRIPT PARA CONTROLE DE PREENCHIMENTO DE DATA
+  document.addEventListener('DOMContentLoaded', function() {
+    const cadastroInput     = document.getElementById('editar_data');
+    const faturamentoInput  = document.getElementById('editar_data_faturamento');
+    const editForm          = document.querySelector('#modalEditarIndicacao form');
+
+    if (!cadastroInput || !faturamentoInput || !editForm) return;
+
+    // 1) Garante que data de faturamento nunca possa ser menor que data de cadastro
+    function updateFaturamentoMin() {
+      faturamentoInput.min = cadastroInput.value;
+      // opcional: se já estiver fora do novo min, limpa ou ajusta
+      if (faturamentoInput.value && faturamentoInput.value < cadastroInput.value) {
+        faturamentoInput.value = cadastroInput.value;
+      }
+    }
+
+    // dispara sempre que o usuário mudar a data de cadastro
+    cadastroInput.addEventListener('change', updateFaturamentoMin);
+
+    // ajusta assim que o modal abrir
+    $('#modalEditarIndicacao').on('shown.bs.modal', updateFaturamentoMin);
+
+    // 2) Validação extra antes de submeter
+    editForm.addEventListener('submit', function(e) {
+      if (faturamentoInput.value < cadastroInput.value) {
+        e.preventDefault();
+        showToast('Data de faturamento não pode ser menor que a data de cadastro','error');
+      }
+    });
+  });
+
+  //CONTROLE PARA NÂO DEIXAR DATA FATURAMENTO MENOR QUE DATA CADASTRO
+document.addEventListener('DOMContentLoaded', () => {
+  const cadastroInput    = document.getElementById('editar_data');
+  const faturamentoInput = document.getElementById('editar_data_faturamento');
+  const form             = document.querySelector('#modalEditarIndicacao form');
+  if (!cadastroInput || !faturamentoInput || !form) return;
+
+  // 45 dias exatos a partir do 1º do mês de cadastro
+  function getCycleWindow(cadDate) {
+    const start = new Date(cadDate.getFullYear(), cadDate.getMonth(), 1);
+    const end   = new Date(start);
+    end.setDate(start.getDate() + 44);
+    return { start, end };
+  }
+
+  // Atualiza min/max no picker de faturamento sempre que cadastro muda
+  cadastroInput.addEventListener('change', () => {
+    if (!cadastroInput.value) return;
+    const [y, m] = cadastroInput.value.split('-').map(Number);
+    faturamentoInput.min = cadastroInput.value;
+    faturamentoInput.max = getCycleWindow(new Date(y, m-1, 1))
+                             .end.toISOString().slice(0,10);
+    checkCycle();
+  });
+
+  function checkCycle() {
+    const cadVal = cadastroInput.value;
+    const fatVal = faturamentoInput.value;
+    if (!cadVal || !fatVal) return true;
+
+    const [yC, mC, dC] = cadVal.split('-').map(Number);
+    const [yF, mF, dF] = fatVal.split('-').map(Number);
+    const cadDate = new Date(yC, mC-1, dC);
+    const fatDate = new Date(yF, mF-1, dF);
+
+    // 1) Se for mesmo mês/ano, sempre válido
+    if (yF === yC && (mF-1) === (mC-1)) {
+      return true;
+    }
+
+    // 2) Senão, aplica janela de 45 dias
+    const { start, end } = getCycleWindow(cadDate);
+    if (fatDate < start || fatDate > end) {
+      const fmt = d => d.toLocaleDateString('pt-BR');
+      showEscapeToast(
+        `Fora do ciclo (${fmt(start)} → ${fmt(end)}).`
+      );
+      return false;
+    }
+    return true;
+  }
+
+  faturamentoInput.addEventListener('change', checkCycle);
+  form.addEventListener('submit', e => {
+    if (!checkCycle()) e.preventDefault();
+  });
+  $('#modalEditarIndicacao').on('shown.bs.modal', () => {
+    cadastroInput.dispatchEvent(new Event('change'));
+  });
+});
+
+
+// cria ou recupera o container de escape
+function getEscapeContainer() {
+  let c = document.getElementById('escape-toast-container');
+  if (!c) {
+    c = document.createElement('div');
+    c.id = 'escape-toast-container';
+    document.body.appendChild(c);
+  }
+  return c;
+}
+
+// mostra toast fora do modal, com duração estendida (5s)
+function showEscapeToast(message) {
+  const container = getEscapeContainer();
+  const toast = document.createElement('div');
+  toast.className = 'toast error';  // reutiliza classes de estilo
+  toast.textContent = message;
+  container.appendChild(toast);
+  // força reflow para animação
+  requestAnimationFrame(() => toast.classList.add('show'));
+  // remove após 5s
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => container.removeChild(toast), 300);
+  }, 5000);
+}
 </script>
+
 
 </body>
 </html>
