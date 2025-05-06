@@ -6,6 +6,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id        = $_POST['id'];
     $plugin_id = $_POST['plugin_id'];
     $data      = $_POST['data'];
+    $dataFaturamento = $_POST['data_faturamento'] ?? null;
     $cnpj      = $_POST['editar_cnpj'];
     $serial    = $_POST['serial'];
     $contato   = $_POST['contato'];
@@ -14,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $status    = $_POST['editar_status'];
     $vlt_total = $_POST['editar_valor'];
     $n_venda   = $_POST['editar_venda'];
+    
 
     // Consulta o status atual no banco (se necessário para regras de transição)
     $sqlCheck = "SELECT status FROM TB_INDICACAO WHERE id = '$id'";
@@ -44,9 +46,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     status = '$status',
                     idConsultor = '$consultor',
                     vlr_total = '$valorFormatado',
-                    n_venda = '$n_venda'
-                WHERE id = '$id'
-            ";
+                    n_venda = '$n_venda',
+                    data_faturamento = " 
+                    . ($dataFaturamento 
+                    ? "'{$dataFaturamento}'" 
+                    : "NULL") . "
+            WHERE id = {$id}";
         } elseif ($status === 'Cancelado') {
             $sqlUpdate = "
                 UPDATE TB_INDICACAO
