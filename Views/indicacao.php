@@ -12,144 +12,235 @@ ini_set('display_errors', 1);
 
 require '../Config/Database.php';
 
-$usuario_id = $_SESSION['usuario_id'];
-$cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
-$usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
+$usuario_id    = $_SESSION['usuario_id'];
+$cargo         = $_SESSION['cargo']        ?? '';
+$usuario_nome  = $_SESSION['usuario_nome'] ?? 'Usuário';
 
 $logos = require '../Config/logos.php';
-// Consulta para pegar todas as indicações do mês e ano atuais, incluindo nome do usuário e status
-$sql = "  SELECT 
-              i.*, 
-              i.n_venda,
-              p.nome AS plugin_nome,
-              u.nome AS usuario_nome,
-              case
-              when idConsultor = 29 -- Quando for a Vanessa muda para não possui, explicação no cadastrar_indicacao.php
-                  then 'Não Possui'
-                  else c.nome 
-              end consultor_nome
-          FROM TB_INDICACAO i
-          JOIN TB_PLUGIN p ON i.plugin_id = p.id
-          JOIN TB_USUARIO u ON i.user_id = u.id
-          JOIN TB_USUARIO c ON i.idConsultor = c.id
-          WHERE MONTH(i.data) = MONTH(CURRENT_DATE())
-            AND YEAR(i.data) = YEAR(CURRENT_DATE())
-          ORDER BY i.data DESC";
-$result = mysqli_query($conn, $sql);
-$indicacoes = [];
-while ($row = mysqli_fetch_assoc($result)) {
-    $indicacoes[] = $row;   // agora $indicacoes sempre existe (array vazio ou com dados)
+
+// 1) Carrega listas para os selects do filtro
+$sqlUsuarios = "
+  SELECT Id, Nome 
+    FROM TB_USUARIO 
+   WHERE Cargo IN ('Comercial','Admin','User')
+   ORDER BY Nome";
+$resUsuarios = mysqli_query($conn, $sqlUsuarios);
+
+$sqlPlugins  = "SELECT id, nome FROM TB_PLUGIN ORDER BY nome";
+$resPlugins  = mysqli_query($conn, $sqlPlugins);
+
+// 2) Lê parâmetros de filtro
+$filterColumn = $_GET['filterColumn'] ?? '';
+$dataInicio   = $_GET['data_inicio']   ?? '';
+$dataFim      = $_GET['data_fim']      ?? '';
+$useCycle     = isset($_GET['use_cycle']);
+$competencia  = $_GET['competencia']    ?? '';  // ex: "2025-03"
+$usuario      = $_GET['usuario']      ?? '';
+$plugin       = $_GET['plugin']       ?? '';
+$status       = $_GET['status']       ?? '';
+
+// 3) Monta cláusula WHERE dinamicamente
+$where = [];
+if ($filterColumn === 'periodo') {
+  if ($useCycle && $competencia) {
+    list($year,$month) = explode('-', $competencia);
+    $cycleStart = sprintf('%04d-%02d-01',$year,$month);
+    $cycleEnd   = date('Y-m-d', strtotime("$cycleStart +1 month +14 days"));
+    $where[] = "
+      YEAR(i.data) = {$year}
+      AND MONTH(i.data) = {$month}
+      AND i.data_faturamento BETWEEN '{$cycleStart}' AND '{$cycleEnd}'
+    ";
+  }
+  elseif ($dataInicio && $dataFim) {
+    $where[] = "i.data BETWEEN '{$dataInicio}' AND '{$dataFim}'";
+  }
 }
-// Consulta para o ranking: quantidade de indicações por usuário
-$sqlRanking = "
-  SELECT u.nome AS usuario_nome, COUNT(i.id) AS total_indicacoes
+
+if ($filterColumn === 'usuario' && $usuario) {
+  $campoUsuario = $cargo === 'Comercial'
+    ? 'i.idConsultor'
+    : 'i.user_id';
+  $where[] = "$campoUsuario = " . intval($usuario);
+}
+if ($filterColumn === 'plugin' && $plugin) {
+  $where[] = "i.plugin_id = "   . intval($plugin);
+}
+if ($filterColumn === 'status' && $status) {
+  // escapa o valor vindo do GET
+  $statusEsc = mysqli_real_escape_string($conn, $status);
+  $where[]   = "i.status = '{$statusEsc}'";
+}
+$whereSQL = $where 
+  ? ' WHERE ' . implode(' AND ', $where) 
+  : '';
+
+// 4) Consulta principal de indicações
+$sql = "
+  SELECT 
+    i.*,
+    p.nome AS plugin_nome,
+    CASE
+      WHEN i.idConsultor = 29 THEN 'Não Possui'
+      ELSE c.nome
+    END AS consultor_nome
   FROM TB_INDICACAO i
-  JOIN TB_USUARIO u ON i.user_id = u.id
+  JOIN TB_PLUGIN   p ON p.id = i.plugin_id
+  JOIN TB_USUARIO  c ON c.id = i.idConsultor
+  $whereSQL
+  ORDER BY i.data DESC
+";
+$resIndic   = mysqli_query($conn, $sql);
+$indicacoes = mysqli_fetch_all($resIndic, MYSQLI_ASSOC);
+
+// 5) Ranking de indicações por usuário (mesmo filtro)
+$sqlRanking = "
+  SELECT 
+    u.nome AS usuario_nome, 
+    COUNT(i.id) AS total_indicacoes
+  FROM TB_INDICACAO i
+  JOIN TB_USUARIO u ON u.id = i.user_id
+  $whereSQL
   GROUP BY u.id
   ORDER BY total_indicacoes DESC
 ";
-$resultRanking = mysqli_query($conn, $sqlRanking);
-$ranking = array();
-while($row = mysqli_fetch_assoc($resultRanking)) {
-    $ranking[] = $row;
-}
+$resRanking = mysqli_query($conn, $sqlRanking);
+$ranking    = mysqli_fetch_all($resRanking, MYSQLI_ASSOC);
 
-// Consulta para o ranking: quantidade de indicações por usuário
-$sqlRankingConsult = "SELECT 
-                        c.Nome AS usuario_nome, 
-                        SUM(CASE WHEN i.status = 'Faturado' THEN i.vlr_total ELSE 0 END) AS total_faturado_consult
-                      FROM TB_INDICACAO i
-                      JOIN TB_USUARIO c ON i.idConsultor = c.id
-                      WHERE c.Id <> 29
-                      AND i.status = 'Faturado'
-                      GROUP BY i.idConsultor
-                      ORDER BY total_faturado_consult DESC";
-$resultRankingConsult = mysqli_query($conn, $sqlRankingConsult);
-$rankingConsult = array();
-while($rowC = mysqli_fetch_assoc($resultRankingConsult)) {
-    $rankingConsult[] = $rowC;
-}
+// 6) Ranking de faturamento por consultor (filtra apenas faturados)
+$sqlRankingConsult = "
+  SELECT 
+    c.nome AS usuario_nome,
+    SUM(CASE WHEN i.status = 'Faturado' THEN i.vlr_total ELSE 0 END) AS total_faturado_consult
+  FROM TB_INDICACAO i
+  JOIN TB_USUARIO c ON c.id = i.idConsultor
+  $whereSQL
+  AND i.status = 'Faturado'
+  GROUP BY c.id
+  ORDER BY total_faturado_consult DESC
+";
+$resRankingConsult = mysqli_query($conn, $sqlRankingConsult);
+$rankingConsult    = mysqli_fetch_all($resRankingConsult, MYSQLI_ASSOC);
 
-// Total de Faturamento
-$sqlFaturamento = "SELECT SUM(vlr_total) AS total_faturamento FROM TB_INDICACAO WHERE status = 'Faturado'";
-$resultFaturamento = mysqli_query($conn, $sqlFaturamento);
-$rowFaturamento = mysqli_fetch_assoc($resultFaturamento);
-$totalFaturamento = $rowFaturamento['total_faturamento'] ?: 0;
+// 7) Totais gerais (mês + treinamentos)
+$sqlFatur = "
+  SELECT SUM(vlr_total) AS total_faturamento 
+  FROM TB_INDICACAO i
+  " . ($whereSQL ? $whereSQL . " AND i.status = 'Faturado'" : "WHERE i.status = 'Faturado'");
 
-/* ── Total de Treinamentos Faturados ─────────────────────────── */
+$resFatur          = mysqli_query($conn, $sqlFatur);
+$totalFaturamento  = (float) mysqli_fetch_assoc($resFatur)['total_faturamento'];
+
 $qTrein = "
   SELECT SUM(valor_faturamento) AS total_treinamentos
-  FROM   TB_CLIENTES
-  WHERE  faturamento = 'FATURADO'
+    FROM TB_CLIENTES
+   WHERE faturamento = 'FATURADO'
 ";
-$rTrein            = mysqli_query($conn, $qTrein);
-$totalTreinamentos = (float) mysqli_fetch_assoc($rTrein)['total_treinamentos'];
+$rTrein             = mysqli_query($conn, $qTrein);
+$totalTreinamentos  = (float) mysqli_fetch_assoc($rTrein)['total_treinamentos'];
 
-/* ── Total Geral  = Treinamentos + Indicações ────────────────── */
-$totalGeral = $totalTreinamentos + $totalFaturamento;
-// Totalizador por Plugin
-$sqlPluginsCount = "SELECT 
-                      p.nome AS plugin_nome, 
-                      COUNT(i.id) AS total_indicacoes, 
-                      SUM(CASE WHEN i.status = 'Faturado' THEN i.vlr_total ELSE 0 END) AS total_faturado
-                    FROM TB_INDICACAO i
-                    JOIN TB_PLUGIN p ON i.plugin_id = p.id
-                    GROUP BY p.id
-                    ORDER BY i.vlr_total DESC";
-$resultPluginsCount = mysqli_query($conn, $sqlPluginsCount);
-$pluginsCount = array();
-while($rowPC = mysqli_fetch_assoc($resultPluginsCount)) {
-    $pluginsCount[] = $rowPC;
+$totalGeral = $totalFaturamento + $totalTreinamentos;
+
+// 8) Totalizador por Plugin (aplica mesmo filtro)
+$sqlPluginsCount = "
+  SELECT 
+    p.nome AS plugin_nome,
+    COUNT(i.id) AS total_indicacoes,
+    SUM(CASE WHEN i.status = 'Faturado' THEN i.vlr_total ELSE 0 END) AS total_faturado
+  FROM TB_INDICACAO i
+  JOIN TB_PLUGIN p ON p.id = i.plugin_id
+  $whereSQL
+  GROUP BY p.id
+  ORDER BY total_indicacoes DESC
+";
+$resPluginsCount = mysqli_query($conn, $sqlPluginsCount);
+$pluginsCount    = mysqli_fetch_all($resPluginsCount, MYSQLI_ASSOC);
+
+
+// 1) Monta cláusula WHERE específica para o gráfico de indicações
+$whereChart = ["i.status = 'Faturado'"];
+// para treinamentos, vamos filtrar data_conclusao
+$whereTrain = ["c.faturamento = 'FATURADO'"];
+
+if ($filterColumn === 'periodo' && $useCycle && $competencia) {
+  list($year, $month) = explode('-', $competencia);
+  $cycleStart = sprintf('%04d-%02d-01', $year, $month);
+  $cycleEnd   = date('Y-m-d', strtotime("$cycleStart +44 days"));
+
+  // filtra só o mês de registro + faturamentos dentro dos 45 dias
+  $whereChart[] = "YEAR(i.data) = {$year}";
+  $whereChart[] = "MONTH(i.data) = {$month}";
+  $whereChart[] = "i.data_faturamento BETWEEN '{$cycleStart}' AND '{$cycleEnd}'";
+}
+elseif ($filterColumn === 'periodo' && !$useCycle && $dataInicio && $dataFim) {
+  // Período livre
+  $whereChart[] = "(i.data BETWEEN '$dataInicio' AND '$dataFim')";
+  $whereTrain[] = "(c.data_conclusao BETWEEN '$dataInicio' AND '$dataFim')";
+}
+else {
+  // Sem filtro “Período”: restringe ao ano atual
+  $currentYear = date('Y');
+  $whereChart[] = "YEAR(i.data) = $currentYear";
+  $whereTrain[] = "YEAR(c.data_conclusao) = $currentYear";
 }
 
-/* ── Faturamento mensal (últimos 12 meses) ───────────────────────── */
-$qInd  = "
-  SELECT DATE_FORMAT(data,'%Y-%m') mes, SUM(vlr_total) tot
-  FROM   TB_INDICACAO
-  WHERE  status='Faturado'
-  GROUP  BY mes";
-/* ── Faturamento mensal (Treinamentos) ─────────────────────────── */
-$qTrein = "
-  SELECT DATE_FORMAT(data_conclusao,'%Y-%m') mes,
-         SUM(valor_faturamento)               tot
-  FROM   TB_CLIENTES
-  WHERE  faturamento = 'FATURADO'
-  GROUP  BY mes
+$whereChartSql = "WHERE " . implode(' AND ', $whereChart);
+$whereTrainSql = "WHERE " . implode(' AND ', $whereTrain);
+
+// 2) Queries adaptadas
+$qInd = "
+  SELECT 
+    DATE_FORMAT(i.data, '%Y-%m') AS mes,
+    SUM(i.vlr_total)              AS tot
+  FROM TB_INDICACAO i
+  $whereChartSql
+  GROUP BY mes
 ";
 
+$qTrein = "
+  SELECT 
+    DATE_FORMAT(c.data_conclusao, '%Y-%m') AS mes,
+    SUM(c.valor_faturamento)               AS tot
+  FROM TB_CLIENTES c
+  $whereTrainSql
+  GROUP BY mes
+";
+
+// 3) Alimenta os arrays [YYYY-MM] => valor
 $indPorMes   = [];
 $treinPorMes = [];
 
-/* joga resultado em arrays [YYYY‑MM] => valor */
-$res = mysqli_query($conn,$qInd);
-while($r = mysqli_fetch_assoc($res))   $indPorMes[$r['mes']]   = (float)$r['tot'];
+$res = mysqli_query($conn, $qInd);
+while($r = mysqli_fetch_assoc($res)) {
+  $indPorMes[$r['mes']] = (float)$r['tot'];
+}
 
-$res = mysqli_query($conn,$qTrein);
-while($r = mysqli_fetch_assoc($res))   $treinPorMes[$r['mes']] = (float)$r['tot'];
+$res = mysqli_query($conn, $qTrein);
+while($r = mysqli_fetch_assoc($res)) {
+  $treinPorMes[$r['mes']] = (float)$r['tot'];
+}
 
-/* constrói os 12 rótulos retroativos (jan/2025, fev/2025, …) – sem strftime */
+// 4) Gera labels e dados para TODO o ano atual
 $mesesAbv = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-
 $labels     = [];
 $dadosInd   = [];
 $dadosTrein = [];
+$currentYear = date('Y');
 
-for ($i = 11; $i >= 0; $i--) {
-  $ts  = strtotime("first day of -$i month");   // timestamp do mês desejado
-  $mes = date('Y-m', $ts);                      // ex.: 2025-03
-
-  // label “mar/2025”
-  $labels[] = $mesesAbv[(int)date('n', $ts) - 1] . '/' . date('Y', $ts);
-
-  $dadosInd[]   = $indPorMes[$mes]   ?? 0;
-  $dadosTrein[] = $treinPorMes[$mes] ?? 0;
+for ($m = 1; $m <= 12; $m++) {
+  $labels[]     = "{$mesesAbv[$m-1]}/{$currentYear}";
+  $mm           = str_pad($m, 2, '0', STR_PAD_LEFT);
+  $key          = "{$currentYear}-{$mm}";
+  $dadosInd[]   = $indPorMes[$key]   ?? 0;
+  $dadosTrein[] = $treinPorMes[$key] ?? 0;
 }
 
-/* serializa para o JS */
+// 5) Serializa para o JS
 $labelsJson     = json_encode($labels,     JSON_UNESCAPED_UNICODE);
 $dadosIndJson   = json_encode($dadosInd);
 $dadosTreinJson = json_encode($dadosTrein);
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -340,7 +431,12 @@ $dadosTreinJson = json_encode($dadosTrein);
       ? $r['total_indicacoes']
       : $r['total_faturado_consult']
     , $dados);
-    $max = max($valores) ?: 1;
+
+    if (!empty($valores)) {
+      $max = max($valores);
+    } else {
+      $max = 1;
+    }
   ?>
   <div class="table-responsive ranking-scroll">
     <table class="table table-striped align-middle mb-0">
@@ -457,6 +553,10 @@ $dadosTreinJson = json_encode($dadosTrein);
           <div class="card-header d-flex justify-content-between align-items-center">
             <h4 class="mb-0">Indicações de Plugins</h4>
             <div class="d-flex justify-content-end gap-2">
+              <!-- Botão para abrir o modal de filtro -->
+              <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
+                <i class="fa-solid fa-filter"></i>
+              </button>
               <input type="text" id="filtro-indicacoes" class="form-control" style="max-width:200px;" placeholder="Pesquisar...">
               <?php if ($cargo==='Admin'||$cargo==='User'||$cargo==='Conversor'): ?>
               <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#modalNovaIndicacao">
@@ -519,6 +619,7 @@ $dadosTreinJson = json_encode($dadosTrein);
                                                           <?= $i['id'] ?>,
                                                           <?= $i['plugin_id'] ?>,
                                                           '<?= $i['data'] ?>',
+                                                          '<?= $i['data_faturamento'] ?>',
                                                           '<?= $i['cnpj'] ?>',
                                                           '<?= $i['serial'] ?>',
                                                           '<?= addslashes($i['contato']) ?>',
@@ -609,7 +710,6 @@ $dadosTreinJson = json_encode($dadosTrein);
                                   </div>
                                   <?php endif; ?>
                             </div><!-- /row -->
-
                           </div><!-- /card-body -->
                         </div><!-- /card -->
                       </td>
@@ -620,9 +720,6 @@ $dadosTreinJson = json_encode($dadosTrein);
             </div>
           </div>
         </div>
-
-        <!-- ... modais de cadastro/edição/exclusão/consulta CNPJ ... -->
-
       </div><!-- /content -->
     </div><!-- /Área principal -->
   </div><!-- /d-flex-wrapper -->
@@ -895,13 +992,19 @@ $dadosTreinJson = json_encode($dadosTrein);
                 <div class="col-md-6" id="valorContainer" style="display: none;">
                   <div class="form-groupo mt-2">
                     <label for="editar_valor">Valor R$</label>
-                    <input type="text" class="form-control" id="editar_valor" name="editar_valor" value="0">
+                    <input type="text" class="form-control" id="editar_valor" name="editar_valor">
                   </div>
                 </div>
                 <div class="col-md-6" id="vendaContainer" style="display: none;"> 
                   <div class="form-group mt-2">
                     <label for="editar_venda">Nº Venda</label>
                     <input type="text" class="form-control" id="editar_venda" name="editar_venda">
+                  </div>
+                </div>
+                <div class="col-md-6" id="faturamentoContainer" style="display:none">
+                  <div class="form-group mt-2">
+                    <label for="editar_data_faturamento">Data de Faturamento</label>
+                    <input type="date" class="form-control" id="editar_data_faturamento" name="data_faturamento" value="<?= isset($i['data_faturamento']) ? date('Y-m-d', strtotime($i['data_faturamento'])) : '' ?>">
                   </div>
                 </div>
               </div>
@@ -935,6 +1038,111 @@ $dadosTreinJson = json_encode($dadosTrein);
       </div>
     </div>
   </div>
+
+  <!-- Modal de Filtro -->
+  <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+      <div class="modal-content">
+        <form method="GET" action="indicacao.php">
+          <div class="modal-header">
+            <h5 class="modal-title" id="filterModalLabel">Filtrar Indicações</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+
+            <!-- Escolha da coluna -->
+            <div class="mb-3">
+              <label for="filterColumn" class="form-label">Filtrar por:</label>
+              <select class="form-select" id="filterColumn" name="filterColumn">
+                <option value="periodo" <?php if($filterColumn=='periodo') echo 'selected'; ?>>Período</option>
+                <option value="usuario" <?php if($filterColumn=='usuario') echo 'selected'; ?>>Usuário</option>
+                <option value="plugin"  <?php if($filterColumn=='plugin')  echo 'selected'; ?>>Plugin</option>
+                <option value="status"  <?php if($filterColumn=='status')  echo 'selected'; ?>>Status</option>
+              </select>
+            </div>
+
+            <!-- Filtrar por Período -->
+            <div id="filterPeriod" style="display:none;">
+              <div class="col-md-6">
+                <div class="form-check form-switch mt-4 mb-4">
+                  <input class="form-check-input" type="checkbox" role="switch" id="use_cycle" name="use_cycle" <?= isset($_GET['use_cycle']) ? 'checked' : '' ?>>
+                  <label class="form-check-label" for="use_cycle">
+                    Ciclo (45 dias)
+                  </label>
+                </div>
+              </div>
+              <!-- container de data início/fim + checkbox -->
+              <div id="dateRangeContainer" class="row align-items-end mb-2">
+                <div class="col-md-5">
+                  <label for="data_inicio" class="form-label">Data Início</label>
+                  <input type="date" class="form-control" id="data_inicio" name="data_inicio" value="<?= htmlspecialchars($dataInicio) ?>">
+                </div>
+                <div class="col-md-5">
+                  <label for="data_fim" class="form-label">Data Fim</label>
+                  <input type="date" class="form-control" id="data_fim" name="data_fim" value="<?= htmlspecialchars($dataFim) ?>">
+                </div>
+              </div>
+              <!-- novo container de competência (mês/ano) -->
+              <div id="competenciaContainer" class="mb-2" style="display:none;">
+                <label for="competencia" class="form-label">Competência</label>
+                <input type="month" class="form-control" id="competencia" name="competencia" value="<?= htmlspecialchars($competencia ?? '') ?>">
+              </div>
+            </div>
+
+            <!-- Filtrar por Usuário -->
+            <div id="filterUsuario" style="display:none;">
+              <div class="mb-3">
+                <label for="usuario" class="form-label">Usuário</label>
+                <select class="form-select" id="usuario" name="usuario">
+                  <option value="">Selecione</option>
+                  <?php while($u = mysqli_fetch_assoc($resUsuarios)): ?>
+                  <option value="<?= $u['Id'] ?>" <?= $u['Id']==$usuario?'selected':'' ?>>
+                    <?= htmlspecialchars($u['Nome']) ?>
+                  </option>
+                  <?php endwhile; ?>
+                </select>
+              </div>
+            </div>
+
+            <!-- Filtrar por Plugin -->
+            <div id="filterPlugin" style="display:none;">
+              <div class="mb-3">
+                <label for="plugin" class="form-label">Plugin</label>
+                <select class="form-select" id="plugin" name="plugin">
+                  <option value="">Selecione</option>
+                  <?php
+                    $sqlPlugins = "SELECT * FROM TB_PLUGIN ORDER BY nome";
+                    $resPlugins = mysqli_query($conn, $sqlPlugins);
+                    while($plugin = mysqli_fetch_assoc($resPlugins)):
+                  ?>
+                    <option value="<?php echo $plugin['id']; ?>"><?php echo $plugin['nome']; ?></option>
+                  <?php endwhile; ?>
+                </select>
+              </div>
+            </div>
+
+            <!-- Filtrar por Status -->
+            <div id="filterStatus" style="display:none;">
+              <div class="mb-3">
+                <label for="status" class="form-label">Status</label>
+                <select name="status" class="form-select" id="status">
+                  <option value="Pendente"  <?= $status==='Pendente' ? 'selected' : '' ?>>Pendente</option>
+                  <option value="Faturado"  <?= $status==='Faturado' ? 'selected' : '' ?>>Faturado</option>
+                  <option value="Cancelado" <?= $status==='Cancelado'? 'selected' : '' ?>>Cancelado</option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+          <div class="modal-footer">
+            <a href="indicacao.php" class="btn btn-secondary">Limpar</a>
+            <button type="submit" class="btn btn-primary">Aplicar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
 
   <!-- Modal Consulta CNPJ -------------------------------------------->
 <div class="modal fade" id="modalConsultaCnpj" tabindex="-1" aria-hidden="true">
@@ -987,63 +1195,94 @@ $dadosTreinJson = json_encode($dadosTrein);
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-  // Exibe/oculta campos do modal de edição quando status é "Faturado"
-  function verificarStatus() {
-    var status = document.getElementById("editar_status");
-    var valorContainer = document.getElementById("valorContainer");
-    var vendaContainer = document.getElementById("vendaContainer");
-    var valor = document.getElementById("editar_valor");
-    var venda = document.getElementById("editar_venda");
+    function verificarStatus() {
+      const status             = document.getElementById("editar_status").value;
+      const valorContainer     = document.getElementById("valorContainer");
+      const vendaContainer     = document.getElementById("vendaContainer");
+      const faturamentoContainer = document.getElementById("faturamentoContainer");
+      const valor   = document.getElementById("editar_valor");
+      const venda   = document.getElementById("editar_venda");
+      const faturamento = document.getElementById("editar_data_faturamento");
+      if (status === "Faturado") {
+        valorContainer.style.display       = "block";
+        vendaContainer.style.display       = "block";
+        faturamentoContainer.style.display = "block";
+        valor.required         = true;
+        venda.required         = true;
+        faturamento.required   = true;
+      } else {
+        valorContainer.style.display       = "none";
+        vendaContainer.style.display       = "none";
+        faturamentoContainer.style.display = "none";
+        valor.required         = false;
+        venda.required         = false;
+        faturamento.required   = false;
+      }
+    }
 
-    var statusSelecionado = status.options[status.selectedIndex].text.trim();
-    if (statusSelecionado === "Faturado") {
-      valorContainer.style.display = "block";
-      vendaContainer.style.display = "block";
-      valor.setAttribute("required", "true");
-      venda.setAttribute("required", "true");
-    } else {
-      valorContainer.style.display = "none";
-      vendaContainer.style.display = "none";
-      valor.removeAttribute("required");
-      venda.removeAttribute("required");
-    }
-  }
-</script>
+    // garante que o script seja executado ao mudar o status
+    document.getElementById("editar_status")
+            .addEventListener("change", verificarStatus);
+
+    // e quando o modal abre, para já mostrar corretamente
+    $('#modalEditarIndicacao').on('shown.bs.modal', verificarStatus);
+  </script>
+
 <script>
-  // Formatação do campo de valor (duas casas decimais)
+  // Recebe uma string só com dígitos e devolve "R$X.YY"
   function formatCurrency(digits) {
+    // garante só números
     digits = digits.replace(/\D/g, "");
-    while (digits.length < 2) {
-      digits = "0" + digits;
-    }
-    var intPart = digits.slice(0, digits.length - 2);
-    var decPart = digits.slice(-2);
+    // pelo menos 4 dígitos (2 casas decimais + algo antes)
+    while (digits.length < 4) digits = "0" + digits;
+    // parte inteira e decimal
+    let intPart = digits.slice(0, digits.length - 2);
+    let decPart = digits.slice(-2);
+    // remove zeros à esquerda
     intPart = intPart.replace(/^0+/, "") || "0";
+    // ponto a cada 3 dígitos
     intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     return "R$" + intPart + "," + decPart;
   }
+
+  // Chamado a cada digitação para formatação incremental
   function updateValorField() {
-    var input = document.getElementById("editar_valor");
+    const input = document.getElementById("editar_valor");
     if (!input) return;
-    var digits = input.value.replace(/\D/g, "");
+    const digits = input.value.replace(/\D/g, "");
     input.value = formatCurrency(digits);
   }
-  document.addEventListener("DOMContentLoaded", function() {
-    var input = document.getElementById("editar_valor");
-    if (input) {
-      if (!input.value || input.value.replace(/\D/g, "") === "") {
-        input.value = formatCurrency("0");
-      } else {
-        input.value = formatCurrency(input.value.replace(/\D/g, ""));
-      }
-      input.addEventListener("input", updateValorField);
-    }
 
-    $('#modalEditarIndicacao').on('shown.bs.modal', function () {
-      if (input) updateValorField();
-    });
+  // Formata corretamente o valor bruto vindo do banco (decimal(18,4))
+  function initValorFormat() {
+    const input = document.getElementById("editar_valor");
+    if (!input) return;
+    let raw = input.value.trim();
+    // raw ex: "1.0000" ou "1.000"
+    raw = raw.replace(/,/, ".");           // caso venha com vírgula
+    let num = parseFloat(raw);
+    if (isNaN(num)) num = 0;
+    // arredonda a 2 casas
+    num = Math.round(num * 100) / 100;
+    // garante duas casas na string
+    const [intPart, decPart] = num.toFixed(2).split(".");
+    // monta string de dígitos "1234" representando centavos
+    const digits = intPart + decPart;
+    input.value = formatCurrency(digits);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const input = document.getElementById("editar_valor");
+    if (!input) return;
+
+    // 1) Só ao abrir o modal: lê o valor bruto do banco e formata
+    $('#modalEditarIndicacao').on('shown.bs.modal', initValorFormat);
+
+    // 2) Depois, a cada digitação: mantém formatação incremental
+    input.addEventListener("input", updateValorField);
   });
 </script>
+
 <script>
   // Cadastrar novo plugin via AJAX (modal de cadastro)
   $(document).ready(function(){
@@ -1153,10 +1392,11 @@ $dadosTreinJson = json_encode($dadosTrein);
 </script>
 <script>
   // Função para popular o modal de edição com os dados recebidos
-  function editarIndicacao(id, plugin_id, data, cnpj, serial, contato, fone, idConsultor, status, editar_valor, editar_venda) {
+  function editarIndicacao(id, plugin_id, data, data_faturamento, cnpj, serial, contato, fone, idConsultor, status, editar_valor, editar_venda) {
     document.getElementById("editar_id").value = id;
     document.getElementById("editar_plugin_id").value = plugin_id;
     document.getElementById("editar_data").value = data;
+    document.getElementById("editar_data_faturamento").value = data_faturamento;
     document.getElementById("editar_cnpj").value = cnpj;
     document.getElementById("editar_serial").value = serial;
     document.getElementById("editar_contato").value = contato;
@@ -1261,6 +1501,162 @@ document.querySelectorAll('.consulta-cnpj').forEach(btn=>{
       });
   });
 });
+
+// SCRIPT PARA MODAL DE FILTRO
+  document.addEventListener('DOMContentLoaded', function(){
+    function toggleFilters(){
+      const col = document.getElementById('filterColumn').value;
+      document.getElementById('filterPeriod').style.display  = col==='periodo' ? 'block' : 'none';
+      document.getElementById('filterUsuario').style.display = col==='usuario'? 'block' : 'none';
+      document.getElementById('filterPlugin').style.display  = col==='plugin' ? 'block' : 'none';
+      document.getElementById('filterStatus').style.display  = col==='status' ? 'block' : 'none';
+    }
+    document.getElementById('filterColumn')
+            .addEventListener('change', toggleFilters);
+    // ao abrir modal, ajusta visibilidade atual
+    document.getElementById('filterModal')
+            .addEventListener('shown.bs.modal', toggleFilters);
+  });
+
+  // alterna entre data-range e competência
+  function toggleCycleMode() {
+    const useCycle = document.getElementById('use_cycle').checked;
+    document.getElementById('dateRangeContainer').style.display     = useCycle ? 'none' : 'flex';
+    document.getElementById('competenciaContainer').style.display   = useCycle ? 'block' : 'none';
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    // quando abrir o modal de filtro, ajusta visibilidade
+    const filterModal = document.getElementById('filterModal');
+    filterModal.addEventListener('shown.bs.modal', toggleCycleMode);
+
+    // ao marcar/desmarcar o checkbox
+    document.getElementById('use_cycle')
+            .addEventListener('change', toggleCycleMode);
+  });
+
+  //SCRIPT PARA CONTROLE DE PREENCHIMENTO DE DATA
+  document.addEventListener('DOMContentLoaded', function() {
+    const cadastroInput     = document.getElementById('editar_data');
+    const faturamentoInput  = document.getElementById('editar_data_faturamento');
+    const editForm          = document.querySelector('#modalEditarIndicacao form');
+
+    if (!cadastroInput || !faturamentoInput || !editForm) return;
+
+    // 1) Garante que data de faturamento nunca possa ser menor que data de cadastro
+    function updateFaturamentoMin() {
+      faturamentoInput.min = cadastroInput.value;
+      // opcional: se já estiver fora do novo min, limpa ou ajusta
+      if (faturamentoInput.value && faturamentoInput.value < cadastroInput.value) {
+        faturamentoInput.value = cadastroInput.value;
+      }
+    }
+
+    // dispara sempre que o usuário mudar a data de cadastro
+    cadastroInput.addEventListener('change', updateFaturamentoMin);
+
+    // ajusta assim que o modal abrir
+    $('#modalEditarIndicacao').on('shown.bs.modal', updateFaturamentoMin);
+
+    // 2) Validação extra antes de submeter
+    editForm.addEventListener('submit', function(e) {
+      if (faturamentoInput.value < cadastroInput.value) {
+        e.preventDefault();
+        showToast('Data de faturamento não pode ser menor que a data de cadastro','error');
+      }
+    });
+  });
+
+  //CONTROLE PARA NÂO DEIXAR DATA FATURAMENTO MENOR QUE DATA CADASTRO
+document.addEventListener('DOMContentLoaded', () => {
+  const cadastroInput    = document.getElementById('editar_data');
+  const faturamentoInput = document.getElementById('editar_data_faturamento');
+  const form             = document.querySelector('#modalEditarIndicacao form');
+  if (!cadastroInput || !faturamentoInput || !form) return;
+
+  // 45 dias exatos a partir do 1º do mês de cadastro
+  function getCycleWindow(cadDate) {
+    const start = new Date(cadDate.getFullYear(), cadDate.getMonth(), 1);
+    const end   = new Date(start);
+    end.setDate(start.getDate() + 44);
+    return { start, end };
+  }
+
+  // Atualiza min/max no picker de faturamento sempre que cadastro muda
+  cadastroInput.addEventListener('change', () => {
+    if (!cadastroInput.value) return;
+    const [y, m] = cadastroInput.value.split('-').map(Number);
+    faturamentoInput.min = cadastroInput.value;
+    faturamentoInput.max = getCycleWindow(new Date(y, m-1, 1))
+                             .end.toISOString().slice(0,10);
+    checkCycle();
+  });
+
+  function checkCycle() {
+    const cadVal = cadastroInput.value;
+    const fatVal = faturamentoInput.value;
+    if (!cadVal || !fatVal) return true;
+
+    const [yC, mC, dC] = cadVal.split('-').map(Number);
+    const [yF, mF, dF] = fatVal.split('-').map(Number);
+    const cadDate = new Date(yC, mC-1, dC);
+    const fatDate = new Date(yF, mF-1, dF);
+
+    // 1) Se for mesmo mês/ano, sempre válido
+    if (yF === yC && (mF-1) === (mC-1)) {
+      return true;
+    }
+
+    // 2) Senão, aplica janela de 45 dias
+    const { start, end } = getCycleWindow(cadDate);
+    if (fatDate < start || fatDate > end) {
+      const fmt = d => d.toLocaleDateString('pt-BR');
+      showEscapeToast(
+        `Fora do ciclo (${fmt(start)} → ${fmt(end)}).`
+      );
+      return false;
+    }
+    return true;
+  }
+
+  faturamentoInput.addEventListener('change', checkCycle);
+  form.addEventListener('submit', e => {
+    if (!checkCycle()) e.preventDefault();
+  });
+  $('#modalEditarIndicacao').on('shown.bs.modal', () => {
+    cadastroInput.dispatchEvent(new Event('change'));
+  });
+});
+
+
+// cria ou recupera o container de escape
+function getEscapeContainer() {
+  let c = document.getElementById('escape-toast-container');
+  if (!c) {
+    c = document.createElement('div');
+    c.id = 'escape-toast-container';
+    document.body.appendChild(c);
+  }
+  return c;
+}
+
+// mostra toast fora do modal, com duração estendida (5s)
+function showEscapeToast(message) {
+  const container = getEscapeContainer();
+  const toast = document.createElement('div');
+  toast.className = 'toast error';  // reutiliza classes de estilo
+  toast.textContent = message;
+  container.appendChild(toast);
+  // força reflow para animação
+  requestAnimationFrame(() => toast.classList.add('show'));
+  // remove após 5s
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => container.removeChild(toast), 300);
+  }, 5000);
+}
 </script>
+
+
 </body>
 </html>

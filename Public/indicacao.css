@@ -483,3 +483,17 @@ td.sobrepor2 {
 .progress-bar {
   background-color: #0d6efd;
 }
+
+/* container para toasts que escapam do modal */
+#escape-toast-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1100; /* acima do modal (1050) */
+  pointer-events: none;
+}
+
+/* opcional: estilo igual ao seu toast, ajuste se necessário */
+#escape-toast-container .toast {
+  margin-bottom: .5rem;
+}
