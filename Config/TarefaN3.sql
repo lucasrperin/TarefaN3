@@ -429,3 +429,65 @@ CREATE TABLE IF NOT EXISTS TB_RECORRENTES_CARDS (
       REFERENCES TB_RECORRENTES(id)
       ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/* ========= TB_OKR ========= */
+CREATE TABLE TB_OKR (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    descricao     VARCHAR(255) NOT NULL,
+    idEquipe      INT          NOT NULL,
+    dt_inicio     DATE         DEFAULT NULL,
+    dt_fim        DATE         DEFAULT NULL,
+    ativo         TINYINT(1)   NOT NULL DEFAULT 1,
+    criado_em     DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME     DEFAULT CURRENT_TIMESTAMP
+                                ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_okr_equipe FOREIGN KEY (idEquipe)
+        REFERENCES TB_EQUIPE(id),
+    INDEX idx_okr_equipe (idEquipe)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+/* ========= TB_META ========= */
+CREATE TABLE TB_META (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    idOkr           INT            NOT NULL,
+    ano             YEAR           NOT NULL,
+    meta            DECIMAL(8,4)            NULL,
+    meta_seg        INT                     DEFAULT NULL,  -- alvo em segundos
+    menor_melhor    TINYINT(1)  NOT NULL DEFAULT 0,        -- 1 = menor é melhor
+    descricao       VARCHAR(255) NOT NULL,   -- nome do KR / meta
+    unidade         VARCHAR(30)  DEFAULT NULL, -- %, R$, s, min, etc.
+    dt_prazo        DATE         NOT NULL,
+    criado_em       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_meta_okr FOREIGN KEY (idOkr)
+        REFERENCES TB_OKR(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_okr_ano_desc (idOkr, ano, descricao),
+    INDEX idx_meta_okr (idOkr)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+
+/* ========= TB_OKR_ATINGIMENTO ========= */
+CREATE TABLE TB_OKR_ATINGIMENTO (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    idMeta          INT       NOT NULL,
+    ano             YEAR      NOT NULL,
+    mes             TINYINT   NOT NULL,   
+    realizado       DECIMAL(8,4)  NULL,
+    realizado_seg   INT           NULL,   -- valor em segundos
+    criado_em       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_ating_meta FOREIGN KEY (idMeta)
+        REFERENCES TB_META(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_meta_mes (idMeta, ano, mes),   -- apenas 1 registro por meta/mês
+    INDEX idx_ating_meta (idMeta)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4;
+
+
+
+CREATE TABLE TB_OKR_NIVEL (
+    idOkr   INT NOT NULL,
+    idNivel INT NOT NULL,
+    PRIMARY KEY (idOkr, idNivel),
+    CONSTRAINT fk_on_okr   FOREIGN KEY (idOkr)   REFERENCES TB_OKR(id)   ON DELETE CASCADE,
+    CONSTRAINT fk_on_nivel FOREIGN KEY (idNivel) REFERENCES TB_NIVEL(id) ON DELETE CASCADE
+);
