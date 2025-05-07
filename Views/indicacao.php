@@ -79,6 +79,7 @@ $whereSQL = $where
 $sql = "
   SELECT 
     i.*,
+    i.user_id,
     p.nome AS plugin_nome,
     CASE
       WHEN i.idConsultor = 29 THEN 'Não Possui'
@@ -368,6 +369,9 @@ $dadosTreinJson = json_encode($dadosTrein);
             case "3":
               msg = "Erro ao Excluír Indicação!";
               break;
+            case "4":
+              msg = "Acesso negado: você só pode editar suas próprias indicações.";
+              break;
           }
           if (msg) showToast(msg, "erro");
         }
@@ -566,80 +570,89 @@ $dadosTreinJson = json_encode($dadosTrein);
             </div>
           </div>
           <div class="card-body">
-                            <div class="table-responsive access-scroll">
-                            <table class="table align-middle mb-0" id="tabela-indicacoes">
-                                  <thead class="table-header-light">    
-                                    <tr>
-                                      <th>Plugin</th>
-                                      <th>Data</th>
-                                      <th>Status</th>
-                                      <th>Consultor(a)</th>
-                                      <th class="text-center">Ações</th>
-                                    </tr>
-                                  </thead>
-                                <tbody>
-                                  <?php foreach ($indicacoes as $i): ?>
-                                    <?php
-                                      // chaves únicas para ligar linha ↔ collapse
-                                      $uid = 'ind_'.$i['id'];
-                                    ?>
-                                    <!-- linha principal -------------------------------------------------->
-                                    <tr class="table-row-hover"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target="#<?= $uid ?>"
-                                        aria-expanded="false"
-                                        aria-controls="<?= $uid ?>">
-                                        <?php $logo = $logos[$i['plugin_nome']] ?? null; ?>
-                                        <td class="d-flex align-items-center gap-2 w-100">
-                                        <?php if ($logo): ?>
-                                          <img src="../<?= $logo; ?>" alt="" style="width:25px;height:31px;">
-                                        <?php endif; ?>
-                                        <span><?= htmlspecialchars($i['plugin_nome']); ?></span>
-                                      </td>
-                                      <td><?= date('d/m/Y', strtotime($i['data'])); ?></td>
-                                      <td>
-                                      <?php
-                                        switch ($i['status']) {
-                                          case 'Faturado':   $badge = 'bg-success';    break;   // verde
-                                          case 'Cancelado':  $badge = 'bg-danger';     break;   // vermelho
-                                          default:           $badge = 'bg-secondary';  break;   // cinza (Pendente, etc.)
-                                        }
-                                      ?>
-                                      <span class="badge <?= $badge; ?>">
-                                        <?= $i['status']; ?>
-                                      </span>
-                                      </td>
-                                      <td><?= htmlspecialchars($i['consultor_nome']); ?></td>
-                                      <td class="text-center">
-                                        <!-- Exemplo de ações -->
-                                        <button class="btn btn-sm btn-primary"
-                                                title="Editar"
-                                                onclick="event.stopPropagation();
-                                                        editarIndicacao(
-                                                          <?= $i['id'] ?>,
-                                                          <?= $i['plugin_id'] ?>,
-                                                          '<?= $i['data'] ?>',
-                                                          '<?= $i['data_faturamento'] ?>',
-                                                          '<?= $i['cnpj'] ?>',
-                                                          '<?= $i['serial'] ?>',
-                                                          '<?= addslashes($i['contato']) ?>',
-                                                          '<?= $i['fone'] ?>',
-                                                          <?= $i['idConsultor'] ?>,
-                                                          '<?= $i['status'] ?>',
-                                                          '<?= $i['vlr_total'] ?? 0 ?>',
-                                                          '<?= $i['n_venda'] ?? '' ?>'
-                                                        );">
-                                          <i class="fa-solid fa-pen-to-square"></i>
-                                        </button>
+        <div class="table-responsive access-scroll">
+          <table class="table align-middle mb-0" id="tabela-indicacoes">
+                <thead class="table-header-light">    
+                  <tr>
+                    <th>Plugin</th>
+                    <th>Data</th>
+                    <th>Status</th>
+                    <th>Consultor(a)</th>
+                    <th class="text-center">Ações</th>
+                  </tr>
+                </thead>
+              <tbody>
+                <?php foreach ($indicacoes as $i): ?>
+                  <?php
+                    // chaves únicas para ligar linha ↔ collapse
+                    $uid = 'ind_'.$i['id'];
+                  ?>
+                  <!-- linha principal -------------------------------------------------->
+                  <tr class="table-row-hover"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#<?= $uid ?>"
+                      aria-expanded="false"
+                      aria-controls="<?= $uid ?>">
+                      <?php $logo = $logos[$i['plugin_nome']] ?? null; ?>
+                      <td class="d-flex align-items-center gap-2 w-100">
+                      <?php if ($logo): ?>
+                        <img src="../<?= $logo; ?>" alt="" style="width:25px;height:31px;">
+                      <?php endif; ?>
+                      <span><?= htmlspecialchars($i['plugin_nome']); ?></span>
+                      </td>
+                      <td><?= date('d/m/Y', strtotime($i['data'])); ?></td>
+                      <td>
+                      <?php
+                        switch ($i['status']) {
+                          case 'Faturado':   $badge = 'bg-success';    break;   // verde
+                          case 'Cancelado':  $badge = 'bg-danger';     break;   // vermelho
+                          default:           $badge = 'bg-secondary';  break;   // cinza (Pendente, etc.)
+                        }
+                      ?>
+                      <span class="badge <?= $badge; ?>">
+                        <?= $i['status']; ?>
+                      </span>
+                      </td>
+                      <td><?= htmlspecialchars($i['consultor_nome']); ?></td>
+                      <?php 
+                        $autorId = $i['user_id'];
+                        $status  = $i['status'];
+                        $pode = in_array($cargo, ['Admin','Comercial'], true) || ($autorId == $_SESSION['usuario_id'] && $status !== 'Faturado');
+                      ?>
+                        <td class="text-center">
+                          <?php if($pode): ?>
+                            <button
+                              type="button"
+                              class="btn btn-sm btn-primary btn-editar-indicacao"
+                              data-bs-toggle="modal"
+                              data-bs-target="#modalEditarIndicacao"
+                              data-id="<?= $i['id'] ?>"
+                              data-plugin_id="<?= $i['plugin_id'] ?>"
+                              data-data="<?= date('Y-m-d', strtotime($i['data'])) ?>"
+                              data-data_faturamento="<?= !empty($i['data_faturamento']) ? date('Y-m-d', strtotime($i['data_faturamento'])) : '' ?>"
+                              data-cnpj="<?= htmlspecialchars($i['cnpj'], ENT_QUOTES) ?>"
+                              data-serial="<?= htmlspecialchars($i['serial'], ENT_QUOTES) ?>"
+                              data-contato="<?= htmlspecialchars($i['contato'], ENT_QUOTES) ?>"
+                              data-fone="<?= htmlspecialchars($i['fone'],    ENT_QUOTES) ?>"
+                              data-idconsultor="<?= $i['idConsultor'] ?>"
+                              data-status="<?= $i['status'] ?>"
+                              data-vlr_total="<?= $i['vlr_total']   ?? '' ?>"
+                              data-n_venda="<?= $i['n_venda']      ?? '' ?>"
+                              title="Editar"
+                            >
+                              <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
 
-                                        <!-- Botão EXCLUIR --------------------------------------------->
-                                        <button class="btn btn-sm btn-danger"
-                                                title="Excluir"
-                                                onclick="event.stopPropagation(); modalExcluir(<?= $i['id'] ?>);">
-                                          <i class="fa-solid fa-trash"></i>
-                                        </button>
-                                      </td>
-                                   
+                            <!-- Botão EXCLUIR --------------------------------------------->
+                            <button class="btn btn-sm btn-danger"
+                                    title="Excluir"
+                                    onclick="event.stopPropagation(); modalExcluir(<?= $i['id'] ?>);">
+                              <i class="fa-solid fa-trash"></i>
+                            </button>
+                          <?php else: ?>
+                            <!-- Somente para não deixar vazio -->
+                          <?php endif; ?>
+                        </td>
                     </tr>
                 <!-- linha de detalhe (collapse) ------------------------------------->
                     <tr class="collapse" id="<?= $uid ?>">
@@ -890,6 +903,11 @@ $dadosTreinJson = json_encode($dadosTrein);
           <div class="modal-body">
             <!-- Campo oculto para o ID -->
             <input type="hidden" id="editar_id" name="id">
+            <input type="hidden" id="editar_consultor_hidden" name="consultor">
+            <input type="hidden" id="editar_status_hidden"  name="editar_status">
+            <input type="hidden" id="editar_valor_hidden"   name="editar_valor">
+            <input type="hidden" id="editar_venda_hidden"   name="editar_venda">
+            <input type="hidden" id="editar_data_faturamento_hidden" name="data_faturamento">
             <div class="row">
               <div class="col-md-6">
                 <div class="form-group position-relative">
@@ -1046,7 +1064,7 @@ $dadosTreinJson = json_encode($dadosTrein);
         <form method="GET" action="indicacao.php">
           <div class="modal-header">
             <h5 class="modal-title" id="filterModalLabel">Filtrar Indicações</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
 
@@ -1190,7 +1208,6 @@ $dadosTreinJson = json_encode($dadosTrein);
   </div>
 </div>
 
-  
   <!-- Scripts JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -1391,43 +1408,67 @@ $dadosTreinJson = json_encode($dadosTrein);
   });
 </script>
 <script>
-  // Função para popular o modal de edição com os dados recebidos
-  function editarIndicacao(id, plugin_id, data, data_faturamento, cnpj, serial, contato, fone, idConsultor, status, editar_valor, editar_venda) {
-    document.getElementById("editar_id").value = id;
-    document.getElementById("editar_plugin_id").value = plugin_id;
-    document.getElementById("editar_data").value = data;
-    document.getElementById("editar_data_faturamento").value = data_faturamento;
-    document.getElementById("editar_cnpj").value = cnpj;
-    document.getElementById("editar_serial").value = serial;
-    document.getElementById("editar_contato").value = contato;
-    document.getElementById("editar_fone").value = fone;
-    document.getElementById("editar_consultor").value = idConsultor;
+  const modalEdit = document.getElementById('modalEditarIndicacao');
 
-    if (document.getElementById("editar_status")) {
-      document.getElementById("editar_status").value = status;
-      if (status === "Faturado") {
-        if (document.getElementById("editar_valor")) {
-          document.getElementById("editar_valor").value = editar_valor;
-        }
-        if (document.getElementById("editar_venda")) {
-          document.getElementById("editar_venda").value = editar_venda;
-        }
-      } else {
-        if (document.getElementById("editar_valor")) {
-          document.getElementById("editar_valor").value = "";
-        }
-        if (document.getElementById("editar_venda")) {
-          document.getElementById("editar_venda").value = "";
-        }
-      }
-      verificarStatus();
-    } else if (document.getElementById("editar_status_hidden")) {
-      document.getElementById("editar_status_hidden").value = status;
-    }
+modalEdit.addEventListener('show.bs.modal', function(event) {
+  // o botão que disparou o modal
+  const btn = event.relatedTarget;
 
-    $('#modalEditarIndicacao').modal('show');
+  // lê todos os dados de uma vez
+  const {
+    id,
+    plugin_id,
+    data,
+    data_faturamento,
+    cnpj,
+    serial,
+    contato,
+    fone,
+    idconsultor,
+    status,
+    vlr_total,
+    n_venda
+  } = btn.dataset;
+
+  console.log(btn.dataset); // debug: veja tudo no console!
+
+  // helper para datas
+  const toDate = s => s || '';
+
+  // 1) Campos sempre visíveis
+  modalEdit.querySelector('#editar_id').value              = id;
+  modalEdit.querySelector('#editar_plugin_id').value       = plugin_id;
+  modalEdit.querySelector('#editar_data').value            = toDate(data);
+  modalEdit.querySelector('#editar_cnpj').value            = cnpj;
+  modalEdit.querySelector('#editar_serial').value          = serial;
+  modalEdit.querySelector('#editar_contato').value         = contato;
+  modalEdit.querySelector('#editar_fone').value            = fone;
+
+  // 2) Campos de “Admin/Comercial” ou seus hidden backups
+  const setField = (sel, hid, val) => {
+    const eSel = modalEdit.querySelector(sel);
+    const eHid = modalEdit.querySelector(hid);
+    if (eSel) eSel.value = val;
+    if (eHid) eHid.value = val;
+  };
+
+  setField('#editar_consultor',          '#editar_consultor_hidden',          idconsultor);
+  setField('#editar_status',             '#editar_status_hidden',             status);
+  setField('#editar_data_faturamento',   '#editar_data_faturamento_hidden',   data_faturamento);
+  setField('#editar_valor',              '#editar_valor_hidden',              vlr_total);
+  setField('#editar_venda',              '#editar_venda_hidden',              n_venda);
+
+  // 3) Se “Faturado”, mostra containers
+  if (status === 'Faturado') {
+    document.getElementById('valorContainer').style.display       = 'block';
+    document.getElementById('vendaContainer').style.display       = 'block';
+    document.getElementById('faturamentoContainer').style.display = 'block';
+  } else {
+    verificarStatus();
   }
+});
 
+  // Função para excluir indicação
   function modalExcluir(id) {
       document.getElementById('excluir_id').value = id;
       new bootstrap.Modal(document.getElementById('modalExcluir')).show();
