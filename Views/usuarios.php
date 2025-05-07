@@ -26,7 +26,7 @@ $query = "SELECT
           LEFT JOIN TB_EQUIPE c ON ena.idEquipe = c.id
           LEFT JOIN TB_NIVEL n ON ena.idNivel = n.id
           GROUP BY u.Id
-          ORDER BY u.Id ASC";
+          ORDER BY u.Nome ASC";
 $result = mysqli_query($conn, $query);
 
 // Consulta para as equipes

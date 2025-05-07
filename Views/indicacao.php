@@ -14,7 +14,23 @@ require '../Config/Database.php';
 
 $usuario_id    = $_SESSION['usuario_id'];
 $cargo         = $_SESSION['cargo']        ?? '';
+$nivel         = $_SESSION['nivel']        ?? '';
 $usuario_nome  = $_SESSION['usuario_nome'] ?? 'Usuário';
+
+// verifica se o usuário tem nível 6 (Supervisão) ou 7 (Gestão)
+$userId = $_SESSION['usuario_id'];
+// busca todos os níveis do usuário
+$sqlNiveis = "
+SELECT idNivel
+FROM TB_EQUIPE_NIVEL_ANALISTA
+WHERE idUsuario = {$userId}
+";
+$resNiveis = mysqli_query($conn, $sqlNiveis) or die(mysqli_error($conn));
+$niveis = [];
+while ($r = mysqli_fetch_assoc($resNiveis)) {
+$niveis[] = (int)$r['idNivel'];
+}
+$temSupervisaoOuGestao = in_array(7, $niveis) || in_array(8, $niveis);
 
 $logos = require '../Config/logos.php';
 
@@ -562,10 +578,14 @@ $dadosTreinJson = json_encode($dadosTrein);
                 <i class="fa-solid fa-filter"></i>
               </button>
               <input type="text" id="filtro-indicacoes" class="form-control" style="max-width:200px;" placeholder="Pesquisar...">
-              <?php if ($cargo==='Admin'||$cargo==='User'||$cargo==='Conversor'): ?>
-              <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#modalNovaIndicacao">
-                <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
-              </button>
+              <?php 
+                if (
+                  ( $cargo === 'Admin' || $cargo === 'User' || $cargo === 'Conversor') || $temSupervisaoOuGestao
+                ):
+              ?>
+                <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#modalNovaIndicacao">
+                  <i class="fa-solid fa-plus-circle me-1"></i> Cadastrar
+                </button>
               <?php endif; ?>
             </div>
           </div>
@@ -825,13 +845,17 @@ $dadosTreinJson = json_encode($dadosTrein);
                         <option value="<?php echo $plugin['id']; ?>"><?php echo $plugin['nome']; ?></option>
                       <?php endwhile; ?>
                     </select>
-                    <button class="btn btn-outline-secondary" type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#novoPluginCollapse"
-                            aria-expanded="false"
-                            aria-controls="novoPluginCollapse">
-                      <i class="fa-solid fa-plus"></i>
-                    </button>
+                    <?php if (
+                      ($cargo === 'Admin' || $cargo === 'Comercial') || $temSupervisaoOuGestao
+                    ): ?>
+                      <button class="btn btn-outline-secondary" type="button"
+                              data-bs-toggle="collapse"
+                              data-bs-target="#novoPluginCollapse"
+                              aria-expanded="false"
+                              aria-controls="novoPluginCollapse">
+                        <i class="fa-solid fa-plus"></i>
+                      </button>
+                    <?php endif; ?>
                   </div>
                 </div>
               </div>
@@ -922,13 +946,17 @@ $dadosTreinJson = json_encode($dadosTrein);
                         <option value="<?php echo $plugin['id']; ?>"><?php echo $plugin['nome']; ?></option>
                       <?php endwhile; ?>
                     </select>
-                    <button class="btn btn-outline-secondary" type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#novoPluginCollapseEdicao"
-                            aria-expanded="false"
-                            aria-controls="novoPluginCollapseEdicao">
-                      <i class="fa-solid fa-plus"></i>
-                    </button>
+                    <?php if (
+                      $cargo === 'Admin' || ( $cargo === 'Comercial' && $temSupervisaoOuGestao)
+                    ): ?>
+                      <button class="btn btn-outline-secondary" type="button"
+                              data-bs-toggle="collapse"
+                              data-bs-target="#novoPluginCollapseEdicao"
+                              aria-expanded="false"
+                              aria-controls="novoPluginCollapseEdicao">
+                        <i class="fa-solid fa-plus"></i>
+                      </button>
+                    <?php endif; ?>
                   </div>
                 </div>
               </div>
@@ -1212,38 +1240,76 @@ $dadosTreinJson = json_encode($dadosTrein);
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-    function verificarStatus() {
-      const status             = document.getElementById("editar_status").value;
-      const valorContainer     = document.getElementById("valorContainer");
-      const vendaContainer     = document.getElementById("vendaContainer");
-      const faturamentoContainer = document.getElementById("faturamentoContainer");
-      const valor   = document.getElementById("editar_valor");
-      const venda   = document.getElementById("editar_venda");
-      const faturamento = document.getElementById("editar_data_faturamento");
-      if (status === "Faturado") {
-        valorContainer.style.display       = "block";
-        vendaContainer.style.display       = "block";
-        faturamentoContainer.style.display = "block";
-        valor.required         = true;
-        venda.required         = true;
-        faturamento.required   = true;
-      } else {
-        valorContainer.style.display       = "none";
-        vendaContainer.style.display       = "none";
-        faturamentoContainer.style.display = "none";
-        valor.required         = false;
-        venda.required         = false;
-        faturamento.required   = false;
+  const currentUserId = <?= json_encode($_SESSION['usuario_id']); ?>;
+
+  function verificarStatus() {
+    const status               = document.getElementById("editar_status").value;
+    const valorContainer       = document.getElementById("valorContainer");
+    const vendaContainer       = document.getElementById("vendaContainer");
+    const faturamentoContainer = document.getElementById("faturamentoContainer");
+    const valor                = document.getElementById("editar_valor");
+    const venda                = document.getElementById("editar_venda");
+    const faturamento          = document.getElementById("editar_data_faturamento");
+    const consultor            = document.getElementById("editar_consultor");
+
+    if (status === "Faturado") {
+      if (!consultor.value) {
+        consultor.value = currentUserId;
+      }
+      valorContainer.style.display       = "block";
+      vendaContainer.style.display       = "block";
+      faturamentoContainer.style.display = "block";
+      valor.required         = true;
+      venda.required         = true;
+      faturamento.required   = true;
+    }
+    else if (status === "Cancelado") {
+      if (!consultor.value) {
+        consultor.value = currentUserId;
       }
     }
+    else {
+      valorContainer.style.display       = "none";
+      vendaContainer.style.display       = "none";
+      faturamentoContainer.style.display = "none";
+      valor.required         = false;
+      venda.required         = false;
+      faturamento.required   = false;
+    }
+  }
 
-    // garante que o script seja executado ao mudar o status
-    document.getElementById("editar_status")
-            .addEventListener("change", verificarStatus);
+  // muda o status
+  document.getElementById("editar_status")
+          .addEventListener("change", verificarStatus);
 
-    // e quando o modal abre, para já mostrar corretamente
-    $('#modalEditarIndicacao').on('shown.bs.modal', verificarStatus);
-  </script>
+  // ao abrir o modal
+  $('#modalEditarIndicacao').on('shown.bs.modal', function() {
+    // preenche data de hoje (YYYY-MM-DD)
+    const today = new Date().toISOString().slice(0,10);
+    const faturField      = $('#editar_data_faturamento');
+
+    if (!faturField.val()) {
+      faturField.val(today);
+    }
+
+    // depois ajusta visibilidade e consultor
+    verificarStatus();
+  });
+</script>
+
+<!-- Scripts para preencher data no cadastro -->
+<script>
+  $('#modalNovaIndicacao').on('shown.bs.modal', function() {
+    const today = new Date().toISOString().slice(0,10);
+    const $modal = $(this);
+
+    // preenche o campo "data" se estiver vazio
+    const $data = $modal.find('input[name="data"]');
+    if (!$data.val()) {
+      $data.val(today);
+    }
+  });
+</script>
 
 <script>
   // Recebe uma string só com dígitos e devolve "R$X.YY"
