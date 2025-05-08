@@ -628,7 +628,7 @@ foreach ($rows as $row) {
                         <div class="row mb-3"> 
                             <div>
                                 <label for="just_nota" class="form-label">Justificativa Nota</label>
-                                <textarea name="justificativa" id="just_nota" class="form-control" maxlength="255" rows="2"></textarea>
+                                <textarea name="justificativa" id="just_nota" class="form-control" rows="2"></textarea>
                             </div>
                         </div>
 
