@@ -658,6 +658,7 @@ $dadosTreinJson = json_encode($dadosTrein);
                               data-status="<?= $i['status'] ?>"
                               data-vlr_total="<?= $i['vlr_total']   ?? '' ?>"
                               data-n_venda="<?= $i['n_venda']      ?? '' ?>"
+                              data-observacao="<?= $i['observacao']      ?? '' ?>"
                               title="Editar"
                             >
                               <i class="fa-solid fa-pen-to-square"></i>
@@ -742,6 +743,11 @@ $dadosTreinJson = json_encode($dadosTrein);
                                     </a>
                                   </div>
                                   <?php endif; ?>
+                                  <div class="col-6 col-md-8 d-flex align-items-center gap-1">
+                                <i class="fa-solid fa-comment-dots text-secondary"></i>
+                                <span class="fw-semibold small text-muted">Observação:</span>
+                                <span class="small"><?= htmlspecialchars($i['observacao']); ?></span>
+                              </div>
                             </div><!-- /row -->
                           </div><!-- /card-body -->
                         </div><!-- /card -->
@@ -1055,6 +1061,12 @@ $dadosTreinJson = json_encode($dadosTrein);
                 </div>
               </div>
             <?php endif; ?>
+            <div class="row mb-3 mt-2"> 
+              <div>
+                <label for="obs" class="form-label">Observação</label>
+                <textarea name="observacao" id="obs" class="form-control" rows="2"></textarea>
+              </div>
+            </div>
           </div><!-- /modal-body -->
           <div class="modal-footer">
             <button type="submit" class="btn btn-primary">Salvar</button>
@@ -1493,7 +1505,8 @@ modalEdit.addEventListener('show.bs.modal', function(event) {
     idconsultor,
     status,
     vlr_total,
-    n_venda
+    n_venda,
+    observacao
   } = btn.dataset;
 
   console.log(btn.dataset); // debug: veja tudo no console!
@@ -1509,6 +1522,7 @@ modalEdit.addEventListener('show.bs.modal', function(event) {
   modalEdit.querySelector('#editar_serial').value          = serial;
   modalEdit.querySelector('#editar_contato').value         = contato;
   modalEdit.querySelector('#editar_fone').value            = fone;
+  modalEdit.querySelector('#obs').value                    = observacao;
 
   // 2) Campos de “Admin/Comercial” ou seus hidden backups
   const setField = (sel, hid, val) => {

@@ -34,6 +34,7 @@ $contato    = mysqli_real_escape_string($conn, $_POST['contato']);
 $fone       = mysqli_real_escape_string($conn, $_POST['fone']);
 $status     = $_POST['editar_status'] ?? null;          // virá no hidden
 $consultor  = $_POST['consultor']      ?? null;         // idem
+$observacao = mysqli_real_escape_string($conn, $_POST['observacao'] ?? null); 
 
 // garante status atual editável
 $row = mysqli_fetch_assoc(
@@ -45,12 +46,13 @@ if (!in_array($row['status'], ['Pendente','Faturado','Cancelado'], true)) {
 
 // monta campos que todo mundo pode alterar
 $sets = [
-    "plugin_id = '$plugin_id'",
-    "`data`    = '$data'",
-    "cnpj      = '$cnpj'",
-    "serial    = '$serial'",
-    "contato   = '$contato'",
-    "fone      = '$fone'"
+    "plugin_id  = '$plugin_id'",
+    "`data`     = '$data'",
+    "cnpj       = '$cnpj'",
+    "serial     = '$serial'",
+    "contato    = '$contato'",
+    "fone       = '$fone'",
+    "observacao = '$observacao'"
 ];
 
 // se for Cancelado ou Pendente, todo mundo pode alterar o status…
