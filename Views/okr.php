@@ -115,15 +115,16 @@ if ($view === 'quarter') {
         ON m.idOkr = o.id
        AND m.ano   = ?
 
-      LEFT JOIN (
-        SELECT
-          idMeta,
-          MAX(realizado)     AS realizado,
-          MAX(realizado_seg) AS realizado_seg
-        FROM TB_OKR_ATINGIMENTO
-        WHERE ano = ?
-        GROUP BY idMeta
-      ) r ON r.idMeta = m.id
+    LEFT JOIN (
+  SELECT
+    idMeta,
+    AVG(realizado)     AS realizado,
+    AVG(realizado_seg) AS realizado_seg
+  FROM TB_OKR_ATINGIMENTO
+  WHERE ano = ?
+  GROUP BY idMeta
+) r ON r.idMeta = m.id
+
 
       ORDER BY e.descricao, okr_n.niveis, o.descricao, m.id
     ";
@@ -161,22 +162,49 @@ function seg2time($s) {
 }
 
 function imprimeColsYear($r) {
-    if ($r['menor_melhor']) {
-        $meta = seg2time($r['meta_seg']);
-        $real = $r['realizado_seg'] ? seg2time($r['realizado_seg']) : '-';
-        $pct  = $r['realizado_seg'] ? round($r['meta_seg'] / $r['realizado_seg'] * 100,2) : 0;
-    } else {
-        $meta = number_format($r['meta'],2,',','.').' %';
-        $real = number_format($r['realizado'],2,',','.').' %';
-        $pct  = $r['meta'] ? round($r['realizado'] / $r['meta'] * 100,2) : 0;
-    }
-    $cls = $pct >= 100 ? 'bg-success text-dark'
-         : ($pct >= 90  ? 'bg-warning text-dark'
-                        : 'bg-danger text-light');
-    echo "<td class='text-center'>{$meta}</td>";
-    echo "<td class='text-center'>{$real}</td>";
-    echo "<td class='text-center {$cls}'>" . number_format($pct,2,',','.') . " %</td>";
+  // Override de meta para % Nota 5 no OKR “Atender com muita agilidade...” em Nível 1
+  if (
+      $r['okr'] === 'Atender com muita agilidade, mantendo alta a satisfação do cliente' &&
+      $r['kr']  === '% Nota 5' &&
+      strpos($r['niveis'], 'Nível 1') !== false
+  ) {
+      $metaValor = 56.00;
+      $realizado = $r['realizado'];
+      $meta      = number_format($metaValor, 2, ',', '.') . ' %';
+      $real      = number_format($realizado, 2, ',', '.') . ' %';
+      $pct       = $metaValor ? round($realizado / $metaValor * 100, 2) : 0;
+
+  } else {
+      // Lógica padrão
+      if ($r['menor_melhor']) {
+          // metas de tempo: menor é melhor
+          $meta      = seg2time($r['meta_seg']);
+          $real      = $r['realizado_seg'] ? seg2time($r['realizado_seg']) : '-';
+          $pct       = ($r['realizado_seg'])
+                     ? round($r['meta_seg'] / $r['realizado_seg'] * 100, 2)
+                     : 0;
+      } else {
+          // metas percentuais
+          $meta      = number_format($r['meta'], 2, ',', '.') . ' %';
+          $real      = number_format($r['realizado'], 2, ',', '.') . ' %';
+          $pct       = $r['meta']
+                     ? round($r['realizado'] / $r['meta'] * 100, 2)
+                     : 0;
+      }
+  }
+
+  // cor conforme % atingido
+  $cls = $pct >= 100
+       ? 'bg-success text-dark'
+       : ($pct >= 90
+          ? 'bg-warning text-dark'
+          : 'bg-danger text-light');
+
+  echo "<td class='text-center'>{$meta}</td>";
+  echo "<td class='text-center'>{$real}</td>";
+  echo "<td class='text-center {$cls}'>". number_format($pct, 2, ',', '.') ." %</td>";
 }
+
 
 function imprimeColsQuarter($r, $m) {
     if ($r['menor_melhor']) {
@@ -505,24 +533,23 @@ function imprimeColsQuarter($r, $m) {
           </select>
         </div>
         <div class="mb-3">
-          <label class="form-label">KR / Meta</label>
-          <select id="selMeta" name="idMeta" class="form-select" required disabled>
-            <option value="">Selecione o KR</option>
+          <label class="form-label">Mês</label>
+          <select class="form-select" name="mes" required>
+            <?php for($i=1;$i<=12;$i++): ?>
+              <option value="<?=$i?>"><?=str_pad($i,2,'0',STR_PAD_LEFT)?></option>
+            <?php endfor; ?>
           </select>
         </div>
-        <div class="row">
-          <div class="col-md-4 mb-3">
-            <label class="form-label">Mês</label>
-            <select class="form-select" name="mes" required>
-              <?php for($i=1;$i<=12;$i++): ?>
-                <option value="<?=$i?>"><?=str_pad($i,2,'0',STR_PAD_LEFT)?></option>
-              <?php endfor; ?>
-            </select>
-          </div>
-          <div class="col-md-8 mb-3">
-            <label class="form-label">Valor realizado</label>
-            <input type="text" name="realizado" class="form-control" placeholder="99.99 ou 00:01:55" required>
-          </div>
+        <div id="divMetasList" class="d-none">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>KR / Meta</th>
+                <th>Realizado</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyMetas"></tbody>
+          </table>
         </div>
       </div>
       <div class="modal-footer">
@@ -540,19 +567,46 @@ function toggleTipoMeta(){
   document.getElementById('divValor').classList.toggle('d-none', sel==='tempo');
   document.getElementById('divTempo').classList.toggle('d-none', sel==='valor');
 }
-// popula metas no modal Lançar Realizado
-const metasByOkr = <?= json_encode($metaList) ?>;
-document.getElementById('selOkr').addEventListener('change', function(){
-  const metas = metasByOkr[this.value]||[];
-  const sel  = document.getElementById('selMeta');
-  sel.innerHTML = '<option value="">Selecione o KR</option>';
-  metas.forEach(m => {
-    const o = document.createElement('option');
-    o.value = m.id; o.textContent = m.descricao;
-    sel.appendChild(o);
-  });
-  sel.disabled = metas.length === 0;
-});
+  // JSON gerado no PHP: metas agrupadas por OKR
+  const metasByOkr = <?= json_encode($metaList, JSON_UNESCAPED_UNICODE) ?>;
+
+  document
+    .getElementById('selOkr')
+    .addEventListener('change', function(){
+      const metas     = metasByOkr[this.value] || [];
+      const container = document.getElementById('divMetasList');
+      const tbody     = document.getElementById('tbodyMetas');
+
+      tbody.innerHTML = '';
+      metas.forEach(m => {
+        const tr     = document.createElement('tr');
+        const tdDesc = document.createElement('td');
+        tdDesc.textContent = m.descricao;
+
+        // campo oculto para enviar idMeta[]
+        const hidden = document.createElement('input');
+        hidden.type  = 'hidden';
+        hidden.name  = 'idMeta[]';
+        hidden.value = m.id;
+        tdDesc.appendChild(hidden);
+
+        const tdInput = document.createElement('td');
+        const inputVal = document.createElement('input');
+        inputVal.type        = 'text';
+        inputVal.name        = 'realizado[]';
+        inputVal.className   = 'form-control';
+        inputVal.required    = true;
+        // placeholder condicional pelo tipo da meta
+        inputVal.placeholder = m.menor_melhor ? '00:01:55' : '99.99';
+        tdInput.appendChild(inputVal);
+
+        tr.appendChild(tdDesc);
+        tr.appendChild(tdInput);
+        tbody.appendChild(tr);
+      });
+
+      container.classList.toggle('d-none', metas.length === 0);
+    });
 </script>
 </body>
 </html>
