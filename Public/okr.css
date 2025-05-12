@@ -29,6 +29,9 @@
   }
   .okr-chart {
     width: 50%;
+    display: flex;
+  justify-content: center;
+  align-items: center;
   }
   .okr-info {
     font-size: 14px;
@@ -38,4 +41,61 @@
     border-top: 1px solid #ddd;
     padding-top: 1rem;
   }
+
+/* ../Public/okr.css */
+/* Layout 2: clean & modern table */
+.table-modern {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.table-modern thead th {
+  position: sticky;
+  top: 0;
+  background: #f8f9fa;
+  color: #333;
+  font-weight: 600;
+  border-bottom: 2px solid #e2e2e2;
+  padding: 0.75rem 1rem;
+}
+.table-modern tbody tr {
+  background: #fff;
+  transition: background 0.2s, transform 0.2s;
+}
+.table-modern tbody tr:hover {
+  background: #f1f5f9;
+  transform: translateX(4px);
+}
+.table-modern tbody td {
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid #e2e2e2;
+  vertical-align: middle;
+}
+.table-modern tbody tr:last-child td {
+  border-bottom: none;
+}
+.table-modern tbody td.text-center {
+  white-space: nowrap;
+}
+
+.table-modern thead th,
+.table-modern tbody td {
+  padding: 0.75rem 1rem;
+}
+
+/* criar o “traço” vertical entre todas as colunas, exceto a última */
+.table-modern thead th:not(:last-child),
+.table-modern tbody td:not(:last-child) {
+  border-right: 1px solid rgba(0,0,0,0.08);
+}
+
+/* manter apenas as linhas horizontais mais leves */
+.table-modern tbody tr {
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.table-modern tbody tr:last-child {
+  border-bottom: none;
+}
+
+
   
