@@ -36,9 +36,9 @@ if ($view === 'quarter') {
         m.menor_melhor,
         m.meta,
         m.meta_seg,
-        ai.mes,
-        ai.realizado,
-        ai.realizado_seg
+        ai.mes            AS mes,
+        ai.realizado      AS realizado,
+        ai.realizado_seg  AS realizado_seg
       FROM TB_OKR o
       JOIN TB_EQUIPE e ON e.id = o.idEquipe
 
@@ -85,7 +85,8 @@ if ($view === 'quarter') {
         $data[$grp][$key]['real_seg'][$r['mes']] = $r['realizado_seg'];
     }
 
-} else {
+  } else {
+    // visão ANUAL: traz dados mês a mês
     $sql = "
       SELECT
         o.id               AS idOkr,
@@ -97,8 +98,9 @@ if ($view === 'quarter') {
         m.menor_melhor,
         m.meta,
         m.meta_seg,
-        r.realizado,
-        r.realizado_seg
+        ai.mes            AS mes,
+        ai.realizado      AS realizado,
+        ai.realizado_seg  AS realizado_seg
       FROM TB_OKR o
       JOIN TB_EQUIPE e ON e.id = o.idEquipe
 
@@ -115,29 +117,44 @@ if ($view === 'quarter') {
         ON m.idOkr = o.id
        AND m.ano   = ?
 
-    LEFT JOIN (
-  SELECT
-    idMeta,
-    AVG(realizado)     AS realizado,
-    AVG(realizado_seg) AS realizado_seg
-  FROM TB_OKR_ATINGIMENTO
-  WHERE ano = ?
-  GROUP BY idMeta
-) r ON r.idMeta = m.id
+      LEFT JOIN TB_OKR_ATINGIMENTO ai
+        ON ai.idMeta = m.id
+       AND ai.ano    = ?
 
-
-      ORDER BY e.descricao, okr_n.niveis, o.descricao, m.id
+      ORDER BY e.descricao, okr_n.niveis, o.descricao, m.id, ai.mes
     ";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param('ii', $anoAtual, $anoAtual);
     $stmt->execute();
     $rs = $stmt->get_result();
+
     while ($r = $rs->fetch_assoc()) {
         $grp = "{$r['equipe']}||{$r['niveis']}";
         $key = "{$r['idOkr']}-{$r['idMeta']}";
-        $data[$grp][$key] = $r;
+
+        if (!isset($data[$grp][$key])) {
+            $data[$grp][$key] = [
+                'okr'           => $r['okr'],
+                'kr'            => $r['kr'],
+                'niveis'        => $r['niveis'],
+                'menor_melhor'  => $r['menor_melhor'],
+                'meta'          => $r['meta'],
+                'meta_seg'      => $r['meta_seg'],
+                'real'          => [],
+                'real_seg'      => []
+            ];
+        }
+
+        // usa null coalescing para evitar warnings
+        $mes            = $r['mes'];
+        $realizado      = $r['realizado']      ?? 0;
+        $realizado_seg  = $r['realizado_seg']  ?? 0;
+
+        $data[$grp][$key]['real'][$mes]     = $realizado;
+        $data[$grp][$key]['real_seg'][$mes] = $realizado_seg;
     }
 }
+
 
 /* ---------- DADOS PARA O MODAL DINÂMICO ---------- */
 // lista de OKRs
@@ -234,19 +251,10 @@ function imprimeColsQuarter($r, $m) {
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="stylesheet" href="../Public/usuarios.css">
-  <style>
-    .bg-success{background:#c6efce!important}
-    .bg-warning{background:#fff2cc!important}
-    .bg-danger{background:#f8d7da!important}
-    .text-dark{color:#006100!important}
-    .sticky-header thead th {
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
-  </style>
+  <link rel="stylesheet" href="../Public/okr.css">
 </head>
 <body class="bg-light">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <div class="d-flex-wrapper">
 
   <!-- SIDEBAR -->
@@ -273,6 +281,11 @@ function imprimeColsQuarter($r, $m) {
       <?php endif; ?>
       <?php if ($cargo==='Admin'): ?>
         <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
+      <?php endif; ?>
+      <?php if ($cargo === 'Admin'): ?>
+        <a class="nav-link active" href="okr.php"><img src="../Public/Image/benchmarkbranco.png" class="me-0 ms-0 pe-1" alt="Benchmark" width="27" height="27">OKRs</a>
+      <?php endif; ?> 
+      <?php if ($cargo==='Admin'): ?>
         <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
       <?php endif; ?>
       <?php if ($cargo==='Admin'||$cargo==='Comercial'||$cargo==='Treinamento'): ?>
@@ -280,11 +293,10 @@ function imprimeColsQuarter($r, $m) {
       <?php endif; ?>
       <?php if ($cargo==='Admin'): ?>
         <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
-        <a class="nav-link active" href="okr.php"><i class="fa-solid fa-bullseye me-2"></i>OKRs</a>
       <?php endif; ?>
     </nav>
   </div>
-
+  
   <!-- MAIN -->
   <div class="w-100">
 
@@ -322,6 +334,193 @@ function imprimeColsQuarter($r, $m) {
           </button>
         </div>
       </div>
+
+      <?php foreach ($data as $grp => $metas):
+        list($equipe,$niveis)=explode('||',$grp);
+        foreach ($metas as $key=>$metaData):
+          $okr       = $metaData['okr'];
+          $kr        = $metaData['kr'];
+          $isTime    = $metaData['menor_melhor'] == 1;
+          // escolhe o array e o valor-alvo corretos
+          $valuesArr = $isTime ? ($metaData['real_seg'] ?? []) : ($metaData['real'] ?? []);
+          $target    = $isTime ? $metaData['meta_seg'] : $metaData['meta'];
+
+          if ($view==='year') {
+            // anual: meses 1..12
+            $months_all     = range(1,12);
+            $labels         = array_map(
+                                fn($m)=>strftime('%b',mktime(0,0,0,$m,1)),
+                                $months_all
+                              );
+            $values_all     = [];
+            $presentValues  = [];
+            foreach($months_all as $m){
+              $v = $valuesArr[$m] ?? null;
+              if ($v !== null) $presentValues[] = $v;
+              $values_all[] = $v;
+            }
+          } else {
+            // trimestral: só meses com dados
+            $labels     = array_map(
+                            fn($m)=>strftime('%b',mktime(0,0,0,$m,1)),
+                            array_keys($valuesArr)
+                          );
+            $values_all = array_values($valuesArr);
+            $presentValues = $values_all;
+          }
+
+          $count   = count($presentValues);
+          $sum     = array_sum($presentValues);
+          $avg     = $count ? round($sum/$count,2) : 0;
+          // % de atingimento (para tempo, calcula sobre segundos; se quiser %, divida avg/target*100)
+          // calcula o % de atingimento, invertendo quando menor é melhor
+          if ($isTime) {
+            // para metas de tempo: quanto menor o avg melhor
+            $pct = $avg
+                ? round($target / $avg * 100, 2)
+                : 0;
+          } else {
+            // para metas percentuais: quanto maior o avg melhor
+            $pct = $target
+                ? round($avg / $target * 100, 2)
+                : 0;
+          }
+              $metaLine= array_fill(0, count($labels), $target);
+              $id      = str_replace('-','_',$key);
+
+            if ($isTime) {
+              // garante inteiros em segundos, sem converter pra decimal
+              $values_all = array_map(
+                fn($v) => $v === null ? null : (int)$v,
+                $values_all
+              );
+              // meta em segundos inteiros
+              $metaLine   = array_fill(0, count($labels), (int)$target);
+          }  
+      ?>
+      <div class="card-okr mb-4">
+        <div class="okr-header mb-3">
+          <h5><?=htmlspecialchars($okr)?></h5>
+          <p><small><strong>KR:</strong> <?=htmlspecialchars($kr)?> · <?=$equipe?> / <?=$niveis?></small></p>
+        </div>
+
+        <div class="okr-body d-flex justify-content-between">
+          <div class="okr-status-circle">
+            <div class="circle">
+              <strong><?=$pct?>%</strong><span>Status</span>
+            </div>
+          </div>
+          <?php
+            $isTime = $metaData['menor_melhor'] == 1;
+          ?>
+          <div class="okr-chart">
+            <canvas id="chart_<?=$id?>"></canvas>
+          </div>
+
+          <div class="okr-info">
+  <p><strong>
+    <?= $view==='quarter' 
+        ? "Q$q - $anoAtual" 
+        : "Visão Anual" 
+    ?>
+  </strong></p>
+
+  <!-- EM VEZ DE mostrar $count registros, mostro o “Atingido” -->
+  <p>
+    <strong>Atingido:</strong>
+    <?= $isTime
+        // média em segundos → HH:MM:SS
+        ? gmdate('H:i:s', $avg)
+        // percentual de meta alcançada
+        : number_format($pct, 2, ',', '.') . ' %'
+    ?>
+  </p>
+
+  <!-- você pode manter o Meta abaixo, se quiser -->
+  <p>
+    <strong>Meta:</strong>
+    <?= $isTime 
+        ? gmdate('H:i:s', $target) 
+        : number_format($target, 2, ',', '.') . ' %' 
+    ?>
+  </p>
+</div>
+          
+        </div>
+        <div class="okr-footer d-flex align-items-center">
+            <img src="../Public/Image/Silva.png" class="rounded-circle me-2" width="40" height="40">
+            <div>
+              <strong>Douglas Silva</strong><br>
+              <small>Supervisor</small>
+            </div>
+          </div>
+      </div>
+      <script>
+        const ctx_<?= $id ?> = document.getElementById('chart_<?= $id ?>');
+        new Chart(ctx_<?= $id ?>, {
+          type: <?= $view === 'quarter' ? "'bar'" : "'line'" ?>,
+          data: {
+            labels: <?= json_encode($labels) ?>,
+            datasets: [
+              {
+                label: <?= $isTime ? "'Tempo (mm:ss)'" : "'Check-in'" ?>,
+                data: <?= json_encode($values_all) ?>,
+                <?= $view === 'quarter'
+                  ? "backgroundColor: '#007bff',"
+                  : "borderColor: '#007bff', fill:false, tension:0.4," ?>
+              },
+              {
+                label: <?= $isTime ? "'Meta (mm:ss)'" : "'Meta (%)'" ?>,
+                data: <?= json_encode($metaLine) ?>,
+                <?= $view === 'quarter'
+                  ? "backgroundColor: '#ccc',"
+                  : "borderColor: '#ccc', borderDash:[5,5], fill:false, tension:0.4," ?>
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            <?php if ($isTime): ?>
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  label: ctx => {
+                    const v = ctx.parsed.y;
+                    const m = Math.floor(v/60);
+                    const s = Math.round(v%60);
+                    return ctx.dataset.label + ': ' + 
+                          m.toString().padStart(2,'0') + ':' + 
+                          s.toString().padStart(2,'0');
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                ticks: {
+                  callback: value => {
+                    const m = Math.floor(value/60);
+                    const s = Math.round(value%60);
+                    return m.toString().padStart(2,'0') + ':' + 
+                          s.toString().padStart(2,'0');
+                  }
+                }
+              },
+              x: { ticks:{ maxRotation:0 } }
+            }
+            <?php else: ?>
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { min: 0, max: 100 },
+              x: { ticks: { maxRotation: 0 } }
+            }
+            <?php endif; ?>
+          }
+        });
+      </script>
+
+<?php endforeach; endforeach; ?>
+
 
       <!-- TABELAS EM CARDS POR EQUIPE/NÍVEL -->
       <?php foreach ($data as $grp => $metas): 
@@ -558,6 +757,7 @@ function imprimeColsQuarter($r, $m) {
     </form>
   </div></div>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>

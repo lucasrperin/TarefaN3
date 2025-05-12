@@ -1,0 +1,41 @@
+.bg-success{background:#c6efce!important}
+    .bg-warning{background:#fff2cc!important}
+    .bg-danger{background:#f8d7da!important}
+    .text-dark{color:#006100!important}
+    .sticky-header thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+.card-okr {
+    background: #fff;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+  }
+  .okr-status-circle .circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 12px solid #e6e6e6;
+    border-top-color: #007bff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .okr-chart {
+    width: 50%;
+  }
+  .okr-info {
+    font-size: 14px;
+  }
+  .okr-footer {
+    margin-top: 1rem;
+    border-top: 1px solid #ddd;
+    padding-top: 1rem;
+  }
+  

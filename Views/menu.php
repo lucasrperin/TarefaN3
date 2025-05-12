@@ -27,6 +27,14 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.28.1/tabler-icons.min.css"
+/>  <!-- :contentReference[oaicite:0]{index=0} -->
+
+
+
+
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
@@ -168,6 +176,18 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
           <h5 class="menu-title">Nível 3</h5>
         </div>
       </div>
+      <?php endif; ?>
+
+      <!-- OKR -->
+      <?php if($cargo==='Admin'): ?>
+        <div class="col">
+          <div class="menu-card" onclick="location.href='okr.php';">
+            <div class="menu-icon">
+              <img src="../Public/Image/benchmarksolid.png" alt="Benchmark" width="50" height="50">
+            </div>
+            <h5 class="menu-title">OKR's</h5>
+          </div>
+        </div>
       <?php endif; ?>
 
       <!-- T: Totalizadores -->

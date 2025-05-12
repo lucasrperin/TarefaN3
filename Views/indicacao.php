@@ -1592,7 +1592,7 @@ document.querySelectorAll('.consulta-cnpj').forEach(btn=>{
     corpo.classList.add('d-none');
     modal.show();
 
-    fetch(`../ajax/cnpj_consulta.php?cnpj=${cnpj}`)
+    fetch(`../Ajax/cnpj_consulta.php?cnpj=${cnpj}`)
       .then(r=>r.json())
       .then(data=>{
         if (data.status==='ERROR'){

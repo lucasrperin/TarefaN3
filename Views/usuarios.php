@@ -95,6 +95,9 @@ while ($row = mysqli_fetch_assoc($resultN)) {
           <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
         <?php endif; ?>
         <?php if ($cargo === 'Admin'): ?>
+          <a class="nav-link" href="okr.php"><img src="../Public/Image/benchmarkbranco.png" class="me-0 ms-0 pe-1" alt="Benchmark" width="27" height="27">OKRs</a>
+        <?php endif; ?>
+        <?php if ($cargo === 'Admin'): ?>
           <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
         <?php endif; ?>
         <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
