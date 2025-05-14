@@ -504,74 +504,66 @@ if ($resultTotalizadores && $resultTotalizadores->num_rows > 0) {
   
   <script>
     // Definição dos indicadores para cada grupo usando os IDs obtidos de TB_CRITERIOS
-    var indicadoresAll = {
-      <?php 
-        foreach($indicadoresAll as $id => $rotulo) {
-          echo $id . ': ' . json_encode($rotulo) . ',';
-        }
-      ?>
-    };
-    var indicadoresNivel1 = {
-      <?php 
-        foreach($indicadoresNivel1 as $id => $rotulo) {
-          echo $id . ': ' . json_encode($rotulo) . ',';
-        }
-      ?>
-    };
-    var indicadoresNivel3 = {
-      <?php 
-        foreach($indicadoresNivel3 as $id => $rotulo) {
-          echo $id . ': ' . json_encode($rotulo) . ',';
-        }
-      ?>
-    };
-    var indicadoresConversao = {
-      <?php 
-        foreach($indicadoresConversao as $id => $rotulo) {
-          echo $id . ': ' . json_encode($rotulo) . ',';
-        }
-      ?>
-    };
+var indicadoresAll        = <?php echo json_encode($indicadoresAll,        JSON_UNESCAPED_UNICODE); ?>;
+var indicadoresNivel1     = <?php echo json_encode($indicadoresNivel1,     JSON_UNESCAPED_UNICODE); ?>;
+var indicadoresNivel3     = <?php echo json_encode($indicadoresNivel3,     JSON_UNESCAPED_UNICODE); ?>;
+var indicadoresConversao = <?php echo json_encode($indicadoresConversao, JSON_UNESCAPED_UNICODE); ?>;
+
 
     // Função para popular o dropdown de indicadores com base no nível do usuário
     function populateIndicadores(nivel) {
-      var indicadorSelect = document.getElementById('indicador');
-      indicadorSelect.innerHTML = '<option value="">-- Selecione --</option>';
-      
-      // Sempre adiciona os indicadores do grupo ALL
-      for (var key in indicadoresAll) {
-        var option = document.createElement('option');
-        option.value = key;
-        option.text = indicadoresAll[key];
-        indicadorSelect.appendChild(option);
-      }
-      
-      // Adiciona os indicadores específicos conforme o nível
-      if(nivel === 'Nível 1' || nivel === 'Nível 2' || nivel === 'Exclusivo') {
-        for (var key in indicadoresNivel1) {
-          var option = document.createElement('option');
-          option.value = key;
-          option.text = indicadoresNivel1[key];
-          indicadorSelect.appendChild(option);
-        }
-      }
-      if(nivel === 'Nível 3') {
-        for (var key in indicadoresNivel3) {
-          var option = document.createElement('option');
-          option.value = key;
-          option.text = indicadoresNivel3[key];
-          indicadorSelect.appendChild(option);
-        }
-      }
-      if(nivel === 'Conversão') {
-        for (var key in indicadoresConversao) {
-          var option = document.createElement('option');
-          option.value = key;
-          option.text = indicadoresConversao[key];
-          indicadorSelect.appendChild(option);
-        }
-      }
+  // 1) tira acentos, 2) troca NBSP por espaço normal, 3) lower case e trim
+  var nivelNorm = nivel
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\u00A0/g, ' ')
+    .toLowerCase()
+    .trim();
+
+  var indicadorSelect = document.getElementById('indicador');
+  indicadorSelect.innerHTML = '<option value="">-- Selecione --</option>';
+
+  // Sempre adiciona os indicadores do grupo ALL
+  for (var key in indicadoresAll) {
+    var option = document.createElement('option');
+    option.value = key;
+    option.text = indicadoresAll[key];
+    indicadorSelect.appendChild(option);
+  }
+
+  // Nível 1, 2 ou Exclusivo
+  if (nivelNorm.includes('nivel 1') ||
+      nivelNorm.includes('nivel 2') ||
+      nivelNorm.includes('exclusivo')) {
+    for (var key in indicadoresNivel1) {
+      var option = document.createElement('option');
+      option.value = key;
+      option.text = indicadoresNivel1[key];
+      indicadorSelect.appendChild(option);
     }
+  }
+
+  // Nível 3
+  if (nivelNorm.includes('nivel 3')) {
+    for (var key in indicadoresNivel3) {
+      var option = document.createElement('option');
+      option.value = key;
+      option.text = indicadoresNivel3[key];
+      indicadorSelect.appendChild(option);
+    }
+  }
+
+  // Conversão
+  if (nivelNorm.includes('conversao')) {
+    for (var key in indicadoresConversao) {
+      var option = document.createElement('option');
+      option.value = key;
+      option.text = indicadoresConversao[key];
+      indicadorSelect.appendChild(option);
+    }
+  }
+}
+
 
     // Ao selecionar um usuário, popula o dropdown de indicadores conforme o nível do usuário
     document.getElementById('usuario_id_modal').addEventListener('change', function(){
