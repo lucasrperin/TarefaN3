@@ -165,6 +165,12 @@ $percentFicha = $totalAnalises
             $analisesPorSistema[$sis] = ($analisesPorSistema[$sis] ?? 0) + 1;
         }
     }
+   
+  // Calcular percentual geral de fichas em relação às análises N3
+  $pctFichasGeral = $totalAnaliseN3
+    ? round($totalFichas / $totalAnaliseN3 * 100, 2)
+    : 0;
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -424,146 +430,95 @@ $percentFicha = $totalAnalises
                 
     </div>
   </div>
+  </div>
 
-  
-<!-- Aba 2: Relatórios -->
-<div class="tab-pane fade" id="pane-relatorios" role="tabpanel" aria-labelledby="tab-relatorios">
+  <div class="tab-pane fade" id="pane-relatorios" role="tabpanel" aria-labelledby="tab-relatorios">
+
+
 <h5 class="fw-bold mb-3">Totalizador Geral</h5>
-  <!-- 1) Totalizadores Principais -->
-  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-5 g-4 mb-4">
-    <div class="col">
-      <div class="card h-100 text-white" style="background: linear-gradient(135deg,#1E3A8A,#3B82F6);">
-        <div class="card-body d-flex align-items-center">
-          <i class="fa-solid fa-file-alt fa-2x me-3"></i>
-          <div>
-            <small class="text-uppercase">Fichas Criadas</small>
-            <h3 class="mt-1 mb-0"><?= $totalFichas; ?></h3>
-          </div>
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-5 g-4 mb-4">
+
+  <!-- Fichas Criadas -->
+  <div class="col">
+    <div class="card layout9-card h-100">
+      <div class="layout9-item">
+        <div class="layout9-icon" style="background: #3B82F6;">
+          <i class="fa-solid fa-file-alt"></i>
         </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card h-100 text-white" style="background: linear-gradient(135deg,#047857,#10B981);">
-        <div class="card-body d-flex align-items-center">
-          <i class="fa-solid fa-chart-line fa-2x me-3"></i>
-          <div>
-            <small class="text-uppercase">Análise N3</small>
-            <h3 class="mt-1 mb-0"><?= $totalAnaliseN3; ?></h3>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card h-100 text-white" style="background: linear-gradient(135deg,#B45309,#F59E0B);">
-        <div class="card-body d-flex align-items-center">
-          <i class="fa-solid fa-headset fa-2x me-3"></i>
-          <div>
-            <small class="text-uppercase">Auxílio Suporte/Vendas</small>
-            <h3 class="mt-1 mb-0"><?= $totalAuxilio; ?></h3>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card h-100 text-white" style="background: linear-gradient(135deg,#B91C1C,#EF4444);">
-        <div class="card-body d-flex align-items-center">
-          <i class="fa-solid fa-stop-circle fa-2x me-3"></i>
-          <div>
-            <small class="text-uppercase">Cliente Parado</small>
-            <h3 class="mt-1 mb-0"><?= $totalParado; ?></h3>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card h-100 text-white" style="background: linear-gradient(135deg,#374151,#6B7280);">
-        <div class="card-body d-flex align-items-center">
-          <i class="fa-solid fa-clock fa-2x me-3"></i>
-          <div>
-            <small class="text-uppercase">Média Horas</small>
-            <h3 class="mt-1 mb-0"><?= sprintf('%02d:%02d:%02d',$horas,$minutos,$segundos); ?></h3>
-          </div>
+        <div class="layout9-text">
+          <h4><?= $totalFichas; ?></h4>
+          <small>Fichas Criadas</small>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Análise N3 -->
+  <div class="col">
+    <div class="card layout9-card h-100">
+      <div class="layout9-item">
+        <div class="layout9-icon" style="background: #10B981;">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div class="layout9-text">
+          <h4><?= $totalAnaliseN3; ?></h4>
+          <small>Análises N3</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Percentual Geral de Fichas -->
+<div class="col">
+  <div class="card layout9-card h-100">
+    <div class="layout9-item">
+      <div class="layout9-icon" style="background: #6D28D9;">
+        <i class="fa-solid fa-percent"></i>
+      </div>
+      <div class="layout9-text">
+        <h4><?= $pctFichasGeral; ?>%</h4>
+        <small>% Fichas</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Cliente Parado -->
+  <div class="col">
+    <div class="card layout9-card h-100">
+      <div class="layout9-item">
+        <div class="layout9-icon" style="background: #EF4444;">
+          <i class="fa-solid fa-stop-circle"></i>
+        </div>
+        <div class="layout9-text">
+          <h4><?= $totalParado; ?></h4>
+          <small>Clientes Parados</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Média Horas -->
+  <div class="col">
+    <div class="card layout9-card h-100">
+      <div class="layout9-item">
+        <div class="layout9-icon" style="background: #6B7280;">
+          <i class="fa-solid fa-clock"></i>
+        </div>
+        <div class="layout9-text">
+          <h4><?= sprintf('%02d:%02d:%02d', $horas, $minutos, $segundos); ?></h4>
+          <small>Média de Horas</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
  
- 
- 
- <!-- Layout 8 Styles -->
-<style>
-  .layout8-card {
-    background: #ffffff;
-    border-radius: .75rem;
-    padding: 1rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    transition: transform .2s ease, box-shadow .2s ease;
-  }
-  .layout8-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-  }
-  .layout8-header {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    margin-bottom: 1rem;
-  }
-  .layout8-header img {
-    width: 32px;
-    height: 32px;
-    object-fit: contain;
-  }
-  .layout8-header h6 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #374151;
-  }
-  .layout8-badges {
-    display: flex;
-    gap: .5rem;
-    margin-bottom: 1rem;
-  }
-  .layout8-badge {
-    padding: .25rem .5rem;
-    border-radius: .375rem;
-    font-size: .8rem;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: .25rem;
-  }
-  .badge-ficha {
-    background: #EFF6FF;
-    color: #1E40AF;
-  }
-  .badge-analise {
-    background: #ECFDF5;
-    color: #065F46;
-  }
-  .layout8-bar-container {
-    background: #F3F4F6;
-    border-radius: 4px;
-    overflow: hidden;
-    height: 8px;
-    margin-bottom: .5rem;
-  }
-  .layout8-bar {
-    height: 100%;
-    background: #3B82F6;
-    transition: width .4s ease;
-  }
-  .layout8-footer {
-    font-size: .75rem;
-    color: #6B7280;
-    text-align: right;
-  }
-</style>
 
 <h5 class="fw-bold mb-3">Totalizador por Sistemas</h5>
+<div class="systems-scroll mb-4">
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-4">
   <?php
     $systems = array_unique(
@@ -615,7 +570,7 @@ $percentFicha = $totalAnalises
   <?php endforeach; ?>
 </div>
 
-
+</div>
 
 
 
