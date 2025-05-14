@@ -3,7 +3,7 @@ return [
 
     'ClippService'                                   => 'Public/Image/ClippService.png',
     'CLIPP SERVICE'                                   => 'Public/Image/ClippService.png',
-    'NFS-E'                                           => 'Public/Image/NFS-E.png',
+    'NFS-E'                                           => 'Public/Image/NFSe.png',
     'ClippFarma'                                     => 'Public/Image/ClippFarma.png',
     'ClippCheff'                                     => 'Public/Image/ClippCheff.png',
     'Clipp Cheff'                                     => 'Public/Image/ClippCheff.png',
@@ -13,7 +13,7 @@ return [
     'Mercado Livre'                                  => 'Public/Image/MercadoLivre.png',
     'Clipp PRO'                                      => 'Public/Image/ClippPro.png',
     'DAV'                                             => 'Public/Image/DAV.png',
-    'NFC-E'                                         => 'Public/Image/NFC-e.png',
+    'NFC-E'                                         => 'Public/Image/NFCe.png',
     'Minhas Notas'                                 => 'Public/Image/MinhasNotas.png',
 
 

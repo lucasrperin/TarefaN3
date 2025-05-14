@@ -299,40 +299,7 @@ $percentFicha = $totalAnalises
                 </a>
                 </div>
             </div>
-      
-        
-        <!-- Script para alternar entre os campos de período e analista -->
-            <script>
-            // Exibe o campo de filtro correspondente conforme a seleção do "Coluna"
-            function adjustFilterFields() {
-                let filterColumn = document.getElementById("filterColumn").value;
-                // Atualiza um campo hidden, se necessário para o backend (opcional)
-                document.getElementById("filterColumnHidden").value = filterColumn;
-                // Esconde todos os containers
-                document.getElementById("filterPeriod").style.display = "none";
-                document.getElementById("filterAnalista").style.display = "none";
-                document.getElementById("filterSituacao").style.display = "none";
-                document.getElementById("filterSistema").style.display = "none";
-                document.getElementById("filterStatus").style.display = "none";
-                // Exibe apenas o container selecionado
-                if (filterColumn === "period") {
-                    document.getElementById("filterPeriod").style.display = "block";
-                } else if (filterColumn === "analista") {
-                    document.getElementById("filterAnalista").style.display = "block";
-                } else if (filterColumn === "situacao") {
-                    document.getElementById("filterSituacao").style.display = "block";
-                } else if (filterColumn === "sistema") {
-                    document.getElementById("filterSistema").style.display = "block";
-                } else if (filterColumn === "status") {
-                    document.getElementById("filterStatus").style.display = "block";
-                }
-            }
-            document.addEventListener("DOMContentLoaded", function() {
-                adjustFilterFields();
-                document.getElementById("filterColumn").addEventListener("change", adjustFilterFields);
-            });
-            </script>
-
+            
     <!-- Conteúdo -->
     <div class="content container-fluid">
             
@@ -515,68 +482,74 @@ $percentFicha = $totalAnalises
 
 </div>
 
- 
+<?php
+$fichasPorSistema   = $fichasPorSistema   ?? [];
+$analisesPorSistema = $analisesPorSistema ?? [];
+$systems = array_unique(array_merge(
+    array_keys($fichasPorSistema),
+    array_keys($analisesPorSistema)
+));
+?>
 
 <h5 class="fw-bold mb-3">Totalizador por Sistemas</h5>
 <div class="systems-scroll mb-4">
+    <?php
+  // Normaliza as chaves de $logosLower para lowercase
+  $logosNormalized = array_change_key_case($logosLower ?? [], CASE_LOWER);
+?>
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-4">
-  <?php
-    $systems = array_unique(
-      array_merge(
-        array_keys($fichasPorSistema),
-        array_keys($analisesPorSistema)
-      )
-    );
-    foreach ($systems as $sis):
-      $cntFicha   = $fichasPorSistema[$sis]   ?? 0;
-      $cntAnalise = $analisesPorSistema[$sis] ?? 0;
+  <?php foreach ($systems as $sis): 
+      // Garante contagens
+      $cntFicha   = isset($fichasPorSistema[$sis])   ? $fichasPorSistema[$sis]   : 0;
+      $cntAnalise = isset($analisesPorSistema[$sis]) ? $analisesPorSistema[$sis] : 0;
       $pctFicha   = $cntAnalise
                   ? round($cntFicha / $cntAnalise * 100)
                   : 0;
-      $key = mb_strtolower($sis);
-      if (isset($logosLower[$key])) {
-          $logoPath = $logosLower[$key];
-      } elseif (file_exists(__DIR__ . "/Public/Image/{$sis}.png")) {
-          $logoPath = "Public/Image/{$sis}.png";
+
+      // Busca a logo pelo nome em lowercase, cai em Concorrente se não existir
+      $lowerSis = strtolower($sis);
+      if (isset($logosNormalized[$lowerSis])) {
+          $logoPath = $logosNormalized[$lowerSis];
       } else {
-          $logoPath = "Public/Image/concorrente.png";
+          $logoPath = "/Public/Image/Concorrente.png";
       }
   ?>
-  <div class="col">
-    <div class="layout8-card h-100">
-      <div class="layout8-header">
-        <img src="<?= $logoPath ?>"
-             alt="<?= htmlspecialchars($sis) ?>">
-        <h6><?= htmlspecialchars($sis) ?></h6>
-      </div>
-      <div class="layout8-badges">
-        <span class="layout8-badge badge-ficha">
-          <i class="fa-solid fa-file-alt"></i>
-          <?= $cntFicha ?> Fichas
-        </span>
-        <span class="layout8-badge badge-analise">
-          <i class="fa-solid fa-chart-line"></i>
-          <?= $cntAnalise ?> Análises
-        </span>
-      </div>
-      <div class="layout8-bar-container">
-        <div class="layout8-bar" style="width: <?= $pctFicha ?>%;"></div>
-      </div>
-      <div class="layout8-footer">
-        <?= $pctFicha ?>% geraram ficha
+    <div class="col">
+      <div class="layout8-card h-100">
+        <div class="layout8-header">
+          <img
+            src="<?= htmlspecialchars($logoPath, ENT_QUOTES) ?>"
+            alt="<?= htmlspecialchars($sis, ENT_QUOTES) ?>"
+          >
+          <h6><?= htmlspecialchars($sis) ?></h6>
+        </div>
+        <div class="layout8-badges">
+          <span class="layout8-badge badge-ficha">
+            <i class="fa-solid fa-file-alt"></i>
+            <?= $cntFicha ?> Fichas
+          </span>
+          <span class="layout8-badge badge-analise">
+            <i class="fa-solid fa-chart-line"></i>
+            <?= $cntAnalise ?> Análises
+          </span>
+        </div>
+        <div class="layout8-bar-container">
+          <div
+            class="layout8-bar"
+            style="width: <?= $pctFicha ?>%;"
+          ></div>
+        </div>
+        <div class="layout8-footer">
+          <?= $pctFicha ?>% geraram ficha
+        </div>
       </div>
     </div>
-  </div>
   <?php endforeach; ?>
-</div>
-
-</div>
+</div> <!-- /.row -->
 
 
 
-
-
-
+  </div>  <!-- /.systems-scroll -->
 </div>
 </div>           
             </div> <!-- /.content -->
@@ -1076,6 +1049,37 @@ $percentFicha = $totalAnalises
         </div>
       </div>
  
+      <script>
+            // Exibe o campo de filtro correspondente conforme a seleção do "Coluna"
+            function adjustFilterFields() {
+                let filterColumn = document.getElementById("filterColumn").value;
+                // Atualiza um campo hidden, se necessário para o backend (opcional)
+                document.getElementById("filterColumnHidden").value = filterColumn;
+                // Esconde todos os containers
+                document.getElementById("filterPeriod").style.display = "none";
+                document.getElementById("filterAnalista").style.display = "none";
+                document.getElementById("filterSituacao").style.display = "none";
+                document.getElementById("filterSistema").style.display = "none";
+                document.getElementById("filterStatus").style.display = "none";
+                // Exibe apenas o container selecionado
+                if (filterColumn === "period") {
+                    document.getElementById("filterPeriod").style.display = "block";
+                } else if (filterColumn === "analista") {
+                    document.getElementById("filterAnalista").style.display = "block";
+                } else if (filterColumn === "situacao") {
+                    document.getElementById("filterSituacao").style.display = "block";
+                } else if (filterColumn === "sistema") {
+                    document.getElementById("filterSistema").style.display = "block";
+                } else if (filterColumn === "status") {
+                    document.getElementById("filterStatus").style.display = "block";
+                }
+            }
+            document.addEventListener("DOMContentLoaded", function() {
+                adjustFilterFields();
+                document.getElementById("filterColumn").addEventListener("change", adjustFilterFields);
+            });
+            </script>
+
     <!-- Scripts adicionais -->
     <script>
         // Função para preencher o modal de edição

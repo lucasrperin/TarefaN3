@@ -19,14 +19,14 @@
   <link rel="stylesheet" href="../Public/okr.css">
 </head>
 
-<body class="bg-light d-flex flex-column vh-100">
+<body class="bg-light">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <div class="d-flex-wrapper">
 
     <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <a class="light-logo mb-4 d-block" href="menu.php">
+    <div class="sidebar">
+      <a class="light-logo d-block" href="menu.php">
         <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
       </a>
 
@@ -58,7 +58,7 @@
           <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
         <?php endif; ?>
       </nav>
-    </aside>
+        </div>
 
     <!-- MAIN -->
     <main class="w-100">
