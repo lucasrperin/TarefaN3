@@ -140,6 +140,37 @@ foreach ($rows as $row) {
         }
     }
 }
+// === Indicadores adicionais ===
+$totalAnalises = count($rows);
+$percentFicha = $totalAnalises
+    ? round(($totalFichas / $totalAnalises) * 100, 2)
+    : 0;
+
+    // antes de montar o HTML, inclua:
+
+    $logos = include __DIR__ . '/Config/logos.php';
+    // transforma todas as chaves do array em lowercase
+    $logosLower = array_change_key_case($logos, CASE_LOWER);
+    $fichasPorSistema     = [];
+    $analisesPorSistema   = [];
+    
+    foreach ($rows as $row) {
+        $sis = $row['Sistema'];
+    
+        if (trim($row['Situacao']) === "Ficha Criada") {
+            // só incrementa ficha quando for realmente ficha
+            $fichasPorSistema[$sis] = ($fichasPorSistema[$sis] ?? 0) + 1;
+        } else {
+            // somente aqui contam as “análises” (tudo que não for Ficha Criada)
+            $analisesPorSistema[$sis] = ($analisesPorSistema[$sis] ?? 0) + 1;
+        }
+    }
+   
+  // Calcular percentual geral de fichas em relação às análises N3
+  $pctFichasGeral = $totalAnaliseN3
+    ? round($totalFichas / $totalAnaliseN3 * 100, 2)
+    : 0;
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -304,92 +335,30 @@ foreach ($rows as $row) {
 
     <!-- Conteúdo -->
     <div class="content container-fluid">
-            <!-- Dashboard: Totalizadores, Gráfico Mensal e Filtro de Período -->
+            
             <!-- Dashboard em Accordion: Totalizadores e Gráfico Mensal -->
-        <div class="accordion mb-4" id="dashboardAccordion">
-            <div class="accordion-item mb-2">
-            <h2 class="accordion-header" id="headingTotalizadores2">
-                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTotalizadores2" aria-expanded="true" aria-controls="collapseTotalizadores2">
-                <b>Resumo dos Totalizadores</b>
-                </button>
-            </h2>
-            <div id="collapseTotalizadores2" class="accordion-collapse collapse show" aria-labelledby="headingTotalizadores2" data-bs-parent="#dashboardAccordion">
-                <div class="accordion-body p-0">
-                    <div class="row g-3 p-4">
-                        <!-- Totalizador: Fichas Criadas -->
-                        <div class="col-6 col-md-3">
-                            <div class="totalizador2">
-                                <div class="icon"><i class="fa-solid fa-file-alt"></i></div>
-                                <div class="info">
-                                <span>Fichas Criadas</span>
-                                <h4><?php echo $totalFichas; ?></h4>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Totalizador: Analise N3 -->
-                        <div class="col-6 col-md-3">
-                            <div class="totalizador2">
-                                <div class="icon"><i class="fa-solid fa-chart-line"></i></div>
-                                <div class="info">
-                                <span>Analise N3</span>
-                                <h4><?php echo $totalAnaliseN3; ?></h4>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Totalizador: Auxílio Suporte/Vendas -->
-                        <div class="col-6 col-md-3">
-                            <div class="totalizador2">
-                                <div class="icon"><i class="fa-solid fa-headset"></i></div>
-                                <div class="info">
-                                <span>Auxílio Suporte/Vendas</span>
-                                <h4><?php echo $totalAuxilio; ?></h4>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Totalizador: Cliente Parado -->
-                        <div class="col-6 col-md-3">
-                            <div class="totalizador2">
-                                <div class="icon"><i class="fa-solid fa-stop-circle"></i></div>
-                                <div class="info">
-                                <span>Cliente Parado</span>
-                                <h4><?php echo $totalParado; ?></h4>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Totalizador: Média Horas (linha completa) -->
-                        <div class="col-12">
-                            <div class="totalizador2 totalizador2-full">
-                                <div class="icon"><i class="fa-solid fa-clock"></i></div>
-                                <div class="info">
-                                <span>Média Horas</span>
-                                <h4><?php echo sprintf("%02d:%02d:%02d", $horas, $minutos, $segundos); ?></h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      <!-- Nav Tabs -->
+ <ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="tab-analises" data-bs-toggle="tab"
+            data-bs-target="#pane-analises" type="button" role="tab"
+            aria-controls="pane-analises" aria-selected="true">
+      Análises N3
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-relatorios" data-bs-toggle="tab"
+            data-bs-target="#pane-relatorios" type="button" role="tab"
+            aria-controls="pane-relatorios" aria-selected="false">
+      Relatórios
+    </button>
+  </li>
+</ul>
 
-    <!-- Accordion Item: Gráfico Mensal - Novo Layout -->
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="headingGrafico">
-                <button class="accordion-button collapsed modern-accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGrafico" aria-expanded="false" aria-controls="collapseGrafico">
-                Gráfico Mensal
-                </button>
-            </h2>
-            <div id="collapseGrafico" class="accordion-collapse collapse" aria-labelledby="headingGrafico" data-bs-parent="#dashboardAccordion">
-                <div class="accordion-body p-4">
-                    <div class="chart-container shadow-sm p-3 rounded">
-                        <canvas id="chartMensal" style="height: 4rem"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-                <!-- Lista de Análises - Novo Layout Moderno -->
-                <div class="card shadow mb-4 modern-card">
+<div class="tab-content" id="dashboardTabsContent">
+  <!-- Aba 1: Lista de Análises -->
+  <div class="tab-pane fade show active" id="pane-analises" role="tabpanel" aria-labelledby="tab-analises">
+  <div class="card shadow mb-4 modern-card">
                     <div class="card-header d-flex align-items-center modern-card-header">
                         <h4 class="mb-0 flex-grow-1">Lista de Análises</h4>
                         <div class="d-flex gap-2 align-items-center">
@@ -458,7 +427,158 @@ foreach ($rows as $row) {
                         </table>
                         </div>
                     </div>
-                </div>
+                
+    </div>
+  </div>
+  </div>
+
+  <div class="tab-pane fade" id="pane-relatorios" role="tabpanel" aria-labelledby="tab-relatorios">
+
+
+<h5 class="fw-bold mb-3">Totalizador Geral</h5>
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-5 g-4 mb-4">
+
+  <!-- Fichas Criadas -->
+  <div class="col">
+    <div class="card layout9-card h-100">
+      <div class="layout9-item">
+        <div class="layout9-icon" style="background: #3B82F6;">
+          <i class="fa-solid fa-file-alt"></i>
+        </div>
+        <div class="layout9-text">
+          <h4><?= $totalFichas; ?></h4>
+          <small>Fichas Criadas</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Análise N3 -->
+  <div class="col">
+    <div class="card layout9-card h-100">
+      <div class="layout9-item">
+        <div class="layout9-icon" style="background: #10B981;">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div class="layout9-text">
+          <h4><?= $totalAnaliseN3; ?></h4>
+          <small>Análises N3</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Percentual Geral de Fichas -->
+<div class="col">
+  <div class="card layout9-card h-100">
+    <div class="layout9-item">
+      <div class="layout9-icon" style="background: #6D28D9;">
+        <i class="fa-solid fa-percent"></i>
+      </div>
+      <div class="layout9-text">
+        <h4><?= $pctFichasGeral; ?>%</h4>
+        <small>% Fichas</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- Cliente Parado -->
+  <div class="col">
+    <div class="card layout9-card h-100">
+      <div class="layout9-item">
+        <div class="layout9-icon" style="background: #EF4444;">
+          <i class="fa-solid fa-stop-circle"></i>
+        </div>
+        <div class="layout9-text">
+          <h4><?= $totalParado; ?></h4>
+          <small>Clientes Parados</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Média Horas -->
+  <div class="col">
+    <div class="card layout9-card h-100">
+      <div class="layout9-item">
+        <div class="layout9-icon" style="background: #6B7280;">
+          <i class="fa-solid fa-clock"></i>
+        </div>
+        <div class="layout9-text">
+          <h4><?= sprintf('%02d:%02d:%02d', $horas, $minutos, $segundos); ?></h4>
+          <small>Média de Horas</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+ 
+
+<h5 class="fw-bold mb-3">Totalizador por Sistemas</h5>
+<div class="systems-scroll mb-4">
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-4">
+  <?php
+    $systems = array_unique(
+      array_merge(
+        array_keys($fichasPorSistema),
+        array_keys($analisesPorSistema)
+      )
+    );
+    foreach ($systems as $sis):
+      $cntFicha   = $fichasPorSistema[$sis]   ?? 0;
+      $cntAnalise = $analisesPorSistema[$sis] ?? 0;
+      $pctFicha   = $cntAnalise
+                  ? round($cntFicha / $cntAnalise * 100)
+                  : 0;
+      $key = mb_strtolower($sis);
+      if (isset($logosLower[$key])) {
+          $logoPath = $logosLower[$key];
+      } elseif (file_exists(__DIR__ . "/Public/Image/{$sis}.png")) {
+          $logoPath = "Public/Image/{$sis}.png";
+      } else {
+          $logoPath = "Public/Image/concorrente.png";
+      }
+  ?>
+  <div class="col">
+    <div class="layout8-card h-100">
+      <div class="layout8-header">
+        <img src="<?= $logoPath ?>"
+             alt="<?= htmlspecialchars($sis) ?>">
+        <h6><?= htmlspecialchars($sis) ?></h6>
+      </div>
+      <div class="layout8-badges">
+        <span class="layout8-badge badge-ficha">
+          <i class="fa-solid fa-file-alt"></i>
+          <?= $cntFicha ?> Fichas
+        </span>
+        <span class="layout8-badge badge-analise">
+          <i class="fa-solid fa-chart-line"></i>
+          <?= $cntAnalise ?> Análises
+        </span>
+      </div>
+      <div class="layout8-bar-container">
+        <div class="layout8-bar" style="width: <?= $pctFicha ?>%;"></div>
+      </div>
+      <div class="layout8-footer">
+        <?= $pctFicha ?>% geraram ficha
+      </div>
+    </div>
+  </div>
+  <?php endforeach; ?>
+</div>
+
+</div>
+
+
+
+
+
+
+</div>
+</div>           
             </div> <!-- /.content -->
         </div>
     </div> <!-- /.d-flex-wrapper -->
@@ -1000,55 +1120,34 @@ foreach ($rows as $row) {
       });
   </script>
   
-  <!-- Chart.js para o Gráfico Mensal -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-      document.addEventListener("DOMContentLoaded", function () {
-          const fichasPorMes = <?php echo json_encode(array_values($fichasPorMes)); ?>;
-          const analisesN3PorMes = <?php echo json_encode(array_values($analisesN3PorMes)); ?>;
-          const clienteParadoPorMes = <?php echo json_encode(array_values($clienteParadoPorMes)); ?>;
-          const labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-          const data = {
-              labels: labels,
-              datasets: [
-                  {
-                      label: 'Fichas Criadas',
-                      data: fichasPorMes,
-                      backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                      borderColor: 'rgba(54, 162, 235, 1)',
-                      borderWidth: 1
-                  },
-                  {
-                      label: 'Analise N3',
-                      data: analisesN3PorMes,
-                      backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                      borderColor: 'rgba(255, 99, 132, 1)',
-                      borderWidth: 1
-                  },
-                  {
-                      label: 'Cliente Parado',
-                      data: clienteParadoPorMes,
-                      backgroundColor: 'rgb(248, 11, 11)',
-                      borderColor: 'rgb(243, 137, 160)',
-                      borderWidth: 1
-                  }
-              ]
-          };
-          const config = {
-              type: 'bar',
-              data: data,
-              options: {
-                  scales: {
-                      y: {
-                          beginAtZero: true,
-                          ticks: { stepSize: 1 }
-                      }
-                  }
-              }
-          };
-          new Chart(document.getElementById('chartMensal'), config);
+  <!-- Chart.js inicialização (apenas UMA instância!) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.getElementById('tab-relatorios')
+    .addEventListener('shown.bs.tab', () => {
+      const ctx = document.getElementById('chartRelatorios').getContext('2d');
+      // se já existir, destrói:
+      if (window._relatorioChart) window._relatorioChart.destroy();
+      window._relatorioChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
+          datasets: [
+            { label: 'Fichas',      data: <?= json_encode(array_values($fichasPorMes)); ?> },
+            { label: 'Análises N3',  data: <?= json_encode(array_values($analisesN3PorMes)); ?> },
+            { label: 'Parados',      data: <?= json_encode(array_values($clienteParadoPorMes)); ?> }
+          ]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true, ticks: { stepSize: 1 } }
+          }
+        }
       });
-  </script>
+    });
+</script>
+
+
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

@@ -330,3 +330,121 @@ body {
   color: #333;
   font-weight: 600;
 }
+.layout8-card {
+  background: #ffffff;
+  border-radius: .75rem;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.layout8-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+.layout8-header {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+.layout8-header img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+.layout8-header h6 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #374151;
+}
+.layout8-badges {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+.layout8-badge {
+  padding: .25rem .5rem;
+  border-radius: .375rem;
+  font-size: .8rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+}
+.badge-ficha {
+  background: #EFF6FF;
+  color: #1E40AF;
+}
+.badge-analise {
+  background: #ECFDF5;
+  color: #065F46;
+}
+.layout8-bar-container {
+  background: #F3F4F6;
+  border-radius: 4px;
+  overflow: hidden;
+  height: 8px;
+  margin-bottom: .5rem;
+}
+.layout8-bar {
+  height: 100%;
+  background: #3B82F6;
+  transition: width .4s ease;
+}
+.layout8-footer {
+  font-size: .75rem;
+  color: #6B7280;
+  text-align: right;
+}
+.layout9-card {
+  background: #ffffff;
+  border-radius: .75rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 1rem;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.layout9-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+.layout9-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  color: #fff;
+}
+.layout9-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.layout9-text h4 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.layout9-text small {
+  color: #6B7280;
+  text-transform: uppercase;
+  font-size: .75rem;
+}
+/* invisível, mas scrollável */
+.systems-scroll {
+  /* ajuste esse valor para caber exatamente duas linhas de cards */
+  max-height: 330px; 
+  overflow-y: auto;  /* scroll apenas vertical */
+  overflow-x: hidden;
+  /* remove scrollbar no IE/Edge e Firefox */
+  -ms-overflow-style: none;  
+  scrollbar-width: none;
+}
+.systems-scroll::-webkit-scrollbar {
+  display: none;  /* remove scrollbar no Chrome/Safari */
+}

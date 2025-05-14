@@ -2,10 +2,21 @@
 return [
 
     'ClippService'                                   => 'Public/Image/ClippService.png',
+    'CLIPP SERVICE'                                   => 'Public/Image/ClippService.png',
+    'NFS-E'                                           => 'Public/Image/NFS-E.png',
     'ClippFarma'                                     => 'Public/Image/ClippFarma.png',
     'ClippCheff'                                     => 'Public/Image/ClippCheff.png',
+    'Clipp Cheff'                                     => 'Public/Image/ClippCheff.png',
     'Service MEI'                                    => 'Public/Image/ClippService.png',
-  
+    'Clipp Facil'                                    => 'Public/Image/ClippFacil.png',
+    'Clipp 360'                                      => 'Public/Image/Clipp360.png',
+    'Mercado Livre'                                  => 'Public/Image/MercadoLivre.png',
+    'Clipp PRO'                                      => 'Public/Image/ClippPro.png',
+    'DAV'                                             => 'Public/Image/DAV.png',
+    'NFC-E'                                         => 'Public/Image/NFC-e.png',
+    'Minhas Notas'                                 => 'Public/Image/MinhasNotas.png',
+
+
     // Licenças adicionais – use a mesma logo do ClippMei/Pro ou uma cor variante
     'Licença Adicional ClippMei (5 usuários)'        => 'Public/Image/ClippMei.png',
     'Licença Adicional ClippPro 1 usuário'           => 'Public/Image/ClippPro.png',
@@ -24,6 +35,7 @@ return [
     'ZPOS'                                           => 'Public/Image/Zpos.png',
   
     // ZWeb módulos
+    'ZWEB'                                           => 'Public/Image/ZWeb.png',
     'ZWeb - Cadastro de grades'                      => 'Public/Image/ZWeb.png',
     'ZWeb - Pré-venda gerencial'                     => 'Public/Image/ZWeb.png',
     'ZWeb - Ecommerce próprio'                       => 'Public/Image/ZWeb.png',
