@@ -272,6 +272,9 @@ if ($resultFolga) {
         <?php if ($cargo === 'Admin'): ?>
           <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
         <?php endif; ?>
+        <?php if ($cargo != 'Comercial'): ?>
+          <a class="nav-link" href="okr.php"><img src="../Public/Image/benchmarkbranco.png" width="27" height="27" class="me-1" alt="Benchmark">OKRs</a>
+        <?php endif; ?>
         <?php if ($cargo === 'Admin'): ?>
           <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
         <?php endif; ?>

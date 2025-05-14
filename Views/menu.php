@@ -179,7 +179,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
       <?php endif; ?>
 
       <!-- OKR -->
-      <?php if($cargo==='Admin'): ?>
+      <?php if($cargo != 'Comercial'): ?>
         <div class="col">
           <div class="menu-card" onclick="location.href='okr.php';">
             <div class="menu-icon">
