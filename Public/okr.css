@@ -1,3 +1,25 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.content-wrapper {
+  /* se você usar AdminLTE, normalmente é essa classe ao redor do seu section */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.content {
+  /* aqui está o seu <section class="content container-fluid"> */
+  flex: 1;
+  /* opcional: um min-height caso queira sombrear melhor */
+  min-height: 0;
+}
+
 .bg-success{background:#c6efce!important}
     .bg-warning{background:#fff2cc!important}
     .bg-danger{background:#f8d7da!important}
@@ -30,8 +52,8 @@
   .okr-chart {
     width: 50%;
     display: flex;
-  justify-content: center;
-  align-items: center;
+    justify-content: center;
+    align-items: center;
   }
   .okr-info {
     font-size: 14px;
@@ -97,5 +119,19 @@
   border-bottom: none;
 }
 
+.levels-menu {
+  background: #f8f9fa;
+}
+.level-card {
+  border: none;
+  border-radius: .75rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: transform .2s, box-shadow .2s;
+  background-color: #fff;
+}
+.level-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+}
 
   

@@ -85,7 +85,7 @@
           </div>
         </div>
         <div class="mb-3">
-          <label class="form-label">Descrição curta (opcional)</label>
+          <label class="form-label">Descrição do KR</label>
           <input type="text" class="form-control" name="descricao">
         </div>
       </div>

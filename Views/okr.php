@@ -1,5 +1,6 @@
-<?php require_once __DIR__ . '/../Public/Php/okr_php.php';?>
+<?php require_once __DIR__ . '/../Public/Php/okr_php.php';
 
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -18,7 +19,7 @@
   <link rel="stylesheet" href="../Public/okr.css">
 </head>
 
-<body class="bg-light">
+<body class="bg-light d-flex flex-column vh-100">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <div class="d-flex-wrapper">
@@ -49,10 +50,12 @@
           <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
           <a class="nav-link active" href="okr.php"><img src="../Public/Image/benchmarkbranco.png" width="27" height="27" class="me-1" alt="Benchmark">OKRs</a>
           <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2"></i>Totalizadores</a>
-          <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
         <?php endif; ?>
         <?php if (in_array($cargo, ['Admin','Comercial','Treinamento'])): ?>
           <a class="nav-link" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
+        <?php endif; ?>
+        <?php if ($cargo==='Admin'): ?>
+          <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
         <?php endif; ?>
       </nav>
     </aside>
@@ -73,18 +76,39 @@
       </header>
 
       <!-- CONTENT -->
-      <section class="content container-fluid mt-3">
+      <section class="content container-fluid flex-fill">
 
+      <?php if ( ! isset($_GET['nivel']) ): 
+          // reseta ponteiro e exibe cards
+          $listaNiveis->data_seek(0);
+          echo '<section class="levels-menu container py-5">
+                  <h4 class="text-center mb-4 fw-light text-secondary">Selecione um Nível</h4>
+                  <div class="row justify-content-center g-4">';
+          while($n = $listaNiveis->fetch_assoc()){
+            echo '<div class="col-6 col-sm-4 col-md-3">
+                    <div class="card level-card text-center h-100 p-4 clickable" 
+                        style="cursor:pointer"
+                        onclick="location.href=\'okr.php?view='.$view.'&q='.$q.'&nivel='.$n['id'].'\'">
+                      <i class="fa-solid fa-layer-group fa-2x mb-3 text-primary"></i>
+                      <h5 class="fw-semibold mb-0">'.htmlspecialchars($n['descricao']).'</h5>
+                    </div>
+                  </div>';
+          }
+          echo '  </div>
+                </section>';
+          return;
+        endif;?>
         <!-- VIEW + ACTION BUTTONS -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <div>
-            <a href="?view=year" class="btn btn-sm <?= $view==='year' ? 'btn-primary' : 'btn-outline-primary' ?>">
-              Visão Anual
-            </a>
+        <div>
+            <a
+              href="?view=year&nivel=<?= $nivelSel ?>"
+              class="btn btn-sm <?= $view==='year' ? 'btn-primary' : 'btn-outline-primary' ?>"
+            >Visão Anual</a>
 
             <?php for($i=1; $i<=4; $i++): ?>
               <a
-                href="?view=quarter&q=<?=$i?>"
+                href="?view=quarter&q=<?=$i?>&nivel=<?= $nivelSel ?>"
                 class="btn btn-sm <?= $view==='quarter' && $q===$i ? 'btn-primary' : 'btn-outline-primary' ?>"
               >Q<?=$i?></a>
             <?php endfor; ?>
@@ -119,357 +143,378 @@
 
         <!-- FILTRO DE NÍVEIS -->
         <div class="d-flex flex-wrap gap-2 mb-5">
-          <a
-            href="okr.php?view=<?= $view ?>&q=<?= $q ?>"
-            class="btn btn-sm <?= $nivelSel===0 ? 'btn-primary' : 'btn-outline-primary' ?>"
+          <a 
+            href="?view=<?= $view ?>&q=<?= $q ?>&nivel=0" 
+            class="btn btn-sm <?= ($nivelSel === 0) ? 'btn-primary' : 'btn-outline-primary' ?>"
           >Todos</a>
 
-          <?php while($n = $listaNiveis->fetch_assoc()): ?>
+          <?php 
+            // se já tiver usado fetch_assoc antes, volte ponteiro:
+            $listaNiveis->data_seek(0);
+            while($n = $listaNiveis->fetch_assoc()):
+              $idInt = (int)$n['id'];
+          ?>
             <a
-              href="okr.php?view=<?= $view ?>&q=<?= $q ?>&nivel=<?= $n['id'] ?>"
-              class="btn btn-sm <?= $nivelSel===$n['id'] ? 'btn-primary' : 'btn-outline-primary' ?>"
-            ><?= htmlspecialchars($n['descricao']) ?></a>
+              href="?view=<?= $view ?>&q=<?= $q ?>&nivel=<?= $idInt ?>"
+              class="btn btn-sm <?= ($nivelSel == $idInt) ? 'btn-primary' : 'btn-outline-primary' ?>"
+            >
+              <?= htmlspecialchars($n['descricao']) ?>
+            </a>
           <?php endwhile; ?>
         </div>
+        <!-- Nav de abas -->
+  <ul class="nav nav-tabs mb-4" id="okrTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button 
+        class="nav-link active" 
+        id="geral-tab" 
+        data-bs-toggle="tab" 
+        data-bs-target="#geral" 
+        type="button" 
+        role="tab" 
+        aria-controls="geral" 
+        aria-selected="true"
+      >Geral</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button 
+        class="nav-link" 
+        id="individual-tab" 
+        data-bs-toggle="tab" 
+        data-bs-target="#individual" 
+        type="button" 
+        role="tab" 
+        aria-controls="individual" 
+        aria-selected="false"
+      >Individual</button>
+    </li>
+  </ul>
 
-        <!-- TABELAS EM CARDS POR EQUIPE/NÍVEL -->
-        <?php foreach ($data as $grp => $metas):
-    // filtra metas pelo nível
-    $filtered = [];
-    foreach ($metas as $key => $r) {
-        if (!$nivelSel || in_array($nivelSel, $r['niveis_ids'])) {
-            $filtered[$key] = $r;
-        }
-    }
-    if (empty($filtered)) continue;
-    list($equipe, $niveis) = explode('||', $grp);
-
-    // agrupa por OKR
-    $okrGroups = [];
-    foreach ($filtered as $key => $r) {
-        list($okrId,) = explode('-', $key);
-        $okrGroups[$okrId]['okr']     = $r['okr'];
-        $okrGroups[$okrId]['items'][] = $r;
-    }
-?>
-  <div class="mb-5">
-    <div class="card border-0 shadow-sm rounded">
-      <div class="card-header bg-transparent px-3 py-2">
-        <h5 class="mb-0"><?= htmlspecialchars($equipe) ?> &mdash; <?= htmlspecialchars($niveis) ?></h5>
-      </div>
-      <div class="card-body p-0">
-        <div class="table-responsive px-3 pb-3">
-          <table class="table table-modern mb-0">
-            <thead>
-              <tr>
-     
-                <th width="33%">KR / Indicador</th>
-                <th class="text-center" width="17%">Meta</th>
-                <th class="text-center" width="17%">Realizado</th>
-                <th class="text-center" width="17%">% Ating.</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php foreach ($okrGroups as $okrId => $grpData):
-                  $collapseId = "okrCollapse_{$okrId}";
-                  $items      = $grpData['items'];
-              ?>
-                <!-- linha principal do OKR, clicável -->
-                <tr class="clickable" 
-                    data-bs-toggle="collapse" 
-                    data-bs-target="#<?= $collapseId ?>" 
-                    aria-expanded="false">
-                  <td colspan="5">
-                    <strong><?= htmlspecialchars($grpData['okr']) ?></strong>
-                    <i class="fa fa-chevron-down float-end"></i>
-                  </td>
-                </tr>
-                <!-- linhas de KR, escondidas até expandir -->
-                <tr class="collapse" id="<?= $collapseId ?>">
-                  <td colspan="4.5" class="p-0">
-                    <table class="table table-borderless mb-0">
-                      <tbody>
-                        <?php foreach ($items as $r):
-                          // calcula média e %
-                          if ($r['menor_melhor']) {
-                            $sum   = array_sum($r['real_seg'] ?? []);
-                            $cnt   = count($r['real_seg'] ?? []);
-                            $avg   = $cnt ? round($sum/$cnt) : 0;
-                            $metaDisp = seg2time($r['meta_seg']);
-                            $realDisp = $avg ? seg2time($avg) : '-';
-                            $pct      = $avg ? round($r['meta_seg']/$avg*100,2) : 0;
-                          } else {
-                            $sum   = array_sum($r['real'] ?? []);
-                            $cnt   = count($r['real'] ?? []);
-                            $avg   = $cnt ? round($sum/$cnt,2) : 0;
-                            $metaDisp = number_format($r['meta'],2,',','.') . ' %';
-                            $realDisp = number_format($avg,2,',','.') . ' %';
-                            $pct      = $r['meta'] ? round($avg/$r['meta']*100,2) : 0;
-                          }
-                          $cls = $pct>=100?'success':($pct>=90?'warning':'danger');
-                        ?>
-                          <tr>
-                            <td width="33%"><?= htmlspecialchars($r['kr']) ?></td>
-                            <td class="text-center" width="17%"><?= $metaDisp ?></td>
-                            <td class="text-center" width="17%"><?= $realDisp ?></td>
-                            <td class="text-center" width="17%">
-                              <span class="badge bg-<?= $cls ?> text-dark"><?= number_format($pct,2,',','.') ?>%</span>
-                            </td>
-                          </tr>
-                        <?php endforeach; ?>
-                      </tbody>
-                    </table>
-                  </td>
-                </tr>
-              <?php endforeach; ?>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-<?php endforeach; ?>
-
-        <!-- ACORDION DE DETALHES DAS METAS -->
-        <?php
-          $cardsData = [];
-          $seenMeta  = [];
-
-          foreach ($data as $grp => $metas) {
-            list($equipe,$niveisStr) = explode('||',$grp);
-            foreach ($metas as $key => $metaData) {
-              list(,$metaId) = explode('-',$key);
-              if ($nivelSel && ! in_array($nivelSel, $metaData['niveis_ids'])) continue;
-              if (isset($seenMeta[$metaId])) continue;
-
-              $seenMeta[$metaId] = true;
-              $cardsData[] = [
-                'key'      => $key,
-                'metaData' => $metaData,
-                'niveis'   => $niveisStr,
-                'equipe'   => $equipe
-              ];
-              $data[$grp][$key]['realizado']     = array_sum($metaData['real']    ?? []);
-              $data[$grp][$key]['realizado_seg'] = array_sum($metaData['real_seg'] ?? []);
-            }
+  <div class="tab-content" id="okrTabContent">
+    <!-- ABA GERAL: TABELAS -->
+    <div 
+      class="tab-pane fade show active" 
+      id="geral" 
+      role="tabpanel" 
+      aria-labelledby="geral-tab"
+    >
+      <!-- TABELAS EM CARDS POR EQUIPE/NÍVEL -->
+  <?php foreach ($data as $grp => $metas):
+      // filtra metas pelo nível
+      $filtered = [];
+      foreach ($metas as $key => $r) {
+          if (!$nivelSel || in_array($nivelSel, $r['niveis_ids'])) {
+              $filtered[$key] = $r;
           }
-        ?>
+      }
+      if (empty($filtered)) continue;
+      list($equipe, $niveis) = explode('||', $grp);
 
-        <div class="accordion" id="okrAccordion">
-          <?php foreach ($cardsData as $card):
-            $r    = $card['metaData'];
-            list($okrId,$metaId) = explode('-', $card['key']);
-            $id   = str_replace('-', '_', $card['key']);
-            $okr  = $r['okr'];
-            $kr   = $r['kr'];
-            $equipe = $card['equipe'];
-            $niveis = $card['niveis'];
-            $isTime = $r['menor_melhor']==1;
-
-            // Dados para o gráfico
-            $valuesArr = $isTime ? ($r['real_seg'] ?? []) : ($r['real'] ?? []);
-            $target    = $isTime ? $r['meta_seg'] : $r['meta'];
-            $labels    = array_map(
-              fn($m)=>strftime('%b',mktime(0,0,0,$m,1)), range(1,12)
-            );
-            $values_all = array_map(
-              fn($v)=> $v===null ? null : round((float)$v, 2),
-              array_values($valuesArr)
-            );
-
-            $metaLine = array_fill(0, count($labels), round((float)$target, 2));
-            // contar elementos existentes
-            $cnt = $isTime 
-            ? count(array_filter($values_all, fn($v)=>$v!==null)) 
-            : count($valuesArr);
-
-            // média só se houver dados
-            if ($cnt) {
-            $sum = $isTime 
-              ? array_sum($values_all) 
-              : array_sum($valuesArr);
-            $avg = round($sum / $cnt, 2);
-            } else {
-            $avg = 0;
-            }
-
-            // percentual de atingimento (evita divisão por zero)
-            if ($avg && $target) {
-            $pct = round(
-            $isTime 
-              ? ($target / $avg * 100) 
-              : ($avg / $target * 100),
-            2
-            );
-            } else {
-            $pct = 0;
-            }
-
-            $headerId   = "heading_{$id}";
-            $collapseId = "collapse_{$id}";
-          ?>
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="<?= $headerId ?>">
+      // agrupa para exibir as tabelas
+      $tableGroups = [];
+      foreach ($filtered as $key => $r) {
+          list($okrId,) = explode('-', $key);
+          if (! isset($tableGroups[$okrId])) {
+              $tableGroups[$okrId] = [
+                  'okr'   => $r['okr'],
+                  'items' => []
+              ];
+          }
+          $tableGroups[$okrId]['items'][] = $r;
+      }
+  ?>
+  <div class="accordion mb-3" id="okrTableAccordion">
+      <?php foreach($tableGroups as $okrId => $grpData): ?>
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingTable<?= $okrId ?>">
+            <button
+              class="accordion-button collapsed"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#collapseTable<?= $okrId ?>"
+              aria-expanded="false"
+              aria-controls="collapseTable<?= $okrId ?>"
+            >
+              <?= htmlspecialchars($grpData['okr']) ?>
+            </button>
+          </h2>
+          <div
+            id="collapseTable<?= $okrId ?>"
+            class="accordion-collapse collapse"
+            aria-labelledby="headingTable<?= $okrId ?>"
+            data-bs-parent="#okrTableAccordion"
+          >
+            <div class="accordion-body p-0">
+              <div class="table-responsive px-3 pb-3">
+                <table class="table table-modern mb-0">
+                  <thead>
+                    <tr>
+                      <th>KR / Indicador</th>
+                      <th class="text-center">Meta</th>
+                      <th class="text-center">Realizado</th>
+                      <th class="text-center">% Ating.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php foreach($grpData['items'] as $r):
+                      if ($r['menor_melhor']) {
+                        $sum   = array_sum($r['real_seg']);
+                        $cnt   = count($r['real_seg']);
+                        $avg   = $cnt ? round($sum/$cnt) : 0;
+                        $metaDisp = seg2time($r['meta_seg']);
+                        $realDisp = $avg ? seg2time($avg) : '-';
+                        $pct      = $avg ? round($r['meta_seg']/$avg*100,2) : 0;
+                      } else {
+                        $sum   = array_sum($r['real']);
+                        $cnt   = count($r['real']);
+                        $avg   = $cnt ? round($sum/$cnt,2) : 0;
+                        $metaDisp = number_format($r['meta'],2,',','.') . ' %';
+                        $realDisp = number_format($avg,2,',','.') . ' %';
+                        $pct      = $r['meta'] ? round($avg/$r['meta']*100,2) : 0;
+                      }
+                      $cls = $pct>=100 ? 'success'
+                           : ($pct>=90    ? 'warning'
+                                          : 'danger');
+                    ?>
+                      <tr>
+                        <td><?= htmlspecialchars($r['kr']) ?></td>
+                        <td class="text-center"><?= $metaDisp ?></td>
+                        <td class="text-center"><?= $realDisp ?></td>
+                        <td class="text-center">
+                          <span class="badge bg-<?= $cls ?> text-dark">
+                            <?= number_format($pct,2,',','.') ?>%
+                          </span>
+                        </td>
+                      </tr>
+                    <?php endforeach; ?>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div>
+<?php endforeach; ?>
+    </div>
+  
+ <!-- ABA INDIVIDUAL: ACCORDION DE GRÁFICOS -->
+      <div 
+            class="tab-pane fade" 
+            id="individual" 
+            role="tabpanel" 
+            aria-labelledby="individual-tab"
+          >
+          <div class="accordion" id="okrChartAccordion">
+        <?php foreach($okrGroups as $okrId => $group): ?>
+          <div class="accordion-item mb-3">
+            <h2 class="accordion-header" id="headingChart<?= $okrId ?>">
               <button
                 class="accordion-button collapsed"
                 type="button"
                 data-bs-toggle="collapse"
-                data-bs-target="#<?= $collapseId ?>"
+                data-bs-target="#collapseChart<?= $okrId ?>"
                 aria-expanded="false"
-                aria-controls="<?= $collapseId ?>"
+                aria-controls="collapseChart<?= $okrId ?>"
               >
-                <?= htmlspecialchars($okr) ?> — <?= htmlspecialchars($kr) ?>
+                <?= htmlspecialchars($group['okr']) ?>
               </button>
             </h2>
 
             <div
-              id="<?= $collapseId ?>"
+              id="collapseChart<?= $okrId ?>"
               class="accordion-collapse collapse"
-              aria-labelledby="<?= $headerId ?>"
-              data-bs-parent="#okrAccordion"
+              aria-labelledby="headingChart<?= $okrId ?>"
+              data-bs-parent="#okrChartAccordion"
             >
-              <div class="accordion-body">
-                <div class="card-okr mb-4">
-
-                  <header class="okr-header mb-3">
-                    <p>
-                      <small>
-                        <strong>KR:</strong> <?= htmlspecialchars($kr) ?>
-                        · <?= htmlspecialchars($equipe) ?> / <?= htmlspecialchars($niveis) ?>
-                      </small>
-                    </p>
-                  </header>
-
-                  <div class="okr-body d-flex justify-content-between">
-                    <div class="okr-status-circle">
-                      <div class="circle">
-                        <strong><?= number_format($pct,2,',','.') ?>%</strong>
-                        <span>Status</span>
+              <div class="accordion-body p-0">
+                <ul class="list-group list-group-flush">
+                  <?php foreach($group['items'] as $metaId => $item):
+                    $krId = "{$okrId}_{$metaId}";
+                    // prepara dados do gráfico como antes...
+                    if ($view==='quarter') {
+                      $start  = ($q-1)*3+1;
+                      $months = range($start, $start+2);
+                    } else {
+                      $months = range(1,12);
+                    }
+                    $ptMeses    = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+                    $labels     = array_map(fn($m)=>$ptMeses[$m-1], $months);
+                    $valuesArr  = $item['isTime'] ? $item['real_seg'] : $item['real'];
+                    $values_all = array_map(fn($m)=> $valuesArr[$m] ?? null, $months);
+                    $metaLine   = array_fill(0, count($months), $item['target']);
+                    $chartType  = ($view==='quarter') ? 'bar' : 'line';
+                    // calcula pct e avg
+                    $cnt  = $item['isTime']
+                          ? count(array_filter($values_all, fn($v)=>$v!==null))
+                          : count($valuesArr);
+                    $sum  = $item['isTime']
+                          ? array_sum($values_all)
+                          : array_sum($valuesArr);
+                    $avg  = $cnt ? round($sum/$cnt,2) : 0;
+                    $pct  = ($avg && $item['target'])
+                          ? round($item['isTime']
+                                  ? ($item['target']/$avg*100)
+                                  : ($avg/$item['target']*100),
+                                  2)
+                          : 0;
+                    
+                  ?>
+                    <li class="list-group-item">
+                      <a 
+                        class="d-flex justify-content-between text-decoration-none" 
+                        data-bs-toggle="collapse" 
+                        href="#detail<?= $krId ?>" 
+                        aria-expanded="false" 
+                        aria-controls="detail<?= $krId ?>"
+                      >
+                        <span><?= htmlspecialchars($item['kr']) ?></span>
+                        <i class="fa fa-chevron-down"></i>
+                      </a>
+                      <div 
+                        id="detail<?= $krId ?>" 
+                        class="collapse mt-2" 
+                        data-bs-parent="#collapseChart<?= $okrId ?>"
+                      >
+                        <div class="card-okr mb-4 p-3">
+                          <header class="okr-header mb-3">
+                            <p><small>
+                              <strong>KR:</strong> <?= htmlspecialchars($item['kr']) ?>
+                              · <?= htmlspecialchars($item['equipe']) ?> / <?= htmlspecialchars($item['niveis']) ?>
+                            </small></p>
+                          </header>
+                          <div class="okr-body d-flex justify-content-between align-items-center">
+                            <div class="okr-status-circle me-4">
+                              <div class="circle">
+                                <strong>
+                                  <?= $item['isTime']
+                                      ? gmdate('H:i:s',$avg)
+                                      : number_format($pct,2,',','.').' %' ?>
+                                </strong>
+                                <span>Status</span>
+                              </div>
+                            </div>
+                            <div class="okr-chart flex-fill" style="height:200px;">
+                              <canvas id="chart_<?= $krId ?>"></canvas>
+                            </div>
+                            <script>
+                              (function(){
+                                const ctx = document
+                                  .getElementById('chart_<?= $krId ?>')
+                                  .getContext('2d');
+                                new Chart(ctx, {
+                                  type: '<?= $chartType ?>',
+                                  data: {
+                                    labels: <?= json_encode($labels, JSON_UNESCAPED_UNICODE) ?>,
+                                    datasets: [
+                                      {
+                                        label: <?= $item['isTime'] ? "'Tempo (mm:ss)'" : "'Check-in'" ?>,
+                                        data: <?= json_encode($values_all, JSON_NUMERIC_CHECK) ?>,
+                                        <?= $view==='quarter'
+                                            ? "backgroundColor:'#007bff',"
+                                            : "borderColor:'#007bff',tension:0.4,fill:false," ?>
+                                      },
+                                      {
+                                        label: <?= $item['isTime'] ? "'Meta (mm:ss)'" : "'Meta (%)'" ?>,
+                                        data: <?= json_encode($metaLine, JSON_NUMERIC_CHECK) ?>,
+                                        <?= $view==='quarter'
+                                            ? "backgroundColor:'#ccc',"
+                                            : "borderColor:'#ccc',borderDash:[5,5],tension:0.4,fill:false," ?>
+                                      }
+                                    ]
+                                  },
+                                  options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                      x: { ticks: { autoSkip: false, maxRotation: 0, minRotation: 0 } },
+                                      y: {
+                                        <?php if($item['isTime']): ?>
+                                        ticks: {
+                                          callback: value => {
+                                            const s = Math.floor(value),
+                                                  h = Math.floor(s/3600),
+                                                  m = Math.floor((s%3600)/60),
+                                                  sec = s%60;
+                                            return (h>0?(h+':').padStart(3,'0'):'')
+                                                  +String(m).padStart(2,'0')
+                                                  +':' +String(sec).padStart(2,'0');
+                                          }
+                                        }
+                                        <?php else: ?>
+                                        min:0, max:100,
+                                        ticks: {
+                                          callback: value => value.toFixed(2)+' %'
+                                        }
+                                        <?php endif; ?>
+                                      }
+                                    },
+                                    plugins: {
+                                      tooltip: {
+                                        callbacks: {
+                                          label: ctx => {
+                                            const v = ctx.parsed.y;
+                                            <?php if($item['isTime']): ?>
+                                            const s = Math.floor(v),
+                                                  h = Math.floor(s/3600),
+                                                  m = Math.floor((s%3600)/60),
+                                                  sec = s%60;
+                                            return ctx.dataset.label+': '
+                                                  +(h>0?(h+':').padStart(3,'0'):'')
+                                                  +String(m).padStart(2,'0')
+                                                  +':' +String(sec).padStart(2,'0');
+                                            <?php else: ?>
+                                            return ctx.dataset.label+': '+v.toFixed(2)+' %';
+                                            <?php endif; ?>
+                                          }
+                                        }
+                                      },
+                                      <?php if(!$item['isTime']): ?>legend:{display:false},<?php endif; ?>
+                                    }
+                                  }
+                                });
+                              })();
+                            </script>
+                            <div class="okr-info ms-4">
+                              <p><strong>
+                                <?= $view==='quarter' ? "Q$q - $anoAtual" : "Visão Anual" ?>
+                              </strong></p>
+                              <p><strong>Atingido:</strong>
+                                <?= $item['isTime']
+                                    ? gmdate('H:i:s',$avg)
+                                    : number_format($pct,2,',','.').' %' ?>
+                              </p>
+                              <p><strong>Meta:</strong>
+                                <?= $item['isTime']
+                                    ? gmdate('H:i:s',$item['target'])
+                                    : number_format($item['target'],2,',','.').' %' ?>
+                              </p>
+                            </div>
+                          </div>
+                          <footer class="okr-footer d-flex align-items-center mt-3">
+                            <img
+                              src="../Public/Image/Silva.png"
+                              class="rounded-circle me-2"
+                              width="40" height="40"
+                            >
+                            <div>
+                              <strong>Douglas Silva</strong><br>
+                              <small>Supervisor</small>
+                            </div>
+                          </footer>
+                        </div>
                       </div>
-                    </div>
-
-                    <div class="okr-chart" style="position: relative; width: 100%; height: 250px;">
-                      <canvas id="chart_<?= $id ?>"></canvas>
-                    </div>
-
-                    <div class="okr-info">
-                      <p><strong>
-                        <?= $view==='quarter' ? "Q$q - $anoAtual" : "Visão Anual" ?>
-                      </strong></p>
-
-                      <p>
-                        <strong>Atingido:</strong>
-                        <?= $isTime
-                            ? gmdate('H:i:s',$avg)
-                            : number_format($pct,2,',','.').' %' ?>
-                      </p>
-
-                      <p>
-                        <strong>Meta:</strong>
-                        <?= $isTime
-                            ? gmdate('H:i:s',$target)
-                            : number_format($target,2,',','.').' %' ?>
-                      </p>
-                    </div>
-                  </div>
-
-                  <footer class="okr-footer d-flex align-items-center">
-                    <img
-                      src="../Public/Image/Silva.png"
-                      class="rounded-circle me-2"
-                      width="40" height="40"
-                    >
-                    <div>
-                      <strong>Douglas Silva</strong><br>
-                      <small>Supervisor</small>
-                    </div>
-                  </footer>
-
-                </div> <!-- /.card-okr -->
-              </div> <!-- /.accordion-body -->
-            </div> <!-- /.collapse -->
-          </div> <!-- /.accordion-item -->
-
-          <script>
-const ctx_<?= $id ?> = document.getElementById('chart_<?= $id ?>').getContext('2d');
-new Chart(ctx_<?= $id ?>, {
-  type: <?= $view==='quarter' ? "'bar'" : "'line'" ?>,
-  data: {
-    labels: <?= json_encode($labels) ?>,
-    datasets: [
-      {
-        label: <?= $isTime ? "'Tempo (mm:ss)'" : "'Check-in'" ?>,
-        data: <?= json_encode($values_all, JSON_NUMERIC_CHECK) ?>,
-        <?= $view==='quarter'
-          ? "backgroundColor:'#007bff',"
-          : "borderColor:'#007bff',tension:0.4,fill:false," ?>
-      },
-      {
-        label: <?= $isTime ? "'Meta (mm:ss)'" : "'Meta (%)'" ?>,
-        data: <?= json_encode($metaLine, JSON_NUMERIC_CHECK) ?>,
-        <?= $view==='quarter'
-          ? "backgroundColor:'#ccc',"
-          : "borderColor:'#ccc',borderDash:[5,5],tension:0.4,fill:false," ?>
-      }
-    ]
-  },
-  options: {
-    responsive:true,
-    maintainAspectRatio:false,
-    scales:{
-      x:{ ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
-      y:{
-        <?php if($isTime): ?>
-        ticks:{
-          callback:value=>{
-            const s=Math.floor(value),
-                  h=Math.floor(s/3600),
-                  m=Math.floor((s%3600)/60),
-                  sec=s%60;
-            return (h>0?(h+':').padStart(3,'0'):'')+
-                   String(m).padStart(2,'0')+':' +
-                   String(sec).padStart(2,'0');
-          }
-        }
-        <?php else: ?>
-        ticks:{
-          callback:value=>value.toFixed(2)+' %'
-        },
-        min:0,max:100
-        <?php endif; ?>
-      }
-    },
-    plugins:{
-      tooltip:{
-        callbacks:{
-          label:ctx=>{
-            const v=ctx.parsed.y;
-            <?php if($isTime): ?>
-            const s=Math.floor(v),
-                  h=Math.floor(s/3600),
-                  m=Math.floor((s%3600)/60),
-                  sec=s%60;
-            return ctx.dataset.label+': '+
-                   (h>0?(h+':').padStart(3,'0'):'')+
-                   String(m).padStart(2,'0')+':' +
-                   String(sec).padStart(2,'0');
-            <?php else: ?>
-            return ctx.dataset.label+': '+v.toFixed(2)+' %';
-            <?php endif; ?>
-          }
-        }
-      },
-      <?php if(!$isTime): ?>legend:{display:false},<?php endif; ?>
-    }
-  }
-});
-</script>
-
-
-        <?php endforeach; ?> <!-- /.accordion -->
-
+                    </li>
+                  <?php endforeach; ?>
+                </ul>
+              </div>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    </div>
+  </div>
       </section> <!-- /.content -->
-
     </main> <!-- /main -->
   </div> <!-- /.d-flex-wrapper -->
 

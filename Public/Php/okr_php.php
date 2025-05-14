@@ -10,6 +10,7 @@ $cargo        = $_SESSION['cargo']   ?? '';
 $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
 $anoAtual     = date('Y');
 
+
 /* ---------- VIEW MODE (anual ou trimestral) ---------- */
 $view = $_GET['view'] ?? 'year';        // 'year' ou 'quarter'
 $q    = isset($_GET['q']) ? intval($_GET['q']) : 1;
@@ -260,5 +261,51 @@ if ($nivelSel) {
 }
 
 // 1.2) Lista de todos os níveis (para renderizar os cards de filtro)
-$listaNiveis = $conn->query("SELECT id, descricao FROM TB_NIVEL ORDER BY descricao");
+$listaNiveis = $conn->query(" SELECT 
+                                ni.id, 
+                                  ni.descricao 
+                              FROM TB_NIVEL ni
+                              INNER JOIN TB_OKR_NIVEL okn 
+                                ON okn.idNivel = ni.id
+                              GROUP BY ni.id");
+
+// --- 1) ACHATAR $data EM $cardsData ---
+$cardsData = []; $seen = [];
+foreach($data as $grp=>$metas){
+  list($equipe,$niveisStr)=explode('||',$grp);
+  foreach($metas as $key=>$m){
+    if($nivelSel && !in_array($nivelSel,$m['niveis_ids'])) continue;
+    if(isset($seen[$key])) continue;
+    $seen[$key]=true;
+    $cardsData[]=[
+      'key'=>$key,
+      'metaData'=>$m,
+      'equipe'=>$equipe,
+      'niveis'=>$niveisStr
+    ];
+  }
+}
+
+// agrupa por OKR já definindo isTime e target
+$okrGroups = [];
+foreach($cardsData as $card){
+  list($okrId,$metaId)=explode('-',$card['key']);
+  if(!isset($okrGroups[$okrId])){
+    $okrGroups[$okrId]=[
+      'okr'=>$card['metaData']['okr'],
+      'items'=>[]
+    ];
+  }
+  $m = $card['metaData'];
+  $okrGroups[$okrId]['items'][$metaId]=[
+    'kr'=>$m['kr'],
+    'isTime'=>($m['menor_melhor']==1),
+    'real'=>$m['real']     ?? [],
+    'real_seg'=>$m['real_seg'] ?? [],
+    'target'=>($m['menor_melhor']==1 ? $m['meta_seg'] : $m['meta']),
+    'equipe'=>$card['equipe'],
+    'niveis'=>$card['niveis'],
+  ];
+}
+
 ?>
