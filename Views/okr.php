@@ -67,7 +67,18 @@
 
     <!-- MAIN -->
     <main class="w-100">
-
+      <!-- Minimalist Modern Toast Layout -->
+      <div id="toast-container" class="toast-container">
+        <div id="toastSucesso" class="toast toast-success">
+          <i class="fa-solid fa-check-circle"></i>
+          <span id="toastMensagem"></span>
+        </div>
+        <div id="toastErro" class="toast toast-error">
+          <i class="fa-solid fa-exclamation-triangle"></i>
+          <span id="toastMensagemErro"></span>
+        </div>
+      </div>
+      
       <!-- HEADER -->
       <header class="header d-flex justify-content-between align-items-center px-3">
         <h3>Controle de OKRs – <?= $anoAtual ?></h3>
@@ -87,7 +98,19 @@
           // reseta ponteiro e exibe cards
           $listaNiveis->data_seek(0);
           echo '<section class="levels-menu container py-5">
-                  <h4 class="text-center mb-4 fw-light text-secondary">Selecione um Nível</h4>
+        
+                  <div class="d-flex align-items-center mb-4">
+                    <div class="flex-fill text-center">
+                      <h4 class="fw-light text-secondary mb-0">Selecione um Nível</h4>
+                    </div>
+                    <a 
+                      href="okr_list.php"
+                      class="btn btn-outline-secondary"
+                      style="white-space: nowrap;"
+                    >
+                      <i class="fa-solid fa-list me-1"></i> Listar OKRs
+                    </a>
+                  </div>
                   <div class="row justify-content-center g-4">';
           while($n = $listaNiveis->fetch_assoc()){
             echo '<div class="col-6 col-sm-4 col-md-3">
@@ -96,10 +119,12 @@
                         onclick="location.href=\'okr.php?view='.$view.'&q='.$q.'&nivel='.$n['id'].'\'">
                       <i class="fa-solid fa-layer-group fa-2x mb-3 text-primary"></i>
                       <h5 class="fw-semibold mb-0">'.htmlspecialchars($n['descricao']).'</h5>
+                      <small> ' .htmlspecialchars($n['equipe']). '</small>
                     </div>
                   </div>';
           }
           echo '  </div>
+          
                 </section>';
           return;
         endif;?>
@@ -126,13 +151,6 @@
             >
               <i class="fa-solid fa-list me-1"></i> Listar OKRs
             </a>
-            <button
-              class="btn btn-outline-secondary"
-              data-bs-toggle="modal"
-              data-bs-target="#modalNovoOKR"
-            >
-              <i class="fa-solid fa-bullseye me-1"></i>Novo OKR
-            </button>
 
             <button
               class="btn btn-outline-secondary"
@@ -229,6 +247,7 @@
               $tableGroups[$okrId] = [
                   'okr'   => $r['okr'],
                   'niveis'  => $niveis,
+                  'equipe'  => $equipe,
                   'items' => []
               ];
           }
@@ -251,6 +270,7 @@
               <?php if ($nivelSel === 0): ?>
                 <small class="text-secondary ms-2">
                   · <?= htmlspecialchars($grpData['niveis']) ?>
+                  - <?= htmlspecialchars($grpData['equipe']) ?>
                 </small>
               <?php endif; ?>
             </button>
@@ -338,6 +358,7 @@
                 <?php if ($nivelSel === 0): ?> 
                   <small class="text-secondary ms-2">
                     · <?= htmlspecialchars($group['niveis']) ?>
+                    - <?= htmlspecialchars($grpData['equipe']) ?>
                   </small>
                 <?php endif; ?>
               </button>

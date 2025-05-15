@@ -12,30 +12,23 @@ return [
     'Clipp 360'                                      => 'Public/Image/Clipp360.png',
     'Mercado Livre'                                  => 'Public/Image/MercadoLivre.png',
     'Clipp PRO'                                      => 'Public/Image/ClippPro.png',
+    'ClippPro'                                      => 'Public/Image/ClippPro.png',
     'DAV'                                             => 'Public/Image/DAV.png',
     'NFC-E'                                         => 'Public/Image/NFCe.png',
     'Minhas Notas'                                 => 'Public/Image/MinhasNotas.png',
 
 
     // Licenças adicionais – use a mesma logo do ClippMei/Pro ou uma cor variante
-    'Licença Adicional ClippMei (5 usuários)'        => 'Public/Image/ClippMei.png',
-    'Licença Adicional ClippPro 1 usuário'           => 'Public/Image/ClippPro.png',
-    'Licença Adicional ClippPro 2 usuários'          => 'Public/Image/ClippPro.png',
-    'Licença Adicional ClippPro 3 usuários'          => 'Public/Image/ClippPro.png',
-    'Licença Adicional ClippPro 4 usuários'          => 'Public/Image/ClippPro.png',
-    'Licença Adicional ClippPro 5 usuários'          => 'Public/Image/ClippPro.png',
-    'Licença Adicional ClippPro a partir de 6 usuários'
-                                                    => 'Public/Image/ClippPro.png',
+    'Licença Adicional ClippMei'        => 'Public/Image/ClippMei.png',
+    'Licença Adicional ClippPro'           => 'Public/Image/ClippPro.png',
   
     // eCommerce C4 – você pode usar a mesma logo e diferenciar pelo texto
-    'eCommerce C4 (500 itens)'                       => 'Public/Image/ecommerce.png',
-    'eCommerce C4 (1.000 itens)'                     => 'Public/Image/ecommerce.png',
-    'eCommerce C4 (1.500 itens)'                     => 'Public/Image/ecommerce.png',
+    'eCommerce C4'                       => 'Public/Image/ecommerce.png',
   
     'ZPOS'                                           => 'Public/Image/Zpos.png',
   
     // ZWeb módulos
-    'ZWEB'                                           => 'Public/Image/ZWeb.png',
+    'ZWeb'                                           => 'Public/Image/ZWeb.png',
     'ZWeb - Cadastro de grades'                      => 'Public/Image/ZWeb.png',
     'ZWeb - Pré-venda gerencial'                     => 'Public/Image/ZWeb.png',
     'ZWeb - Ecommerce próprio'                       => 'Public/Image/ZWeb.png',
@@ -48,5 +41,15 @@ return [
     'Imendes'                                        => 'Public/Image/Imendes.png',
     'BRBackup'                                       => 'Public/Image/brbackup.png',
     'Shipay'                                         => 'Public/Image/Shipay.png',
-  
+    'Mercos'                                         => 'Public/Image/Mercos.png',
+    'Máquina de Cartão - Stone'                      => 'Public/Image/Stone.png',
+    'Máquina de Cartão - Vero'                       => 'Public/Image/Vero.png',
+    'WhatsApp - Mensageiro'                          => 'Public/Image/WhatsApp.png',
+    'PIX API - Banco do Brasil'                      => 'Public/Image/BancoDoBrasil.png',
+    'PIX API - Santander'                            => 'Public/Image/Santander.png',
+    'PIX API - Sicoob'                               => 'Public/Image/Sicoob.png',
+    'PIX API - Sicredi'                              => 'Public/Image/Sicredi.png',
+    'PIX API - Inter'                                => 'Public/Image/Inter.png',
+    'PIX PDV - Conexão Itaú'                         => 'Public/Image/Itau.png',
+    
   ];

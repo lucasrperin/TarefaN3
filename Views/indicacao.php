@@ -124,6 +124,20 @@ $sqlRanking = "
 $resRanking = mysqli_query($conn, $sqlRanking);
 $ranking    = mysqli_fetch_all($resRanking, MYSQLI_ASSOC);
 
+$sqlRankingFat = "
+  SELECT 
+    u.nome AS usuario_nome, 
+    COUNT(i.id) AS total_indicacoes
+  FROM TB_INDICACAO i
+  JOIN TB_USUARIO u ON u.id = i.user_id
+  $whereSQL
+  AND i.status = 'Faturado'
+  GROUP BY u.id
+  ORDER BY total_indicacoes DESC
+";
+$resRankingFat = mysqli_query($conn, $sqlRankingFat);
+$rankingFat    = mysqli_fetch_all($resRankingFat, MYSQLI_ASSOC);
+
 // 6) Ranking de faturamento por consultor (filtra apenas faturados)
 $sqlRankingConsult = "
   SELECT 
@@ -514,7 +528,7 @@ $dadosTreinJson = json_encode($dadosTrein);
                         <?php if(isset($logos[$pc['plugin_nome']])): ?>
                         <img src="../<?=$logos[$pc['plugin_nome']]?>" 
                              alt="<?=$pc['plugin_nome']?>" 
-                             class="masonry-logo">
+                             class="masonry-logo" style="border-radius:3px;">
                         <?php endif; ?>
                         <div class="masonry-title"><?=$pc['plugin_nome']?></div>
                         <div class="masonry-stats">
@@ -619,7 +633,7 @@ $dadosTreinJson = json_encode($dadosTrein);
                       <?php $logo = $logos[$i['plugin_nome']] ?? null; ?>
                       <td class="d-flex align-items-center gap-2 w-100">
                       <?php if ($logo): ?>
-                        <img src="../<?= $logo; ?>" alt="" style="width:25px;height:31px;">
+                        <img src="../<?= $logo; ?>" alt="" style="width:31px;height:31px;border-radius:3px;">
                       <?php endif; ?>
                       <span><?= htmlspecialchars($i['plugin_nome']); ?></span>
                       </td>
@@ -1038,7 +1052,7 @@ $dadosTreinJson = json_encode($dadosTrein);
                 <div class="col-md-6">
                   <div class="form-group">
                     <label for="editar_consultor">Consultor</label>
-                    <select class="form-select" id="editar_consultor" name="consultor" required>
+                    <select class="form-select" id="editar_consultor" name="consultor">
                         <option value="">Selecione</option>
                         <?php
                         $sqlConsult = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo = 'Comercial' AND Id <> 29 ORDER BY Nome";

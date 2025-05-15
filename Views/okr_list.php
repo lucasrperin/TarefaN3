@@ -102,6 +102,15 @@ $rs = $conn->query($sql);
     </header>
 
 <section class="content container-fluid flex-fill py-5">
+  <div class="d-flex justify-content-end mb-2">
+    <button
+      class="btn btn-outline-secondary"
+      data-bs-toggle="modal"
+      data-bs-target="#modalNovoOKR"
+    >
+      <i class="fa-solid fa-bullseye me-1"></i> Novo OKR
+    </button>
+  </div>
     <table class="table table-striped">
       <thead>
         <tr>
@@ -134,15 +143,15 @@ $rs = $conn->query($sql);
 
             <!-- Excluir: link para delete_okr.php -->
             <button
-  class="btn btn-sm btn-link text-danger"
-  data-bs-toggle="modal"
-  data-bs-target="#modalExcluirOKR"
-  data-id="<?= $o['id'] ?>"
-  data-nome="<?= htmlspecialchars($o['descricao'], ENT_QUOTES) ?>"
-  title="Excluir"
->
-  <i class="fa-solid fa-trash"></i>
-</button>
+              class="btn btn-sm btn-link text-danger"
+              data-bs-toggle="modal"
+              data-bs-target="#modalExcluirOKR"
+              data-id="<?= $o['id'] ?>"
+              data-nome="<?= htmlspecialchars($o['descricao'], ENT_QUOTES) ?>"
+              title="Excluir"
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
           </td>
         </tr>
         <?php endwhile; ?>
@@ -155,7 +164,9 @@ $rs = $conn->query($sql);
   </main>
 </div>
 
+
 <?php include '../Public/Modals/okr_edit_modal.php';?>
+<?php include '../Public/Modals/okr_modals.php'; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../Public/Js/okr.js"></script>

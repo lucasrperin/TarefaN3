@@ -33,7 +33,7 @@ try {
   }
 
   $conn->commit();
-  header("Location: okr.php?success=1");
+  header("Location: okr.php?view=year&q=1&nivel=0&success=1");
   exit();
 
 } catch (Exception $e) {

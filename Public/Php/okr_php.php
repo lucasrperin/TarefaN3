@@ -263,11 +263,16 @@ if ($nivelSel) {
 // 1.2) Lista de todos os níveis (para renderizar os cards de filtro)
 $listaNiveis = $conn->query(" SELECT 
                                 ni.id, 
-                                  ni.descricao 
+                                ni.descricao,
+                                equ.descricao as equipe
                               FROM TB_NIVEL ni
                               INNER JOIN TB_OKR_NIVEL okn 
                                 ON okn.idNivel = ni.id
-                              GROUP BY ni.id
+                              INNER JOIN TB_OKR okr
+                                ON okr.id = okn.idOkr
+                              INNER JOIN TB_EQUIPE equ
+                                ON equ.id = okr.idEquipe
+                              GROUP BY equ.descricao, ni.descricao
                               ORDER BY ni.descricao");
 
 // --- 1) ACHATAR $data EM $cardsData ---
@@ -295,6 +300,7 @@ foreach($cardsData as $card){
     $okrGroups[$okrId]=[
       'okr'=>$card['metaData']['okr'],
       'niveis' => $card['niveis'],
+      'equipe' => $card['equipe'],
       'items'=>[]
     ];
   }

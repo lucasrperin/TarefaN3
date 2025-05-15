@@ -75,6 +75,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  document.addEventListener('DOMContentLoaded', () => {
+  // 1️⃣   Se havia um modal pra reabrir, faz isso agora:
+  const modalToOpen = sessionStorage.getItem('openModal');
+  if (modalToOpen) {
+    const el = document.getElementById(modalToOpen);
+    if (el) new bootstrap.Modal(el).show();
+    sessionStorage.removeItem('openModal');
+  }
+
+  // 2️⃣   Antes de qualquer form SUBMIT dentro de um modal, memoriza o id:
+  document.querySelectorAll('.modal form').forEach(form => {
+    form.addEventListener('submit', () => {
+      const modal = form.closest('.modal');
+      if (modal && modal.id) {
+        sessionStorage.setItem('openModal', modal.id);
+      }
+    });
+  });
+});
+
+
   // ——— Toasts de Mensagem ———
   function showToast(message, type) {
     const container = document.getElementById('toast-container');
@@ -99,12 +120,64 @@ document.addEventListener('DOMContentLoaded', () => {
     if (success === "1") msg = "OKR Cadastrado!";
     else if (success === "2") msg = "OKR Editado!";
     else if (success === "3") msg = "OKR Excluído!";
+    else if (success === "4") msg = "Meta Cadastrada!";
+    else if (success === "5") msg = "Meta Editada!";
+    else if (success === "6") msg = "Meta Excluído!";
     if (msg) showToast(msg, "success");
   }
   if (error) {
     let msg = "";
     if (error === "1") msg = "OKR já existe!";
     else if (error === "2") msg = "Não é possível excluir OKR que possui vínculos!";
+    else if (error === "3") msg = "Não é possível excluir Meta que possui vínculos!";
     if (msg) showToast(msg, "error");
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const selNivel = document.getElementById('selNivelMeta');
+  const selOkr   = document.getElementById('selOkrMeta');
+
+  if (!selNivel || !selOkr) return;
+
+  selNivel.addEventListener('change', function() {
+    const nivel = this.value;
+    // ativa/desativa o seletor de OKR
+    selOkr.disabled = !nivel;
+
+    // limpa seleção anterior
+    selOkr.value = '';
+
+    // para cada option de OKR, esconde se não tiver o nível
+    Array.from(selOkr.options).forEach(opt => {
+      if (!opt.value) {
+        // opção placeholder sempre visível
+        opt.hidden = false;
+      } else {
+        const ids = (opt.dataset.niveisIds || '').split(',');
+        opt.hidden = nivel ? !ids.includes(nivel) : false;
+      }
+    });
+  });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const selNivel = document.getElementById('selNivelLanc');
+  const selOkr   = document.getElementById('selOkr');
+
+  if (selNivel && selOkr) {
+    selNivel.addEventListener('change', function() {
+      const nivel = this.value;
+      selOkr.disabled = !nivel;
+      selOkr.value    = '';
+      Array.from(selOkr.options).forEach(opt => {
+        if (!opt.value) {
+          opt.hidden = false; // placeholder
+        } else {
+          const ids = (opt.dataset.niveisIds || '').split(',');
+          opt.hidden = nivel ? !ids.includes(nivel) : false;
+        }
+      });
+    });
   }
 });
