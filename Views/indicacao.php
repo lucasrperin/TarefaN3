@@ -840,7 +840,7 @@ $dadosTreinJson = json_encode($dadosTrein);
         <form action="cadastrar_indicacao.php" method="POST">
           <div class="modal-body">
             <!-- Linha 1: Plugin e Data -->
-            <div class="row">
+            <div class="row mb-2">
               <div class="col-md-6">
                 <div class="form-group position-relative">
                   <label for="plugin_id" class="form-label mb-0">Plugin</label>
@@ -886,7 +886,7 @@ $dadosTreinJson = json_encode($dadosTrein);
               </div>
             </div>
             <!-- Linha 2: CNPJ e Serial -->
-            <div class="row">
+            <div class="row mb-2">
               <div class="col-md-6">
                 <div class="form-group">
                   <label for="cnpj">CNPJ</label>
@@ -901,7 +901,7 @@ $dadosTreinJson = json_encode($dadosTrein);
               </div>
             </div>
             <!-- Linha 3: Contato e Fone -->
-            <div class="row">
+            <div class="row mb-2">
               <div class="col-md-6">
                 <div class="form-group">
                   <label for="contato">Contato</label>
@@ -912,6 +912,15 @@ $dadosTreinJson = json_encode($dadosTrein);
                 <div class="form-group">
                   <label for="fone">Fone</label>
                   <input type="text" class="form-control" id="fone" name="fone" required>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12">
+                <div class="form-group">
+                  <label for="observacao">Observação</label>
+                  <textarea class="form-control" id="observacao" name="observacao" rows="3"
+                    placeholder="Digite aqui alguma observação (opcional)"></textarea>
                 </div>
               </div>
             </div>
