@@ -17,6 +17,7 @@
   <!-- Custom Styles -->
   <link rel="stylesheet" href="../Public/usuarios.css">
   <link rel="stylesheet" href="../Public/okr.css">
+  <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
 </head>
 
 <body class="bg-light">
@@ -119,6 +120,12 @@
           </div>
         <?php if ($cargo==='Admin'): ?>
           <div class="d-flex gap-2">
+            <a href="okr_list.php"
+              class="btn btn-outline-secondary"
+              style="white-space: nowrap;"
+            >
+              <i class="fa-solid fa-list me-1"></i> Listar OKRs
+            </a>
             <button
               class="btn btn-outline-secondary"
               data-bs-toggle="modal"
@@ -154,7 +161,6 @@
           >Todos</a>
 
           <?php 
-            // se já tiver usado fetch_assoc antes, volte ponteiro:
             $listaNiveis->data_seek(0);
             while($n = $listaNiveis->fetch_assoc()):
               $idInt = (int)$n['id'];
@@ -222,6 +228,7 @@
           if (! isset($tableGroups[$okrId])) {
               $tableGroups[$okrId] = [
                   'okr'   => $r['okr'],
+                  'niveis'  => $niveis,
                   'items' => []
               ];
           }
@@ -241,6 +248,11 @@
               aria-controls="collapseTable<?= $okrId ?>"
             >
               <?= htmlspecialchars($grpData['okr']) ?>
+              <?php if ($nivelSel === 0): ?>
+                <small class="text-secondary ms-2">
+                  · <?= htmlspecialchars($grpData['niveis']) ?>
+                </small>
+              <?php endif; ?>
             </button>
           </h2>
           <div
@@ -323,6 +335,11 @@
                 aria-controls="collapseChart<?= $okrId ?>"
               >
                 <?= htmlspecialchars($group['okr']) ?>
+                <?php if ($nivelSel === 0): ?> 
+                  <small class="text-secondary ms-2">
+                    · <?= htmlspecialchars($group['niveis']) ?>
+                  </small>
+                <?php endif; ?>
               </button>
             </h2>
 
@@ -525,6 +542,7 @@
 
   <!-- MODAIS -->
   <?php include '../Public/Modals/okr_modals.php'; ?>
+  <?php include __DIR__ . '/../Public/Modals/okr_edit_modal.php'; ?>
 
   <script>
     // Pegamos o PHP e transformamos em JS

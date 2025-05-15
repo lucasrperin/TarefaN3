@@ -267,7 +267,8 @@ $listaNiveis = $conn->query(" SELECT
                               FROM TB_NIVEL ni
                               INNER JOIN TB_OKR_NIVEL okn 
                                 ON okn.idNivel = ni.id
-                              GROUP BY ni.id");
+                              GROUP BY ni.id
+                              ORDER BY ni.descricao");
 
 // --- 1) ACHATAR $data EM $cardsData ---
 $cardsData = []; $seen = [];
@@ -293,6 +294,7 @@ foreach($cardsData as $card){
   if(!isset($okrGroups[$okrId])){
     $okrGroups[$okrId]=[
       'okr'=>$card['metaData']['okr'],
+      'niveis' => $card['niveis'],
       'items'=>[]
     ];
   }
