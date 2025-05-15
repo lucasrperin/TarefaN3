@@ -20,13 +20,12 @@ return [
 
     // Licenças adicionais – use a mesma logo do ClippMei/Pro ou uma cor variante
     'Licença Adicional ClippMei (5 usuários)'        => 'Public/Image/ClippMei.png',
-    'Licença Adicional ClippPro 1 usuário'           => 'Public/Image/ClippPro.png',
-    'Licença Adicional ClippPro 2 usuários'          => 'Public/Image/ClippPro.png',
-    'Licença Adicional ClippPro 3 usuários'          => 'Public/Image/ClippPro.png',
-    'Licença Adicional ClippPro 4 usuários'          => 'Public/Image/ClippPro.png',
-    'Licença Adicional ClippPro 5 usuários'          => 'Public/Image/ClippPro.png',
-    'Licença Adicional ClippPro a partir de 6 usuários'
-                                                    => 'Public/Image/ClippPro.png',
+    'Licença Adicional ClippPro (1 usuário)'           => 'Public/Image/ClippPro.png',
+    'Licença Adicional ClippPro (2 usuários)'          => 'Public/Image/ClippPro.png',
+    'Licença Adicional ClippPro (3 usuários)'          => 'Public/Image/ClippPro.png',
+    'Licença Adicional ClippPro (4 usuários)'          => 'Public/Image/ClippPro.png',
+    'Licença Adicional ClippPro (5 usuários)'          => 'Public/Image/ClippPro.png',
+    'Licença Adicional ClippPro (a partir de 6 usuários)' => 'Public/Image/ClippPro.png',
   
     // eCommerce C4 – você pode usar a mesma logo e diferenciar pelo texto
     'eCommerce C4 (500 itens)'                       => 'Public/Image/ecommerce.png',
