@@ -2,28 +2,29 @@
 return [
 
     'ClippService'                                   => 'Public/Image/ClippService.png',
-    'CLIPP SERVICE'                                   => 'Public/Image/ClippService.png',
-    'NFS-E'                                           => 'Public/Image/NFSe.png',
+    'CLIPP SERVICE'                                  => 'Public/Image/ClippService.png',
+    'NFS-E'                                          => 'Public/Image/NFSe.png',
     'ClippFarma'                                     => 'Public/Image/ClippFarma.png',
     'ClippCheff'                                     => 'Public/Image/ClippCheff.png',
-    'Clipp Cheff'                                     => 'Public/Image/ClippCheff.png',
+    'Clipp Cheff'                                    => 'Public/Image/ClippCheff.png',
     'Service MEI'                                    => 'Public/Image/ClippService.png',
     'Clipp Facil'                                    => 'Public/Image/ClippFacil.png',
     'Clipp 360'                                      => 'Public/Image/Clipp360.png',
     'Mercado Livre'                                  => 'Public/Image/MercadoLivre.png',
     'Clipp PRO'                                      => 'Public/Image/ClippPro.png',
-    'ClippPro'                                      => 'Public/Image/ClippPro.png',
-    'DAV'                                             => 'Public/Image/DAV.png',
-    'NFC-E'                                         => 'Public/Image/NFCe.png',
-    'Minhas Notas'                                 => 'Public/Image/MinhasNotas.png',
-
-
+    'ClippPro'                                       => 'Public/Image/ClippPro.png',
+    'DAV'                                            => 'Public/Image/DAV.png',
+    'NFC-E'                                          => 'Public/Image/NFCe.png',
+    'Minhas Notas'                                   => 'Public/Image/MinhasNotas.png',
+    'Certificado'                                    => 'Public/Image/Certificado.png',
+    'Treinamento'                                    => 'Public/Image/Treinamento.png',
+    
     // Licenças adicionais – use a mesma logo do ClippMei/Pro ou uma cor variante
-    'Licença Adicional ClippMei'        => 'Public/Image/ClippMei.png',
-    'Licença Adicional ClippPro'           => 'Public/Image/ClippPro.png',
+    'Licença Adicional ClippMei'                     => 'Public/Image/ClippMei.png',
+    'Licença Adicional ClippPro'                     => 'Public/Image/ClippPro.png',
   
     // eCommerce C4 – você pode usar a mesma logo e diferenciar pelo texto
-    'eCommerce C4'                       => 'Public/Image/ecommerce.png',
+    'eCommerce C4'                                   => 'Public/Image/ecommerce.png',
   
     'ZPOS'                                           => 'Public/Image/Zpos.png',
   
