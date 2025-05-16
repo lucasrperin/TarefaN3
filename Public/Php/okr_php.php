@@ -171,7 +171,7 @@ while ($rowO = $resO->fetch_assoc()) {
 }
 // metas agrupadas por OKR
 $metaList = [];
-$stmtM = $conn->prepare("SELECT id, idOkr, descricao FROM TB_META WHERE ano = ? ORDER BY descricao");
+$stmtM = $conn->prepare("SELECT id, idOkr, descricao FROM TB_META WHERE ano = ? ORDER BY id ASC");
 $stmtM->bind_param('i', $anoAtual);
 $stmtM->execute();
 $rsM = $stmtM->get_result();
