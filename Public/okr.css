@@ -134,4 +134,36 @@ html, body {
   box-shadow: 0 12px 24px rgba(0,0,0,0.1);
 }
 
-  
+/* Toast Container centered at the bottom */
+#toast-container {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1050;
+}
+/* Base style for the toast messages */
+.toast {
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  margin-bottom: 10px;
+}
+/* When toast is visible */
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Success Toast in green */
+.toast.success {
+  background-color: #27c03b;
+}
+/* Error Toast in red */
+.toast.error {
+  background-color: #e74c3c;
+}

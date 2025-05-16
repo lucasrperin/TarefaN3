@@ -50,13 +50,65 @@
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label class="form-label">OKR</label>
-          <select class="form-select" name="idOkr" required>
-            <?php $o=$conn->query("SELECT id,descricao FROM TB_OKR ORDER BY descricao"); while($r=$o->fetch_assoc()): ?>
-              <option value="<?=$r['id']?>"><?=$r['descricao']?></option>
-            <?php endwhile; ?>
-          </select>
-        </div>
+    <label class="form-label">Nível</label>
+    <select id="selNivelMeta" class="form-select" required>
+      <option value="" selected>Selecione um nível</option>
+      <?php
+        $resN = $conn->query("SELECT 
+                                ni.id, 
+                                ni.descricao,
+                                substring(equ.descricao from 6 for 6) as equipe
+                              FROM TB_NIVEL ni
+                              INNER JOIN TB_OKR_NIVEL okn 
+                                ON okn.idNivel = ni.id
+                              INNER JOIN TB_OKR okr
+                                ON okr.id = okn.idOkr
+                              INNER JOIN TB_EQUIPE equ
+                                ON equ.id = okr.idEquipe
+                              GROUP BY equ.descricao, ni.descricao
+                              ORDER BY equ.descricao, ni.descricao asc ");
+        while($n = $resN->fetch_assoc()):
+      ?>
+        <option value="<?= $n['id'] ?>"><?= htmlspecialchars($n['descricao']).' - ' .htmlspecialchars($n['equipe']) ?></option>
+      <?php endwhile; ?>
+    </select>
+  </div>
+
+  <!-- 2. Seletor de OKR (começa desabilitado) -->
+  <div class="mb-3">
+    <label class="form-label">OKR</label>
+    <select
+      id="selOkrMeta"
+      name="idOkr"
+      class="form-select"
+      required
+      disabled
+    >
+      <option value="">Selecione um OKR</option>
+      <?php
+        $sql = "
+          SELECT
+            o.id,
+            o.descricao,
+            GROUP_CONCAT(onl.idNivel) AS niveis_ids
+          FROM TB_OKR o
+          LEFT JOIN TB_OKR_NIVEL onl
+            ON onl.idOkr = o.id
+          GROUP BY o.id, o.descricao
+          ORDER BY o.descricao
+        ";
+        $o = $conn->query($sql);
+        while($r = $o->fetch_assoc()):
+      ?>
+        <option
+          value="<?= $r['id'] ?>"
+          data-niveis-ids="<?= $r['niveis_ids'] ?>"
+        >
+          <?= htmlspecialchars($r['descricao']) ?>
+        </option>
+      <?php endwhile; ?>
+    </select>
+  </div>
         <div class="row">
           <div class="col-md-4 mb-3">
             <label class="form-label">Ano</label>
@@ -105,15 +157,64 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
+        <!-- 1) Seletor de Nível -->
         <div class="mb-3">
-          <label class="form-label">OKR</label>
-          <select id="selOkr" class="form-select" required>
-            <option value="">Selecione o OKR</option>
-            <?php foreach($okrList as $ok): ?>
-              <option value="<?=$ok['id']?>"><?=htmlspecialchars($ok['descricao'])?></option>
-            <?php endforeach; ?>
+          <label class="form-label">Nível</label>
+          <select id="selNivelLanc" name="idNivel" class="form-select" required>
+            <option value="">Selecione um nível</option>
+            <?php
+              $resN = $conn->query("
+                SELECT 
+                                ni.id, 
+                                ni.descricao,
+                                substring(equ.descricao from 6 for 6) as equipe
+                              FROM TB_NIVEL ni
+                              INNER JOIN TB_OKR_NIVEL okn 
+                                ON okn.idNivel = ni.id
+                              INNER JOIN TB_OKR okr
+                                ON okr.id = okn.idOkr
+                              INNER JOIN TB_EQUIPE equ
+                                ON equ.id = okr.idEquipe
+                              GROUP BY equ.descricao, ni.descricao
+                              ORDER BY equ.descricao, ni.descricao asc 
+              ");
+              while($n = $resN->fetch_assoc()):
+            ?>
+              <option value="<?= $n['id'] ?>"><?= htmlspecialchars($n['descricao']). ' - ' .htmlspecialchars($n['equipe']) ?></option>
+            <?php endwhile; ?>
           </select>
         </div>
+
+        <!-- 2) Seletor de OKR (desabilitado até escolher Nível) -->
+        <div class="mb-3">
+          <label class="form-label">OKR</label>
+          <select id="selOkr" name="idOkr" class="form-select" required disabled>
+            <option value="">Selecione o OKR</option>
+            <?php
+              $sql = "
+                SELECT
+                  o.id,
+                  o.descricao,
+                  GROUP_CONCAT(onl.idNivel) AS niveis_ids
+                FROM TB_OKR o
+                LEFT JOIN TB_OKR_NIVEL onl ON onl.idOkr = o.id
+                GROUP BY o.id, o.descricao
+                ORDER BY o.descricao
+              ";
+              $okrOptions = $conn->query($sql);
+              while($ok = $okrOptions->fetch_assoc()):
+            ?>
+              <option
+                value="<?= $ok['id'] ?>"
+                data-niveis-ids="<?= $ok['niveis_ids'] ?>"
+              >
+                <?= htmlspecialchars($ok['descricao']) ?>
+              </option>
+            <?php endwhile; ?>
+          </select>
+        </div>
+
+        <!-- restante do modal -->
         <div class="mb-3">
           <label class="form-label">Mês</label>
           <select class="form-select" name="mes" required>
@@ -138,6 +239,7 @@
         <button class="btn btn-custom" type="submit">Salvar</button>
       </div>
     </form>
-  </div>
+  </div></div>
 </div>
+
 

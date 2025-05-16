@@ -1,39 +1,47 @@
 <?php 
 session_start();
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['usuario_id'])) {
-    $_SESSION['usuario_id'] = $_POST['usuario_id'];
-    header("Location: user.php");
+require '../Config/Database.php';
+
+if (!isset($_SESSION['usuario_id'])) {
+    // redireciona se não estiver logado
+    header("Location: login.php");
     exit();
 }
-require '../Config/Database.php';
 
 $usuario_id = $_SESSION['usuario_id'];
 
 // Captura os dados enviados pelo formulário
-$plugin_id = $_POST['plugin_id'];
-$data      = $_POST['data'];
-$cnpj      = $_POST['cnpj'];
-$serial    = $_POST['serial'];
-$contato   = $_POST['contato'];
-$fone      = $_POST['fone'];
+$plugin_id   = mysqli_real_escape_string($conn, $_POST['plugin_id']);
+$data        = mysqli_real_escape_string($conn, $_POST['data']);
+$cnpj        = mysqli_real_escape_string($conn, $_POST['cnpj']);
+$serial      = mysqli_real_escape_string($conn, $_POST['serial']);
+$contato     = mysqli_real_escape_string($conn, $_POST['contato']);
+$fone        = mysqli_real_escape_string($conn, $_POST['fone']);
+$observacao  = isset($_POST['observacao'])
+    ? mysqli_real_escape_string($conn, $_POST['observacao'])
+    : '';
 
-// Define o status explicitamente como "Pendente"
-$status = 'Pendente';
-// Define o consultor explicitamente como "Vanessa" pois o consultor é FK é este campo precisa ser preenchido
-// pois somente terá de fato um consultor na edição.
-$consultor = 29;
+// Define o status e o consultor fixos
+$status      = 'Pendente';
+$consultor   = 29;
 
-// Monta a query de inserção, incluindo o user_id e o status
+// Monta e executa a query de inserção
 $sql = "
-  INSERT INTO TB_INDICACAO (plugin_id, data, cnpj, serial, contato, fone, user_id, idConsultor, status)
-  VALUES ('$plugin_id', '$data', '$cnpj', '$serial', '$contato', '$fone', '$usuario_id', '$consultor', '$status')
+  INSERT INTO TB_INDICACAO (
+    plugin_id, data, cnpj, serial, contato, fone, observacao,
+    user_id, idConsultor, status
+  ) VALUES (
+    '$plugin_id', '$data', '$cnpj', '$serial', '$contato', '$fone', '$observacao',
+    '$usuario_id', '$consultor', '$status'
+  )
 ";
 
 if (mysqli_query($conn, $sql)) {
     header('Location: indicacao.php?success=1');
     exit();
 } else {
-    echo 'Erro ao cadastrar: ' . mysqli_error($conn);
+    // em caso de erro, exibe mensagem e redireciona com flag de erro
+    error_log("Erro ao cadastrar indicação: " . mysqli_error($conn));
     header("Location: indicacao.php?erro=1");
     exit();
 }
