@@ -41,14 +41,16 @@ CREATE TABLE TB_ANALISES
  justificativa varchar(255)
 ); 
 
-CREATE TABLE TB_USUARIO
-( 
- Id INT PRIMARY KEY AUTO_INCREMENT,
- Nome varchar(50) NOT NULL,
- Email varchar(50) NOT NULL,
- Senha varchar(255) NOT NULL,
- Cargo varchar(255) NOT NULL
-); 
+CREATE TABLE TB_USUARIO (
+  Id               INT            PRIMARY KEY AUTO_INCREMENT,
+  Nome             VARCHAR(50)    NOT NULL,
+  Email            VARCHAR(50)    NOT NULL,
+  Senha            VARCHAR(255)   NOT NULL,
+  Cargo            VARCHAR(255)   NOT NULL,
+  remember_token   VARCHAR(32)    NULL,
+  remember_expiry  DATETIME       NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 -- Inserindo Atendentes
 INSERT INTO `TB_USUARIO` (`Id`, `Nome`, `Email`, `Senha`, `Cargo`) VALUES (1, 'Lucas Perin', 'lucas.perin@zucchetti.com', '1234', 'Admin');
