@@ -13,12 +13,14 @@ const metasByOkr = window.metasByOkr || {};
 document.addEventListener('DOMContentLoaded', () => {
   // ——— Listener para #selOkr (somente em okr.php) ———
   const selOkr = document.getElementById('selOkr');
+  const mesSelect = document.querySelector('select[name="mes"]');
   if (selOkr) {
     selOkr.addEventListener('change', function(){
-      const metas     = metasByOkr[this.value] || [];
-      const container = document.getElementById('divMetasList');
-      const tbody     = document.getElementById('tbodyMetas');
-      tbody.innerHTML = '';
+      const okrId      = this.value;
+      const metas      = metasByOkr[okrId] || [];
+      const container  = document.getElementById('divMetasList');
+      const tbody      = document.getElementById('tbodyMetas');
+      tbody.innerHTML  = '';
       metas.forEach(m => {
         const tr = document.createElement('tr');
         const tdDesc = document.createElement('td');
@@ -40,6 +42,14 @@ document.addEventListener('DOMContentLoaded', () => {
         tr.appendChild(tdInput);
         tbody.appendChild(tr);
       });
+      container.classList.toggle('d-none', metas.length === 0);
+      // função para verificar o mês e não exibir o que tem dados lançados
+      const launched = window.atingsByOkr[okrId] || [];
+      Array.from(mesSelect.options).forEach(opt => {
+        if (!opt.value) return;                // mantém placeholder
+        opt.hidden = launched.includes(+opt.value);
+      });
+      mesSelect.value = '';                    // limpa seleção
       container.classList.toggle('d-none', metas.length === 0);
     });
   }

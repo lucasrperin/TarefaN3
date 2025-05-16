@@ -28,6 +28,7 @@ if ($view === 'quarter') {
     $sql = "
       SELECT
         o.id               AS idOkr,
+        e.id               AS equipe_id,
         e.descricao        AS equipe,
         okr_n.niveis       AS niveis,
         okr_n.niveis_ids   AS niveis_ids,
@@ -69,7 +70,7 @@ if ($view === 'quarter') {
     $stmt->execute();
     $rs = $stmt->get_result();
     while ($r = $rs->fetch_assoc()) {
-        $grp = "{$r['equipe']}||{$r['niveis']}";
+        $grp = "{$r['equipe_id']}||{$r['equipe']}||{$r['niveis']}";
         $key = "{$r['idOkr']}-{$r['idMeta']}";
         if (!isset($data[$grp][$key])) {
             $data[$grp][$key] = [
@@ -93,6 +94,7 @@ if ($view === 'quarter') {
     $sql = "
       SELECT
         o.id               AS idOkr,
+        e.id               AS equipe_id,
         e.descricao        AS equipe,
         okr_n.niveis       AS niveis,
         okr_n.niveis_ids   AS niveis_ids,
@@ -134,7 +136,7 @@ if ($view === 'quarter') {
     $rs = $stmt->get_result();
 
     while ($r = $rs->fetch_assoc()) {
-        $grp = "{$r['equipe']}||{$r['niveis']}";
+        $grp = "{$r['equipe_id']}||{$r['equipe']}||{$r['niveis']}";
         $key = "{$r['idOkr']}-{$r['idMeta']}";
 
         if (!isset($data[$grp][$key])) {
@@ -171,14 +173,20 @@ while ($rowO = $resO->fetch_assoc()) {
 }
 // metas agrupadas por OKR
 $metaList = [];
-$stmtM = $conn->prepare("SELECT id, idOkr, descricao FROM TB_META WHERE ano = ? ORDER BY id ASC");
-$stmtM->bind_param('i', $anoAtual);
-$stmtM->execute();
-$rsM = $stmtM->get_result();
-while ($rowM = $rsM->fetch_assoc()) {
-    $metaList[$rowM['idOkr']][] = $rowM;
+$atingsByOkr = [];
+$stmtAt = $conn->prepare("
+  SELECT m.idOkr, ai.mes
+  FROM TB_OKR_ATINGIMENTO ai
+  JOIN TB_META m        ON ai.idMeta = m.id
+  WHERE ai.ano = ?
+");
+$stmtAt->bind_param('i', $anoAtual);
+$stmtAt->execute();
+$rsAt = $stmtAt->get_result();
+while ($rAt = $rsAt->fetch_assoc()) {
+    $atingsByOkr[$rAt['idOkr']][] = (int)$rAt['mes'];
 }
-
+$stmtAt->close();
 /* ---------- FUNÇÕES AUXILIARES ---------- */
 function seg2time($s) {
     return gmdate('H:i:s', max(0, $s));
@@ -261,59 +269,76 @@ if ($nivelSel) {
 }
 
 // 1.2) Lista de todos os níveis (para renderizar os cards de filtro)
-$listaNiveis = $conn->query(" SELECT 
-                                ni.id, 
-                                ni.descricao,
-                                equ.descricao as equipe
-                              FROM TB_NIVEL ni
-                              INNER JOIN TB_OKR_NIVEL okn 
-                                ON okn.idNivel = ni.id
-                              INNER JOIN TB_OKR okr
-                                ON okr.id = okn.idOkr
-                              INNER JOIN TB_EQUIPE equ
-                                ON equ.id = okr.idEquipe
-                              GROUP BY equ.descricao, ni.descricao
-                              ORDER BY ni.descricao");
+// no topo de okr.php, antes do HTML, adicione:
+$equipeSel = isset($_GET['equipe']) ? intval($_GET['equipe']) : 0;
+$nivelSel  = isset($_GET['nivel'])  ? intval($_GET['nivel'])  : 0;
+
+// busca todas as equipes
+$listaEquipes = $conn->query("
+  SELECT id, descricao
+  FROM TB_EQUIPE
+  WHERE descricao <> 'Todos'
+  ORDER BY descricao
+");
+
+// busca todos os níveis com a equipe a que pertencem
+$listaNiveis = $conn->query("
+  SELECT DISTINCT
+    ni.id,
+    ni.descricao,
+    equ.id AS idEquipe,
+    equ.descricao as equipe
+  FROM TB_NIVEL ni
+  JOIN TB_OKR_NIVEL okn ON okn.idNivel = ni.id
+  JOIN TB_OKR      okr ON okr.id      = okn.idOkr
+  JOIN TB_EQUIPE   equ ON equ.id      = okr.idEquipe
+  ORDER BY ni.descricao
+");
 
 // --- 1) ACHATAR $data EM $cardsData ---
-$cardsData = []; $seen = [];
-foreach($data as $grp=>$metas){
-  list($equipe,$niveisStr)=explode('||',$grp);
-  foreach($metas as $key=>$m){
-    if($nivelSel && !in_array($nivelSel,$m['niveis_ids'])) continue;
-    if(isset($seen[$key])) continue;
-    $seen[$key]=true;
-    $cardsData[]=[
-      'key'=>$key,
-      'metaData'=>$m,
-      'equipe'=>$equipe,
-      'niveis'=>$niveisStr
-    ];
-  }
+$cardsData = []; 
+$seen = [];
+$seen      = [];
+foreach($data as $grp => $metas){
+    // explode agora em três partes:
+    list($equipeId, $equipeName, $niveisStr) = explode('||', $grp);
+    foreach($metas as $key => $m){
+        if ($nivelSel && ! in_array($nivelSel, $m['niveis_ids'])) continue;
+        if (isset($seen[$key])) continue;
+        $seen[$key] = true;
+        $cardsData[] = [
+            'key'        => $key,
+            'metaData'   => $m,
+            'equipe_id'  => (int)$equipeId,
+            'equipe'     => $equipeName,
+            'niveis'     => $niveisStr
+        ];
+    }
 }
 
 // agrupa por OKR já definindo isTime e target
 $okrGroups = [];
 foreach($cardsData as $card){
-  list($okrId,$metaId)=explode('-',$card['key']);
-  if(!isset($okrGroups[$okrId])){
-    $okrGroups[$okrId]=[
-      'okr'=>$card['metaData']['okr'],
-      'niveis' => $card['niveis'],
-      'equipe' => $card['equipe'],
-      'items'=>[]
+    list($okrId,$metaId) = explode('-', $card['key']);
+    if (!isset($okrGroups[$okrId])) {
+        $okrGroups[$okrId] = [
+            'okr'        => $card['metaData']['okr'],
+            'niveis'     => $card['niveis'],
+            'equipe_id'  => $card['equipe_id'],
+            'equipe'     => $card['equipe'],
+            'items'      => []
+        ];
+    }
+    $m = $card['metaData'];
+    $okrGroups[$okrId]['items'][$metaId] = [
+        'kr'        => $m['kr'],
+        'isTime'    => ($m['menor_melhor']==1),
+        'real'      => $m['real']     ?? [],
+        'real_seg'  => $m['real_seg'] ?? [],
+        'target'    => ($m['menor_melhor']==1 ? $m['meta_seg'] : $m['meta']),
+        'equipe'    => $card['equipe'],
+        'niveis'    => $card['niveis'],
     ];
-  }
-  $m = $card['metaData'];
-  $okrGroups[$okrId]['items'][$metaId]=[
-    'kr'=>$m['kr'],
-    'isTime'=>($m['menor_melhor']==1),
-    'real'=>$m['real']     ?? [],
-    'real_seg'=>$m['real_seg'] ?? [],
-    'target'=>($m['menor_melhor']==1 ? $m['meta_seg'] : $m['meta']),
-    'equipe'=>$card['equipe'],
-    'niveis'=>$card['niveis'],
-  ];
 }
 
 ?>

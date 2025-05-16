@@ -78,7 +78,7 @@
           <span id="toastMensagemErro"></span>
         </div>
       </div>
-      
+
       <!-- HEADER -->
       <header class="header d-flex justify-content-between align-items-center px-3">
         <h3>Controle de OKRs – <?= $anoAtual ?></h3>
@@ -94,104 +94,124 @@
       <!-- CONTENT -->
       <section class="content container-fluid flex-fill">
 
-      <?php if ( ! isset($_GET['nivel']) ): 
-          // reseta ponteiro e exibe cards
-          $listaNiveis->data_seek(0);
-          echo '<section class="levels-menu container py-5">
-        
-                  <div class="d-flex align-items-center mb-4">
-                    <div class="flex-fill text-center">
-                      <h4 class="fw-light text-secondary mb-0">Selecione um Nível</h4>
-                    </div>
-                    <a 
-                      href="okr_list.php"
-                      class="btn btn-outline-secondary"
-                      style="white-space: nowrap;"
-                    >
-                      <i class="fa-solid fa-list me-1"></i> Listar OKRs
-                    </a>
-                  </div>
-                  <div class="row justify-content-center g-4">';
-          while($n = $listaNiveis->fetch_assoc()){
-            echo '<div class="col-6 col-sm-4 col-md-3">
-                    <div class="card level-card text-center h-100 p-4 clickable" 
-                        style="cursor:pointer"
-                        onclick="location.href=\'okr.php?view='.$view.'&q='.$q.'&nivel='.$n['id'].'\'">
-                      <i class="fa-solid fa-layer-group fa-2x mb-3 text-primary"></i>
-                      <h5 class="fw-semibold mb-0">'.htmlspecialchars($n['descricao']).'</h5>
-                      <small> ' .htmlspecialchars($n['equipe']). '</small>
-                    </div>
-                  </div>';
-          }
-          echo '  </div>
-          
-                </section>';
-          return;
-        endif;?>
-        <!-- VIEW + ACTION BUTTONS -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <a
-              href="?view=year&nivel=<?= $nivelSel ?>"
-              class="btn btn-sm <?= $view==='year' ? 'btn-primary' : 'btn-outline-primary' ?>"
-            >Visão Anual</a>
+      <?php
+        if (!isset($_GET['nivel'])) {
+            // inclui o menu externo e encerra aqui
+            include __DIR__ . '/../Public/Php/levels_menu.php';
+            return;
+        }
+      ?>
 
+        <!-- VIEW + ACTION BUTTONS -->
+        <!-- CONTENT -->
+<section class="content container-fluid flex-fill m-0">
+
+<!-- Accordion único com todos os filtros -->
+<div class="accordion mb-4" id="filtersAccordion">
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingFilters">
+      <button
+        class="accordion-button"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#collapseFilters"
+        aria-expanded="true"
+        aria-controls="collapseFilters"
+      >
+        Filtros de OKR
+      </button>
+    </h2>
+    <div
+      id="collapseFilters"
+      class="accordion-collapse collapse show"
+      aria-labelledby="headingFilters"
+      data-bs-parent="#filtersAccordion"
+    >
+      <div class="accordion-body">
+        <!-- Visão -->
+        <div class="mb-3">
+          <strong>Visão</strong>
+          <div class="btn-group ms-2" role="group">
+            <a
+              href="?view=year&nivel=<?= $nivelSel ?>&equipe=<?= $equipeSel ?>"
+              class="btn btn-sm <?= $view==='year' ? 'btn-primary' : 'btn-outline-primary' ?>"
+            >Anual</a>
             <?php for($i=1; $i<=4; $i++): ?>
               <a
-                href="?view=quarter&q=<?=$i?>&nivel=<?= $nivelSel ?>"
-                class="btn btn-sm <?= $view==='quarter' && $q===$i ? 'btn-primary' : 'btn-outline-primary' ?>"
-              >Q<?=$i?></a>
+                href="?view=quarter&q=<?= $i ?>&nivel=<?= $nivelSel ?>&equipe=<?= $equipeSel ?>"
+                class="btn btn-sm <?= ($view==='quarter' && $q===$i) ? 'btn-primary' : 'btn-outline-primary' ?>"
+              >Q<?= $i ?></a>
             <?php endfor; ?>
           </div>
-        <?php if ($cargo==='Admin'): ?>
-          <div class="d-flex gap-2">
-            <a href="okr_list.php"
-              class="btn btn-outline-secondary"
-              style="white-space: nowrap;"
-            >
-              <i class="fa-solid fa-list me-1"></i> Listar OKRs
-            </a>
-
-            <button
-              class="btn btn-outline-secondary"
-              data-bs-toggle="modal"
-              data-bs-target="#modalNovaMeta"
-            >
-              <i class="fa-solid fa-flag-checkered me-1"></i>Nova Meta
-            </button>
-
-            <button
-              class="btn btn-custom"
-              data-bs-toggle="modal"
-              data-bs-target="#modalLancamento"
-            >
-              <i class="fa-solid fa-circle-plus me-1"></i>Lançar Realizado
-            </button>
-          </div>
-        <?php endif; ?>
         </div>
 
-        <!-- FILTRO DE NÍVEIS -->
-        <div class="d-flex flex-wrap gap-2 mb-5">
-          <a 
-            href="?view=<?= $view ?>&q=<?= $q ?>&nivel=0" 
-            class="btn btn-sm <?= ($nivelSel === 0) ? 'btn-primary' : 'btn-outline-primary' ?>"
-          >Todos</a>
-
-          <?php 
-            $listaNiveis->data_seek(0);
-            while($n = $listaNiveis->fetch_assoc()):
-              $idInt = (int)$n['id'];
-          ?>
+        <!-- Equipe -->
+        <div class="mb-3">
+          <strong>Equipe</strong>
+          <div class="btn-group flex-wrap ms-2" role="group">
             <a
-              href="?view=<?= $view ?>&q=<?= $q ?>&nivel=<?= $idInt ?>"
-              class="btn btn-sm <?= ($nivelSel == $idInt) ? 'btn-primary' : 'btn-outline-primary' ?>"
-            >
-              <?= htmlspecialchars($n['descricao']) ?>
-            </a>
-          <?php endwhile; ?>
+              href="?view=<?= $view ?>&q=<?= $q ?>&equipe=0&nivel=<?= $nivelSel ?>"
+              class="btn btn-sm <?= $equipeSel===0 ? 'btn-primary' : 'btn-outline-primary' ?>"
+            >Todas</a>
+            <?php 
+              $listaEquipes->data_seek(0);
+              while($e = $listaEquipes->fetch_assoc()):
+                $idE = (int)$e['id'];
+            ?>
+              <a
+                href="?view=<?= $view ?>&q=<?= $q ?>&equipe=<?= $idE ?>&nivel=<?= $nivelSel ?>"
+                class="btn btn-sm <?= ($equipeSel === $idE) ? 'btn-primary' : 'btn-outline-primary' ?>"
+              ><?= htmlspecialchars($e['descricao']) ?></a>
+            <?php endwhile; ?>
+          </div>
         </div>
-        <!-- Nav de abas -->
+
+        <!-- Nível -->
+        <div class="mb-0">
+          <strong>Nível</strong>
+          <div class="btn-group flex-wrap ms-2" role="group">
+            <a
+              href="?view=<?= $view ?>&q=<?= $q ?>&equipe=<?= $equipeSel ?>&nivel=0"
+              class="btn btn-sm <?= $nivelSel===0 ? 'btn-primary' : 'btn-outline-primary' ?>"
+            >Todos</a>
+            <?php
+              $listaNiveis->data_seek(0);
+              while($n = $listaNiveis->fetch_assoc()):
+                $idN = (int)$n['id'];
+                if($equipeSel && (int)$n['idEquipe'] !== $equipeSel) continue;
+            ?>
+              <a
+                href="?view=<?= $view ?>&q=<?= $q ?>&equipe=<?= $equipeSel ?>&nivel=<?= $idN ?>"
+                class="btn btn-sm <?= ($nivelSel === $idN) ? 'btn-primary' : 'btn-outline-primary' ?>"
+              ><?= htmlspecialchars($n['descricao']) ?></a>
+            <?php endwhile; ?>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<?php if($cargo==='Admin'): ?>
+  <!-- Ações Admin em linha separada -->
+  <div class="d-flex justify-content-end gap-2 mb-4">
+    <a href="okr_list.php" class="btn btn-sm btn-outline-secondary">
+      <i class="fa-solid fa-list me-1"></i> Listar OKRs
+    </a>
+    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalNovaMeta">
+      <i class="fa-solid fa-flag-checkered me-1"></i> Nova Meta
+    </button>
+    <button class="btn btn-sm btn-custom" data-bs-toggle="modal" data-bs-target="#modalLancamento">
+      <i class="fa-solid fa-circle-plus me-1"></i> Lançar Realizado
+    </button>
+  </div>
+<?php endif; ?>
+
+
+
+
+
+  <!-- MENU NAVEGÁVEL -->
   <ul class="nav nav-tabs mb-4" id="okrTab" role="tablist">
     <li class="nav-item" role="presentation">
       <button 
@@ -219,159 +239,164 @@
     </li>
   </ul>
 
-  <div class="tab-content" id="okrTabContent">
-    <!-- ABA GERAL: TABELAS -->
-    <div 
-      class="tab-pane fade show active" 
-      id="geral" 
-      role="tabpanel" 
-      aria-labelledby="geral-tab"
-    >
-      <!-- TABELAS EM CARDS POR EQUIPE/NÍVEL -->
-  <?php foreach ($data as $grp => $metas):
-      // filtra metas pelo nível
-      $filtered = [];
-      foreach ($metas as $key => $r) {
-          if (!$nivelSel || in_array($nivelSel, $r['niveis_ids'])) {
-              $filtered[$key] = $r;
-          }
-      }
-      if (empty($filtered)) continue;
-      list($equipe, $niveis) = explode('||', $grp);
+  <!-- resto do conteúdo… -->
 
-      // agrupa para exibir as tabelas
-      $tableGroups = [];
-      foreach ($filtered as $key => $r) {
-          list($okrId,) = explode('-', $key);
-          if (! isset($tableGroups[$okrId])) {
-              $tableGroups[$okrId] = [
-                  'okr'   => $r['okr'],
-                  'niveis'  => $niveis,
-                  'equipe'  => $equipe,
-                  'items' => []
-              ];
-          }
-          $tableGroups[$okrId]['items'][] = $r;
-      }
-  ?>
-  <div class="accordion mb-3" id="okrTableAccordion">
-      <?php foreach($tableGroups as $okrId => $grpData): ?>
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="headingTable<?= $okrId ?>">
-            <button
-              class="accordion-button collapsed"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#collapseTable<?= $okrId ?>"
-              aria-expanded="false"
-              aria-controls="collapseTable<?= $okrId ?>"
-            >
-              <?= htmlspecialchars($grpData['okr']) ?>
-              <?php if ($nivelSel === 0): ?>
-                <small class="text-secondary ms-2">
-                  · <?= htmlspecialchars($grpData['niveis']) ?>
-                  - <?= htmlspecialchars($grpData['equipe']) ?>
-                </small>
-              <?php endif; ?>
-            </button>
-          </h2>
-          <div
-            id="collapseTable<?= $okrId ?>"
-            class="accordion-collapse collapse"
-            aria-labelledby="headingTable<?= $okrId ?>"
-            data-bs-parent="#okrTableAccordion"
+
+        <div class="tab-content" id="okrTabContent">
+          <!-- ABA GERAL: TABELAS -->
+          <div 
+            class="tab-pane fade show active" 
+            id="geral" 
+            role="tabpanel" 
+            aria-labelledby="geral-tab"
           >
-            <div class="accordion-body p-0">
-              <div class="table-responsive px-3 pb-3">
-                <table class="table table-modern mb-0">
-                  <thead>
-                    <tr>
-                      <th>KR / Indicador</th>
-                      <th class="text-center">Meta</th>
-                      <th class="text-center">Realizado</th>
-                      <th class="text-center">% Ating.</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <?php foreach($grpData['items'] as $r):
-                      if ($r['menor_melhor']) {
-                        $sum   = array_sum($r['real_seg']);
-                        $cnt   = count($r['real_seg']);
-                        $avg   = $cnt ? round($sum/$cnt) : 0;
-                        $metaDisp = seg2time($r['meta_seg']);
-                        $realDisp = $avg ? seg2time($avg) : '-';
-                        $pct      = $avg ? round($r['meta_seg']/$avg*100,2) : 0;
-                      } else {
-                        $sum   = array_sum($r['real']);
-                        $cnt   = count($r['real']);
-                        $avg   = $cnt ? round($sum/$cnt,2) : 0;
-                        $metaDisp = number_format($r['meta'],2,',','.') . ' %';
-                        $realDisp = number_format($avg,2,',','.') . ' %';
-                        $pct      = $r['meta'] ? round($avg/$r['meta']*100,2) : 0;
-                      }
-                      $cls = $pct>=100 ? 'success'
-                           : ($pct>=90    ? 'warning'
-                                          : 'danger');
-                    ?>
-                      <tr>
-                        <td><?= htmlspecialchars($r['kr']) ?></td>
-                        <td class="text-center"><?= $metaDisp ?></td>
-                        <td class="text-center"><?= $realDisp ?></td>
-                        <td class="text-center">
-                          <span class="badge bg-<?= $cls ?> text-dark">
-                            <?= number_format($pct,2,',','.') ?>%
-                          </span>
-                        </td>
-                      </tr>
-                    <?php endforeach; ?>
-                  </tbody>
-                </table>
+            <!-- TABELAS EM CARDS POR EQUIPE/NÍVEL -->
+        <?php foreach ($data as $grp => $metas):
+            // filtra metas pelo nível
+            $filtered = [];
+            foreach ($metas as $key => $r) {
+                if (!$nivelSel || in_array($nivelSel, $r['niveis_ids'])) {
+                    $filtered[$key] = $r;
+                }
+            }
+            if (empty($filtered)) continue;
+            list($equipeId, $equipe, $niveis) = explode('||', $grp);
+
+            // pula equipes não selecionadas
+            if ($equipeSel && $equipeId != $equipeSel) continue;
+
+            // agrupa para exibir as tabelas
+            $tableGroups = [];
+            foreach ($filtered as $key => $r) {
+                list($okrId,) = explode('-', $key);
+                if (! isset($tableGroups[$okrId])) {
+                    $tableGroups[$okrId] = [
+                        'okr'   => $r['okr'],
+                        'niveis'  => $niveis,
+                        'equipe'  => $equipe,
+                        'items' => []
+                    ];
+                }
+                $tableGroups[$okrId]['items'][] = $r;
+            }
+        ?>
+        <div class="accordion mb-3" id="okrTableAccordion">
+            <?php foreach($tableGroups as $okrId => $grpData): ?>
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="headingTable<?= $okrId ?>">
+                  <button
+                    class="accordion-button collapsed"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapseTable<?= $okrId ?>"
+                    aria-expanded="false"
+                    aria-controls="collapseTable<?= $okrId ?>"
+                  >
+                    <?= htmlspecialchars($grpData['okr']) ?>
+                    <?php if ($nivelSel === 0): ?>
+                      <small class="text-secondary ms-2">
+                        · <?= htmlspecialchars($grpData['niveis']) ?>
+                        - <?= htmlspecialchars($grpData['equipe']) ?>
+                      </small>
+                    <?php endif; ?>
+                  </button>
+                </h2>
+                <div
+                  id="collapseTable<?= $okrId ?>"
+                  class="accordion-collapse collapse"
+                  aria-labelledby="headingTable<?= $okrId ?>"
+                  data-bs-parent="#okrTableAccordion"
+                >
+                  <div class="accordion-body p-0">
+                    <div class="table-responsive px-3 pb-3">
+                      <table class="table table-modern mb-0">
+                        <thead>
+                          <tr>
+                            <th>KR / Indicador</th>
+                            <th class="text-center">Meta</th>
+                            <th class="text-center">Realizado</th>
+                            <th class="text-center">% Ating.</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <?php foreach($grpData['items'] as $r):
+                            if ($r['menor_melhor']) {
+                              $sum   = array_sum($r['real_seg']);
+                              $cnt   = count($r['real_seg']);
+                              $avg   = $cnt ? round($sum/$cnt) : 0;
+                              $metaDisp = seg2time($r['meta_seg']);
+                              $realDisp = $avg ? seg2time($avg) : '-';
+                              $pct      = $avg ? round($r['meta_seg']/$avg*100,2) : 0;
+                            } else {
+                              $sum   = array_sum($r['real']);
+                              $cnt   = count($r['real']);
+                              $avg   = $cnt ? round($sum/$cnt,2) : 0;
+                              $metaDisp = number_format($r['meta'],2,',','.') . ' %';
+                              $realDisp = number_format($avg,2,',','.') . ' %';
+                              $pct      = $r['meta'] ? round($avg/$r['meta']*100,2) : 0;
+                            }
+                            $cls = $pct>=100 ? 'success'
+                                : ($pct>=90    ? 'warning'
+                                                : 'danger');
+                          ?>
+                            <tr>
+                              <td><?= htmlspecialchars($r['kr']) ?></td>
+                              <td class="text-center"><?= $metaDisp ?></td>
+                              <td class="text-center"><?= $realDisp ?></td>
+                              <td class="text-center">
+                                <span class="badge bg-<?= $cls ?> text-dark">
+                                  <?= number_format($pct,2,',','.') ?>%
+                                </span>
+                              </td>
+                            </tr>
+                          <?php endforeach; ?>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            <?php endforeach; ?>
           </div>
-        </div>
       <?php endforeach; ?>
-    </div>
-<?php endforeach; ?>
     </div>
   
  <!-- ABA INDIVIDUAL: ACCORDION DE GRÁFICOS -->
-      <div 
-            class="tab-pane fade" 
-            id="individual" 
-            role="tabpanel" 
-            aria-labelledby="individual-tab"
+      <div class="tab-pane fade" id="individual" role="tabpanel" aria-labelledby="individual-tab">
+  <div class="accordion" id="okrChartAccordion">
+    <?php foreach($okrGroups as $okrId => $group):
+        // se escolheu uma equipe, pula grupos de outras equipes
+        if ($equipeSel && $group['equipe_id'] !== $equipeSel) {
+            continue;
+        }
+    ?>
+      <div class="accordion-item mb-3">
+        <h2 class="accordion-header" id="headingChart<?= $okrId ?>">
+          <button
+            class="accordion-button collapsed"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#collapseChart<?= $okrId ?>"
+            aria-expanded="false"
+            aria-controls="collapseChart<?= $okrId ?>"
           >
-          <div class="accordion" id="okrChartAccordion">
-        <?php foreach($okrGroups as $okrId => $group): ?>
-          <div class="accordion-item mb-3">
-            <h2 class="accordion-header" id="headingChart<?= $okrId ?>">
-              <button
-                class="accordion-button collapsed"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#collapseChart<?= $okrId ?>"
-                aria-expanded="false"
-                aria-controls="collapseChart<?= $okrId ?>"
+            <?= htmlspecialchars($group['okr']) ?>
+            <?php if ($nivelSel === 0): ?>
+              <small class="text-secondary ms-2">
+                · <?= htmlspecialchars($group['niveis']) ?>
+                – <?= htmlspecialchars($group['equipe']) ?>
+              </small>
+                  <?php endif; ?>
+                </button>
+              </h2>
+              <div
+                id="collapseChart<?= $okrId ?>"
+                class="accordion-collapse collapse"
+                aria-labelledby="headingChart<?= $okrId ?>"
+                data-bs-parent="#okrChartAccordion"
               >
-                <?= htmlspecialchars($group['okr']) ?>
-                <?php if ($nivelSel === 0): ?> 
-                  <small class="text-secondary ms-2">
-                    · <?= htmlspecialchars($group['niveis']) ?>
-                    - <?= htmlspecialchars($grpData['equipe']) ?>
-                  </small>
-                <?php endif; ?>
-              </button>
-            </h2>
-
-            <div
-              id="collapseChart<?= $okrId ?>"
-              class="accordion-collapse collapse"
-              aria-labelledby="headingChart<?= $okrId ?>"
-              data-bs-parent="#okrChartAccordion"
-            >
               <div class="accordion-body p-0">
-                <ul class="list-group list-group-flush">
+            <ul class="list-group list-group-flush">
                   <?php foreach($group['items'] as $metaId => $item):
                     $krId = "{$okrId}_{$metaId}";
                     // prepara dados do gráfico como antes...
@@ -568,6 +593,7 @@
   <script>
     // Pegamos o PHP e transformamos em JS
     window.metasByOkr = <?= json_encode($metaList, JSON_UNESCAPED_UNICODE) ?>;
+    window.atingsByOkr = <?= json_encode($atingsByOkr, JSON_UNESCAPED_UNICODE) ?>;
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

@@ -12,12 +12,14 @@ html, body {
   display: flex;
   flex-direction: column;
   flex: 1;
+  margin-top: 0px;
 }
 .content {
   /* aqui está o seu <section class="content container-fluid"> */
   flex: 1;
   /* opcional: um min-height caso queira sombrear melhor */
   min-height: 0;
+  margin-top: 0px;
 }
 
 .bg-success{background:#c6efce!important}
@@ -166,4 +168,10 @@ html, body {
 /* Error Toast in red */
 .toast.error {
   background-color: #e74c3c;
+}
+
+section.content {
+  flex: 1;
+  /* mantém o bg-light original ou defina aqui outra cor */
+  background-color: #f8f9fa;
 }

@@ -46,5 +46,5 @@ $stmt->bind_param('iisdiis',
 );
 $stmt->execute();
 
-header("Location: okr.php?view=year&q=1&nivel=0&success=4");
+header("Location: okr.php?view=year&q=1&equipe=0&nivel=0&success=4");
 exit();
