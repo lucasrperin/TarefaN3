@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (success === "4") msg = "Meta Cadastrada!";
     else if (success === "5") msg = "Meta Editada!";
     else if (success === "6") msg = "Meta Excluído!";
+    else if (success === "7") msg = "Valor Alcançado Cadastrado!";
     if (msg) showToast(msg, "success");
   }
   if (error) {

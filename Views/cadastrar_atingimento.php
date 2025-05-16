@@ -50,6 +50,6 @@ foreach ($_POST['idMeta'] as $i => $rawIdMeta) {
   $stmt->execute();
 }
 
-header("Location: okr.php?success_lanc=1");
+header("Location: okr.php?view=year&q=1&nivel=0&success=7");
 exit();
 $stmt->close();
