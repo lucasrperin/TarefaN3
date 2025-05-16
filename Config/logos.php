@@ -16,6 +16,7 @@ return [
     'NFC-E'                                         => 'Public/Image/NFCe.png',
     'Minhas Notas'                                 => 'Public/Image/MinhasNotas.png',
     'Certificado'                                 => 'Public/Image/Certificado.png',
+    'Treinamento'                                 => 'Public/Image/Treinamento.png',
 
 
     // Licenças adicionais – use a mesma logo do ClippMei/Pro ou uma cor variante
