@@ -676,6 +676,7 @@ $dadosTreinJson = json_encode($dadosTrein);
                               data-vlr_total="<?= $i['vlr_total']   ?? '' ?>"
                               data-n_venda="<?= $i['n_venda']      ?? '' ?>"
                               data-observacao="<?= $i['observacao']      ?? '' ?>"
+                              data-revenda="<?= $i['revenda'] ?>"
                               title="Editar"
                             >
                               <i class="fa-solid fa-pen-to-square"></i>
@@ -743,24 +744,31 @@ $dadosTreinJson = json_encode($dadosTrein);
                                     <?= $i['fone']; ?>
                                   </a>
                               </div>
+                              <!-- Campo Revenda -->
+                              <div class="col-6 col-md-3 d-flex align-items-center gap-1">
+                                <i class="fa-solid fa-store text-primary"></i>
+                                <span class="fw-semibold small text-muted">Revenda:</span>
+                                <span class="small"><?= $i['revenda'] ? 'Sim' : 'Não'; ?></span>
+                              </div>
                               <?php if ($i['status']==='Faturado' && !empty($i['n_venda'])): 
-                                        // ano da venda a partir da data da indicação
-                                        $anoVenda = date('Y', strtotime($i['data']));
+                                    // ano da venda a partir da data da indicação
+                                    $anoVenda = date('Y', strtotime($i['data']));
 
-                                        // nome do PDF → V000123456.pdf
-                                        $arquivo  = 'V'.str_pad($i['n_venda'], 9, '0', STR_PAD_LEFT).'.pdf';
+                                    // nome do PDF → V000123456.pdf
+                                    $arquivo  = 'V'.str_pad($i['n_venda'], 9, '0', STR_PAD_LEFT).'.pdf';
 
-                                        $urlVenda = "http://atendimento.compufour.com.br/vendas/{$anoVenda}/{$arquivo}";
-                                  ?>
-                                  <div class="col-6 col-md-3 d-flex align-items-center gap-1">
-                                    <i class="fa-solid fa-receipt text-info"></i>
-                                    <span class="fw-semibold small text-muted">Nº Venda:</span>
-                                    <a href="<?= $urlVenda ?>" target="_blank" class="small text-decoration-none">
-                                      <?= htmlspecialchars($i['n_venda']); ?>
-                                    </a>
-                                  </div>
-                                  <?php endif; ?>
-                                  <div class="col-6 col-md-8 d-flex align-items-center gap-1">
+                                    $urlVenda = "http://atendimento.compufour.com.br/vendas/{$anoVenda}/{$arquivo}";
+                              ?>
+                              <div class="col-6 col-md-3 d-flex align-items-center gap-1">
+                                <i class="fa-solid fa-receipt text-info"></i>
+                                <span class="fw-semibold small text-muted">Nº Venda:</span>
+                                <a href="<?= $urlVenda ?>" target="_blank" class="small text-decoration-none">
+                                  <?= htmlspecialchars($i['n_venda']); ?>
+                                </a>
+                              </div>
+                              <?php endif; ?>
+
+                              <div class="col-6 col-md-6 d-flex align-items-center gap-1">
                                 <i class="fa-solid fa-comment-dots text-secondary"></i>
                                 <span class="fw-semibold small text-muted">Observação:</span>
                                 <span class="small"><?= htmlspecialchars($i['observacao']); ?></span>
@@ -930,6 +938,16 @@ $dadosTreinJson = json_encode($dadosTrein);
               </div>
             </div>
             <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group form-switch mb-2">
+                      <span data-bs-toggle="tooltip" data-bs-html="true" title="Não/Sim">
+                        <input class="form-check-input" type="checkbox" id="revenda" name="revenda">
+                        <label class="form-check-label" for="revenda">Revenda</label>
+                      </span> 
+                    </div>
+                </div>
+            </div>
+            <div class="row">
               <div class="col-12">
                 <div class="form-group">
                   <label for="observacao">Observação</label>
@@ -1037,6 +1055,16 @@ $dadosTreinJson = json_encode($dadosTrein);
                 </div>
               </div>
             </div>
+            <div class="row mt-3">
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <span data-bs-toggle="tooltip" data-bs-html="true" title="Não/Sim">
+                      <input class="form-check-input" type="checkbox" id="editar_revenda" name="revenda">
+                      <label class="form-check-label" for="editar_revenda">Revenda</label>
+                    </span>
+                  </div>
+                </div>
+            </div>  
             <?php if ($cargo === 'Admin' || $cargo === 'Comercial'): ?>
               <div class="row mt-2">
                 <div class="col-md-6">
@@ -1532,7 +1560,8 @@ modalEdit.addEventListener('show.bs.modal', function(event) {
     status,
     vlr_total,
     n_venda,
-    observacao
+    observacao,
+    revenda
   } = btn.dataset;
 
   console.log(btn.dataset); // debug: veja tudo no console!
@@ -1549,6 +1578,7 @@ modalEdit.addEventListener('show.bs.modal', function(event) {
   modalEdit.querySelector('#editar_contato').value         = contato;
   modalEdit.querySelector('#editar_fone').value            = fone;
   modalEdit.querySelector('#obs').value                    = observacao;
+  modalEdit.querySelector('#editar_revenda').checked = (revenda === '1');
 
   // 2) Campos de “Admin/Comercial” ou seus hidden backups
   const setField = (sel, hid, val) => {
@@ -1802,6 +1832,34 @@ function showEscapeToast(message) {
     setTimeout(() => container.removeChild(toast), 300);
   }, 5000);
 }
+
+// desabilita o campo de consultar quando for marcado o campo Revenda
+  const revendaCheckbox = document.getElementById('editar_revenda');
+  const consultorSelect  = document.getElementById('editar_consultor');
+
+  function toggleConsultor() {
+    consultorSelect.disabled = revendaCheckbox.checked;
+  }
+
+  // 1) ao alterar manualmente
+  revendaCheckbox.addEventListener('change', toggleConsultor);
+
+  // 2) sempre que o modal abrir, depois de preencher os campos
+  modalEdit.addEventListener('show.bs.modal', function(event) {
+    // -- seu código de populaÇão já existente (que faz modalEdit.querySelector('#editar_revenda').checked = …) --
+    // só chame o toggle depois:
+    toggleConsultor();
+  });
+
+//Inicia o tooltip
+document.addEventListener('DOMContentLoaded', function () {
+    // Seleciona todos os elementos com data-bs-toggle="tooltip"
+    var tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    // Cria uma instância de Tooltip para cada um
+    tooltipTriggerList.forEach(function (el) {
+      new bootstrap.Tooltip(el);
+    });
+  });
 </script>
 
 

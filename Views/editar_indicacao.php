@@ -35,6 +35,7 @@ $fone       = mysqli_real_escape_string($conn, $_POST['fone']);
 $status     = $_POST['editar_status'] ?? null;          // virá no hidden
 $consultor  = $_POST['consultor']      ?? null;         // idem
 $observacao = mysqli_real_escape_string($conn, $_POST['observacao'] ?? null); 
+$revenda    = isset($_POST['revenda']) ? 1 : 0;
 
 // garante status atual editável
 $row = mysqli_fetch_assoc(
@@ -52,7 +53,8 @@ $sets = [
     "serial     = '$serial'",
     "contato    = '$contato'",
     "fone       = '$fone'",
-    "observacao = '$observacao'"
+    "observacao = '$observacao'",
+    "revenda    = '$revenda'"
 ];
 
 // se for Cancelado ou Pendente, todo mundo pode alterar o status…

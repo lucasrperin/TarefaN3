@@ -20,6 +20,7 @@ $fone        = mysqli_real_escape_string($conn, $_POST['fone']);
 $observacao  = isset($_POST['observacao'])
     ? mysqli_real_escape_string($conn, $_POST['observacao'])
     : '';
+$revenda = isset($_POST['revenda']) ? 1 : 0;
 
 // Define o status e o consultor fixos
 $status      = 'Pendente';
@@ -29,10 +30,10 @@ $consultor   = 29;
 $sql = "
   INSERT INTO TB_INDICACAO (
     plugin_id, data, cnpj, serial, contato, fone, observacao,
-    user_id, idConsultor, status
+    user_id, idConsultor, status, revenda
   ) VALUES (
     '$plugin_id', '$data', '$cnpj', '$serial', '$contato', '$fone', '$observacao',
-    '$usuario_id', '$consultor', '$status'
+    '$usuario_id', '$consultor', '$status', $revenda
   )
 ";
 
