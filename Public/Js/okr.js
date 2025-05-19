@@ -1,112 +1,7 @@
 // okr.js
 
-// alterna campos modal Nova Meta (continua fora se usado em okr.php)
-function toggleTipoMeta(){
-  const sel = document.getElementById('tipoMetaSel').value;
-  document.getElementById('divValor').classList.toggle('d-none', sel==='tempo');
-  document.getElementById('divTempo').classList.toggle('d-none', sel==='valor');
-}
-
-// metas agrupadas por OKR
-const metasByOkr = window.metasByOkr || {};
-
 document.addEventListener('DOMContentLoaded', () => {
-  // ——— Listener para #selOkr (somente em okr.php) ———
-  const selOkr = document.getElementById('selOkr');
-  const mesSelect = document.querySelector('select[name="mes"]');
-  if (selOkr) {
-    selOkr.addEventListener('change', function(){
-      const okrId      = this.value;
-      const metas      = metasByOkr[okrId] || [];
-      const container  = document.getElementById('divMetasList');
-      const tbody      = document.getElementById('tbodyMetas');
-      tbody.innerHTML  = '';
-      metas.forEach(m => {
-        const tr = document.createElement('tr');
-        const tdDesc = document.createElement('td');
-        tdDesc.textContent = m.descricao;
-        const hidden = document.createElement('input');
-        hidden.type  = 'hidden';
-        hidden.name  = 'idMeta[]';
-        hidden.value = m.id;
-        tdDesc.appendChild(hidden);
-        const tdInput = document.createElement('td');
-        const inputVal = document.createElement('input');
-        inputVal.type        = 'text';
-        inputVal.name        = 'realizado[]';
-        inputVal.className   = 'form-control';
-        inputVal.required    = true;
-        inputVal.placeholder = m.menor_melhor ? '00:01:55' : '99.99';
-        tdInput.appendChild(inputVal);
-        tr.appendChild(tdDesc);
-        tr.appendChild(tdInput);
-        tbody.appendChild(tr);
-      });
-      container.classList.toggle('d-none', metas.length === 0);
-      // função para verificar o mês e não exibir o que tem dados lançados
-      const launched = window.atingsByOkr[okrId] || [];
-      Array.from(mesSelect.options).forEach(opt => {
-        if (!opt.value) return;                // mantém placeholder
-        opt.hidden = launched.includes(+opt.value);
-      });
-      mesSelect.value = '';                    // limpa seleção
-      container.classList.toggle('d-none', metas.length === 0);
-    });
-  }
-
-  // ——— Modal de Edição ———
-  const modalEdit = document.getElementById('modalEditarOKR');
-  if (modalEdit) {
-    modalEdit.addEventListener('show.bs.modal', e => {
-      const btn  = e.relatedTarget;
-      const id   = btn.dataset.id;
-      const desc = btn.dataset.descricao;
-      const eq   = btn.dataset.equipe;
-      const nivs = (btn.dataset.niveis || '').split(',');
-      modalEdit.querySelector('#okr-id').value        = id;
-      modalEdit.querySelector('#okr-descricao').value = desc;
-      modalEdit.querySelector('#okr-equipe').value    = eq;
-      modalEdit.querySelectorAll('input[name="niveis[]"]').forEach(chk => {
-        chk.checked = nivs.includes(chk.value);
-      });
-    });
-  }
-
-  // ——— Modal de Exclusão ———
-  const modalExc = document.getElementById('modalExcluirOKR');
-  if (modalExc) {
-    modalExc.addEventListener('show.bs.modal', e => {
-      const btn  = e.relatedTarget;
-      const id   = btn.dataset.id;
-      const nome = btn.dataset.nome;
-      modalExc.querySelector('#excluir_okr_id').value        = id;
-      modalExc.querySelector('#excluir_okr_nome').textContent = nome;
-      modalExc.querySelector('form').action                  = 'deletar_okr.php';
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-  // 1️⃣   Se havia um modal pra reabrir, faz isso agora:
-  const modalToOpen = sessionStorage.getItem('openModal');
-  if (modalToOpen) {
-    const el = document.getElementById(modalToOpen);
-    if (el) new bootstrap.Modal(el).show();
-    sessionStorage.removeItem('openModal');
-  }
-
-  // 2️⃣   Antes de qualquer form SUBMIT dentro de um modal, memoriza o id:
-  document.querySelectorAll('.modal form').forEach(form => {
-    form.addEventListener('submit', () => {
-      const modal = form.closest('.modal');
-      if (modal && modal.id) {
-        sessionStorage.setItem('openModal', modal.id);
-      }
-    });
-  });
-});
-
-
-  // ——— Toasts de Mensagem ———
+  // ——— Função helper para mostrar toasts ———
   function showToast(message, type) {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -121,74 +16,156 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 2000);
   }
 
+  // ——— Reabre modal após submit ———
+  const modalToOpen = sessionStorage.getItem('openModal');
+  if (modalToOpen) {
+    const el = document.getElementById(modalToOpen);
+    if (el) new bootstrap.Modal(el).show();
+    sessionStorage.removeItem('openModal');
+  }
+  document.querySelectorAll('.modal form').forEach(form => {
+    form.addEventListener('submit', () => {
+      const modal = form.closest('.modal');
+      if (modal && modal.id) sessionStorage.setItem('openModal', modal.id);
+    });
+  });
+
+  // ——— Toasts de resultado via query string ———
   const params  = new URLSearchParams(window.location.search);
   const success = params.get("success");
   const error   = params.get("error");
-
   if (success) {
-    let msg = "";
-    if (success === "1") msg = "OKR Cadastrado!";
-    else if (success === "2") msg = "OKR Editado!";
-    else if (success === "3") msg = "OKR Excluído!";
-    else if (success === "4") msg = "Meta Cadastrada!";
-    else if (success === "5") msg = "Meta Editada!";
-    else if (success === "6") msg = "Meta Excluído!";
-    else if (success === "7") msg = "Valor Alcançado Cadastrado!";
-    if (msg) showToast(msg, "success");
+    const msgs = {
+      "1":"OKR Cadastrado!",
+      "2":"OKR Editado!",
+      "3":"OKR Excluído!",
+      "4":"Meta Cadastrada!",
+      "5":"Meta Editada!",
+      "6":"Meta Excluído!",
+      "7":"Valor Alcançado Cadastrado!"
+    };
+    if (msgs[success]) showToast(msgs[success], "success");
   }
   if (error) {
-    let msg = "";
-    if (error === "1") msg = "OKR já existe!";
-    else if (error === "2") msg = "Não é possível excluir OKR que possui vínculos!";
-    else if (error === "3") msg = "Não é possível excluir Meta que possui vínculos!";
-    if (msg) showToast(msg, "error");
+    const errs = {
+      "1":"OKR já existe!",
+      "2":"Não é possível excluir OKR que possui vínculos!",
+      "3":"Não é possível excluir Meta que possui vínculos!"
+    };
+    if (errs[error]) showToast(errs[error], "error");
+  }
+
+  // ——— Modal Nova Meta: toggle campos valor/tempo ———
+  const tipoMetaSel = document.getElementById('tipoMetaSel');
+  if (tipoMetaSel) {
+    tipoMetaSel.addEventListener('change', () => {
+      document.getElementById('divValor').classList.toggle('d-none', tipoMetaSel.value === 'tempo');
+      document.getElementById('divTempo').classList.toggle('d-none', tipoMetaSel.value === 'valor');
+    });
+  }
+
+  // ——— Meta Dinâmica (modalNovaMeta) ———
+  const selNivelMeta = document.getElementById('selNivelMeta');
+  const selOkrMeta   = document.getElementById('selOkrMeta');
+  if (selNivelMeta && selOkrMeta) {
+    selNivelMeta.addEventListener('change', () => {
+      const nivel = selNivelMeta.value;
+      selOkrMeta.disabled = !nivel;
+      selOkrMeta.value    = '';
+      Array.from(selOkrMeta.options).forEach(opt => {
+        if (!opt.value) return;
+        const ids = (opt.dataset.niveisIds || '').split(',');
+        opt.hidden = nivel ? !ids.includes(nivel) : false;
+      });
+    });
+  }
+
+  // ——— Modal de Edição & Exclusão ———
+  const modalEdit = document.getElementById('modalEditarOKR');
+  if (modalEdit) {
+    modalEdit.addEventListener('show.bs.modal', e => {
+      const btn  = e.relatedTarget;
+      modalEdit.querySelector('#okr-id').value        = btn.dataset.id;
+      modalEdit.querySelector('#okr-descricao').value = btn.dataset.descricao;
+      modalEdit.querySelector('#okr-equipe').value    = btn.dataset.equipe;
+      const nivs = (btn.dataset.niveis || '').split(',');
+      modalEdit.querySelectorAll('input[name="niveis[]"]').forEach(chk => {
+        chk.checked = nivs.includes(chk.value);
+      });
+    });
+  }
+  const modalExc = document.getElementById('modalExcluirOKR');
+  if (modalExc) {
+    modalExc.addEventListener('show.bs.modal', e => {
+      const btn  = e.relatedTarget;
+      modalExc.querySelector('#excluir_okr_id').value        = btn.dataset.id;
+      modalExc.querySelector('#excluir_okr_nome').textContent = btn.dataset.nome;
+      modalExc.querySelector('form').action                  = 'deletar_okr.php';
+    });
   }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  const selNivel = document.getElementById('selNivelMeta');
-  const selOkr   = document.getElementById('selOkrMeta');
+ document.addEventListener('DOMContentLoaded', () => {
+  const selNivel = document.getElementById('selNivelLanc');
+  const selOkr   = document.getElementById('selOkrLanc');
+  const mesSelect = document.querySelector('#modalLancamento select[name="mes"]');
+  const container = document.getElementById('divMetasList');
+  const tbody     = document.getElementById('tbodyMetas');
 
   if (!selNivel || !selOkr) return;
 
-  selNivel.addEventListener('change', function() {
-    const nivel = this.value;
-    // ativa/desativa o seletor de OKR
+  // 1) Filtra opções de OKR quando muda o Nível
+  selNivel.addEventListener('change', () => {
+    const nivel = selNivel.value;
     selOkr.disabled = !nivel;
-
-    // limpa seleção anterior
-    selOkr.value = '';
-
-    // para cada option de OKR, esconde se não tiver o nível
+    selOkr.value    = '';
     Array.from(selOkr.options).forEach(opt => {
       if (!opt.value) {
-        // opção placeholder sempre visível
         opt.hidden = false;
       } else {
         const ids = (opt.dataset.niveisIds || '').split(',');
         opt.hidden = nivel ? !ids.includes(nivel) : false;
       }
     });
+    // limpa a tabela de KRs
+    tbody.innerHTML = '';
+    container.classList.add('d-none');
   });
-});
 
-document.addEventListener('DOMContentLoaded', () => {
-  const selNivel = document.getElementById('selNivelLanc');
-  const selOkr   = document.getElementById('selOkr');
-
-  if (selNivel && selOkr) {
-    selNivel.addEventListener('change', function() {
-      const nivel = this.value;
-      selOkr.disabled = !nivel;
-      selOkr.value    = '';
-      Array.from(selOkr.options).forEach(opt => {
-        if (!opt.value) {
-          opt.hidden = false; // placeholder
-        } else {
-          const ids = (opt.dataset.niveisIds || '').split(',');
-          opt.hidden = nivel ? !ids.includes(nivel) : false;
-        }
-      });
+  // 2) Quando escolher o OKR, popula os KRs abaixo
+  selOkr.addEventListener('change', () => {
+    const okrId = selOkr.value;
+    const metas = window.metasByOkr[okrId] || [];
+    tbody.innerHTML = '';
+    metas.forEach(m => {
+      const tr = document.createElement('tr');
+      const tdDesc = document.createElement('td');
+      tdDesc.textContent = m.descricao;
+      const hidden = document.createElement('input');
+      hidden.type  = 'hidden';
+      hidden.name  = 'idMeta[]';
+      hidden.value = m.id;
+      tdDesc.appendChild(hidden);
+      const tdInput = document.createElement('td');
+      const inputVal = document.createElement('input');
+      inputVal.type        = 'text';
+      inputVal.name        = 'realizado[]';
+      inputVal.className   = 'form-control';
+      inputVal.required    = true;
+      inputVal.placeholder = m.menor_melhor ? '00:01:55' : '99.99';
+      tdInput.appendChild(inputVal);
+      tr.appendChild(tdDesc);
+      tr.appendChild(tdInput);
+      tbody.appendChild(tr);
     });
-  }
+    container.classList.toggle('d-none', metas.length === 0);
+
+    // opcional: esconde meses que já foram lançados
+    const launched = window.atingsByOkr[okrId] || [];
+    Array.from(mesSelect.options).forEach(opt => {
+      if (!opt.value) return;
+      opt.hidden = launched.includes(+opt.value);
+    });
+    mesSelect.value = '';
+  });
 });

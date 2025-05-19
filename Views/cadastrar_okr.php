@@ -33,12 +33,12 @@ try {
   }
 
   $conn->commit();
-  header("Location: okr.php?view=year&q=1&equipe=0&nivel=0&success=1");
+  header("Location: okr_list.php?success=1");
   exit();
 
 } catch (Exception $e) {
   $conn->rollback();
   error_log($e->getMessage());
-  header("Location: okr.php?view=year&q=1&equipe=0&nivel=0&error=1");
+  header("Location: okr_list.php?error=1");
   exit();
 }

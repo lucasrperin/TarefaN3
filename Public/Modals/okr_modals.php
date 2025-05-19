@@ -57,7 +57,7 @@
         $resN = $conn->query("SELECT 
                                 ni.id, 
                                 ni.descricao,
-                                substring(equ.descricao from 6 for 6) as equipe
+                                right(equ.descricao, 5) as equipe
                               FROM TB_NIVEL ni
                               INNER JOIN TB_OKR_NIVEL okn 
                                 ON okn.idNivel = ni.id
@@ -65,6 +65,7 @@
                                 ON okr.id = okn.idOkr
                               INNER JOIN TB_EQUIPE equ
                                 ON equ.id = okr.idEquipe
+                              WHERE equ.id <> 3
                               GROUP BY equ.descricao, ni.descricao
                               ORDER BY equ.descricao, ni.descricao asc ");
         while($n = $resN->fetch_assoc()):
@@ -163,21 +164,20 @@
           <select id="selNivelLanc" name="idNivel" class="form-select" required>
             <option value="">Selecione um nível</option>
             <?php
-              $resN = $conn->query("
-                SELECT 
-                                ni.id, 
-                                ni.descricao,
-                                substring(equ.descricao from 6 for 6) as equipe
-                              FROM TB_NIVEL ni
-                              INNER JOIN TB_OKR_NIVEL okn 
-                                ON okn.idNivel = ni.id
-                              INNER JOIN TB_OKR okr
-                                ON okr.id = okn.idOkr
-                              INNER JOIN TB_EQUIPE equ
-                                ON equ.id = okr.idEquipe
-                              GROUP BY equ.descricao, ni.descricao
-                              ORDER BY equ.descricao, ni.descricao asc 
-              ");
+              $resN = $conn->query("SELECT 
+                                      ni.id, 
+                                      ni.descricao,
+                                      right(equ.descricao, 5) as equipe
+                                    FROM TB_NIVEL ni
+                                    INNER JOIN TB_OKR_NIVEL okn 
+                                      ON okn.idNivel = ni.id
+                                    INNER JOIN TB_OKR okr
+                                      ON okr.id = okn.idOkr
+                                    INNER JOIN TB_EQUIPE equ
+                                      ON equ.id = okr.idEquipe
+                                    WHERE equ.id <> 3
+                                    GROUP BY equ.descricao, ni.descricao
+                                    ORDER BY equ.descricao, ni.descricao asc ");
               while($n = $resN->fetch_assoc()):
             ?>
               <option value="<?= $n['id'] ?>"><?= htmlspecialchars($n['descricao']). ' - ' .htmlspecialchars($n['equipe']) ?></option>
@@ -188,7 +188,7 @@
         <!-- 2) Seletor de OKR (desabilitado até escolher Nível) -->
         <div class="mb-3">
           <label class="form-label">OKR</label>
-          <select id="selOkr" name="idOkr" class="form-select" required disabled>
+          <select id="selOkrLanc" name="idOkr" class="form-select" required disabled>
             <option value="">Selecione o OKR</option>
             <?php
               $sql = "

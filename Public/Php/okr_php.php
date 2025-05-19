@@ -172,7 +172,6 @@ while ($rowO = $resO->fetch_assoc()) {
     $okrList[] = $rowO;
 }
 // metas agrupadas por OKR
-$metaList = [];
 $atingsByOkr = [];
 $stmtAt = $conn->prepare("
   SELECT m.idOkr, ai.mes
@@ -185,6 +184,25 @@ $stmtAt->execute();
 $rsAt = $stmtAt->get_result();
 while ($rAt = $rsAt->fetch_assoc()) {
     $atingsByOkr[$rAt['idOkr']][] = (int)$rAt['mes'];
+}
+
+// ——— montar metas agrupadas por OKR ———
+$metaList = [];
+$rsM = $conn->query("
+  SELECT
+    m.idOkr     AS okr_id,
+    m.id        AS id,
+    m.descricao AS descricao,
+    m.menor_melhor
+  FROM TB_META m
+  WHERE m.ano = {$anoAtual}
+");
+while ($m = $rsM->fetch_assoc()) {
+    $metaList[ $m['okr_id'] ][] = [
+        'id'           => $m['id'],
+        'descricao'    => $m['descricao'],
+        'menor_melhor' => (bool)$m['menor_melhor']
+    ];
 }
 $stmtAt->close();
 /* ---------- FUNÇÕES AUXILIARES ---------- */
