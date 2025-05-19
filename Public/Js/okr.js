@@ -16,19 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 2000);
   }
 
-  // ——— Reabre modal após submit ———
-  const modalToOpen = sessionStorage.getItem('openModal');
-  if (modalToOpen) {
-    const el = document.getElementById(modalToOpen);
-    if (el) new bootstrap.Modal(el).show();
-    sessionStorage.removeItem('openModal');
-  }
-  document.querySelectorAll('.modal form').forEach(form => {
-    form.addEventListener('submit', () => {
-      const modal = form.closest('.modal');
-      if (modal && modal.id) sessionStorage.setItem('openModal', modal.id);
-    });
-  });
+
 
   // ——— Toasts de resultado via query string ———
   const params  = new URLSearchParams(window.location.search);
@@ -167,5 +155,196 @@ document.addEventListener('DOMContentLoaded', () => {
       opt.hidden = launched.includes(+opt.value);
     });
     mesSelect.value = '';
+  });
+});
+
+//Função para no modal de META somente mostrar os OKR do nivel e equipe selecionado
+document.addEventListener('DOMContentLoaded', () => {
+  const selNivel = document.getElementById('selNivelMeta');
+  const selOkr   = document.getElementById('selOkrMeta');
+  // guarda o HTML original do <select> de OKR (placeholder + todas opções)
+  const originalOptions = selOkr.innerHTML;
+
+  selNivel.addEventListener('change', () => {
+    const nivelId  = selNivel.value;
+    const equipeId = selNivel.selectedOptions[0]?.dataset.equipeId;
+    // 1) recarrega tudo
+    selOkr.innerHTML = originalOptions;
+    // 2) remove as opções que não pertencem ao nível **e** equipe selecionados
+    Array.from(selOkr.options).forEach(opt => {
+      if (!opt.value) return; // pula placeholder
+      const niveis = (opt.dataset.niveisIds||'').split(',');
+      if (!niveis.includes(nivelId) || opt.dataset.equipeId !== equipeId) {
+        opt.remove();
+      }
+    });
+    // 3) habilita se houver pelo menos uma opção válida
+    selOkr.disabled = selOkr.options.length <= 1;
+  });
+}); 
+
+// Função para no modal de LANÇAR REALIZADO somente mostrar os OKR do nivel e equipe selecionado
+document.addEventListener('DOMContentLoaded', () => {
+  const selNivel = document.getElementById('selNivelLanc');
+  const selOkr   = document.getElementById('selOkrLanc');
+  // guarda o HTML completo de todas as options (incluindo a placeholder)
+  const originalOptions = selOkr.innerHTML;
+
+  selNivel.addEventListener('change', () => {
+    const nivelId  = selNivel.value;
+    const equipeId = selNivel.selectedOptions[0]?.dataset.equipeId;
+    // 1) recarrega tudo
+    selOkr.innerHTML = originalOptions;
+    // 2) percorre e remove o que não tiver o nível ou não for da equipe
+    Array.from(selOkr.options).forEach(opt => {
+      if (!opt.value) return; // pula placeholder
+      const niveis = opt.dataset.niveisIds.split(',');
+      if (!niveis.includes(nivelId) || opt.dataset.equipeId !== equipeId) {
+        opt.remove();
+      }
+    });
+    // 3) habilita o select só se restar >1 opção
+    selOkr.disabled = selOkr.options.length <= 1;
+  });
+});
+
+// Função para preecher o campo PRAZO com o último dia do ano
+document.addEventListener('DOMContentLoaded', () => {
+  // calcula último dia do ano atual
+  const ano   = new Date().getFullYear();
+  const data  = `${ano}-12-31`;           // formato ISO que o <input type="date"> aceita
+  const campo = document.getElementById('dtPrazoMeta');
+  if (campo) campo.value = data;
+});
+
+// ——— Lista KRs já lançados no Modal Nova Meta ———
+document.addEventListener('DOMContentLoaded', () => {
+  const selOkrMeta     = document.getElementById('selOkrMeta');
+  const divKRLancados  = document.getElementById('divKRLancados');
+  const ulKRLancados   = document.getElementById('ulKRLancados');
+  const anoAtual       = new Date().getFullYear();
+
+  if (!selOkrMeta) return;
+
+  selOkrMeta.addEventListener('change', () => {
+    const okrId = selOkrMeta.value;
+    // limpa lista e esconde se nada selecionado
+    ulKRLancados.innerHTML = '';
+    divKRLancados.classList.add('d-none');
+    if (!okrId) return;
+
+    fetch(`../Ajax/get_kr_lancado.php?okr_id=${okrId}&ano=${anoAtual}`)
+      .then(res => res.json())
+      .then(list => {
+        if (list.length) {
+          ulKRLancados.innerHTML = list
+            .map(desc => `<li class="list-group-item py-1">${desc}</li>`)
+            .join('');
+          divKRLancados.classList.remove('d-none');
+        }
+      })
+      .catch(err => console.error('Erro ao buscar KRs:', err));
+  });
+});
+
+// Função para trazer somente os níveis da equipe selecionado no modal de META 
+document.addEventListener('DOMContentLoaded', () => {
+  const selEquipe = document.getElementById('selEquipeMeta');
+  const selNivel  = document.getElementById('selNivelMeta');
+  const selOkr    = document.getElementById('selOkrMeta');
+
+  // guarda os HTML originais
+  const originalNivelHTML = selNivel.innerHTML;
+  const originalOkrHTML   = selOkr.innerHTML;
+
+  // 1) Filtra Níveis quando muda Em equipe
+   function filtraNiveis() {
+    const eqId = selEquipe.value;
+    selNivel.innerHTML = originalNivelHTML;
+    selNivel.value     = '';
+    Array.from(selNivel.options).forEach(opt => {
+      if (!opt.value) return;
+      opt.hidden = eqId !== '0' && opt.dataset.equipeId !== eqId;
+    });
+    // também resetamos OKR
+    selOkr.innerHTML = originalOkrHTML;
+    selOkr.disabled  = true;
+  }
+
+  selEquipe.addEventListener('change', filtraNiveis);
+
+  // **DISPARA O FILTRO ASSIM QUE A PÁGINA É CARREGADA**
+  filtraNiveis();
+
+  // 2) Filtra OKRs quando muda Nível
+  selNivel.addEventListener('change', () => {
+    const nivelId = selNivel.value;
+    const eqId    = selEquipe.value;
+    // repopula OKR e limpa seleção
+    selOkr.innerHTML = originalOkrHTML;
+    selOkr.value     = '';
+    // filtra
+    Array.from(selOkr.options).forEach(opt => {
+      if (!opt.value) return;
+      const niveis = (opt.dataset.niveisIds || '').split(',');
+      const optEq   = opt.dataset.equipeId;
+      if (
+        !niveis.includes(nivelId) ||
+        (eqId !== '0' && optEq !== eqId)
+      ) {
+        opt.remove();
+      }
+    });
+    selOkr.disabled = selOkr.options.length <= 1;
+  });
+});
+
+// Função para trazer somente os níveis da equipe selecionado no modal de LANCAR REALIZADO
+document.addEventListener('DOMContentLoaded', () => {
+  const selEquipe = document.getElementById('selEquipeLanc');
+  const selNivel  = document.getElementById('selNivelLanc');
+  const selOkr    = document.getElementById('selOkrLanc');
+
+  if (!selEquipe) return;
+
+  // guarda originais
+  const origNivel = selNivel.innerHTML;
+  const origOkr   = selOkr.innerHTML;
+
+  // 1) quando mudar Equipe, filtra Nível e reseta OKR
+  selEquipe.addEventListener('change', () => {
+    const eq = selEquipe.value;
+    selNivel.innerHTML = origNivel;
+    selNivel.value     = '';
+    Array.from(selNivel.options).forEach(opt => {
+      if (!opt.value) return;
+      opt.hidden = eq !== '0' && opt.dataset.equipeId !== eq;
+    });
+    // reset OKR
+    selOkr.innerHTML = origOkr;
+    selOkr.disabled  = true;
+  });
+
+  // 2) quando mudar Nível, filtra OKR
+  selNivel.addEventListener('change', () => {
+    const nv = selNivel.value;
+    const eq = selEquipe.value;
+    selOkr.innerHTML = origOkr;
+    selOkr.value     = '';
+    Array.from(selOkr.options).forEach(opt => {
+      if (!opt.value) return;
+      const nivs = (opt.dataset.niveisIds||'').split(',');
+      const eqOk = opt.dataset.equipeId;
+      if (!nivs.includes(nv) || (eq !== '0' && eqOk !== eq)) {
+        opt.remove();
+      }
+    });
+    selOkr.disabled = selOkr.options.length <= 1;
+  });
+
+  // 3) dispara filtro inicial ao abrir o modal
+  const modal = document.getElementById('modalLancamento');
+  modal.addEventListener('show.bs.modal', () => {
+    selEquipe.dispatchEvent(new Event('change'));
   });
 });

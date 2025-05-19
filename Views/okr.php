@@ -111,7 +111,7 @@
   <div class="accordion-item">
     <h2 class="accordion-header" id="headingFilters">
       <button
-        class="accordion-button"
+        class="accordion-button accordion-css"
         type="button"
         data-bs-toggle="collapse"
         data-bs-target="#collapseFilters"
@@ -175,10 +175,20 @@
               class="btn btn-sm <?= $nivelSel===0 ? 'btn-primary' : 'btn-outline-primary' ?>"
             >Todos</a>
             <?php
+              $shownLevels = []; 
               $listaNiveis->data_seek(0);
               while($n = $listaNiveis->fetch_assoc()):
                 $idN = (int)$n['id'];
-                if($equipeSel && (int)$n['idEquipe'] !== $equipeSel) continue;
+                // 1) se tiver equipe filtrada e este nível não for dela, pula
+                if ($equipeSel && (int)$n['idEquipe'] !== $equipeSel) {
+                  continue;
+                }
+                // 2) se não há filtro de equipe (equipeSel==0) e este nível já foi exibido, pula
+                if ($equipeSel === 0 && in_array($idN, $shownLevels, true)) {
+                  continue;
+                }
+                // marca como exibido
+                $shownLevels[] = $idN;
             ?>
               <a
                 href="?view=<?= $view ?>&q=<?= $q ?>&equipe=<?= $equipeSel ?>&nivel=<?= $idN ?>"

@@ -271,6 +271,7 @@ CREATE TABLE IF NOT EXISTS TB_INDICACAO (
     status ENUM('Faturado', 'Pendente', 'Cancelado') NOT NULL DEFAULT 'Pendente',
     vlr_total numeric(18,4),
     n_venda int,
+    revenda TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Indica se a indicação foi para revenda: 1=Sim, 0=Não'
     FOREIGN KEY (plugin_id) REFERENCES TB_PLUGIN(id),
     FOREIGN KEY (user_id) REFERENCES TB_USUARIO(id),
     FOREIGN KEY (idConsultor) REFERENCES TB_USUARIO(id)

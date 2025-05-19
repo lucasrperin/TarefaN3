@@ -22,15 +22,26 @@ html, body {
   margin-top: 0px;
 }
 
+.accordion-css {
+  font-weight: 600;
+  background-color: #283e51;
+  color: #fff;
+}
+
+.accordion-css:not(.collapsed) {
+  background-color: #4b79a1;
+  color: #fff;
+}
+
 .bg-success{background:#c6efce!important}
-    .bg-warning{background:#fff2cc!important}
-    .bg-danger{background:#f8d7da!important}
-    .text-dark{color:#006100!important}
-    .sticky-header thead th {
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
+.bg-warning{background:#fff2cc!important}
+.bg-danger{background:#f8d7da!important}
+.text-dark{color:#006100!important}
+.sticky-header thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
 
 .card-okr {
     background: #fff;
