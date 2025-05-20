@@ -186,3 +186,54 @@ section.content {
   /* mantém o bg-light original ou defina aqui outra cor */
   background-color: #f8f9fa;
 }
+
+
+.okr-status-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* define diâmetro e espessura do anel */
+.half-circle-wrapper {
+  --size: 110px;        /* diâmetro total */
+  --thickness: 12px;   /* espessura do donut */
+  width: var(--size);
+  height: calc(var(--size) / 2);
+  overflow: hidden;
+}
+
+.circle-progress {
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--color)                      /* cor até… */
+      0deg calc(var(--fill) * 1.8deg),/* mapeia 0–100% em 0–180° */
+    #e9ecef                           /* resto do arco */
+      calc(var(--fill) * 1.8deg) 360deg
+  );
+  transform: rotate(-90deg);
+  position: relative;
+}
+
+/* “fura” o miolo com base em --thickness */
+.circle-progress::before {
+  content: '';
+  position: absolute;
+  top: var(--thickness);
+  left: var(--thickness);
+  width: calc(var(--size) - (var(--thickness) * 2));
+  height: calc(var(--size) - (var(--thickness) * 2));
+  background: #fff;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.okr-status-value {
+  margin-top: 6px;
+  font-weight: bold;
+  font-size: 0.95rem;
+  color: #333;
+  text-align: center;
+}

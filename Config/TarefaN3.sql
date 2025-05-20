@@ -305,8 +305,9 @@ CREATE TABLE IF NOT EXISTS TB_NIVEL (
 INSERT INTO TB_NIVEL (descricao) VALUES ('Treinamento');
 INSERT INTO TB_NIVEL (descricao) VALUES ('Nível 1');
 INSERT INTO TB_NIVEL (descricao) VALUES ('Nível 2');
-INSERT INTO TB_NIVEL (descricao) VALUES ('Exclusivo');
 INSERT INTO TB_NIVEL (descricao) VALUES ('Nível 3');
+INSERT INTO TB_NIVEL (descricao) VALUES ('Nível 4');
+INSERT INTO TB_NIVEL (descricao) VALUES ('Exclusivo');
 INSERT INTO TB_NIVEL (descricao) VALUES ('Comercial');
 INSERT INTO TB_NIVEL (descricao) VALUES ('Supervisão');
 INSERT INTO TB_NIVEL (descricao) VALUES ('Gestão');
@@ -432,6 +433,7 @@ CREATE TABLE IF NOT EXISTS TB_RECORRENTES_CARDS (
       REFERENCES TB_RECORRENTES(id)
       ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 /* ========= TB_OKR ========= */
 CREATE TABLE TB_OKR (
     id            INT AUTO_INCREMENT PRIMARY KEY,
@@ -461,6 +463,8 @@ CREATE TABLE TB_META (
     unidade         VARCHAR(30)  DEFAULT NULL, -- %, R$, s, min, etc.
     dt_prazo        DATE         NOT NULL,
     criado_em       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    meta_vlr        DECIMAL(18,4) NULL COMMENT 'Meta em R$, ex: 100.0000',
+    meta_qtd        INT NULL COMMENT 'Meta em número de unidades',
     CONSTRAINT fk_meta_okr FOREIGN KEY (idOkr)
         REFERENCES TB_OKR(id) ON DELETE CASCADE,
     UNIQUE KEY uq_okr_ano_desc (idOkr, ano, descricao),

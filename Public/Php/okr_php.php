@@ -361,14 +361,24 @@ foreach($cardsData as $card){
         ];
     }
     $m = $card['metaData'];
+    $unit   = $m['unidade'];   // '%', 's', 'R$', 'unidades'
+    $isTime = $unit === 's';
+    $target = match($unit) {
+      's'        => $m['meta_seg'],
+      'R$'       => $m['meta_vlr'],
+      'unidades' => $m['meta_qtd'],
+      default    => $m['meta'],
+    };
+
     $okrGroups[$okrId]['items'][$metaId] = [
-        'kr'        => $m['kr'],
-        'isTime'    => ($m['menor_melhor']==1),
-        'real'      => $m['real']     ?? [],
-        'real_seg'  => $m['real_seg'] ?? [],
-        'target'    => ($m['menor_melhor']==1 ? $m['meta_seg'] : $m['meta']),
-        'equipe'    => $card['equipe'],
-        'niveis'    => $card['niveis'],
+      'kr'        => $m['kr'],
+      'unit'      => $unit,
+      'isTime'    => $isTime,
+      'real'      => $m['real']     ?? [],
+      'real_seg'  => $m['real_seg'] ?? [],
+      'target'    => $target,
+      'equipe'    => $card['equipe'],
+      'niveis'    => $card['niveis'],
     ];
 }
 

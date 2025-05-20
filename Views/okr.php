@@ -325,54 +325,54 @@
                       </thead>
                       <tbody>
                         <?php foreach($grpData['items'] as $r):
-                          // 1) Tempo (menor é melhor)
-                          if ($r['menor_melhor']) {
-                              $sum      = array_sum($r['real_seg']);
-                              $cnt      = count($r['real_seg']);
-                              $avg      = $cnt ? round($sum/$cnt) : 0;
-                              $metaSeg  = $r['meta_seg'];
-                              $cls      = ($avg <= $metaSeg) ? 'success' : 'danger';
-                              $metaDisp = seg2time($metaSeg);
-                              $realDisp = $avg ? seg2time($avg) : '-';
-                              // aproveitar % de atingimento original:
-                              $pct      = $avg ? round($metaSeg/$avg*100,2) : 0;
+                            // 1) Tempo (menor é melhor)
+                            if ($r['menor_melhor']) {
+                                $sum      = array_sum($r['real_seg']);
+                                $cnt      = count($r['real_seg']);
+                                $avg      = $cnt ? round($sum/$cnt) : 0;
+                                $metaSeg  = $r['meta_seg'];
+                                $cls      = ($avg <= $metaSeg) ? 'success' : 'danger';
+                                $metaDisp = seg2time($metaSeg);
+                                $realDisp = $avg ? seg2time($avg) : '-';
+                                // aproveitar % de atingimento original:
+                                $pct      = $avg ? round($metaSeg/$avg*100,2) : 0;
 
-                          // 2) Moeda (R$)
-                          } elseif ($r['unidade'] === 'R$') {
-                              // aqui assumimos que $r['real'] contém os valores realizados em número (ex: [100.00, 120.00,…])
-                              $sum      = array_sum($r['real']);
-                              $cnt      = count($r['real']);
-                              $avg      = $cnt ? round($sum/$cnt,2) : 0;
-                              $metaVlr  = $r['meta_vlr'];
-                              // sucesso se realizado ≥ meta em R$
-                              $cls      = ($avg >= $metaVlr) ? 'success' : 'danger';
-                              $metaDisp = number_format($metaVlr,2,',','.') . ' R$';
-                              $realDisp = number_format($avg,2,',','.') . ' R$';
-                              // % de atingimento em relação ao objetivo em R$
-                              $pct      = $metaVlr ? round($avg/$metaVlr*100,2) : 0;
+                            // 2) Moeda (R$)
+                            } elseif ($r['unidade'] === 'R$') {
+                                // aqui assumimos que $r['real'] contém os valores realizados em número (ex: [100.00, 120.00,…])
+                                $sum      = array_sum($r['real']);
+                                $cnt      = count($r['real']);
+                                $avg      = $cnt ? round($sum/$cnt,2) : 0;
+                                $metaVlr  = $r['meta_vlr'];
+                                // sucesso se realizado ≥ meta em R$
+                                $cls      = ($avg >= $metaVlr) ? 'success' : 'danger';
+                                $metaDisp = number_format($metaVlr,2,',','.') . ' R$';
+                                $realDisp = number_format($avg,2,',','.') . ' R$';
+                                // % de atingimento em relação ao objetivo em R$
+                                $pct      = $metaVlr ? round($avg/$metaVlr*100,2) : 0;
 
-                          // 3) Quantidade
-                          } elseif ($r['unidade'] === 'unidades') {
-                              $sum      = array_sum($r['real']);
-                              $cnt      = count($r['real']);
-                              $avg      = $cnt ? round($sum/$cnt,2) : 0;
-                              $metaQtd  = $r['meta_qtd'];
-                              $cls      = ($avg >= $metaQtd) ? 'success' : 'danger';
-                              $metaDisp = number_format($metaQtd,0,',','.') . ' uni';
-                              $realDisp = number_format($avg,0,',','.')   . ' uni';
-                              $pct      = $metaQtd ? round($avg/$metaQtd*100,2) : 0;
-                              
-                          // 3) Percentual (%)
-                          } else {
-                              $sum      = array_sum($r['real']);
-                              $cnt      = count($r['real']);
-                              $avg      = $cnt ? round($sum/$cnt,2) : 0;
-                              $meta     = $r['meta'];
-                              $cls      = ($avg >= $meta) ? 'success' : 'danger';
-                              $metaDisp = number_format($meta,2,',','.') . ' %';
-                              $realDisp = number_format($avg,2,',','.') . ' %';
-                              $pct      = $meta ? round($avg/$meta*100,2) : 0;
-                          }
+                            // 3) Quantidade
+                            } elseif ($r['unidade'] === 'unidades') {
+                                $sum      = array_sum($r['real']);
+                                $cnt      = count($r['real']);
+                                $avg      = $cnt ? round($sum/$cnt,2) : 0;
+                                $metaQtd  = $r['meta_qtd'];
+                                $cls      = ($avg >= $metaQtd) ? 'success' : 'danger';
+                                $metaDisp = number_format($metaQtd,0,',','.') . ' uni';
+                                $realDisp = number_format($avg,0,',','.')   . ' uni';
+                                $pct      = $metaQtd ? round($avg/$metaQtd*100,2) : 0;
+                                
+                            // 3) Percentual (%)
+                            } else {
+                                $sum      = array_sum($r['real']);
+                                $cnt      = count($r['real']);
+                                $avg      = $cnt ? round($sum/$cnt,2) : 0;
+                                $meta     = $r['meta'];
+                                $cls      = ($avg >= $meta) ? 'success' : 'danger';
+                                $metaDisp = number_format($meta,2,',','.') . ' %';
+                                $realDisp = number_format($avg,2,',','.') . ' %';
+                                $pct      = $meta ? round($avg/$meta*100,2) : 0;
+                            }
                         ?>
                         <tr>
                           <td><?= htmlspecialchars($r['kr']) ?></td>
@@ -441,10 +441,18 @@
                     } else {
                       $months = range(1,12);
                     }
-                    $ptMeses    = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-                    $labels     = array_map(fn($m)=>$ptMeses[$m-1], $months);
-                    $valuesArr  = $item['isTime'] ? $item['real_seg'] : $item['real'];
-                    $values_all = array_map(fn($m)=> $valuesArr[$m] ?? null, $months);
+                    $ptMeses   = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+                    $labels    = array_map(fn($m)=> $ptMeses[$m-1], $months);
+
+                    // escolhe o array bruto de realizado
+                    $valuesArr  = $item['unit']==='s'
+                                  ? $item['real_seg']
+                                  : $item['real'];
+
+                    // mapeia mês→valor ou null
+                    $values_all = array_map(fn($m)=> isset($valuesArr[$m]) ? $valuesArr[$m] : null, $months);
+
+                    // linha de meta
                     $metaLine   = array_fill(0, count($months), $item['target']);
                     $chartType  = ($view==='quarter') ? 'bar' : 'line';
                     // calcula pct e avg
@@ -487,39 +495,88 @@
                             </small></p>
                           </header>
                           <div class="okr-body d-flex justify-content-between align-items-center">
+                            <?php
+                              // determina o valor real do atingimento (pode passar de 100)
+                              $pctReal   = round($pct,2);
+                              // clamp só para preencher o arco
+                              $pctFill   = min(max($pctReal, 0), 100);
+
+                              // cor conforme atingimento
+                              $color = ($pctReal >= 100) ? '#28a745' : '#dc3545';
+
+                              // formata texto
+                              if ($item['unit'] === 's') {
+                                $label = gmdate('H:i:s', $avg);
+                              } elseif ($item['unit'] === '%') {
+                                $label = number_format($pctReal,2,',','.').' %';
+                              } elseif ($item['unit'] === 'R$') {
+                                $label = 'R$'.number_format($avg,2,',','.');
+                              } else {
+                                $label = intval($avg).' uni';
+                              }
+                            ?>
                             <div class="okr-status-circle me-4">
-                              <div class="circle">
-                                <strong>
-                                  <?= $item['isTime']
-                                      ? gmdate('H:i:s',$avg)
-                                      : number_format($pct,2,',','.').' %' ?>
-                                </strong>
-                                <span>Status</span>
+                              <div class="half-circle-wrapper">
+                                <div
+                                  class="circle-progress"
+                                  style="
+                                    --fill:  <?= $pctFill ?>;
+                                    --color: <?= $color   ?>;
+                                  "
+                                ></div>
                               </div>
+                              <div class="okr-status-value"><?= $label ?></div>
                             </div>
+                            
                             <div class="okr-chart flex-fill" style="height:200px;">
                               <canvas id="chart_<?= $krId ?>"></canvas>
                             </div>
                             <script>
                               (function(){
-                                const ctx = document
-                                  .getElementById('chart_<?= $krId ?>')
-                                  .getContext('2d');
+                                const unit      = <?= json_encode($item['unit']) ?>;        // 's','%','R$' ou 'unidades'
+                                const labels    = <?= json_encode($labels, JSON_UNESCAPED_UNICODE) ?>;
+                                const dataPts   = <?= json_encode($values_all, JSON_NUMERIC_CHECK) ?>;
+                                const metaLine  = <?= json_encode($metaLine, JSON_NUMERIC_CHECK) ?>;
+
+                                // função de formatação para todos os casos
+                                const getFmt = {
+                                  s: v => {
+                                    if (v===null) return ''; 
+                                    const s   = Math.floor(v),
+                                          h   = Math.floor(s/3600),
+                                          m   = Math.floor((s%3600)/60),
+                                          sec = s%60;
+                                    return (h?`${h}:`.padStart(3,'0'):'')
+                                        +String(m).padStart(2,'0')
+                                        +':'+String(sec).padStart(2,'0');
+                                  },
+                                  '%': v => v!=null ? v.toFixed(2)+' %' : '',
+                                  'R$': v => v!=null ? 'R$'+v.toFixed(2).replace('.',',') : '',
+                                  'unidades': v => v!=null ? String(Math.round(v))+' uni' : ''
+                                };
+
+                                const ctx = document.getElementById('chart_<?= $krId ?>').getContext('2d');
                                 new Chart(ctx, {
                                   type: '<?= $chartType ?>',
                                   data: {
-                                    labels: <?= json_encode($labels, JSON_UNESCAPED_UNICODE) ?>,
+                                    labels,
                                     datasets: [
                                       {
-                                        label: <?= $item['isTime'] ? "'Tempo (mm:ss)'" : "'Check-in'" ?>,
-                                        data: <?= json_encode($values_all, JSON_NUMERIC_CHECK) ?>,
+                                        label: unit==='s'   ? 'Realizado (Tempo)'
+                                              : unit==='%'  ? 'Realizado (%)'
+                                              : unit==='R$' ? 'Realizado (R$)'
+                                              : 'Realizado (Qtd)',
+                                        data: dataPts,
                                         <?= $view==='quarter'
                                             ? "backgroundColor:'#007bff',"
                                             : "borderColor:'#007bff',tension:0.4,fill:false," ?>
                                       },
                                       {
-                                        label: <?= $item['isTime'] ? "'Meta (mm:ss)'" : "'Meta (%)'" ?>,
-                                        data: <?= json_encode($metaLine, JSON_NUMERIC_CHECK) ?>,
+                                        label: unit==='s'   ? 'Meta (Tempo)'
+                                              : unit==='%'  ? 'Meta (%)'
+                                              : unit==='R$' ? 'Meta (R$)'
+                                              : 'Meta (Qtd)',
+                                        data: metaLine,
                                         <?= $view==='quarter'
                                             ? "backgroundColor:'#ccc',"
                                             : "borderColor:'#ccc',borderDash:[5,5],tension:0.4,fill:false," ?>
@@ -530,49 +587,23 @@
                                     responsive: true,
                                     maintainAspectRatio: false,
                                     scales: {
-                                      x: { ticks: { autoSkip: false, maxRotation: 0, minRotation: 0 } },
+                                      x: { ticks:{ autoSkip:false, maxRotation:0, minRotation:0 } },
                                       y: {
-                                        <?php if($item['isTime']): ?>
                                         ticks: {
-                                          callback: value => {
-                                            const s = Math.floor(value),
-                                                  h = Math.floor(s/3600),
-                                                  m = Math.floor((s%3600)/60),
-                                                  sec = s%60;
-                                            return (h>0?(h+':').padStart(3,'0'):'')
-                                                  +String(m).padStart(2,'0')
-                                                  +':' +String(sec).padStart(2,'0');
-                                          }
+                                          callback: value => getFmt[unit](value)
                                         }
-                                        <?php else: ?>
-                                        min:0, max:100,
-                                        ticks: {
-                                          callback: value => value.toFixed(2)+' %'
-                                        }
-                                        <?php endif; ?>
                                       }
                                     },
                                     plugins: {
                                       tooltip: {
                                         callbacks: {
                                           label: ctx => {
-                                            const v = ctx.parsed.y;
-                                            <?php if($item['isTime']): ?>
-                                            const s = Math.floor(v),
-                                                  h = Math.floor(s/3600),
-                                                  m = Math.floor((s%3600)/60),
-                                                  sec = s%60;
-                                            return ctx.dataset.label+': '
-                                                  +(h>0?(h+':').padStart(3,'0'):'')
-                                                  +String(m).padStart(2,'0')
-                                                  +':' +String(sec).padStart(2,'0');
-                                            <?php else: ?>
-                                            return ctx.dataset.label+': '+v.toFixed(2)+' %';
-                                            <?php endif; ?>
+                                            return ctx.dataset.label + ': ' + getFmt[unit](ctx.parsed.y);
                                           }
                                         }
                                       },
-                                      <?php if(!$item['isTime']): ?>legend:{display:false},<?php endif; ?>
+                                      // só escondemos legenda em linha; para barras trimestrais pode deixar
+                                      legend: { display: <?= $view==='quarter' ? 'true' : 'false' ?> }
                                     }
                                   }
                                 });
@@ -583,14 +614,40 @@
                                 <?= $view==='quarter' ? "Q$q - $anoAtual" : "Visão Anual" ?>
                               </strong></p>
                               <p><strong>Atingido:</strong>
-                                <?= $item['isTime']
-                                    ? gmdate('H:i:s',$avg)
-                                    : number_format($pct,2,',','.').' %' ?>
+                                <?php
+                                  switch($item['unit']) {
+                                    case 's':
+                                      echo gmdate('H:i:s', $avg);
+                                      break;
+                                    case '%':
+                                      echo number_format($pct, 2, ',', '.') . ' %';
+                                      break;
+                                    case 'R$':
+                                      echo 'R$' . number_format($avg, 2, ',', '.');
+                                      break;
+                                    case 'unidades':
+                                      echo intval($avg) . ' uni';
+                                      break;
+                                  }
+                                ?>
                               </p>
                               <p><strong>Meta:</strong>
-                                <?= $item['isTime']
-                                    ? gmdate('H:i:s',$item['target'])
-                                    : number_format($item['target'],2,',','.').' %' ?>
+                                <?php
+                                  switch($item['unit']) {
+                                    case 's':
+                                      echo gmdate('H:i:s', $item['target']);
+                                      break;
+                                    case '%':
+                                      echo number_format($item['target'], 2, ',', '.') . ' %';
+                                      break;
+                                    case 'R$':
+                                      echo 'R$' . number_format($item['target'], 2, ',', '.');
+                                      break;
+                                    case 'unidades':
+                                      echo intval($item['target']) . ' uni';
+                                      break;
+                                  }
+                                ?>
                               </p>
                             </div>
                           </div>
@@ -627,7 +684,7 @@
 
   <script>
     // Pegamos o PHP e transformamos em JS
-    window.metasByOkr  = <?= json_encode($metaList, JSON_UNESCAPED_UNICODE) ?>;
+    window.metasByOkr = <?= json_encode($metaList, JSON_UNESCAPED_UNICODE) ?>;
     window.atingsByOkr = <?= json_encode($atingsByOkr, JSON_UNESCAPED_UNICODE) ?>;
   </script>
 
