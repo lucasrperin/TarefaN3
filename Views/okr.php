@@ -103,7 +103,6 @@
       ?>
 
         <!-- VIEW + ACTION BUTTONS -->
-        <!-- CONTENT -->
 <section class="content container-fluid flex-fill m-0">
 
 <!-- Accordion único com todos os filtros -->
@@ -217,10 +216,6 @@
   </div>
 <?php endif; ?>
 
-
-
-
-
   <!-- MENU NAVEGÁVEL -->
   <ul class="nav nav-tabs mb-4" id="okrTab" role="tablist">
     <li class="nav-item" role="presentation">
@@ -250,8 +245,6 @@
   </ul>
 
   <!-- resto do conteúdo… -->
-
-
         <div class="tab-content" id="okrTabContent">
           <!-- ABA GERAL: TABELAS -->
           <div 
@@ -260,114 +253,146 @@
             role="tabpanel" 
             aria-labelledby="geral-tab"
           >
-            <!-- TABELAS EM CARDS POR EQUIPE/NÍVEL -->
+        <!-- TABELAS EM CARDS POR EQUIPE/NÍVEL -->
         <?php foreach ($data as $grp => $metas):
-            // filtra metas pelo nível
-            $filtered = [];
-            foreach ($metas as $key => $r) {
-                if (!$nivelSel || in_array($nivelSel, $r['niveis_ids'])) {
-                    $filtered[$key] = $r;
-                }
-            }
-            if (empty($filtered)) continue;
-            list($equipeId, $equipe, $niveis) = explode('||', $grp);
+          // filtra metas pelo nível
+          $filtered = [];
+          foreach ($metas as $key => $r) {
+              if (!$nivelSel || in_array($nivelSel, $r['niveis_ids'])) {
+                  $filtered[$key] = $r;
+              }
+          }
+          if (empty($filtered)) continue;
+          list($equipeId, $equipe, $niveis) = explode('||', $grp);
 
-            // pula equipes não selecionadas
-            if ($equipeSel && $equipeId != $equipeSel) continue;
+          // pula equipes não selecionadas
+          if ($equipeSel && $equipeId != $equipeSel) continue;
 
-            // agrupa para exibir as tabelas
-            $tableGroups = [];
-            foreach ($filtered as $key => $r) {
-                list($okrId,) = explode('-', $key);
-                if (! isset($tableGroups[$okrId])) {
-                    $tableGroups[$okrId] = [
-                        'okr'   => $r['okr'],
-                        'niveis'  => $niveis,
-                        'equipe'  => $equipe,
-                        'items' => []
-                    ];
-                }
-                $tableGroups[$okrId]['items'][] = $r;
-            }
+          // agrupa para exibir as tabelas
+          $tableGroups = [];
+          foreach ($filtered as $key => $r) {
+              list($okrId,) = explode('-', $key);
+              if (! isset($tableGroups[$okrId])) {
+                  $tableGroups[$okrId] = [
+                      'okr'   => $r['okr'],
+                      'niveis'  => $niveis,
+                      'equipe'  => $equipe,
+                      'items' => []
+                  ];
+              }
+              $tableGroups[$okrId]['items'][] = $r;
+          }
         ?>
         <div class="accordion mb-3" id="okrTableAccordion">
-            <?php foreach($tableGroups as $okrId => $grpData): ?>
-              <div class="accordion-item">
-                <h2 class="accordion-header" id="headingTable<?= $okrId ?>">
-                  <button
-                    class="accordion-button collapsed"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#collapseTable<?= $okrId ?>"
-                    aria-expanded="false"
-                    aria-controls="collapseTable<?= $okrId ?>"
-                  >
-                    <?= htmlspecialchars($grpData['okr']) ?>
-                    <?php if ($nivelSel === 0): ?>
-                      <small class="text-secondary ms-2">
-                        · <?= htmlspecialchars($grpData['niveis']) ?>
-                        - <?= htmlspecialchars($grpData['equipe']) ?>
-                      </small>
-                    <?php endif; ?>
-                  </button>
-                </h2>
-                <div
-                  id="collapseTable<?= $okrId ?>"
-                  class="accordion-collapse collapse"
-                  aria-labelledby="headingTable<?= $okrId ?>"
-                  data-bs-parent="#okrTableAccordion"
+          <?php 
+          foreach($tableGroups as $okrId => $grpData): ?>
+            
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingTable<?= $okrId ?>">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#collapseTable<?= $okrId ?>"
+                  aria-expanded="false"
+                  aria-controls="collapseTable<?= $okrId ?>"
                 >
-                  <div class="accordion-body p-0">
-                    <div class="table-responsive px-3 pb-3">
-                      <table class="table table-modern mb-0">
-                        <thead>
-                          <tr>
-                            <th>KR / Indicador</th>
-                            <th class="text-center">Meta</th>
-                            <th class="text-center">Realizado</th>
-                            <th class="text-center">% Ating.</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <?php foreach($grpData['items'] as $r):
-                            if ($r['menor_melhor']) {
-                              $sum   = array_sum($r['real_seg']);
-                              $cnt   = count($r['real_seg']);
-                              $avg   = $cnt ? round($sum/$cnt) : 0;
-                              $metaDisp = seg2time($r['meta_seg']);
+                  <?= htmlspecialchars($grpData['okr']) ?>
+                  <?php if ($nivelSel === 0): ?>
+                    <small class="text-secondary ms-2">
+                      · <?= htmlspecialchars($grpData['niveis']) ?>
+                      - <?= htmlspecialchars($grpData['equipe']) ?>
+                    </small>
+                  <?php endif; ?>
+                </button>
+              </h2>
+              <div
+                id="collapseTable<?= $okrId ?>"
+                class="accordion-collapse collapse"
+                aria-labelledby="headingTable<?= $okrId ?>"
+                data-bs-parent="#okrTableAccordion"
+              >
+                <div class="accordion-body p-0">
+                  <div class="table-responsive px-3 pb-3">
+                    <table class="table table-modern mb-0">
+                      <thead>
+                        <tr>
+                          <th>KR / Indicador</th>
+                          <th class="text-center">Meta</th>
+                          <th class="text-center">Realizado</th>
+                          <th class="text-center">% Ating.</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <?php foreach($grpData['items'] as $r):
+                          // 1) Tempo (menor é melhor)
+                          if ($r['menor_melhor']) {
+                              $sum      = array_sum($r['real_seg']);
+                              $cnt      = count($r['real_seg']);
+                              $avg      = $cnt ? round($sum/$cnt) : 0;
+                              $metaSeg  = $r['meta_seg'];
+                              $cls      = ($avg <= $metaSeg) ? 'success' : 'danger';
+                              $metaDisp = seg2time($metaSeg);
                               $realDisp = $avg ? seg2time($avg) : '-';
-                              $pct      = $avg ? round($r['meta_seg']/$avg*100,2) : 0;
-                            } else {
-                              $sum   = array_sum($r['real']);
-                              $cnt   = count($r['real']);
-                              $avg   = $cnt ? round($sum/$cnt,2) : 0;
-                              $metaDisp = number_format($r['meta'],2,',','.') . ' %';
+                              // aproveitar % de atingimento original:
+                              $pct      = $avg ? round($metaSeg/$avg*100,2) : 0;
+
+                          // 2) Moeda (R$)
+                          } elseif ($r['unidade'] === 'R$') {
+                              // aqui assumimos que $r['real'] contém os valores realizados em número (ex: [100.00, 120.00,…])
+                              $sum      = array_sum($r['real']);
+                              $cnt      = count($r['real']);
+                              $avg      = $cnt ? round($sum/$cnt,2) : 0;
+                              $metaVlr  = $r['meta_vlr'];
+                              // sucesso se realizado ≥ meta em R$
+                              $cls      = ($avg >= $metaVlr) ? 'success' : 'danger';
+                              $metaDisp = number_format($metaVlr,2,',','.') . ' R$';
+                              $realDisp = number_format($avg,2,',','.') . ' R$';
+                              // % de atingimento em relação ao objetivo em R$
+                              $pct      = $metaVlr ? round($avg/$metaVlr*100,2) : 0;
+
+                          // 3) Quantidade
+                          } elseif ($r['unidade'] === 'unidades') {
+                              $sum      = array_sum($r['real']);
+                              $cnt      = count($r['real']);
+                              $avg      = $cnt ? round($sum/$cnt,2) : 0;
+                              $metaQtd  = $r['meta_qtd'];
+                              $cls      = ($avg >= $metaQtd) ? 'success' : 'danger';
+                              $metaDisp = number_format($metaQtd,0,',','.') . ' uni';
+                              $realDisp = number_format($avg,0,',','.')   . ' uni';
+                              $pct      = $metaQtd ? round($avg/$metaQtd*100,2) : 0;
+                              
+                          // 3) Percentual (%)
+                          } else {
+                              $sum      = array_sum($r['real']);
+                              $cnt      = count($r['real']);
+                              $avg      = $cnt ? round($sum/$cnt,2) : 0;
+                              $meta     = $r['meta'];
+                              $cls      = ($avg >= $meta) ? 'success' : 'danger';
+                              $metaDisp = number_format($meta,2,',','.') . ' %';
                               $realDisp = number_format($avg,2,',','.') . ' %';
-                              $pct      = $r['meta'] ? round($avg/$r['meta']*100,2) : 0;
-                            }
-                            $cls = $pct>=100 ? 'success'
-                                : ($pct>=90    ? 'warning'
-                                                : 'danger');
-                          ?>
-                            <tr>
-                              <td><?= htmlspecialchars($r['kr']) ?></td>
-                              <td class="text-center"><?= $metaDisp ?></td>
-                              <td class="text-center"><?= $realDisp ?></td>
-                              <td class="text-center">
-                                <span class="badge bg-<?= $cls ?> text-dark">
-                                  <?= number_format($pct,2,',','.') ?>%
-                                </span>
-                              </td>
-                            </tr>
-                          <?php endforeach; ?>
-                        </tbody>
-                      </table>
-                    </div>
+                              $pct      = $meta ? round($avg/$meta*100,2) : 0;
+                          }
+                        ?>
+                        <tr>
+                          <td><?= htmlspecialchars($r['kr']) ?></td>
+                          <td class="text-center"><?= $metaDisp ?></td>
+                          <td class="text-center"><?= $realDisp ?></td>
+                          <td class="text-center">
+                            <span class="badge bg-<?= $cls ?> text-dark">
+                              <?= number_format($pct,2,',','.') ?>%
+                            </span>
+                          </td>
+                        </tr>
+                      <?php endforeach; ?>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
-            <?php endforeach; ?>
-          </div>
+            </div>
+          <?php endforeach; ?>
+        </div>
       <?php endforeach; ?>
     </div>
   
@@ -602,7 +627,7 @@
 
   <script>
     // Pegamos o PHP e transformamos em JS
-    window.metasByOkr = <?= json_encode($metaList, JSON_UNESCAPED_UNICODE) ?>;
+    window.metasByOkr  = <?= json_encode($metaList, JSON_UNESCAPED_UNICODE) ?>;
     window.atingsByOkr = <?= json_encode($atingsByOkr, JSON_UNESCAPED_UNICODE) ?>;
   </script>
 

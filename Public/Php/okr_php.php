@@ -38,6 +38,9 @@ if ($view === 'quarter') {
         m.menor_melhor,
         m.meta,
         m.meta_seg,
+        m.unidade,
+        m.meta_vlr,
+        m.meta_qtd,
         ai.mes            AS mes,
         COALESCE(ai.realizado,     0) AS realizado,
         COALESCE(ai.realizado_seg, 0) AS realizado_seg
@@ -81,6 +84,8 @@ if ($view === 'quarter') {
                 'menor_melhor'  => $r['menor_melhor'],
                 'meta'          => $r['meta'],
                 'meta_seg'      => $r['meta_seg'],
+                'unidade'       => $r['unidade'],
+                'meta_vlr'      => $r['meta_vlr'],
                 'real'          => [],
                 'real_seg'      => []
             ];
@@ -104,6 +109,9 @@ if ($view === 'quarter') {
         m.menor_melhor,
         m.meta,
         m.meta_seg,
+        m.unidade,
+        m.meta_vlr,
+        m.meta_qtd,
         ai.mes            AS mes,
         COALESCE(ai.realizado,     0) AS realizado,
         COALESCE(ai.realizado_seg, 0) AS realizado_seg
@@ -148,6 +156,9 @@ if ($view === 'quarter') {
                 'menor_melhor'  => $r['menor_melhor'],
                 'meta'          => $r['meta'],
                 'meta_seg'      => $r['meta_seg'],
+                'unidade'       => $r['unidade'],
+                'meta_vlr'      => $r['meta_vlr'],
+                'meta_qtd'      => $r['meta_qtd'],
                 'real'          => [],
                 'real_seg'      => []
             ];
@@ -193,7 +204,8 @@ $rsM = $conn->query("
     m.idOkr     AS okr_id,
     m.id        AS id,
     m.descricao AS descricao,
-    m.menor_melhor
+    m.menor_melhor,
+    m.unidade
   FROM TB_META m
   WHERE m.ano = {$anoAtual}
 ");
@@ -201,7 +213,8 @@ while ($m = $rsM->fetch_assoc()) {
     $metaList[ $m['okr_id'] ][] = [
         'id'           => $m['id'],
         'descricao'    => $m['descricao'],
-        'menor_melhor' => (bool)$m['menor_melhor']
+        'menor_melhor' => (bool)$m['menor_melhor'],
+        'unidade'      => $m['unidade'] 
     ];
 }
 $stmtAt->close();

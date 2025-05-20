@@ -23,7 +23,7 @@
           <div class="col-md-6 mb-3">
             <label class="form-label">Níveis (um ou mais)</label>
             <div class="border rounded p-2" style="max-height:120px;overflow:auto">
-              <?php $niv=$conn->query("SELECT id,descricao FROM TB_NIVEL"); while($n=$niv->fetch_assoc()): ?>
+              <?php $niv=$conn->query("SELECT id, descricao FROM TB_NIVEL WHERE id not in (1, 6, 7, 8, 9) ORDER BY descricao"); while($n=$niv->fetch_assoc()): ?>
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" name="idNivel[]" value="<?=$n['id']?>" id="niv<?=$n['id']?>">
                   <label class="form-check-label" for="niv<?=$n['id']?>"><?=$n['descricao']?></label>
@@ -135,8 +135,10 @@
           <div class="col-md-4 mb-3">
             <label class="form-label">Tipo</label>
             <select name="tipo_meta" id="tipoMetaSel" class="form-select" onchange="toggleTipoMeta()" required>
-              <option value="valor" selected>Valor (%)</option>
+              <option value="valor" selected>Percentual (%)</option>
               <option value="tempo">Tempo (HH:MM:SS)</option>
+              <option value="moeda">Valor (R$)</option>
+              <option value="quantidade">Quantidade (UND)</option>
             </select>
           </div>
           <div class="col-md-4 mb-3">
@@ -153,7 +155,15 @@
             <label class="form-label">Meta (HH:MM:SS)</label>
             <input type="text" class="form-control" name="meta_tempo" placeholder="00:01:10">
           </div>
-        
+          <div id="divMoeda" class="col-md-4 mb-3 d-none">
+            <label class="form-label">Meta (R$)</label>
+            <input type="number" step="0.01" class="form-control" name="meta_moeda" placeholder="1234.56">
+          </div>
+          <div id="divQuantidade" class="col-md-4 mb-3 d-none">
+            <label class="form-label">Meta (Qtd)</label>
+            <input type="number" class="form-control" name="meta_qtd" placeholder="10" min="0">
+          </div>
+          
           <div class="col-md-8">
             <label class="form-label">Descrição do KR</label>
             <input type="text" class="form-control" name="descricao">
@@ -209,17 +219,14 @@
                   JOIN TB_OKR_NIVEL okn ON okn.idNivel = ni.id
                   JOIN TB_OKR      okr ON okr.id      = okn.idOkr
                   JOIN TB_EQUIPE   equ ON equ.id      = okr.idEquipe
-                  WHERE equ.id <> 3
+                  
                   GROUP BY equ.id, ni.id
                   ORDER BY equ.descricao, ni.descricao
                 ");
                 while($n = $resN->fetch_assoc()):
               ?>
-                <option
-                  value="<?= $n['id'] ?>"
-                  data-equipe-id="<?= $n['idEquipe'] ?>"
-                >
-                  <?= htmlspecialchars($n['descricao']) ?> – <?= htmlspecialchars($n['equipe']) ?>
+                <option value="<?= $n['id'] ?>" data-equipe-id="<?= $n['idEquipe'] ?>">
+                  <?= htmlspecialchars($n['descricao']) ?>
                 </option>
               <?php endwhile; ?>
             </select>

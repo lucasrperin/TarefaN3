@@ -1,5 +1,3 @@
-// okr.js
-
 document.addEventListener('DOMContentLoaded', () => {
   // ——— Função helper para mostrar toasts ———
   function showToast(message, type) {
@@ -15,8 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => container.removeChild(toast), 300);
     }, 2000);
   }
-
-
 
   // ——— Toasts de resultado via query string ———
   const params  = new URLSearchParams(window.location.search);
@@ -46,11 +42,25 @@ document.addEventListener('DOMContentLoaded', () => {
   // ——— Modal Nova Meta: toggle campos valor/tempo ———
   const tipoMetaSel = document.getElementById('tipoMetaSel');
   if (tipoMetaSel) {
-    tipoMetaSel.addEventListener('change', () => {
-      document.getElementById('divValor').classList.toggle('d-none', tipoMetaSel.value === 'tempo');
-      document.getElementById('divTempo').classList.toggle('d-none', tipoMetaSel.value === 'valor');
-    });
+    const divValor = document.getElementById('divValor');
+    const divTempo = document.getElementById('divTempo');
+    const divMoeda = document.getElementById('divMoeda');
+    const divQuantidade = document.getElementById('divQuantidade');
+
+    function toggleTipoMeta() {
+      const tipo = tipoMetaSel.value;
+      divValor.classList.toggle('d-none', tipo !== 'valor');
+      divTempo.classList.toggle('d-none', tipo !== 'tempo');
+      divMoeda.classList.toggle('d-none', tipo !== 'moeda');
+      divQuantidade.classList.toggle('d-none', tipo !== 'quantidade');
+    }
+
+    tipoMetaSel.addEventListener('change', toggleTipoMeta);
+
+    // chama uma vez no load pra garantir o estado inicial
+    toggleTipoMeta();
   }
+
 
   // ——— Meta Dinâmica (modalNovaMeta) ———
   const selNivelMeta = document.getElementById('selNivelMeta');
@@ -125,27 +135,51 @@ document.addEventListener('DOMContentLoaded', () => {
     const okrId = selOkr.value;
     const metas = window.metasByOkr[okrId] || [];
     tbody.innerHTML = '';
+
     metas.forEach(m => {
-      const tr = document.createElement('tr');
+      const tr     = document.createElement('tr');
       const tdDesc = document.createElement('td');
       tdDesc.textContent = m.descricao;
-      const hidden = document.createElement('input');
-      hidden.type  = 'hidden';
-      hidden.name  = 'idMeta[]';
-      hidden.value = m.id;
-      tdDesc.appendChild(hidden);
-      const tdInput = document.createElement('td');
-      const inputVal = document.createElement('input');
-      inputVal.type        = 'text';
-      inputVal.name        = 'realizado[]';
-      inputVal.className   = 'form-control';
-      inputVal.required    = true;
-      inputVal.placeholder = m.menor_melhor ? '00:01:55' : '99.99';
-      tdInput.appendChild(inputVal);
+      // input hidden com idMeta[]
+      const hid = document.createElement('input');
+      hid.type  = 'hidden';
+      hid.name  = 'idMeta[]';
+      hid.value = m.id;
+      tdDesc.appendChild(hid);
+
+      const tdIn  = document.createElement('td');
+      const inp   = document.createElement('input');
+      inp.name      = 'realizado[]';
+      inp.className = 'form-control';
+      inp.required  = true;
+
+      // Se for tempo
+      if (m.unidade === 's') {
+        inp.type        = 'text';
+        inp.placeholder = '00:01:55';
+        inp.pattern     = '\\d{2}:\\d{2}:\\d{2}';
+
+      // Se for número (%, R$ ou unidades)
+      } else {
+        inp.type = 'number';
+        // passo 1 para uni, 0.01 para % e R$
+        inp.step = (m.unidade === 'unidades') ? '1' : '0.01';  
+
+        if (m.unidade === '%') {
+          inp.placeholder = '99.99';
+        } else if (m.unidade === 'R$') {
+          inp.placeholder = '1234.56';
+        } else if (m.unidade === 'unidades') {
+          inp.placeholder = '10';
+        }
+      }
+
+      tdIn.appendChild(inp);
       tr.appendChild(tdDesc);
-      tr.appendChild(tdInput);
+      tr.appendChild(tdIn);
       tbody.appendChild(tr);
     });
+
     container.classList.toggle('d-none', metas.length === 0);
 
     // opcional: esconde meses que já foram lançados
