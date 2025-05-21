@@ -228,7 +228,7 @@
         role="tab" 
         aria-controls="geral" 
         aria-selected="true"
-      >Geral</button>
+      >Visão Geral</button>
     </li>
     <li class="nav-item" role="presentation">
       <button 
@@ -240,7 +240,7 @@
         role="tab" 
         aria-controls="individual" 
         aria-selected="false"
-      >Individual</button>
+      >Visão Individual</button>
     </li>
   </ul>
 
@@ -527,7 +527,7 @@
                               </div>
                               <div class="okr-status-value"><?= $label ?></div>
                             </div>
-                            
+
                             <div class="okr-chart flex-fill" style="height:200px;">
                               <canvas id="chart_<?= $krId ?>"></canvas>
                             </div>

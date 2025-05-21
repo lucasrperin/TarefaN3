@@ -86,6 +86,7 @@ if ($view === 'quarter') {
                 'meta_seg'      => $r['meta_seg'],
                 'unidade'       => $r['unidade'],
                 'meta_vlr'      => $r['meta_vlr'],
+                'meta_qtd'      => $r['meta_qtd'],
                 'real'          => [],
                 'real_seg'      => []
             ];
