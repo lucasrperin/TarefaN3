@@ -486,12 +486,13 @@ $dadosTreinJson = json_encode($dadosTrein);
         </tr>
       </thead>
       <tbody>
-        <?php foreach($dados as $k => $r): 
-          $value = $cargo!=='Comercial'
-            ? $r['total_indicacoes']
-            : $r['total_faturado_consult'];
-          $percent = round($value / $max * 100);
-        ?>
+        <?php foreach ($dados as $k => $r):
+    $value = $cargo !== 'Comercial'
+        ? $r['total_indicacoes']
+        : $r['total_faturado_consult'];
+
+    $percent = $max > 0 ? round($value / $max * 100) : 0;
+?>
         <tr>
           <td><?= ['🥇','🥈','🥉'][$k] ?? ($k+1).'º' ?></td>
           <td><?= htmlspecialchars($r['usuario_nome']) ?></td>
