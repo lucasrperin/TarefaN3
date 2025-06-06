@@ -1863,7 +1863,7 @@ function showEscapeToast(message) {
   setTimeout(() => {
     toast.classList.remove('show');
     setTimeout(() => container.removeChild(toast), 300);
-  }, 5000);
+  }, 7000);
 }
 
 // desabilita o campo de consultar quando for marcado o campo Revenda
@@ -1893,6 +1893,77 @@ document.addEventListener('DOMContentLoaded', function () {
       new bootstrap.Tooltip(el);
     });
   });
+
+//Função para validar e exibir toast de indicação duplicada
+document.addEventListener('DOMContentLoaded', () => {
+  const pluginSelect = document.getElementById('plugin_id');
+  const serialInput  = document.getElementById('serial');
+  const dateInput    = document.getElementById('data');
+  const submitBtn    = document.querySelector('#modalNovaIndicacao form button[type="submit"]');
+
+// Função que calcula início e fim do ciclo a partir de uma string "YYYY-MM-DD"
+  function getCycleWindowFromString(dateStr) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    // Primeiro dia do mesmo mês
+    const cycleStart = new Date(y, m - 1, 1);
+    // Ciclo termina 44 dias depois (1º dia + 44 = 45 dias totais)
+    const cycleEnd = new Date(cycleStart);
+    cycleEnd.setDate(cycleStart.getDate() + 44);
+    return { cycleStart, cycleEnd };
+  }
+
+  // Função que faz a chamada AJAX para verificar duplicado
+  async function checkDuplicate() {
+    const pluginId = pluginSelect.value;
+    const serial   = serialInput.value.trim();
+    const data     = dateInput.value;
+
+  
+    // Só tenta verificar se NÃO estiver vazio e se a data for válida
+    if (!pluginId || !serial || !data) {
+      return;
+    }
+
+    try {
+      // Ajuste o caminho conforme a estrutura do seu projeto
+      const url = `../Ajax/verificar_indicacao_duplicada.php?plugin_id=${encodeURIComponent(pluginId)}&serial=${encodeURIComponent(serial)}&data=${encodeURIComponent(data)}`;
+      const resp = await fetch(url, { method: 'GET' });
+      if (!resp.ok) {
+        // Se o endpoint retornar 400 ou outro erro, não procede
+        return;
+      }
+      const json = await resp.json();
+      if (json.exists) {
+        // Calcula ciclo para exibir no toast
+        const { cycleStart, cycleEnd } = getCycleWindowFromString(data);
+        const fmt = d => d.toLocaleDateString('pt-BR'); // e.g. "01/06/2025"
+
+        showEscapeToast(
+          `Já existe indicação deste plugin e serial no ciclo vigente (${fmt(cycleStart)} → ${fmt(cycleEnd)}).`
+        );
+        submitBtn.disabled = true;
+      } else {
+        // Caso contrário, habilita o botão (caso estivesse desabilitado anteriormente)
+        submitBtn.disabled = false;
+      }
+    } catch (e) {
+      console.error('Erro ao verificar duplicidade:', e);
+      // em caso de falha no fetch, apenas libera o botão pra não travar o formulário
+      submitBtn.disabled = false;
+    }
+  }
+
+  // Sempre que plugin, serial ou data mudarem, refazer a checagem
+  pluginSelect.addEventListener('change', checkDuplicate);
+  serialInput.addEventListener('blur', checkDuplicate);
+  dateInput.addEventListener('change', checkDuplicate);
+
+  // Opcional: ao abrir o modal, reinicia estado do botão e tenta checar (caso já haja valor preenchido)
+  $('#modalNovaIndicacao').on('shown.bs.modal', () => {
+    submitBtn.disabled = false;
+    checkDuplicate();
+  });
+});
 </script>
 
 
