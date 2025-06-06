@@ -58,7 +58,7 @@ $sets = [
 ];
 
 // se for Cancelado ou Pendente, todo mundo pode alterar o status…
-if (in_array($status, ['Cancelado','Pendente'], true)) {
+if (in_array($status, ['Cancelado','Pendente', 'Aguardando Retorno'], true)) {
     $statusEsc = mysqli_real_escape_string($conn, $status);
     $sets[] = "status = '$statusEsc'";
 

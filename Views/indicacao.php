@@ -642,9 +642,10 @@ $dadosTreinJson = json_encode($dadosTrein);
                       <td>
                       <?php
                         switch ($i['status']) {
-                          case 'Faturado':   $badge = 'bg-success';    break;   // verde
-                          case 'Cancelado':  $badge = 'bg-danger';     break;   // vermelho
-                          default:           $badge = 'bg-secondary';  break;   // cinza (Pendente, etc.)
+                          case 'Faturado':            $badge = 'bg-success';    break;   // verde
+                          case 'Cancelado':           $badge = 'bg-danger';     break;   // vermelho
+                          case 'Aguardando Retorno':  $badge = 'bg-warning';    break;  // amarelo
+                          default:                    $badge = 'bg-secondary';  break;   // cinza (Pendente, etc.)
                         }
                       ?>
                       <span class="badge <?= $badge; ?>">
@@ -1073,6 +1074,7 @@ $dadosTreinJson = json_encode($dadosTrein);
                     <label for="editar_status">Status</label>
                     <select name="editar_status" class="form-select" id="editar_status" onchange="verificarStatus()">
                       <option value="Pendente">Pendente</option>
+                      <option value="Aguardando Retorno">Aguardando Retorno</option>
                       <option value="Faturado">Faturado</option>
                       <option value="Cancelado">Cancelado</option>
                     </select>
@@ -1239,9 +1241,10 @@ $dadosTreinJson = json_encode($dadosTrein);
               <div class="mb-3">
                 <label for="status" class="form-label">Status</label>
                 <select name="status" class="form-select" id="status">
-                  <option value="Pendente"  <?= $status==='Pendente' ? 'selected' : '' ?>>Pendente</option>
-                  <option value="Faturado"  <?= $status==='Faturado' ? 'selected' : '' ?>>Faturado</option>
-                  <option value="Cancelado" <?= $status==='Cancelado'? 'selected' : '' ?>>Cancelado</option>
+                  <option value="Pendente"            <?= $status==='Pendente' ?           'selected' : '' ?>>Pendente</option>
+                  <option value="Aguardando Retorno"  <?= $status==='Aguardando Retorno' ? 'selected' : '' ?>>Aguardando Retorno</option>
+                  <option value="Faturado"            <?= $status==='Faturado' ?           'selected' : '' ?>>Faturado</option>
+                  <option value="Cancelado"           <?= $status==='Cancelado'?           'selected' : '' ?>>Cancelado</option>
                 </select>
               </div>
             </div>
