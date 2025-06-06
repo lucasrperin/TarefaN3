@@ -45,15 +45,41 @@ $resUsuarios = mysqli_query($conn, $sqlUsuarios);
 $sqlPlugins  = "SELECT id, nome FROM TB_PLUGIN ORDER BY nome";
 $resPlugins  = mysqli_query($conn, $sqlPlugins);
 
-// 2) Lê parâmetros de filtro
-$filterColumn = $_GET['filterColumn'] ?? '';
-$dataInicio   = $_GET['data_inicio']   ?? '';
-$dataFim      = $_GET['data_fim']      ?? '';
-$useCycle     = isset($_GET['use_cycle']);
-$competencia  = $_GET['competencia']    ?? '';  // ex: "2025-03"
-$usuario      = $_GET['usuario']      ?? '';
-$plugin       = $_GET['plugin']       ?? '';
-$status       = $_GET['status']       ?? '';
+// =========================================================
+// 1) CÁLCULO DAS DATAS PADRÃO DO MÊS ATUAL
+// =========================================================
+$anoAtual   = date('Y');            // Ex: "2025"
+$mesAtual   = date('m');            // Ex: "06"
+$primeiroDiaMes  = "{$anoAtual}-{$mesAtual}-01";            // Ex: "2025-06-01"
+$ultimoDiaMes    = date('Y-m-t');   // "date('t')" retorna o último dia do mês atual, ex: "2025-06-30"
+$competenciaHoje = "{$anoAtual}-{$mesAtual}";              // Ex: "2025-06"
+
+// =========================================================
+// 2) LEITURA DOS PARÂMETROS DE FILTRO (com valores padrão)
+//    – Se não vierem parâmetros na URL, usamos mês atual.
+// =========================================================
+// Se não existir nenhum parâmetro filterColumn na URL, assumimos filtro por período usando ciclo
+$filterColumn = $_GET['filterColumn'] ?? 'periodo';
+
+if (!isset($_GET['filterColumn'])) {
+  // Nenhum filtro vindo via GET => carregamos mês atual em “ciclo”
+  $useCycle    = false;
+  $competencia = $competenciaHoje;
+  $dataInicio  = $primeiroDiaMes ;    // não usamos $dataInicio/$dataFim neste caso
+  $dataFim     = $ultimoDiaMes;
+  $usuario     = '';
+  $plugin      = '';
+  $status      = '';
+} else {
+  // Se houver filterColumn na URL, mantemos a lógica original
+  $useCycle     = isset($_GET['use_cycle']);
+  $competencia  = $_GET['competencia']    ?? '';
+  $dataInicio   = $_GET['data_inicio']    ?? '';
+  $dataFim      = $_GET['data_fim']       ?? '';
+  $usuario      = $_GET['usuario']        ?? '';
+  $plugin       = $_GET['plugin']         ?? '';
+  $status       = $_GET['status']         ?? '';
+}
 
 // 3) Monta cláusula WHERE dinamicamente
 $where = [];
@@ -111,32 +137,21 @@ $resIndic   = mysqli_query($conn, $sql);
 $indicacoes = mysqli_fetch_all($resIndic, MYSQLI_ASSOC);
 
 // 5) Ranking de indicações por usuário (mesmo filtro)
+// Ranking de indicações (total) + indicações faturadas + valor faturado
 $sqlRanking = "
   SELECT 
-    u.nome AS usuario_nome, 
-    COUNT(i.id) AS total_indicacoes
+    u.nome AS usuario_nome,
+    COUNT(i.id) AS total_indicacoes,
+    SUM(CASE WHEN i.status = 'Faturado' THEN 1 ELSE 0 END) AS total_indicacoes_faturadas,
+    SUM(CASE WHEN i.status = 'Faturado' THEN i.vlr_total ELSE 0 END) AS total_valor_faturado
   FROM TB_INDICACAO i
   JOIN TB_USUARIO u ON u.id = i.user_id
   $whereSQL
   GROUP BY u.id
-  ORDER BY total_indicacoes DESC
+  ORDER BY total_indicacoes_faturadas DESC
 ";
 $resRanking = mysqli_query($conn, $sqlRanking);
 $ranking    = mysqli_fetch_all($resRanking, MYSQLI_ASSOC);
-
-$sqlRankingFat = "
-  SELECT 
-    u.nome AS usuario_nome, 
-    COUNT(i.id) AS total_indicacoes
-  FROM TB_INDICACAO i
-  JOIN TB_USUARIO u ON u.id = i.user_id
-  $whereSQL
-  AND i.status = 'Faturado'
-  GROUP BY u.id
-  ORDER BY total_indicacoes DESC
-";
-$resRankingFat = mysqli_query($conn, $sqlRankingFat);
-$rankingFat    = mysqli_fetch_all($resRankingFat, MYSQLI_ASSOC);
 
 // 6) Ranking de faturamento por consultor (filtra apenas faturados)
 $sqlRankingConsult = "
@@ -462,18 +477,12 @@ $dadosTreinJson = json_encode($dadosTrein);
                   <!-- Ranking com tabela e progress bars -->
 <div class="tab-pane fade show active mt-1" id="v-pane-ranking">
   <?php 
-    // escolhe o array certo e extrai o maior valor
-    $dados = ($cargo!=='Comercial' ? $ranking : $rankingConsult);
-    $valores = array_map(fn($r) => $cargo!=='Comercial'
-      ? $r['total_indicacoes']
-      : $r['total_faturado_consult']
-    , $dados);
+    // Extrai somente o array $ranking
+    $dados = $ranking;
 
-    if (!empty($valores)) {
-      $max = max($valores);
-    } else {
-      $max = 1;
-    }
+    // Extrai os totais de todas as indicações, para achar o máximo (para a barra de progresso)
+    $valores = array_map(fn($r) => $r['total_indicacoes_faturadas'], $dados);
+    $max     = !empty($valores) ? max($valores) : 1;
   ?>
   <div class="table-responsive ranking-scroll">
     <table class="table table-striped align-middle mb-0">
@@ -481,26 +490,45 @@ $dadosTreinJson = json_encode($dadosTrein);
         <tr>
           <th>Posição</th>
           <th>Usuário</th>
-          <th class="text-end">Total</th>
-          <th style="width:40%"></th>
+          <th class="text-end">Indicações</th>
+          <th class="text-end">Faturadas</th>
+          <th class="text-end">Valor Faturado</th>
+          <th style="width:40%">Progresso</th>
         </tr>
       </thead>
       <tbody>
         <?php foreach ($dados as $k => $r):
-    $value = $cargo !== 'Comercial'
-        ? $r['total_indicacoes']
-        : $r['total_faturado_consult'];
+          // Pega cada métrica do array
+          $totalGen   = (int) $r['total_indicacoes'];
+          $totalFat   = (int) $r['total_indicacoes_faturadas'];
+          $valorFat   = (float) $r['total_valor_faturado'];
 
-    $percent = $max > 0 ? round($value / $max * 100) : 0;
-?>
+          // Cálculo % (bar) em relação ao total de indicações (máximo)
+          $percent = $max > 0 ? round($totalFat / $max * 100) : 0;
+        ?>
         <tr>
+          <!-- Posição: 🥇, 🥈, 🥉 ou “4º”, “5º”,… -->
           <td><?= ['🥇','🥈','🥉'][$k] ?? ($k+1).'º' ?></td>
+
+          <!-- Nome do usuário -->
           <td><?= htmlspecialchars($r['usuario_nome']) ?></td>
-          <td class="text-end">
-            <?= $cargo!=='Comercial'
-                ? $value
-                : 'R$ '.number_format($value,2,',','.') ?>
+
+          <!-- Total de indicações -->
+          <td class="text-center">
+            <?= $totalGen ?>
           </td>
+
+          <!-- Quantidade de indicações faturadas -->
+          <td class="text-center">
+            <?= $totalFat ?>
+          </td>
+
+          <!-- Valor total faturado (formatado como R$) -->
+          <td class="text-end">
+            R$ <?= number_format($valorFat, 2, ',', '.') ?>
+          </td>
+
+          <!-- Barra de progresso, proporcional ao total de indicações -->
           <td>
             <div class="progress" style="height: .75rem;">
               <div 
@@ -509,8 +537,8 @@ $dadosTreinJson = json_encode($dadosTrein);
                 style="width: <?= $percent ?>%" 
                 aria-valuenow="<?= $percent ?>" 
                 aria-valuemin="0" 
-                aria-valuemax="100">
-              </div>
+                aria-valuemax="100"
+              ></div>
             </div>
           </td>
         </tr>
@@ -519,6 +547,7 @@ $dadosTreinJson = json_encode($dadosTrein);
     </table>
   </div>
 </div>
+
 
 
                   <!-- Plugins em Masonry (fundo claro) -->
