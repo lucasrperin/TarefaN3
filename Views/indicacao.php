@@ -477,12 +477,17 @@ $dadosTreinJson = json_encode($dadosTrein);
                   <!-- Ranking com tabela e progress bars -->
 <div class="tab-pane fade show active mt-1" id="v-pane-ranking">
   <?php 
-    // Extrai somente o array $ranking
-    $dados = $ranking;
-
-    // Extrai os totais de todas as indicações, para achar o máximo (para a barra de progresso)
-    $valores = array_map(fn($r) => $r['total_indicacoes_faturadas'], $dados);
-    $max     = !empty($valores) ? max($valores) : 1;
+    // 1) Escolhe o array e o campo para calcular o máximo
+    if ($cargo === 'Comercial') {
+      $dados   = $rankingConsult;
+      // rankingConsult só tem 'total_faturado_consult'
+      $valores = array_map(fn($r) => (float)$r['total_faturado_consult'], $dados);
+    } else {
+      $dados   = $ranking;
+      // ranking tem 'total_indicacoes_faturadas'
+      $valores = array_map(fn($r) => (int)$r['total_indicacoes_faturadas'], $dados);
+    }
+    $max = !empty($valores) ? max($valores) : 1;
   ?>
   <div class="table-responsive ranking-scroll">
     <table class="table table-striped align-middle mb-0">
@@ -490,21 +495,28 @@ $dadosTreinJson = json_encode($dadosTrein);
         <tr>
           <th>Posição</th>
           <th>Usuário</th>
-          <th class="text-end">Indicações</th>
-          <th class="text-end">Faturadas</th>
-          <th class="text-end">Valor Faturado</th>
+          <?php if ($cargo === 'Comercial'): ?>
+            <th class="text-end">Valor Faturado</th>
+          <?php else: ?>
+            <th class="text-end">Indicações</th>
+            <th class="text-end">Faturadas</th>
+            <th class="text-end">Valor Faturado</th>
+          <?php endif; ?>
           <th style="width:40%">Progresso</th>
         </tr>
       </thead>
       <tbody>
         <?php foreach ($dados as $k => $r):
-          // Pega cada métrica do array
-          $totalGen   = (int) $r['total_indicacoes'];
-          $totalFat   = (int) $r['total_indicacoes_faturadas'];
-          $valorFat   = (float) $r['total_valor_faturado'];
-
-          // Cálculo % (bar) em relação ao total de indicações (máximo)
-          $percent = $max > 0 ? round($totalFat / $max * 100) : 0;
+          // 2) Extrai métricas e calcula % da barra
+          if ($cargo === 'Comercial') {
+            $valor       = (float)$r['total_faturado_consult'];
+            $percent     = $max > 0 ? round($valor / $max * 100) : 0;
+          } else {
+            $totalGen    = (int)   $r['total_indicacoes'];
+            $totalFat    = (int)   $r['total_indicacoes_faturadas'];
+            $valor       = (float) $r['total_valor_faturado'];
+            $percent     = $max > 0 ? round($totalFat / $max * 100) : 0;
+          }
         ?>
         <tr>
           <!-- Posição: 🥇, 🥈, 🥉 ou “4º”, “5º”,… -->
@@ -513,22 +525,21 @@ $dadosTreinJson = json_encode($dadosTrein);
           <!-- Nome do usuário -->
           <td><?= htmlspecialchars($r['usuario_nome']) ?></td>
 
-          <!-- Total de indicações -->
-          <td class="text-center">
-            <?= $totalGen ?>
-          </td>
+          <?php if ($cargo === 'Comercial'): ?>
+            <!-- Só exibe o valor faturado -->
+            <td class="text-end">
+              R$ <?= number_format($valor, 2, ',', '.') ?>
+            </td>
+          <?php else: ?>
+            <!-- Exibe indicações, faturadas e valor -->
+            <td class="text-center"><?= $totalGen ?></td>
+            <td class="text-center"><?= $totalFat ?></td>
+            <td class="text-end">
+              R$ <?= number_format($valor, 2, ',', '.') ?>
+            </td>
+          <?php endif; ?>
 
-          <!-- Quantidade de indicações faturadas -->
-          <td class="text-center">
-            <?= $totalFat ?>
-          </td>
-
-          <!-- Valor total faturado (formatado como R$) -->
-          <td class="text-end">
-            R$ <?= number_format($valorFat, 2, ',', '.') ?>
-          </td>
-
-          <!-- Barra de progresso, proporcional ao total de indicações -->
+          <!-- Barra de progresso -->
           <td>
             <div class="progress" style="height: .75rem;">
               <div 
@@ -547,6 +558,7 @@ $dadosTreinJson = json_encode($dadosTrein);
     </table>
   </div>
 </div>
+
 
 
 
@@ -845,8 +857,8 @@ $dadosTreinJson = json_encode($dadosTrein);
     });
   </script>
 
-    <!-- Evita que cliques em botões/links dentro da linha disparem o collapse -->
-    <script>
+  <!-- Evita que cliques em botões/links dentro da linha disparem o collapse -->
+  <script>
     document.querySelectorAll(
       '#tabela-indicacoes tbody tr[data-bs-toggle] button,' +
       '#tabela-indicacoes tbody tr[data-bs-toggle] a'
