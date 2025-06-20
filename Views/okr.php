@@ -1,4 +1,7 @@
-<?php require_once __DIR__ . '/../Public/Php/okr_php.php';
+<?php 
+require_once __DIR__ . '/../Public/Php/okr_php.php';
+
+require_once __DIR__ . '/../Includes/auth.php';
 
 ?>
 <!DOCTYPE html>

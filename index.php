@@ -1,12 +1,7 @@
 <?php
 require 'Config/Database.php';
-session_start();
 
-// Verifica se o usuário está logado; se não, redireciona para o login
-if (!isset($_SESSION['usuario_id'])) {
-    header("Location: Views/login.php");
-    exit();
-}
+require_once __DIR__ . '/Includes/auth.php';
 
 $usuario_id = $_SESSION['usuario_id'];
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
@@ -734,7 +729,7 @@ $systems = array_unique(array_merge(
                                 <select class="form-select" id="sistema" name="sistema" required>
                                     <option value="">Selecione</option>
                                     <?php
-                                    $querySistema = "SELECT Id, Descricao FROM TB_SISTEMA";
+                                    $querySistema = "SELECT Id, Descricao FROM TB_SISTEMA ORDER BY Descricao ASC";
                                     $resultSistema = $conn->query($querySistema);
                                     while ($rowSi = $resultSistema->fetch_assoc()) {
                                         echo "<option value='" . $rowSi['Id'] . "'>" . $rowSi['Descricao'] . "</option>";
@@ -884,7 +879,7 @@ $systems = array_unique(array_merge(
                             <select class="form-select" id="sistema_editar" name="sistema_editar" required>
                                 <option value="">Selecione</option>
                                 <?php
-                                $querySistema2 = "SELECT Id, Descricao FROM TB_SISTEMA";
+                                $querySistema2 = "SELECT Id, Descricao FROM TB_SISTEMA ORDER BY Descricao ASC";
                                 $resultSistema2 = $conn->query($querySistema2);
                                 while ($rowSi2 = $resultSistema2->fetch_assoc()) {
                                 echo "<option value='" . $rowSi2['Id'] . "'>" . $rowSi2['Descricao'] . "</option>";

@@ -1,14 +1,8 @@
 <?php
-session_start();
-
-// Verifica se o usuário está logado; se não, redireciona para o login
-if (!isset($_SESSION['usuario_id'])) {
-  header("Location: login.php");
-  exit();
-}
 
 require '../Config/Database.php';
 
+require_once __DIR__ . '/../Includes/auth.php';
 
 // Se um usuário foi passado via GET, use-o; caso contrário, use o usuário logado
 $usuario_id = isset($_GET['usuario_id']) ? intval($_GET['usuario_id']) : $_SESSION['usuario_id'];

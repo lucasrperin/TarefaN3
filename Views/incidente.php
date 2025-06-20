@@ -1,16 +1,10 @@
 <?php
 include '../Config/Database.php';
-session_start();
+require_once __DIR__ . '/../Includes/auth.php';
 // Define aba ativa com query param
 $activeTab = $_GET['tab'] ?? 'incidentes';
 // Determina aba ativa de recorrentes
 $rec_success = isset($_GET['msg']) && $_GET['msg'] === 'rec_success';
-
-// Verifica se o usuário está logado; se não, redireciona para o login
-if (!isset($_SESSION['usuario_id'])) {
-  header("Location: login.php");
-  exit();
-}
 
 // Define o cargo do usuário (supondo que ele esteja armazenado na sessão, com a chave "cargo")
 $usuario_id = $_SESSION['usuario_id'];

@@ -4,13 +4,7 @@ date_default_timezone_set('America/Sao_Paulo');
 
 require '../Config/Database.php';
 
-session_start();
-
-// Verifica se o usuário está logado; se não, redireciona para o login
-if (!isset($_SESSION['usuario_id'])) {
-  header("Location: login.php");
-  exit();
-}
+require_once __DIR__ . '/../Includes/auth.php';
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);

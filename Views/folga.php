@@ -1,13 +1,7 @@
 <?php
 // folga.php
 include '../Config/Database.php';
-session_start();
-
-// Verifica se o usuário está logado; se não, redireciona para o login
-if (!isset($_SESSION['usuario_id'])) {
-  header("Location: login.php");
-  exit();
-}
+require_once __DIR__ . '/../Includes/auth.php';
 // Variáveis de sessão
 $usuario_id   = $_SESSION['usuario_id'];
 $cargo        = $_SESSION['cargo'] ?? '';
