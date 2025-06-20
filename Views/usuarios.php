@@ -2,10 +2,7 @@
 include '../Config/Database.php';
 session_start();
 
-if (!isset($_SESSION['usuario_id'])) {
-  header("Location: login.php");
-  exit();
-}
+require_once $_SERVER['DOCUMENT_ROOT'] . '/TarefaN3/Public/Php/autenticar_login.php';
 
 $usuario_id   = $_SESSION['usuario_id'];
 $cargo        = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';

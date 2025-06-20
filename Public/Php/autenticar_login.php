@@ -1,7 +1,11 @@
 <?php
-// 1) inclua o Database.php — usando document root fica à prova de qualquer subpasta
+// 1) Banco de dados
 require_once $_SERVER['DOCUMENT_ROOT'] . '/TarefaN3/Config/Database.php';
-session_start();
+
+// 2) Só inicia sessão se não tiver sido iniciada
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 
 // —————— auto-login via cookie ——————
 if (!isset($_SESSION['usuario_id']) && !empty($_COOKIE['remember_me'])) {
@@ -19,13 +23,12 @@ if (!isset($_SESSION['usuario_id']) && !empty($_COOKIE['remember_me'])) {
         $_SESSION['usuario_nome'] = $u['Nome'];
         $_SESSION['cargo']        = $u['Cargo'];
     } else {
-        setcookie('remember_me','',time()-3600,'/');
+        setcookie('remember_me','', time() - 3600, '/');
     }
 }
 
 // —————— proteção de rota ——————
 if (!isset($_SESSION['usuario_id'])) {
-    // redireciona para o login dentro de Views
     header('Location: /TarefaN3/Views/login.php');
     exit();
 }
