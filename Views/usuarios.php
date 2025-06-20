@@ -1,11 +1,7 @@
 <?php
 include '../Config/Database.php';
-session_start();
 
-if (!isset($_SESSION['usuario_id'])) {
-  header("Location: login.php");
-  exit();
-}
+require_once __DIR__ . '/../Includes/auth.php';
 
 $usuario_id   = $_SESSION['usuario_id'];
 $cargo        = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';

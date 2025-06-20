@@ -55,10 +55,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             // checkbox “Lembrar-me”?
             if (!empty($_POST['remember'])) {
                 $token  = bin2hex(random_bytes(16));
-                $expiry = time() + 30*24*60*60; // 30 dias
-                setcookie('remember_me', $token, $expiry, '/');
+                $expiry_datetime = new DateTime();
+                $expiry_datetime->setTime(23, 59, 59);
+                $expiry_timestamp = $expiry_datetime->getTimestamp();
 
-                $dt = date('Y-m-d H:i:s', $expiry);
+                setcookie('remember_me', $token, $expiry_timestamp, '/');
+
+                $dt = $expiry_datetime->format('Y-m-d H:i:s');
                 $upd = $conn->prepare("
                   UPDATE TB_USUARIO 
                      SET remember_token  = ?, 
