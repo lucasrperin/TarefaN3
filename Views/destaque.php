@@ -1,10 +1,8 @@
 <?php
-session_start();
-if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.php");
-    exit();
-}
+
 require '../Config/Database.php';
+
+require_once __DIR__ . '/../Includes/auth.php';
 
 // Definir o cargo do usuário (opcional)
 $usuario_id = $_SESSION['usuario_id'];

@@ -54,6 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             // checkbox “Lembrar-me”?
             if (!empty($_POST['remember'])) {
+                // Marcou "Lembrar-me"
                 $token  = bin2hex(random_bytes(16));
                 $expiry_datetime = new DateTime();
                 $expiry_datetime->setTime(23, 59, 59);
@@ -64,11 +65,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $dt = $expiry_datetime->format('Y-m-d H:i:s');
                 $upd = $conn->prepare("
                   UPDATE TB_USUARIO 
-                     SET remember_token  = ?, 
-                         remember_expiry = ? 
-                   WHERE Id = ?
+                    SET remember_token  = ?, 
+                        remember_expiry = ? 
+                  WHERE Id = ?
                 ");
                 $upd->bind_param('ssi', $token, $dt, $usuario['Id']);
+                $upd->execute();
+            } else {
+                // NÃO marcou "Lembrar-me" → apaga token e cookie
+                setcookie('remember_me', '', time() - 3600, '/');
+
+                $upd = $conn->prepare("
+                  UPDATE TB_USUARIO 
+                    SET remember_token = NULL, 
+                        remember_expiry = NULL 
+                  WHERE Id = ?
+                ");
+                $upd->bind_param('i', $usuario['Id']);
                 $upd->execute();
             }
 

@@ -32,7 +32,16 @@ if (isset($_SESSION['usuario_id'])) {
             echo "<script>console.log('[auth.php] Token expirado — destruindo sessão');</script>";
             setcookie('remember_me', '', time() - 3600, '/');
             session_destroy();
-            header("Location: Views/login.php");
+            $basePath = dirname($_SERVER['SCRIPT_NAME']);
+
+            // Se já estamos em /Views, não soma outra Views
+            if (basename($basePath) === 'Views') {
+                $loginURL = $basePath . '/login.php';
+            } else {
+                $loginURL = $basePath . '/Views/login.php';
+            }
+
+            header("Location: $loginURL");
             exit();
         }
     } else {
@@ -71,5 +80,14 @@ if (!empty($_COOKIE['remember_me'])) {
 }
 
 echo "<script>console.log('[auth.php] Redirecionando para login — sem sessão e token inválido');</script>";
-header("Location: Views/login.php");
+$basePath = dirname($_SERVER['SCRIPT_NAME']);
+
+// Se já estamos em /Views, não soma outra Views
+if (basename($basePath) === 'Views') {
+    $loginURL = $basePath . '/login.php';
+} else {
+    $loginURL = $basePath . '/Views/login.php';
+}
+
+header("Location: $loginURL");
 exit();

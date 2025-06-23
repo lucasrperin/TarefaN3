@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../Includes/auth.php';
 // Fragmento completo para a aba "Recorrentes" em incidente.php
 // Requer: $conn, $resultRec, $activeTab
 
