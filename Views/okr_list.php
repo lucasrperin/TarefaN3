@@ -59,7 +59,7 @@ $rs = $conn->query($sql);
         <?php if (in_array($cargo, ['Admin','Viewer','User','Conversor'])): ?>
           <a class="nav-link" href="user.php"><i class="fa-solid fa-users-rectangle me-2"></i>Meu Painel</a>
         <?php endif; ?>
-        <?php if ($cargo==='Admin'): ?>
+        <?php if ($cargo==='Admin' || $cargo === 'Produto'): ?>
           <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
         <?php endif; ?>
         <?php if ($cargo != 'Comercial'): ?>

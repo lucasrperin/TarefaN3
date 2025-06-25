@@ -186,61 +186,60 @@ $percentFicha = $totalAnalises
     <div class="d-flex-wrapper">
         <!-- Sidebar -->
         <div class="sidebar">
-        <a class="light-logo" href="index.php">
-            <img src="Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
-        </a>
-        <nav class="nav flex-column">
-            <a class="nav-link" href="Views/menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
-            <?php if ($cargo === 'Admin'): ?>
-            <a class="nav-link" href="Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
-            <?php endif; ?>
-            <?php if ($cargo === 'Admin'): ?>
-            <a class="nav-link" href="Views/destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>
-            <?php endif; ?>
-            <?php if ($cargo === 'Admin'): ?>
-            <a class="nav-link" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
-            <?php endif; ?>
-            <?php if ($cargo === 'Admin'): ?>
-            <a class="nav-link" href="Views/folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
-            <?php endif; ?>
-            <?php if ($cargo === 'Admin'): ?>
-            <a class="nav-link" href="Views/incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
-            <?php endif; ?>
-            <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User'): ?>
-            <a class="nav-link" href="Views/indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
-            <?php endif; ?>
-            <?php if ($cargo === 'Admin' || $cargo === 'Viewer' || $cargo === 'User' || $cargo === 'Conversor'): ?>
-            <a class="nav-link" href="Views/user.php"><i class="fa-solid fa-users-rectangle me-2"></i>Meu Painel</a>
-            <?php endif; ?>
-            <?php if ($cargo === 'Admin'): ?>
-            <a class="nav-link active" href="index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
-            <?php endif; ?>
-            <?php if ($cargo != 'Comercial'): ?>
-                <a class="nav-link" href="Views/okr.php"><img src="Public/Image/benchmarkbranco.png" width="27" height="27" class="me-1" alt="Benchmark">OKRs</a>
-            <?php endif; ?>
-            <?php if ($cargo === 'Admin'): ?>
-            <a class="nav-link" href="Views/dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
-            <?php endif; ?>
-            <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
-            <a class="nav-link" href="Views/treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
-            <?php endif; ?>
-            <?php if ($cargo === 'Admin'): ?>
-            <a class="nav-link" href="Views/usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
-            <?php endif; ?>
-            
-        </nav>
+            <a class="light-logo" href="index.php">
+                <img src="Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
+            </a>
+            <nav class="nav flex-column">
+                <a class="nav-link" href="Views/menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
+                <?php if ($cargo === 'Admin'): ?>
+                <a class="nav-link" href="Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
+                <?php endif; ?>
+                <?php if ($cargo === 'Admin'): ?>
+                <a class="nav-link" href="Views/destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>
+                <?php endif; ?>
+                <?php if ($cargo === 'Admin'): ?>
+                <a class="nav-link" href="Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
+                <?php endif; ?>
+                <?php if ($cargo === 'Admin'): ?>
+                <a class="nav-link" href="Views/folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
+                <?php endif; ?>
+                <?php if ($cargo === 'Admin'): ?>
+                <a class="nav-link" href="Views/incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
+                <?php endif; ?>
+                <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User'): ?>
+                <a class="nav-link" href="Views/indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
+                <?php endif; ?>
+                <?php if ($cargo === 'Admin' || $cargo === 'Viewer' || $cargo === 'User' || $cargo === 'Conversor'): ?>
+                <a class="nav-link" href="Views/user.php"><i class="fa-solid fa-users-rectangle me-2"></i>Meu Painel</a>
+                <?php endif; ?>
+                <?php if ($cargo === 'Admin' || $cargo === 'Produto'): ?>
+                <a class="nav-link active" href="index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
+                <?php endif; ?>
+                <?php if ($cargo != 'Comercial'): ?>
+                    <a class="nav-link" href="Views/okr.php"><img src="Public/Image/benchmarkbranco.png" width="27" height="27" class="me-1" alt="Benchmark">OKRs</a>
+                <?php endif; ?>
+                <?php if ($cargo === 'Admin'): ?>
+                <a class="nav-link" href="Views/dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
+                <?php endif; ?>
+                <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
+                <a class="nav-link" href="Views/treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
+                <?php endif; ?>
+                <?php if ($cargo === 'Admin'): ?>
+                <a class="nav-link" href="Views/usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
+                <?php endif; ?>
+            </nav>
         </div>
         
         <!-- Minimalist Modern Toast Layout -->
         <div id="toast-container" class="toast-container">
-        <div id="toastSucesso" class="toast toast-success">
-            <i class="fa-solid fa-check-circle"></i>
-            <span id="toastMensagem"></span>
-        </div>
-        <div id="toastErro" class="toast toast-error">
-            <i class="fa-solid fa-exclamation-triangle"></i>
-            <span id="toastMensagemErro"></span>
-        </div>
+            <div id="toastSucesso" class="toast toast-success">
+                <i class="fa-solid fa-check-circle"></i>
+                <span id="toastMensagem"></span>
+            </div>
+            <div id="toastErro" class="toast toast-error">
+                <i class="fa-solid fa-exclamation-triangle"></i>
+                <span id="toastMensagemErro"></span>
+            </div>
         </div>
         <script>
         function showToast(message, type) {
@@ -327,17 +326,29 @@ $percentFicha = $totalAnalises
                     <div class="card-header d-flex align-items-center modern-card-header">
                         <h4 class="mb-0 flex-grow-1">Lista de Análises</h4>
                         <div class="d-flex gap-2 align-items-center">
-                        <!-- Botão para abrir o modal de filtro -->
-                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
-                            <i class="fa-solid fa-filter"></i>
-                        </button>
-                        <!-- Campo de pesquisa -->
-                        <input type="text" id="searchInput" class="form-control" style="max-width: 200px;" placeholder="Pesquisar...">
-                        <?php if ($cargo === 'Admin'): ?>
-                        <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#modalCadastro">
-                            <i class="fa-solid fa-plus me-1"></i> Cadastrar
-                        </button>
-                        <?php endif; ?>
+                            <!-- Botão para abrir o modal de filtro -->
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#filterModal">
+                                <i class="fa-solid fa-filter"></i>
+                            </button>
+                            <!-- Campo de pesquisa -->
+                            <input type="text" id="searchInput" class="form-control" style="max-width: 200px;" placeholder="Pesquisar...">
+                            <?php if ($cargo === 'Admin'): ?>
+                                <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#modalCadastro">
+                                    <i class="fa-solid fa-plus me-1"></i> Cadastrar
+                                </button>
+                            <?php endif; ?>
+                            <!-- botão de cadastro para setor de produto -->
+                            <?php if ($cargo === 'Produto'): ?> 
+                                <a href="Views/parceiros.php" class="btn btn-custom">
+                                    <i class="fa-solid fa-users me-1"></i> Parceiros
+                                </a>
+                                <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#modalCadastroAnalise">
+                                    <i class="fa-solid fa-plus me-1"></i> Cadastrar Análises
+                                </button>
+
+                                <!-- Inclui o modal (HTML fica separado em outro arquivo) -->
+                                <?php include 'Public/Modals/modal_cadastro_analise.php'; ?>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="card-body p-0">

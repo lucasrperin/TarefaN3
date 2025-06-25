@@ -284,6 +284,7 @@ while ($row = mysqli_fetch_assoc($resultN)) {
                       <option value="Admin">Admin</option>
                       <option value="Comercial">Comercial</option>
                       <option value="Conversor">Conversor</option>
+                      <option value="Produto">Produto</option>
                       <option value="User">User</option>
                       <option value="Viewer">Viewer</option>
                     </select>
