@@ -498,3 +498,31 @@ CREATE TABLE TB_OKR_NIVEL (
     CONSTRAINT fk_on_okr   FOREIGN KEY (idOkr)   REFERENCES TB_OKR(id)   ON DELETE CASCADE,
     CONSTRAINT fk_on_nivel FOREIGN KEY (idNivel) REFERENCES TB_NIVEL(id) ON DELETE CASCADE
 );
+
+CREATE TABLE TB_PARCEIROS
+(
+ Id INT PRIMARY KEY auto_increment,  
+ Nome varchar(100) NOT NULL,
+ CPNJ_CPF varchar(20),
+ serial varchar(20),
+ contato varchar(100),
+ status enum('A', 'I') default 'A'
+)  
+
+CREATE TABLE TB_ANALISES_PROD 
+( 
+ Id INT PRIMARY KEY auto_increment,  
+ Descricao varchar(100) NOT NULL,  
+ idSituacao INT,  
+ idParceiro INT,  
+ idSistema INT,  
+ idStatus INT,
+ idUsuario int,
+ chkFicha char(1),
+ numeroFicha INT DEFAULT NULL,
+ chkParado char(1),
+ criado_em DATE DEFAULT CURRENT_TIME,
+ ult_edicao DATE COMMENT 'Data da ultima edição'
+)
+
+INSERT INTO `tarefan3`.`tb_situacao` (`Id`, `Descricao`) VALUES ('4', 'Analise Setor Produto');
