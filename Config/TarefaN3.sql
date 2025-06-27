@@ -524,5 +524,3 @@ CREATE TABLE TB_ANALISES_PROD
  criado_em DATE DEFAULT CURRENT_TIME,
  ult_edicao DATE COMMENT 'Data da ultima edição'
 )
-
-INSERT INTO `tarefan3`.`tb_situacao` (`Id`, `Descricao`) VALUES ('4', 'Analise Setor Produto');
