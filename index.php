@@ -238,7 +238,41 @@ $systems = array_unique(array_merge(
 $logos = include __DIR__ . '/Config/logos.php';
 $logosLower = array_change_key_case($logos, CASE_LOWER);
 
-// Aqui segue o resto do seu código HTML/PHP de exibição
+
+//Totalizador de Analises por N3 e Produto
+$totalAnaliseN3 = 0;
+$totalAnaliseProd = 0;
+
+foreach ($rows as $row) {
+    if (trim($row['Situacao']) == "Analise N3") {
+        $totalAnaliseN3++;
+    }
+}
+foreach ($rowsProd as $row) {
+    if (trim($row['Situacao']) == "Analise Setor Produto") {
+        $totalAnaliseProd++;
+    }
+}
+$totalAnalisesGeral = $totalAnaliseN3 + $totalAnaliseProd;
+
+//Totalizador de Fichas por N3 e Produto
+$totalFichasN3 = 0;
+$totalFichasProd = 0;
+
+foreach ($rows as $row) {
+    if (trim($row['Situacao']) == "Ficha Criada") {
+        $totalFichasN3++;
+    }
+}
+
+foreach ($rowsProd as $row) {
+    if (trim($row['Situacao']) == "Ficha Criada") {
+        $totalFichasProd++;
+    }
+}
+$totalFichasGeral = $totalFichasN3 + $totalFichasProd;
+
+
 ?>
 
 
@@ -436,7 +470,7 @@ $logosLower = array_change_key_case($logos, CASE_LOWER);
                                 <div class="table-responsive access-scroll">
                                     <?php
                                     if ($cargo === 'Produto') {
-                                        include __DIR__ . '../Public/Php/lista_analises_prod.php';
+                                        include 'Public/Php/lista_analises_prod.php';
                                         include 'Public/Modals/modal_editar_analise_produto.php'; 
                                         include 'Public/Modals/modal_remover_analise_produto.php';
                                     } else {
@@ -511,12 +545,18 @@ $logosLower = array_change_key_case($logos, CASE_LOWER);
                                         <i class="fa-solid fa-file-alt"></i>
                                     </div>
                                     <div class="layout9-text">
-                                        <h4><?= $totalFichas; ?></h4>
-                                        <small>Fichas Criadas</small>
+                                        <h4><?= $totalFichasGeral; ?></h4>
+                                        <small>
+                                            Fichas Criadas
+                                            <br>
+                                            <span class="badge-analise" style="background: transparent; text-transform: none;">N3: <?= $totalFichasN3; ?></span> |
+                                            <span class="badge-analise-prod" style="background: transparent; text-transform: none;">Produto: <?= $totalFichasProd; ?></span>
+                                        </small>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
 
                         <!-- Análise N3 -->
                         <div class="col">
@@ -526,8 +566,13 @@ $logosLower = array_change_key_case($logos, CASE_LOWER);
                                         <i class="fa-solid fa-chart-line"></i>
                                     </div>
                                     <div class="layout9-text">
-                                        <h4><?= $totalAnaliseN3; ?></h4>
-                                        <small>Análises</small>
+                                        <h4><?= $totalAnalisesGeral; ?></h4>
+                                        <small>
+                                            Análises
+                                            <br>
+                                            <span class="badge-analise" style="background: transparent; text-transform: none;">N3: <?= $totalAnaliseN3; ?></span> |
+                                            <span class="badge-analise-prod" style="background: transparent; text-transform: none;">Produto: <?= $totalAnaliseProd; ?></span>
+                                        </small>
                                     </div>
                                 </div>
                             </div>
