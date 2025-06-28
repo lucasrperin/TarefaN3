@@ -381,6 +381,10 @@ body {
   background: #ECFDF5;
   color: #065F46;
 }
+.badge-analise-prod {
+  background: #eeecfd;
+  color: #13065f;
+}
 .layout8-bar-container {
   background: #F3F4F6;
   border-radius: 4px;

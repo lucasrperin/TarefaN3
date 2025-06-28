@@ -19,7 +19,7 @@ $owner  = $rowChk['user_id'] ?? null;
 $status = $rowChk['status']  ?? '';
 
 // 2) Se for User/Conversor e não for dono, nega permissão
-if ($stAtual === 'Faturado' && !in_array($cargo, ['Admin','Comercial'], true)) {
+if ($status === 'Faturado' && !in_array($cargo, ['Admin','Comercial'], true)) {
     header("Location: indicacao.php?erro=permission");
     exit();
 }
@@ -41,7 +41,7 @@ $revenda    = isset($_POST['revenda']) ? 1 : 0;
 $row = mysqli_fetch_assoc(
     mysqli_query($conn, "SELECT status FROM TB_INDICACAO WHERE id = '$id'")
 );
-if (!in_array($row['status'], ['Pendente','Faturado','Cancelado'], true)) {
+if (!in_array($row['status'], ['Pendente','Faturado','Cancelado', 'Aguardando Retorno'], true)) {
     exit("Status atual não permite edição.");
 }
 

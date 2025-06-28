@@ -160,7 +160,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
       <?php endif; ?>
 
       <!-- N: Nível 3 -->
-      <?php if($cargo==='Admin'): ?>
+      <?php if($cargo==='Admin' || $cargo==='Produto'): ?>
       <div class="col">
         <div class="menu-card" onclick="location.href='../index.php';">
           <div class="menu-icon">

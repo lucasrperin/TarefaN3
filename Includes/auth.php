@@ -32,17 +32,7 @@ if (isset($_SESSION['usuario_id'])) {
             echo "<script>console.log('[auth.php] Token expirado — destruindo sessão');</script>";
             setcookie('remember_me', '', time() - 3600, '/');
             session_destroy();
-            $basePath = dirname($_SERVER['SCRIPT_NAME']);
-
-            // Se já estamos em /Views, não soma outra Views
-            if (basename($basePath) === 'Views') {
-                $loginURL = $basePath . '/login.php';
-            } else {
-                $loginURL = $basePath . '/Views/login.php';
-            }
-
-            header("Location: $loginURL");
-            exit();
+            redirectToLogin();
         }
     } else {
         // Não tem token → assume que foi um login normal (não lembrar)
@@ -80,14 +70,15 @@ if (!empty($_COOKIE['remember_me'])) {
 }
 
 echo "<script>console.log('[auth.php] Redirecionando para login — sem sessão e token inválido');</script>";
-$basePath = dirname($_SERVER['SCRIPT_NAME']);
+redirectToLogin();
 
-// Se já estamos em /Views, não soma outra Views
-if (basename($basePath) === 'Views') {
-    $loginURL = $basePath . '/login.php';
-} else {
-    $loginURL = $basePath . '/Views/login.php';
+
+// --- Função utilitária para redirecionar sempre para /Views/login.php (root do sistema)
+function redirectToLogin() {
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
+    $host = $_SERVER['HTTP_HOST'];
+    $loginPath = '/Views/login.php';
+    header("Location: $protocol://$host$loginPath");
+    exit();
 }
-
-header("Location: $loginURL");
-exit();
+?>

@@ -21,6 +21,6 @@ if (!empty($_COOKIE['remember_me']) && isset($_SESSION['usuario_id'])) {
 session_destroy();
 
 // redireciona para o login
-header('Location: login.php');
+header('Location: ../Views/login.php');
 exit();
 ?>
