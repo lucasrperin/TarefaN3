@@ -1,0 +1,16 @@
+/* chatbot.css */
+.chatbot-iframe {
+  width: 100%;
+  min-height: 700px;
+  border: none;
+  border-radius: 1.2rem;
+  background: #fff;
+  box-shadow: 0 4px 32px rgba(0,77,161,0.09), 0 1px 8px rgba(0,0,0,0.03);
+  margin-bottom: 24px;
+}
+@media (max-width: 768px) {
+  .chatbot-iframe { min-height: 500px; border-radius: .7rem;}
+}
+@media (max-width: 480px) {
+  .chatbot-iframe { min-height: 350px; border-radius: .4rem;}
+}

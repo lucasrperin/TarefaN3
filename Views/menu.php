@@ -20,6 +20,9 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
   <link
   rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.28.1/tabler-icons.min.css"
@@ -74,7 +77,18 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
          g-4 => espaçamento entre colunas 
     -->
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4">
-      
+      <!-- C: Chatbot -->
+         <?php if($cargo != 'Comercial'): ?>
+        <div class="col">
+          <div class="menu-card" onclick="location.href='chatbot.php';">
+            <div class="menu-icon">
+              <i class="fa-solid bi bi-robot"></i>
+            </div>
+            <h5 class="menu-title">Chatbot IA</h5>
+          </div>
+        </div>
+      <?php endif; ?>
+
       <!-- C: Conversões -->
       <?php if($cargo==='Admin' || $cargo==='Conversor' || $cargo==='Viewer'): ?>
       <div class="col">
