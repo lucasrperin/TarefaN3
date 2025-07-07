@@ -124,7 +124,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
       <?php endif; ?>
 
       <!-- I: Incidentes -->
-      <?php if($cargo==='Admin' || $cargo==='Viewer'): ?>
+      <?php if($cargo==='Admin' || $cargo==='Viewer' || $cargo === 'Produto'): ?>
       <div class="col">
         <div class="menu-card" onclick="location.href='incidente.php';">
           <div class="menu-icon">
