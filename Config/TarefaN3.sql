@@ -265,7 +265,7 @@ CREATE TABLE IF NOT EXISTS TB_INDICACAO (
     cnpj VARCHAR(20),
     serial VARCHAR(50),
     contato VARCHAR(100),
-    fone VARCHAR(20),
+    fone VARCHAR(50),
     user_id INT NOT NULL,         -- Referência ao usuário que cadastrou a indicação (TB_USUARIO)
 	idConsultor INT NOT NULL,	  -- Referência ao consultor que editou a indicação (TB_USUARIO)
     status ENUM('Faturado', 'Pendente', 'Cancelado') NOT NULL DEFAULT 'Pendente',

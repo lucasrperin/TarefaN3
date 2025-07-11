@@ -8,6 +8,17 @@ ini_set('display_errors', 1);
 $usuario_id = $_SESSION['usuario_id'];
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
+
+$sqlUsuarios = "SELECT Id FROM TB_USUARIO WHERE Id IN (17, 24, 48)";
+$result = mysqli_query($conn, $sqlUsuarios);
+
+$idsLiberados = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $idsLiberados[] = $row['Id'];
+}
+
+// Verifica se é admin OU se o usuário está na lista dos liberados
+$userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -23,14 +34,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-  <link
-  rel="stylesheet"
-  href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.28.1/tabler-icons.min.css"
-/>  <!-- :contentReference[oaicite:0]{index=0} -->
-
-
-
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.28.1/tabler-icons.min.css"/>  <!-- :contentReference[oaicite:0]{index=0} -->
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
@@ -72,13 +76,9 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
 
   <!-- Área principal com os cards de menu -->
   <main class="container menu-container mt-5">
-    <!-- 
-         row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 
-         g-4 => espaçamento entre colunas 
-    -->
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4">
       <!-- C: Chatbot -->
-         <?php if($cargo != 'Comercial'): ?>
+      <?php if ($userAcessoBot): ?>
         <div class="col">
           <div class="menu-card" onclick="location.href='chatbot.php';">
             <div class="menu-icon">
@@ -232,7 +232,6 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
         </div>
       </div>
       <?php endif; ?>
-
     </div>
   </main>
 
