@@ -1,14 +1,5 @@
 <?php
 require_once '../../Config/Database.php';
-session_start();
-
-$idUsuario = $_SESSION['usuario_id'] ?? null;
-
-if (!$idUsuario) {
-    header('Location: ../../login.php');
-    exit;
-}
-
 $descricao    = $_POST['descricao'];
 $idSituacao   = $_POST['situacao'];
 $idParceiro   = $_POST['atendente'];

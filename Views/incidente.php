@@ -129,7 +129,7 @@ $rec_success = (isset($_GET['msg']) && $_GET['msg']==='rec_success');
         <?php if ($cargo === 'Admin'): ?>
           <a class="nav-link" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
         <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
+        <?php if ($cargo === 'Admin' || $cargo === 'Produto'): ?>
           <a class="nav-link active" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
         <?php endif; ?>
         <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User' || $cargo === 'Conversor'): ?>
