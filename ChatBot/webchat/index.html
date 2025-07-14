@@ -1,53 +1,118 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Chat Suporte Automático</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chatbot IA</title>
+  <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Seu CSS customizado -->
+  <link rel="stylesheet" href="../Public/dashboard.css">
   <style>
-    * { box-sizing: border-box; }
     body {
-      margin: 0;
       background: #f0f2f5;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    #chat {
-      width: 100%;
-      max-width: 420px;
-      height: 600px;
-      background: #fff;
-      border-radius: 15px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    .sidebar {
+      min-width: 210px;
+      background: #04336c;
+      color: #fff;
+      min-height: 100vh;
+      padding-top: 24px;
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 1030;
+      border-radius: 0 20px 20px 0;
+      box-shadow: 2px 0 16px 0 rgba(0, 0, 0, 0.06);
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      align-items: start;
     }
-    #header {
-      background-color: #0a84ff;
-      padding: 20px;
+    .sidebar .light-logo {
+      display: block;
+      margin: 0 auto 24px auto;
+      text-align: center;
+    }
+    .sidebar .nav-link {
+      color: #f7fafc;
+      font-weight: 500;
+      font-size: 1.04rem;
+      padding: 10px 22px;
+      border-radius: 8px;
+      margin: 2px 8px;
+      display: flex;
+      align-items: center;
+      transition: background 0.12s;
+    }
+    .sidebar .nav-link.active,
+    .sidebar .nav-link:hover {
+      background: #0057ad;
+      color: #fff;
+    }
+    .header {
+      background: #fff;
+      border-radius: 0 0 18px 18px;
+      box-shadow: 0 2px 18px rgba(0,77,161,0.07), 0 1px 3px rgba(0,0,0,0.03);
+      padding: 24px 30px 18px 30px;
+      margin-bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .user-info span {
+      font-weight: 500;
+      color: #044d88;
+    }
+    .chatbox-card {
+      max-width: 540px;
+      margin: 0 auto;
+      border-radius: 20px;
+      padding: 0;
+    }
+    #chat {
+      display: flex;
+      flex-direction: column;
+      height: 520px;
+      background: #f7fbff;
+      border-radius: 14px;
+      box-shadow: 0 1px 4px rgba(0,77,161,0.04), 0 1px 6px rgba(0,0,0,0.04);
+      overflow: hidden;
+      margin-bottom: 0;
+      margin-top: 0;
+      border: 1px solid #e9eff9;
+    }
+    #header-chat {
+      background: #0a84ff;
+      padding: 16px 18px;
       color: white;
-      font-size: 1.4rem;
+      font-size: 1.18rem;
       font-weight: 600;
       text-align: center;
-      user-select: none;
+      border-bottom: 1px solid #d8e4f6;
     }
     #msgs {
       flex: 1;
-      padding: 20px;
+      padding: 18px 20px;
       overflow-y: auto;
       scroll-behavior: smooth;
-      background: #e9eff9;
+      background: #f2f6fb;
     }
     .msg {
-      max-width: 75%;
-      margin-bottom: 12px;
-      padding: 12px 16px;
+      max-width: 80%;
+      margin-bottom: 11px;
+      padding: 12px 17px;
       border-radius: 18px;
-      line-height: 1.4;
-      font-size: 0.95rem;
+      line-height: 1.5;
+      font-size: 1.01rem;
       word-wrap: break-word;
       white-space: pre-line;
     }
@@ -55,147 +120,187 @@
       background-color: #0a84ff;
       color: white;
       margin-left: auto;
-      border-bottom-right-radius: 2px;
+      border-bottom-right-radius: 4px;
     }
     .bot {
       background-color: #fff;
-      color: #333;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      color: #2a2b2d;
       margin-right: auto;
-      border-bottom-left-radius: 2px;
+      border-bottom-left-radius: 4px;
+      border: 1px solid #e3eaf4;
+      box-shadow: 0 1px 4px rgba(0,77,161,0.04);
     }
     #form {
       display: flex;
-      padding: 15px 20px;
-      background: #fafafa;
-      border-top: 1px solid #ddd;
+      padding: 12px 20px;
+      background: #fafbfc;
+      border-top: 1px solid #dde4ed;
     }
     #input {
       flex: 1;
-      padding: 12px 15px;
-      border-radius: 25px;
-      border: 1px solid #ccc;
+      padding: 13px 14px;
+      border-radius: 22px;
+      border: 1px solid #b4d4f6;
       font-size: 1rem;
       outline-offset: 2px;
       transition: border-color 0.3s ease;
     }
     #input:focus {
       border-color: #0a84ff;
-      box-shadow: 0 0 5px rgba(10, 132, 255, 0.5);
+      box-shadow: 0 0 5px rgba(10, 132, 255, 0.15);
     }
     button {
       margin-left: 12px;
       background: #0a84ff;
       border: none;
       color: white;
-      padding: 12px 25px;
-      border-radius: 25px;
+      padding: 12px 24px;
+      border-radius: 22px;
       font-weight: 600;
       cursor: pointer;
       font-size: 1rem;
-      transition: background-color 0.3s ease;
+      transition: background-color 0.23s;
     }
     button:hover {
       background: #0665d0;
     }
-    #msgs::-webkit-scrollbar { width: 8px; }
+    /* Scroll */
+    #msgs::-webkit-scrollbar { width: 7px; }
     #msgs::-webkit-scrollbar-track { background: transparent; }
-    #msgs::-webkit-scrollbar-thumb { background-color: rgba(10, 132, 255, 0.4); border-radius: 10px; }
+    #msgs::-webkit-scrollbar-thumb { background-color: rgba(10, 132, 255, 0.16); border-radius: 10px; }
+    .alert-info {
+      font-size: .98rem;
+      border-radius: 12px;
+    }
+    @media (max-width: 1200px) {
+      .sidebar { display: none; }
+      .w-100 { margin-left: 0 !important; }
+    }
+    @media (max-width: 575px) {
+      .header { padding: 14px 8px; font-size: 1.03rem;}
+      .chatbox-card { padding: 0; }
+    }
   </style>
 </head>
-<body>
-  <div id="chat">
-    <div id="header">Chat de Suporte</div>
-    <div id="msgs"></div>
-    <form id="form">
-      <input type="text" id="input" placeholder="Digite sua dúvida..." autocomplete="off" required />
-      <button type="submit">Enviar</button>
-    </form>
+<body class="bg-light">
+  <div class="d-flex" style="min-height:100vh;">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <a class="light-logo" href="../Views/dashboard.php">
+        <img src="../Public/Image/zucchetti_blue.png" width="145" alt="Logo Zucchetti">
+      </a>
+      <nav class="nav flex-column">
+        <a class="nav-link" href="../Views/menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
+        <a class="nav-link active" href="#"><i class="bi bi-robot me-2"></i>Chatbot IA</a>
+        <a class="nav-link" href="../Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
+        <a class="nav-link" href="../Views/user.php"><i class="fa-solid fa-users-rectangle me-2"></i>Meu Painel</a>
+        <!-- Adicione/oculte links conforme o cargo do usuário se desejar via JS/PHP -->
+      </nav>
+    </div>
+    <!-- Main -->
+    <div class="w-100" style="margin-left:220px;">
+      <div class="header d-flex justify-content-between align-items-center">
+        <h3 class="mb-0"><i class="bi bi-robot me-2"></i>Chatbot IA</h3>
+        <div class="user-info d-flex align-items-center gap-2">
+          <span>Bem-vindo, Usuário!</span>
+          <a href="../Views/logout.php" class="btn btn-danger btn-sm">
+            <i class="fa-solid fa-right-from-bracket me-1"></i> Sair
+          </a>
+        </div>
+      </div>
+      <div class="container-fluid py-4">
+        <div class="row justify-content-center">
+          <div class="col-12 col-lg-10 col-xl-8">
+            <div class="card chatbox-card p-3 shadow-sm rounded-4">
+              <!-- Boas práticas -->
+              <div class="alert alert-info py-2 px-3 mb-3 rounded-4 shadow-sm">
+                <button class="btn btn-link p-0 d-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#dicasIA" aria-expanded="false" aria-controls="dicasIA" style="text-decoration:none;">
+                  <i class="bi bi-lightbulb me-2 fs-5"></i>
+                  <span><strong>Ver boas práticas para detalhar sua dúvida</strong></span>
+                  <i class="bi bi-chevron-down ms-2"></i>
+                </button>
+                <div class="collapse mt-2" id="dicasIA">
+                  <ul class="mb-1 mt-1 ps-3">
+                    <li>Informe o sistema (<span class="text-nowrap">ClippPRO</span>, <span class="text-nowrap">ClippMEI</span>, <span class="text-nowrap">ClippSERVICE</span>, <span class="text-nowrap">ClippCHEFF</span>, <span class="text-nowrap">ClippFACIL</span>, <span class="text-nowrap">Clipp360</span> ou <span class="text-nowrap">ZWEB</span>).</li>
+                    <li>Descreva o problema com o máximo de detalhes.</li>
+                    <li>Cole a mensagem completa do erro, se houver.</li>
+                    <li>Cite a tela ou rotina, e os passos até o erro.</li>
+                  </ul>
+                  <small class="text-secondary">
+                    Quanto mais detalhes, mais precisa será a resposta da IA!
+                  </small>
+                </div>
+              </div>
+              <!-- Chatbot -->
+              <div id="chat">
+                <div id="header-chat">Chat de Suporte</div>
+                <div id="msgs"></div>
+                <form id="form" autocomplete="off">
+                  <input type="text" id="input" placeholder="Digite sua dúvida..." autocomplete="off" required />
+                  <button type="submit">Enviar</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- /w-100 -->
   </div>
-<script>
-let historico = [];
-let perguntaIdx = 0;
-
-function appendMsg(txt, classe) {
-  const div = document.createElement('div');
-  div.className = 'msg ' + classe;
-  div.textContent = txt;
-  document.getElementById('msgs').appendChild(div);
-  document.getElementById('msgs').scrollTop = document.getElementById('msgs').scrollHeight;
-}
-
-async function enviar(pergunta) {
-  appendMsg('Você: ' + pergunta, 'user');
-
-  // Evita enviar perguntas repetidas
-  if(historico.some(h => h.resposta.toLowerCase() === pergunta.toLowerCase())) {
-    appendMsg('Bot: Você já respondeu isso. Por favor, forneça outra informação.', 'bot');
-    return;
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+  function appendMsg(txt, classe) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + classe;
+    div.textContent = txt;
+    document.getElementById('msgs').appendChild(div);
+    document.getElementById('msgs').scrollTop = document.getElementById('msgs').scrollHeight;
   }
 
-  let historicoAPI = historico.map(h => ({
-    pergunta: h.pergunta,
-    resposta: h.resposta
-  }));
-
-  appendMsg('Bot: ...', 'bot');
-
-  let url = "http://localhost/TarefaN3/ChatBot/webchat/n8n_proxy.php";
-
-  let body = { pergunta, historico: historicoAPI };
-  try {
-    let resp = await fetch(url, {
-      method: 'POST',
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body)
-    });
-
-    if(!resp.ok) throw new Error('Erro na requisição: ' + resp.status);
-
-    let data = await resp.json();
-
-    document.querySelectorAll('.bot').forEach(e => {
-      if(e.textContent === 'Bot: ...') e.remove();
-    });
-
-    if(data.finalizado) {
-      appendMsg('Artigo encontrado:\n' +
-        data.artigo.titulo + "\n\n" +
-        data.artigo.resumo + "\n" +
-        '🔗 ' + data.artigo.link, 'bot');
-      historico = [];
-      perguntaIdx = 0;
-    } else if(data.pergunta && data.pergunta !== "FINALIZAR") {
-      // Não repete perguntas já feitas
-      if(!historico.some(h => h.pergunta === data.pergunta)) {
-        appendMsg('Bot: ' + data.pergunta, 'bot');
-        historico.push({ pergunta: data.pergunta, resposta: pergunta });
-        perguntaIdx++;
+  async function enviar(pergunta) {
+    appendMsg('Você: ' + pergunta, 'user');
+    appendMsg('Bot: ...', 'bot');
+    let url = "http://localhost:8000/consultar"; // AJUSTE para seu backend se publicar
+    let body = { pergunta };
+    try {
+      let resp = await fetch(url, {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      if(!resp.ok) throw new Error('Erro na requisição: ' + resp.status);
+      let data = await resp.json();
+      document.querySelectorAll('.bot').forEach(e => {
+        if(e.textContent === 'Bot: ...') e.remove();
+      });
+      if(data.resposta) {
+        appendMsg('Bot: ' + data.resposta, 'bot');
+      } else if(data.output) {
+        appendMsg('Bot: ' + data.output, 'bot');
+      } else if(data.erro) {
+        appendMsg('Bot: Erro: ' + data.erro, 'bot');
+      } else if(data.response && data.response.body && data.response.body.output) {
+        appendMsg('Bot: ' + data.response.body.output, 'bot');
+      } else {
+        appendMsg('Bot: Erro na resposta!', 'bot');
       }
-    } else if(data.pergunta === "FINALIZAR") {
-      appendMsg('Bot: Encerrando o atendimento. Caso precise de mais informações, entre em contato com o suporte.', 'bot');
-      historico = [];
-      perguntaIdx = 0;
-    } else {
-      appendMsg('Bot: Erro na resposta!', 'bot');
+    } catch (err) {
+      document.querySelectorAll('.bot').forEach(e => {
+        if(e.textContent === 'Bot: ...') e.remove();
+      });
+      appendMsg('Bot: Erro na comunicação: ' + err.message, 'bot');
     }
-  } catch (err) {
-    document.querySelectorAll('.bot').forEach(e => {
-      if(e.textContent === 'Bot: ...') e.remove();
-    });
-    appendMsg('Bot: Erro na comunicação: ' + err.message, 'bot');
   }
-}
 
-document.getElementById('form').onsubmit = async function(e) {
-  e.preventDefault();
-  let input = document.getElementById('input');
-  let pergunta = input.value.trim();
-  if(!pergunta) return;
-  await enviar(pergunta);
-  input.value = '';
-  input.focus();
-};
-</script>
+  document.getElementById('form').onsubmit = async function(e) {
+    e.preventDefault();
+    let input = document.getElementById('input');
+    let pergunta = input.value.trim();
+    if(!pergunta) return;
+    await enviar(pergunta);
+    input.value = '';
+    input.focus();
+  };
+  </script>
 </body>
 </html>
