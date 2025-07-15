@@ -1,0 +1,88 @@
+.chatbox-card {
+  background: rgba(255,255,255,0.67);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 8px 44px 0 #89bcff2a, 0 2px 8px #0a84ff14;
+  border: 1.4px solid #d4eaffcc;
+  border-radius: 26px;
+  transition: box-shadow .18s;
+}
+
+#chat {
+  border-radius: 22px;
+  box-shadow: none;
+  background: transparent;
+}
+
+.msg {
+  border-radius: 20px 20px 8px 20px !important;
+  box-shadow: 0 2px 10px #bbe0ff22;
+  padding: 14px 18px;
+  font-size: 1.1rem;
+}
+
+.msg.user {
+  background: linear-gradient(90deg,#0a84ff 80%,#3ec8ff 100%);
+  color: #fff;
+  margin-left: auto;
+}
+
+.msg.bot {
+  background: #fff;
+  color: #1a2a3b;
+  margin-right: auto;
+  border: 1.2px solid #e3eaf4;
+}
+
+.msg.bot::before {
+  content: "🤖";
+  margin-right: 10px;
+  font-size: 1.4rem;
+  vertical-align: -0.2em;
+}
+
+#input {
+  border-radius: 25px;
+  border: 1.7px solid #b7deff;
+  background: #f7fbffbb;
+  font-size: 1.07rem;
+  padding: 14px 18px;
+  transition: border-color 0.26s, box-shadow 0.25s;
+}
+
+#input:focus {
+  border-color: #0a84ff;
+  box-shadow: 0 0 8px #0a84ff55;
+  background: #f7fbff;
+}
+
+button[type="submit"] {
+  border-radius: 50%;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  font-size: 1.2rem;
+  transition: box-shadow 0.16s, background 0.16s;
+  box-shadow: 0 2px 12px #0a84ff2e;
+  background: #0a84ff;
+  color: #fff;
+  border: none;
+}
+
+button[type="submit"]:hover {
+  background: #0057ad;
+  box-shadow: 0 2px 18px #98dbff31;
+}
+
+@media (max-width: 575px) {
+  .chatbox-card { padding: 0; max-width: 99vw;}
+  #chat {height: 420px;}
+  .msg {font-size: 1.01rem;}
+}
+
+.msg-row {
+  animation: fadeInMsg 0.35s cubic-bezier(.41,1.13,.5,1) backwards;
+}
+@keyframes fadeInMsg {
+  from { opacity: 0; transform: translateY(20px) scale(0.95);}
+  to { opacity: 1; transform: none;}
+}

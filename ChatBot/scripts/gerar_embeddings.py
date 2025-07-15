@@ -43,11 +43,13 @@ def gerar_embedding(texto):
 embeddings = {}
 for row in tqdm(rows):
     artigo_id, titulo, conteudo = row
-    texto = f"{titulo} {conteudo}" if conteudo else str(titulo)
+    # Novo título concatenado
+    titulo_formatado = f"Artigo {artigo_id} - {titulo}"
+    texto = f"{titulo_formatado} {conteudo}" if conteudo else titulo_formatado
     try:
         emb = gerar_embedding(texto[:8191])
         embeddings[str(artigo_id)] = {
-            "titulo": str(titulo),
+            "titulo": titulo_formatado,
             "conteudo": str(conteudo) if conteudo else "",
             "embedding": emb
         }
