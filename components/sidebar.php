@@ -13,7 +13,7 @@ $cargo = $_SESSION['cargo'] ?? '';
     <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
     <?php
     // IDs liberados para Chatbot
-    $idsLiberados = [17, 24, 48];
+    $idsLiberados = [6, 17, 24, 48];
     $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
     if ($userAcessoBot): ?>
       <a class="nav-link<?php if(basename($_SERVER['PHP_SELF']) === 'chatbot.php') echo ' active'; ?>" href="chatbot.php">

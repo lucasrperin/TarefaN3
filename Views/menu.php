@@ -9,7 +9,7 @@ $usuario_id = $_SESSION['usuario_id'];
 $cargo = isset($_SESSION['cargo']) ? $_SESSION['cargo'] : '';
 $usuario_nome = $_SESSION['usuario_nome'] ?? 'Usuário';
 
-$sqlUsuarios = "SELECT Id FROM TB_USUARIO WHERE Id IN (17, 24, 48)";
+$sqlUsuarios = "SELECT Id FROM TB_USUARIO WHERE Id IN (6, 17, 24, 48)";
 $result = mysqli_query($conn, $sqlUsuarios);
 
 $idsLiberados = [];
