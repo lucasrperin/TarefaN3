@@ -207,6 +207,44 @@
       border: none;
       box-shadow: 0 2px 16px #27dbff16;
     }
+    /* markdown prettify */
+    .chat-bubble h1, .chat-bubble h2, .chat-bubble h3 {
+      color: #257fff;
+      margin-top: 10px;
+      margin-bottom: 7px;
+      font-weight: 600;
+      font-size: 1.18em;
+    }
+    .chat-bubble ul, .chat-bubble ol {
+      margin: 7px 0 7px 22px;
+    }
+    .chat-bubble li {
+      margin-bottom: 3px;
+    }
+    .chat-bubble p {
+      margin: 8px 0;
+    }
+    .chat-bubble a {
+      color: #1e8de4;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+    [data-theme="dark"] .chat-bubble a {
+      color: #7dcaff;
+    }
+    .chat-bubble blockquote {
+      border-left: 3px solid #93cdfc;
+      background: #f3f8ff;
+      padding: 7px 16px;
+      margin: 10px 0;
+      color: #3464a8;
+      font-style: italic;
+    }
+    [data-theme="dark"] .chat-bubble blockquote {
+      background: #172031;
+      color: #8fc9fa;
+      border-left: 3px solid #389bff;
+    }
     /* digitando */
     .chat-typing-row {
       margin-left: 46px;
@@ -260,8 +298,9 @@
       box-shadow: 0 1px 5px #2d82e40a;
     }
     [data-theme="dark"] .chat-input {
-      background: #20242c;
-      color: #f4f7ff;
+      background: #20242c !important;
+      color: #fff !important;
+      border-color: #304055 !important;
     }
     .chat-input:focus {
       border-color: var(--sb-accent);
@@ -300,7 +339,47 @@
       .sidebar { display: none;}
       .chat-messages, .chat-header, .chat-input-row { max-width: 100vw;}
     }
+
+    /* --------- TEMA ESCURO: letras brancas em todo o chat --------- */
+    [data-theme="dark"], [data-theme="dark"] body, [data-theme="dark"] .chat-area,
+    [data-theme="dark"] .chat-bubble, [data-theme="dark"] .chat-input,
+    [data-theme="dark"] .chat-header, [data-theme="dark"] .sidebar,
+    [data-theme="dark"] .sidebar-menu, [data-theme="dark"] .sidebar-logo {
+      color: #f4f7ff !important;
+    }
+    [data-theme="dark"] .chat-bubble {
+      color: #f4f7ff !important;
+    }
+    [data-theme="dark"] .chat-row.user .chat-bubble {
+      color: #fff !important;
+    }
+    [data-theme="dark"] .chat-header {
+      color: #6ec7ff !important;
+    }
+    [data-theme="dark"] .sidebar-logo {
+      color: #6ec7ff !important;
+    }
+    [data-theme="dark"] .sidebar-item,
+    [data-theme="dark"] .sidebar-item.active {
+      color: #f4f7ff !important;
+    }
+    [data-theme="dark"] .sidebar-item.active {
+      background: #18202a !important;
+    }
+    [data-theme="dark"] .chat-input {
+      background: #20242c !important;
+      color: #fff !important;
+      border-color: #304055 !important;
+    }
+    [data-theme="dark"] .chat-area {
+      background: #232733 !important;
+    }
+    [data-theme="dark"] body {
+      background: #181d23 !important;
+    }
   </style>
+  <!-- Markdown parser -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
   <div class="sidebar" id="sidebar">
@@ -343,8 +422,9 @@
         : '<i class="bi bi-robot"></i>';
       const bubble = document.createElement('div');
       bubble.className = 'chat-bubble';
-      if (/<[a-z][\s\S]*>/i.test(text)) {
-        bubble.innerHTML = text;
+      if (who === 'bot') {
+        // Renderiza como markdown, permite quebras de linha, listas, etc
+        bubble.innerHTML = marked.parse(text);
       } else {
         bubble.textContent = text;
       }
