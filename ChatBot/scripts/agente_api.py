@@ -20,33 +20,55 @@ N8N_WEBHOOK_URL = "https://n8n.zucchetti.com.br/webhook/4ccf11a7-8170-48d4-8ee1-
 async def consultar(request: Request):
     data = await request.json()
     pergunta = data.get("pergunta")
+    user_id = data.get("user_id")
+
+    # Validações básicas
     if not pergunta:
         return {"erro": "Campo 'pergunta' obrigatório."}
+    if not user_id:
+        return {"erro": "Campo 'user_id' obrigatório."}
 
     try:
         async with httpx.AsyncClient() as client:
-            # timeout aumentado para 90 segundos
-            resp = await client.post(N8N_WEBHOOK_URL, json={"pergunta": pergunta}, timeout=90)
+            # Monta payload com pergunta e user_id
+            payload = {
+                "pergunta": pergunta,
+                "user_id": user_id
+            }
+            resp = await client.post(
+                N8N_WEBHOOK_URL,
+                json=payload,
+                timeout=90
+            )
             if resp.status_code != 200:
-                return {"erro": f"Erro ao consultar n8n: {resp.status_code}. Detalhe: {resp.text}"}
+                return {
+                    "erro": f"Erro ao consultar n8n: {resp.status_code}. Detalhe: {resp.text}"
+                }
 
             resposta_n8n = resp.json()
 
-            # Pode vir lista
+            # Se vier lista de itens
             if isinstance(resposta_n8n, list) and len(resposta_n8n) > 0:
                 item = resposta_n8n[0]
                 output = (
                     item.get("response", {})
-                    .get("body", {})
-                    .get("output")
+                        .get("body", {})
+                        .get("output")
                 )
                 if output:
                     return {"resposta": output}
-            # Ou pode vir dict direto
+
+            # Ou se vier dicionário direto
             if isinstance(resposta_n8n, dict) and "output" in resposta_n8n:
                 return {"resposta": resposta_n8n["output"]}
 
-            return {"erro": f"Formato inesperado da resposta do n8n: {json.dumps(resposta_n8n, ensure_ascii=False)}"}
+            return {
+                "erro": (
+                    "Formato inesperado da resposta do n8n: "
+                    f"{json.dumps(resposta_n8n, ensure_ascii=False)}"
+                )
+            }
+
     except httpx.RequestError as e:
         return {"erro": f"Erro de conexão com o n8n: {str(e)}"}
     except Exception as e:

@@ -10,6 +10,9 @@ echo "<script>console.log('[auth.php] Chamado');</script>";
 if (isset($_SESSION['usuario_id'])) {
     echo "<script>console.log('[auth.php] Sessão ativa — validando token');</script>";
 
+    // Expõe o ID do usuário para o JavaScript
+    echo "<script>window.USER_ID = " . json_encode($_SESSION['usuario_id'], JSON_NUMERIC_CHECK) . ";</script>";
+
     // Se também existir remember_me, valida se ainda é válido
     if (!empty($_COOKIE['remember_me'])) {
         $token = $_COOKIE['remember_me'];
@@ -62,6 +65,8 @@ if (!empty($_COOKIE['remember_me'])) {
         $_SESSION['usuario_id']   = $usuario['Id'];
         $_SESSION['usuario_nome'] = $usuario['Nome'];
         $_SESSION['cargo']        = $usuario['Cargo'];
+        // Também expõe ao JS após restaurar sessão
+        echo "<script>window.USER_ID = " . json_encode($_SESSION['usuario_id'], JSON_NUMERIC_CHECK) . ";</script>";
         return;
     } else {
         echo "<script>console.log('[auth.php] Token inválido/expirado — redirecionando');</script>";
@@ -71,7 +76,6 @@ if (!empty($_COOKIE['remember_me'])) {
 
 echo "<script>console.log('[auth.php] Redirecionando para login — sem sessão e token inválido');</script>";
 redirectToLogin();
-
 
 // --- Função utilitária para redirecionar sempre para /Views/login.php (root do sistema)
 function redirectToLogin() {

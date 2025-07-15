@@ -80,11 +80,11 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
       <!-- C: Chatbot -->
       <?php if ($userAcessoBot): ?>
         <div class="col">
-          <div class="menu-card" onclick="location.href='chatbot.php';">
+          <div class="menu-card" onclick="location.href='../ChatBot/webchat/index.php';">
             <div class="menu-icon">
               <i class="fa-solid bi bi-robot"></i>
             </div>
-            <h5 class="menu-title">Chatbot IA</h5>
+            <h5 class="menu-title">Chatbot n8n</h5>
           </div>
         </div>
       <?php endif; ?>
