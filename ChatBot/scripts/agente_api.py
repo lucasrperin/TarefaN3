@@ -23,14 +23,14 @@ async def consultar(request: Request):
     if not pergunta:
         return {"erro": "Campo 'pergunta' obrigatório."}
 
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(N8N_WEBHOOK_URL, json={"pergunta": pergunta})
-        if resp.status_code != 200:
-            return {"erro": f"Erro ao consultar n8n: {resp.status_code}"}
+    try:
+        async with httpx.AsyncClient() as client:
+            # timeout aumentado para 90 segundos
+            resp = await client.post(N8N_WEBHOOK_URL, json={"pergunta": pergunta}, timeout=90)
+            if resp.status_code != 200:
+                return {"erro": f"Erro ao consultar n8n: {resp.status_code}. Detalhe: {resp.text}"}
 
-        try:
             resposta_n8n = resp.json()
-            # DEBUG: print("Resposta do n8n:", resposta_n8n)
 
             # Pode vir lista
             if isinstance(resposta_n8n, list) and len(resposta_n8n) > 0:
@@ -46,10 +46,11 @@ async def consultar(request: Request):
             if isinstance(resposta_n8n, dict) and "output" in resposta_n8n:
                 return {"resposta": resposta_n8n["output"]}
 
-            return {"erro": f"Formato inesperado da resposta do n8n: {resposta_n8n}"}
-        except Exception as e:
-            return {"erro": f"Erro ao tratar resposta do n8n: {str(e)}"}
-
+            return {"erro": f"Formato inesperado da resposta do n8n: {json.dumps(resposta_n8n, ensure_ascii=False)}"}
+    except httpx.RequestError as e:
+        return {"erro": f"Erro de conexão com o n8n: {str(e)}"}
+    except Exception as e:
+        return {"erro": f"Erro ao tratar resposta do n8n: {str(e)}"}
 
 @app.get("/")
 def home():
