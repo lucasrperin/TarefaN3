@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 $usuario_id = $_SESSION['usuario_id'] ?? null;
 $cargo = $_SESSION['cargo'] ?? '';
 ?>
-<div class="sidebar">
+<div class="sidebar sidebar-scroll">
   <a class="light-logo" href="dashboard.php">
     <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
   </a>

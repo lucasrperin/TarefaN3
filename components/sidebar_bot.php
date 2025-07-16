@@ -1,13 +1,13 @@
 <?php
 // sidebar.php (coloque em uma pasta "components" ou similar)
-if (session_status() === PHP_SESSION_NONE) session_start();
+require_once __DIR__ . '../../Includes/auth.php';
 
 $usuario_id = $_SESSION['usuario_id'] ?? null;
 $cargo = $_SESSION['cargo'] ?? '';
 $idsLiberados = [6, 17, 24, 48];
 $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
 ?>
-<div class="sidebar">
+<div class="sidebar sidebar-scroll">
   <a class="light-logo" href="dashboard.php">
     <img src="../../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
   </a>
@@ -19,22 +19,22 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
     <?php if($userAcessoBot): ?>
       <!-- item “pai” IA -->
       <a
-        class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index.php') echo ' active'; ?> d-flex justify-content-between align-items-center"
-        data-bs-toggle="collapsed"
+        class="nav-link d-flex justify-content-between align-items-center"
+        data-bs-toggle="collapse"
         href="#submenu-ia"
         role="button"
-        aria-expanded="true"
+        aria-expanded="false"
         aria-controls="submenu-ia"
       >
         <span><i class="bi bi-robot me-2"></i>ChatBot</span>
         <i class="bi bi-caret-down-fill"></i>
       </a>
       <!-- submenu -->
-      <div class="collapsed ps-3" id="submenu-ia">
+      <div class="collapse ps-3" id="submenu-ia">
         <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index.php') echo ' active'; ?>" href="../webchat/index.php">
           <i class="bi bi-robot me-2"></i>Linha Clipp
         </a>
-        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === '.php') echo ' active'; ?>" href="../webchat_small/index.php">
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index_small.php') echo ' active'; ?>" href="../webchat_small/index.php">
           <i class="bi bi-robot me-2"></i>Linha Small
         </a>
       </div>
@@ -61,7 +61,7 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
       <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'user.php') echo ' active'; ?>" href="../../Views/user.php"><i class="fa-solid fa-users-rectangle me-2"></i>Meu Painel</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index.php') echo ' active'; ?>" href="../../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
+      <a class="nav-link" href="../../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
     <?php endif; ?>
     <?php if ($cargo != 'Comercial'): ?>
       <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'okr.php') echo ' active'; ?>" href="../../Views/okr.php">

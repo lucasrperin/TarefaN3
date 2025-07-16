@@ -51,7 +51,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
         </div>
       </div>
 
-      <div class="chat-area">
+      <div class="chat-area access-scroll">
 
         <!-- BLOCO DE MÉDIAS DAS AVALIAÇÕES (agora dentro da área do chat) -->
         <div id="avaliacoes-medias" class="p-2 mb-2 text-center" style="background:#f4f8fb; border-radius:6px; font-size:15px; border:1px solid #dde4ec;">
@@ -162,6 +162,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
         <span class="chat-avatar"><i class="bi bi-robot"></i></span>
         <div class="chat-bubble">Obrigado pela avaliação! 😊</div>
       `;
+      sessionStorage.setItem('avaliado_' + window.USER_ID, 'true');
       document.getElementById('msgs').appendChild(row);
       document.getElementById('msgs').scrollTop = document.getElementById('msgs').scrollHeight;
       // Remove só os botões daquele bloco de avaliação
@@ -233,25 +234,63 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       }
     }
 
-    // Chama ao abrir a página
+  async function loadHistory() {
+  try {
+    const resp = await fetch('./history.php');
+    if (!resp.ok) throw new Error(await resp.text());
+    const history = await resp.json(); // array cronológico completo
+
+    // 1) Coleta os índices de TODAS as mensagens humanas
+    const humanIndices = history
+      .map((m, idx) => m.type === 'human' ? idx : -1)
+      .filter(idx => idx >= 0);
+
+    // 2) Se tiver mais de 15, define o ponto de corte:
+    let startIdx = 0;
+    if (humanIndices.length > 15) {
+      // pegar índice da 15ª última mensagem humana
+      startIdx = humanIndices[humanIndices.length - 15];
+    }
+
+    // 3) A partir desse startIdx até o fim, renderiza tudo:
+    for (let i = startIdx; i < history.length; i++) {
+      const msg = history[i];
+      appendMsg(msg.content, msg.type === 'human' ? 'user' : 'bot');
+    }
+
+  } catch (err) {
+    console.error('Erro ao carregar histórico:', err);
+  }
+}
+
+
+
+
+// 3) Agora o listener só faz uso dessas funções já definidas:
+document.addEventListener('DOMContentLoaded', () => {
+  loadHistory().then(() => {
     atualizarMedias();
-    // Atualiza médias a cada minuto (opcional)
     setInterval(atualizarMedias, 60 * 1000);
+  }).catch(err => {
+    console.error('Falha ao carregar histórico:', err);
+    atualizarMedias();
+    setInterval(atualizarMedias, 60 * 1000);
+  });
 
-    document.getElementById('form').onsubmit = e => {
+  document.getElementById('form').onsubmit = e => {
+    e.preventDefault();
+    const txt = document.getElementById('input').value.trim();
+    if (txt) enviar(txt);
+    document.getElementById('input').value = '';
+    document.getElementById('input').focus();
+  };
+  document.getElementById('input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      const txt = document.getElementById('input').value.trim();
-      if (txt) enviar(txt);
-      document.getElementById('input').value = '';
-      document.getElementById('input').focus();
-    };
-
-    document.getElementById('input').addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        document.getElementById('form').dispatchEvent(new Event('submit'));
-      }
-    });
+      document.getElementById('form').dispatchEvent(new Event('submit'));
+    }
+  });
+});
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
