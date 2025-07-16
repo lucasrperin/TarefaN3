@@ -39,13 +39,6 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
         </a>
       </div>
     <?php endif; ?>
-
-    <?php if($cargo==='Admin'||$cargo==='Conversor'): ?>
-      <a class="nav-link" href="../../Views/conversao.php">
-        <i class="fa-solid fa-right-left me-2"></i>Conversões
-      </a>
-    <?php endif; ?>
-
     <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
       <a class="nav-link" href="../../Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
     <?php endif; ?>
