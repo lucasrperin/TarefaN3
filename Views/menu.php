@@ -84,7 +84,7 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
             <div class="menu-icon">
               <i class="fa-solid bi bi-robot"></i>
             </div>
-            <h5 class="menu-title">Chatbot n8n</h5>
+            <h5 class="menu-title">ChatBot</h5>
           </div>
         </div>
       <?php endif; ?>

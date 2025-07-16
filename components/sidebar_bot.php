@@ -26,7 +26,7 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
         aria-expanded="false"
         aria-controls="submenu-ia"
       >
-        <span><i class="bi bi-robot me-2"></i>IA</span>
+        <span><i class="bi bi-robot me-2"></i>Chatbot</span>
         <i class="bi bi-caret-down-fill"></i>
       </a>
       <!-- submenu -->
