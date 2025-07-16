@@ -1,6 +1,5 @@
 <?php
 // index.php (renomeado de index.html para index.php)
-// Ajuste o caminho para o seu Includes/auth.php
 require_once __DIR__ . '/../../Includes/auth.php';
 
 // Variáveis de sessão
@@ -110,6 +109,59 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       document.querySelectorAll('.typing-row').forEach(e => e.remove());
     }
 
+    // Controle para múltiplos blocos de avaliação
+    let avaliacaoId = 0;
+
+    function isFinalizado(texto) {
+      return texto.includes("<<FINALIZADO>>");
+    }
+
+    function limparFlagFinalizado(texto) {
+      return texto.replace("<<FINALIZADO>>", "").trim();
+    }
+
+    function mostrarAvaliacao() {
+      avaliacaoId++;
+      const msgs = document.getElementById('msgs');
+      const row = document.createElement('div');
+      row.className = 'chat-row bot';
+      row.innerHTML = `
+        <span class="chat-avatar"><i class="bi bi-robot"></i></span>
+        <div class="chat-bubble">
+          <b>Por favor, avalie o atendimento:</b><br>
+          <div id="avaliacao-botoes-${avaliacaoId}">
+            ${[1,2,3,4,5].map(n => `
+              <button onclick="enviarAvaliacao(${n}, ${avaliacaoId})" class="btn btn-sm btn-light m-1">${n} ⭐</button>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      msgs.appendChild(row);
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    async function enviarAvaliacao(nota, id) {
+      await fetch('http://localhost:8000/avaliacao', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: window.USER_ID,
+          nota: nota
+        })
+      });
+      const row = document.createElement('div');
+      row.className = 'chat-row bot';
+      row.innerHTML = `
+        <span class="chat-avatar"><i class="bi bi-robot"></i></span>
+        <div class="chat-bubble">Obrigado pela avaliação! 😊</div>
+      `;
+      document.getElementById('msgs').appendChild(row);
+      document.getElementById('msgs').scrollTop = document.getElementById('msgs').scrollHeight;
+      // Remove só os botões daquele bloco de avaliação
+      const botoes = document.getElementById(`avaliacao-botoes-${id}`);
+      if (botoes) botoes.innerHTML = '';
+    }
+
     async function enviar(pergunta) {
       appendMsg(pergunta, 'user');
       showTyping();
@@ -134,7 +186,13 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
         hideTyping();
 
         if (data.resposta) {
-          appendMsg(data.resposta, 'bot');
+          // Detecta e limpa a flag <<FINALIZADO>>
+          const mostrarAvaliacaoAgora = isFinalizado(data.resposta);
+          const respostaLimpa = limparFlagFinalizado(data.resposta);
+          appendMsg(respostaLimpa, 'bot');
+          if (mostrarAvaliacaoAgora) {
+            mostrarAvaliacao();
+          }
         } else if (data.erro) {
           appendMsg('Erro: ' + data.erro, 'bot');
         } else {

@@ -5,6 +5,9 @@ import uvicorn
 import httpx
 import json
 
+import mysql.connector
+from mysql.connector import Error
+
 app = FastAPI()
 
 app.add_middleware(
@@ -27,6 +30,14 @@ def linkify(text: str) -> str:
     # captura http:// ou https:// até espaço ou final de string
     return re.sub(r'(https?://[^\s]+)', _repl, text)
 
+# CONFIGURAÇÃO DO BANCO
+DB_CONFIG = {
+    "host": "localhost",           
+    "user": "root",         
+    "password": "",       
+    "database": "TarefaN3"    
+}
+
 @app.post("/consultar")
 async def consultar(request: Request):
     data = await request.json()
@@ -41,7 +52,6 @@ async def consultar(request: Request):
 
     try:
         async with httpx.AsyncClient() as client:
-            # Monta payload com pergunta e user_id
             payload = {
                 "pergunta": pergunta,
                 "user_id": user_id
@@ -51,12 +61,37 @@ async def consultar(request: Request):
                 json=payload,
                 timeout=90
             )
+
+            text = resp.text
+
+            # Se resposta HTTP não for 200, retorna erro detalhado
             if resp.status_code != 200:
                 return {
-                    "erro": f"Erro ao consultar n8n: {resp.status_code}. Detalhe: {resp.text}"
+                    "erro": (
+                        f"Erro ao consultar n8n: {resp.status_code}. "
+                        f"Detalhe: {text[:200]}"
+                    )
                 }
 
-            resposta_n8n = resp.json()
+            # Se a resposta for vazia, sugere possível idle/hibernação do serviço
+            if not text.strip():
+                return {
+                    "erro": (
+                        "O sistema estava inativo ou ocorreu uma falha de conexão. "
+                        "Aguarde alguns segundos e tente novamente."
+                    )
+                }
+
+            # Tenta converter para JSON
+            try:
+                resposta_n8n = resp.json()
+            except Exception as e:
+                return {
+                    "erro": (
+                        "A resposta do n8n não é JSON válido. "
+                        f"Conteúdo: '{text[:200]}'. Erro: {str(e)}"
+                    )
+                }
 
             # Extrai o campo de saída ("output") do webhook
             output = None
@@ -71,10 +106,11 @@ async def consultar(request: Request):
                 output = linkify(output)
                 return {"resposta": output}
 
+            # Caso não caia em nenhum dos formatos conhecidos
             return {
                 "erro": (
                     "Formato inesperado da resposta do n8n: "
-                    f"{json.dumps(resposta_n8n, ensure_ascii=False)}"
+                    f"{json.dumps(resposta_n8n, ensure_ascii=False)[:500]}"
                 )
             }
 
@@ -82,6 +118,28 @@ async def consultar(request: Request):
         return {"erro": f"Erro de conexão com o n8n: {str(e)}"}
     except Exception as e:
         return {"erro": f"Erro ao tratar resposta do n8n: {str(e)}"}
+
+@app.post("/avaliacao")
+async def avaliacao(request: Request):
+    data = await request.json()
+    user_id = data.get("user_id")
+    nota = data.get("nota")
+    if not user_id or not nota:
+        return {"erro": "user_id e nota obrigatórios"}
+
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO tb_avaliacoes_chatbot (user_id, nota, Linha) VALUES (%s, %s, %s)",
+            (user_id, nota, "Clipp")
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        return {"ok": True}
+    except Error as e:
+        return {"erro": f"Erro ao salvar avaliação: {str(e)}"}
 
 @app.get("/")
 def home():
