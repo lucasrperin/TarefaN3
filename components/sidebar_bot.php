@@ -4,22 +4,48 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 $usuario_id = $_SESSION['usuario_id'] ?? null;
 $cargo = $_SESSION['cargo'] ?? '';
+$idsLiberados = [6, 17, 24, 48];
+$userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
 ?>
 <div class="sidebar">
   <a class="light-logo" href="dashboard.php">
     <img src="../../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
   </a>
   <nav class="nav flex-column">
-    <a class="nav-link" href="../../Views/menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
-    <?php
-    // IDs liberados para Chatbot
-    $idsLiberados = [6, 17, 24, 48];
-    $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
-    if ($userAcessoBot): ?>
-      <a class="nav-link<?php if(basename($_SERVER['PHP_SELF']) === 'chatbot.php') echo ' active'; ?>" href="../ChatBot/webchat/index.php">
-        <i class="bi bi-robot me-2"></i>Chatbot n8n
+    <a class="nav-link" href="../../Views/menu.php">
+      <i class="fa-solid fa-house me-2"></i>Home
+    </a>
+
+    <?php if($userAcessoBot): ?>
+      <!-- item “pai” IA -->
+      <a
+        class="nav-link d-flex justify-content-between align-items-center"
+        data-bs-toggle="collapse"
+        href="#submenu-ia"
+        role="button"
+        aria-expanded="false"
+        aria-controls="submenu-ia"
+      >
+        <span><i class="bi bi-robot me-2"></i>IA</span>
+        <i class="bi bi-caret-down-fill"></i>
+      </a>
+      <!-- submenu -->
+      <div class="collapse ps-3" id="submenu-ia">
+        <a class="nav-link" href="../webchat/index.php">
+          <i class="bi bi-robot me-2"></i>Linha Clipp
+        </a>
+        <a class="nav-link" href="../webchat_small/index.php">
+          <i class="bi bi-robot me-2"></i>Linha Small
+        </a>
+      </div>
+    <?php endif; ?>
+
+    <?php if($cargo==='Admin'||$cargo==='Conversor'): ?>
+      <a class="nav-link" href="../../Views/conversao.php">
+        <i class="fa-solid fa-right-left me-2"></i>Conversões
       </a>
     <?php endif; ?>
+
     <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
       <a class="nav-link" href="../../Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
     <?php endif; ?>

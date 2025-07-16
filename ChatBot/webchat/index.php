@@ -53,7 +53,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       </div>
 
       <div class="chat-area">
-        <div class="chat-header"><i class="bi bi-robot"></i> Suporte Linha Clipp</div>
+        <div class="chat-header"><i class="bi bi-robot"></i>Agente Linha Clipp</div>
         <div class="chat-messages" id="msgs"></div>
         <form class="chat-input-row" id="form" autocomplete="off">
           <input type="text" id="input" class="chat-input" placeholder="Digite sua dúvida..." autocomplete="off" required />
@@ -161,5 +161,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       }
     });
   </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

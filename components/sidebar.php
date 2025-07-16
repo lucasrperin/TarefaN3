@@ -17,7 +17,7 @@ $cargo = $_SESSION['cargo'] ?? '';
     $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
     if ($userAcessoBot): ?>
       <a class="nav-link<?php if(basename($_SERVER['PHP_SELF']) === 'chatbot.php') echo ' active'; ?>" href="../ChatBot/webchat/index.php">
-        <i class="bi bi-robot me-2"></i>Chatbot n8n
+        <i class="bi bi-robot me-2"></i>Linha Clipp IA
       </a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>

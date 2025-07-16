@@ -1,3 +1,4 @@
+import re
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
@@ -15,6 +16,16 @@ app.add_middleware(
 )
 
 N8N_WEBHOOK_URL = "https://n8n.zucchetti.com.br/webhook/4ccf11a7-8170-48d4-8ee1-ce8355ce1c52"
+
+def linkify(text: str) -> str:
+    """
+    Envolve URLs em <a> com target="_blank" para abrir em nova guia.
+    """
+    def _repl(match):
+        url = match.group(0)
+        return f'<a href="{url}" target="_blank" rel="noopener noreferrer">{url}</a>'
+    # captura http:// ou https:// até espaço ou final de string
+    return re.sub(r'(https?://[^\s]+)', _repl, text)
 
 @app.post("/consultar")
 async def consultar(request: Request):
@@ -47,20 +58,18 @@ async def consultar(request: Request):
 
             resposta_n8n = resp.json()
 
-            # Se vier lista de itens
+            # Extrai o campo de saída ("output") do webhook
+            output = None
             if isinstance(resposta_n8n, list) and len(resposta_n8n) > 0:
                 item = resposta_n8n[0]
-                output = (
-                    item.get("response", {})
-                        .get("body", {})
-                        .get("output")
-                )
-                if output:
-                    return {"resposta": output}
+                output = item.get("response", {}).get("body", {}).get("output")
+            elif isinstance(resposta_n8n, dict) and "output" in resposta_n8n:
+                output = resposta_n8n["output"]
 
-            # Ou se vier dicionário direto
-            if isinstance(resposta_n8n, dict) and "output" in resposta_n8n:
-                return {"resposta": resposta_n8n["output"]}
+            if output:
+                # Pós-processa para adicionar target="_blank" aos links
+                output = linkify(output)
+                return {"resposta": output}
 
             return {
                 "erro": (
