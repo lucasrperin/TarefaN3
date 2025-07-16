@@ -52,6 +52,13 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       </div>
 
       <div class="chat-area">
+
+        <!-- BLOCO DE MÉDIAS DAS AVALIAÇÕES (agora dentro da área do chat) -->
+        <div id="avaliacoes-medias" class="p-2 mb-2 text-center" style="background:#f4f8fb; border-radius:6px; font-size:15px; border:1px solid #dde4ec;">
+          <span><i class="fa fa-star text-warning"></i> Média geral: <b id="media-geral">-</b> <span style="color:#888;" id="total-geral"></span></span>
+          &nbsp;|&nbsp;
+          <span><i class="fa fa-calendar-day text-primary"></i> Média 7 dias: <b id="media-7dias">-</b> <span style="color:#888;" id="total-7dias"></span></span>
+        </div>
         <div class="chat-header"><i class="bi bi-robot"></i>Agente Linha Clipp</div>
         <div class="chat-messages" id="msgs"></div>
         <form class="chat-input-row" id="form" autocomplete="off">
@@ -160,6 +167,8 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       // Remove só os botões daquele bloco de avaliação
       const botoes = document.getElementById(`avaliacao-botoes-${id}`);
       if (botoes) botoes.innerHTML = '';
+      // Atualiza médias após avaliação
+      atualizarMedias();
     }
 
     async function enviar(pergunta) {
@@ -203,6 +212,31 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
         appendMsg('Erro na comunicação: ' + err.message, 'bot');
       }
     }
+
+    // Função para buscar e exibir médias das avaliações
+    async function atualizarMedias() {
+      try {
+        // Média geral
+        let resp = await fetch('http://localhost:8000/media-avaliacoes');
+        let dados = await resp.json();
+        document.getElementById('media-geral').textContent = dados.media ?? '-';
+        document.getElementById('total-geral').textContent = dados.total ? `(${dados.total} avaliações)` : '';
+
+        // Média últimos 7 dias
+        let resp7 = await fetch('http://localhost:8000/media-avaliacoes?dias=7');
+        let dados7 = await resp7.json();
+        document.getElementById('media-7dias').textContent = dados7.media ?? '-';
+        document.getElementById('total-7dias').textContent = dados7.total ? `(${dados7.total} avaliações)` : '';
+      } catch (e) {
+        document.getElementById('media-geral').textContent = '-';
+        document.getElementById('media-7dias').textContent = '-';
+      }
+    }
+
+    // Chama ao abrir a página
+    atualizarMedias();
+    // Atualiza médias a cada minuto (opcional)
+    setInterval(atualizarMedias, 60 * 1000);
 
     document.getElementById('form').onsubmit = e => {
       e.preventDefault();
