@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import httpx
@@ -21,10 +21,10 @@ N8N_WEBHOOK_URL = "https://n8n.zucchetti.com.br/webhook/4ccf11a7-8170-48d4-8ee1-
 
 # CONFIGURAÇÃO DO BANCO
 DB_CONFIG = {
-    "host": "localhost",           
-    "user": "root",         
-    "password": "",       
-    "database": "TarefaN3"    
+    "host": "localhost",
+    "user": "root",
+    "password": "",
+    "database": "TarefaN3"
 }
 
 @app.post("/consultar")
@@ -53,7 +53,6 @@ async def consultar(request: Request):
 
             text = resp.text
 
-            # Se resposta HTTP não for 200, retorna erro detalhado
             if resp.status_code != 200:
                 return {
                     "erro": (
@@ -62,7 +61,6 @@ async def consultar(request: Request):
                     )
                 }
 
-            # Se a resposta for vazia, sugere possível idle/hibernação do serviço
             if not text.strip():
                 return {
                     "erro": (
@@ -71,7 +69,6 @@ async def consultar(request: Request):
                     )
                 }
 
-            # Tenta converter para JSON
             try:
                 resposta_n8n = resp.json()
             except Exception as e:
@@ -82,7 +79,6 @@ async def consultar(request: Request):
                     )
                 }
 
-            # Se vier lista de itens
             if isinstance(resposta_n8n, list) and len(resposta_n8n) > 0:
                 item = resposta_n8n[0]
                 output = (
@@ -93,11 +89,9 @@ async def consultar(request: Request):
                 if output:
                     return {"resposta": output}
 
-            # Ou se vier dicionário direto
             if isinstance(resposta_n8n, dict) and "output" in resposta_n8n:
                 return {"resposta": resposta_n8n["output"]}
 
-            # Caso não caia em nenhum dos formatos conhecidos
             return {
                 "erro": (
                     "Formato inesperado da resposta do n8n: "
@@ -131,6 +125,32 @@ async def avaliacao(request: Request):
         return {"ok": True}
     except Error as e:
         return {"erro": f"Erro ao salvar avaliação: {str(e)}"}
+
+@app.get("/media-avaliacoes")
+def media_avaliacoes(dias: int = Query(default=0, description="Filtrar pelos últimos X dias (0 = todas)")):
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cur = conn.cursor()
+        if dias > 0:
+            cur.execute("""
+                SELECT ROUND(AVG(nota),2) AS media, COUNT(*) AS total
+                FROM tb_avaliacoes_chatbot
+                WHERE Linha = %s AND data >= CURDATE() - INTERVAL %s DAY
+            """, ("Clipp", dias))
+        else:
+            cur.execute("""
+                SELECT ROUND(AVG(nota),2) AS media, COUNT(*) AS total
+                FROM tb_avaliacoes_chatbot
+                WHERE Linha = %s
+            """, ("Clipp",))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        media = float(row[0]) if row[0] is not None else 0.0
+        total = row[1]
+        return {"media": media, "total": total}
+    except Exception as e:
+        return {"erro": f"Erro ao calcular média: {str(e)}"}
 
 @app.get("/")
 def home():
