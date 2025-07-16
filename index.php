@@ -272,7 +272,8 @@ foreach ($rowsProd as $row) {
 }
 $totalFichasGeral = $totalFichasN3 + $totalFichasProd;
 
-
+$idsLiberados = [6, 17, 24, 48];
+$userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
 ?>
 
 
@@ -284,11 +285,14 @@ $totalFichasGeral = $totalFichasN3 + $totalFichasProd;
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Bootstrap, Font Awesome, Google Fonts, Chart.js -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icones -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <!-- CSS Personalizado (layout unificado com os demais módulos) -->
   <link rel="stylesheet" href="Public/index.css">
+  <link rel="stylesheet" href="Public/sidebar.css">
   <link rel="icon" href="Public/Image/LogoTituto.png" type="image/png">
 </head>
 <body class="bg-light">
@@ -300,6 +304,29 @@ $totalFichasGeral = $totalFichasN3 + $totalFichasProd;
             </a>
             <nav class="nav flex-column">
                 <a class="nav-link" href="Views/menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
+                <?php if($userAcessoBot): ?>
+                    <!-- item “pai” IA -->
+                    <a
+                        class="nav-link d-flex justify-content-between align-items-center"
+                        data-bs-toggle="collapse"
+                        href="#submenu-ia"
+                        role="button"
+                        aria-expanded="false"
+                        aria-controls="submenu-ia"
+                    >
+                        <span><i class="bi bi-robot me-2"></i>ChatBot</span>
+                        <i class="bi bi-caret-down-fill"></i>
+                    </a>
+                    <!-- submenu -->
+                    <div class="collapse ps-3" id="submenu-ia">
+                        <a class="nav-link" href="ChatBot/webchat/index.php">
+                        <i class="bi bi-robot me-2"></i>Linha Clipp
+                        </a>
+                        <a class="nav-link" href="ChatBot/webchat_small/index.php">
+                        <i class="bi bi-robot me-2"></i>Linha Small
+                        </a>
+                    </div>
+                <?php endif; ?>
                 <?php if ($cargo === 'Admin'): ?>
                 <a class="nav-link" href="Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
                 <?php endif; ?>

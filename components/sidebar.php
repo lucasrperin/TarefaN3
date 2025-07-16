@@ -4,6 +4,8 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 
 $usuario_id = $_SESSION['usuario_id'] ?? null;
 $cargo = $_SESSION['cargo'] ?? '';
+$idsLiberados = [6, 17, 24, 48];
+$userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
 ?>
 <div class="sidebar sidebar-scroll">
   <a class="light-logo" href="dashboard.php">
@@ -11,14 +13,29 @@ $cargo = $_SESSION['cargo'] ?? '';
   </a>
   <nav class="nav flex-column">
     <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
-    <?php
-    // IDs liberados para Chatbot
-    $idsLiberados = [6, 17, 24, 48];
-    $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
-    if ($userAcessoBot): ?>
-      <a class="nav-link<?php if(basename($_SERVER['PHP_SELF']) === 'chatbot.php') echo ' active'; ?>" href="../ChatBot/webchat/index.php">
-        <i class="bi bi-robot me-2"></i>ChatBot
+      <?php if($userAcessoBot): ?>
+      <!-- item “pai” IA -->
+      <a
+        id="toggle-ia"
+        class="nav-link collapsed d-flex justify-content-between align-items-center"
+        data-bs-toggle="collapse"
+        href="#submenu-ia"
+        role="button"
+        aria-expanded="false"
+        aria-controls="submenu-ia"
+      >
+        <span><i class="bi bi-robot me-2"></i>ChatBot</span>
+        <i class="bi bi-caret-down-fill"></i>
       </a>
+      <!-- submenu -->
+      <div class="collapse ps-3" id="submenu-ia">
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index.php') echo ' active'; ?>" href="../ChatBot/webchat/index.php">
+          <img src="../Public/Image/clippbranco.png" width="30" height="30" class="ms-0" alt="Benchmark">Linha Clipp
+        </a>
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index_small.php') echo ' active'; ?>" href="../ChatBot/webchat_small/index.php">
+          <img src="../Public/Image/smallbranco.png" width="30" height="30" class="ms-0" alt="Benchmark"></i>Linha Small
+        </a>
+      </div>
     <?php endif; ?>
     <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
       <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'conversao.php') echo ' active'; ?>" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>

@@ -19,7 +19,7 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
     <?php if($userAcessoBot): ?>
       <!-- item “pai” IA -->
       <a
-        class="nav-link d-flex justify-content-between align-items-center"
+        class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index.php') echo ' active'; ?> d-flex justify-content-between align-items-center"
         data-bs-toggle="collapse"
         href="#submenu-ia"
         role="button"
@@ -32,10 +32,10 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
       <!-- submenu -->
       <div class="collapse ps-3" id="submenu-ia">
         <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index.php') echo ' active'; ?>" href="../webchat/index.php">
-          <i class="bi bi-robot me-2"></i>Linha Clipp
+          <img src="../../Public/Image/clippbranco.png" width="30" height="30" class="ms-0" alt="Benchmark">Linha Clipp
         </a>
         <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index_small.php') echo ' active'; ?>" href="../webchat_small/index.php">
-          <i class="bi bi-robot me-2"></i>Linha Small
+          <img src="../../Public/Image/smallbranco.png" width="30" height="30" class="ms-0" alt="Benchmark">Linha Small
         </a>
       </div>
     <?php endif; ?>

@@ -25,6 +25,7 @@ $usuario_nome = isset($_SESSION['usuario_nome']) ? $_SESSION['usuario_nome'] : '
   <!-- Seu CSS customizado -->
   <link rel="stylesheet" href="../Public/dashboard.css">
   <link rel="stylesheet" href="chatbot.css">
+  <link rel="stylesheet" href="../Public/sidebar.css">
   <style>
     .chatbot-iframe {
       width: 100%;

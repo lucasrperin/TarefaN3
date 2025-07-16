@@ -1,0 +1,33 @@
+/* ————————————————————————————— */
+/* 1) Suas regras globais (já devem existir antes disso) */
+.sidebar a:hover,
+.sidebar a.active {
+  color: #fff;
+  background-color: #283e51;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+/* ————————————————————————————— */
+
+/* 2) Override para o estado “normal” do toggle (expanso ou não) */
+#toggle-ia[aria-expanded="true"],
+#toggle-ia[aria-expanded="false"] {
+  background-color: transparent;
+  color: inherit;
+}
+
+/* 3) Hover super-específico para o toggle */
+.sidebar .nav-link#toggle-ia:hover {
+  color: #fff;
+  background-color: #283e51;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+/* 4) Active, caso você marque manualmente #toggle-ia.active */
+.sidebar .nav-link#toggle-ia.active {
+  color: #fff;
+  background-color: #283e51;
+  border-radius: 4px;
+  padding: 0.5rem;
+}

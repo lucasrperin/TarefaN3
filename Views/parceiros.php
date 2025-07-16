@@ -17,6 +17,8 @@ $result = mysqli_query($conn, $query);
   <meta charset="UTF-8" />
   <title>Painel N3 - Parceiros</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <!-- Bootstrap Icones -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
@@ -26,50 +28,7 @@ $result = mysqli_query($conn, $query);
 
 <div class="d-flex-wrapper">
   <!-- Sidebar -->
-  <div class="sidebar">
-    <a class="light-logo" href="parceiros.php">
-      <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
-    </a>
-    <nav class="nav flex-column">
-        <a class="nav-link" href="menu.php"><i class="fa-solid fa-house me-2"></i>Home</a>
-        <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User'): ?>
-        <a class="nav-link" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin' || $cargo === 'Viewer' || $cargo === 'User' || $cargo === 'Conversor'): ?>
-        <a class="nav-link" href="user.php"><i class="fa-solid fa-users-rectangle me-2"></i>Meu Painel</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin' || $cargo === 'Produto'): ?>
-        <a class="nav-link active" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
-        <?php endif; ?>
-        <?php if ($cargo != 'Comercial'): ?>
-            <a class="nav-link" href="okr.php"><img src="../Public/Image/benchmarkbranco.png" width="27" height="27" class="me-1" alt="Benchmark">OKRs</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
-        <a class="nav-link" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
-        <?php endif; ?>
-        <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
-        <?php endif; ?>
-    </nav>
-  </div>
+  <?php include __DIR__ . '/../components/sidebar.php'; ?>
 
   <!-- Toasts -->
   <div id="toast-container" class="toast-container">

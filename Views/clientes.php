@@ -29,6 +29,7 @@ $result = mysqli_query($conn, $query);
   <!-- CSS customizado -->
   <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
   <link rel="stylesheet" href="../Public/treinamento.css">
+  <link rel="stylesheet" href="../Public/sidebar.css">
   
   
   <style>

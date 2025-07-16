@@ -183,6 +183,7 @@ if ($percentMetaGeral > 100) $percentMetaGeral = 100;
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
  
   <link rel="stylesheet" href="../Public/escutas.css">
+  <link rel="stylesheet" href="../Public/sidebar.css">
 
   <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
 </head>

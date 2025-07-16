@@ -109,6 +109,7 @@ $resultado_grafico = $stmt_grafico->get_result();
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Css personalizado -->
   <link rel="stylesheet" href="../Public/dashboard.css">
+  <link rel="stylesheet" href="../Public/sidebar.css">
 </head>
 <body class="bg-light"> 
   <div class="d-flex-wrapper">
