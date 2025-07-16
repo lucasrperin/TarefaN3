@@ -59,8 +59,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
           &nbsp;|&nbsp;
           <span><i class="fa fa-calendar-day text-primary"></i> Média 7 dias: <b id="media-7dias">-</b> <span style="color:#888;" id="total-7dias"></span></span>
         </div>
-
-        <div class="chat-header"><i class="bi bi-robot"></i> Suporte Linha Clipp</div>
+        <div class="chat-header"><i class="bi bi-robot"></i>Agente Linha Clipp</div>
         <div class="chat-messages" id="msgs"></div>
         <form class="chat-input-row" id="form" autocomplete="off">
           <input type="text" id="input" class="chat-input" placeholder="Digite sua dúvida..." autocomplete="off" required />
@@ -254,5 +253,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       }
     });
   </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -138,7 +138,7 @@
     scrollbar-width: thin;
     scrollbar-color: rgba(151, 151, 151, 0.048) transparent;
     }
-    
+
     .chat-row {
       display: flex;
       gap: 15px;
@@ -364,3 +364,16 @@
     margin: 1 !important;
     padding: 0 !important;
   }
+
+  .nav-link .bi-caret-down-fill {
+  transition: transform 0.2s ease;
+}
+.nav-link[aria-expanded="true"] .bi-caret-down-fill {
+  transform: rotate(180deg);
+}
+
+/* 2) Aplica estilo “ativo” (mesma cor do .active) ao menu pai quando expandido */
+.nav-link[aria-expanded="true"] {
+  background-color: #283e51;  /* mesma cor de hover/active da sidebar */
+  color: #fff;                /* garante texto branco */
+}
