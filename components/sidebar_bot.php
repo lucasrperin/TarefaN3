@@ -19,63 +19,63 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
     <?php if($userAcessoBot): ?>
       <!-- item “pai” IA -->
       <a
-        class="nav-link d-flex justify-content-between align-items-center"
-        data-bs-toggle="collapse"
+        class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index.php') echo ' active'; ?> d-flex justify-content-between align-items-center"
+        data-bs-toggle="collapsed"
         href="#submenu-ia"
         role="button"
-        aria-expanded="false"
+        aria-expanded="true"
         aria-controls="submenu-ia"
       >
-        <span><i class="bi bi-robot me-2"></i>Chatbot</span>
+        <span><i class="bi bi-robot me-2"></i>ChatBot</span>
         <i class="bi bi-caret-down-fill"></i>
       </a>
       <!-- submenu -->
-      <div class="collapse ps-3" id="submenu-ia">
-        <a class="nav-link" href="../webchat/index.php">
+      <div class="collapsed ps-3" id="submenu-ia">
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index.php') echo ' active'; ?>" href="../webchat/index.php">
           <i class="bi bi-robot me-2"></i>Linha Clipp
         </a>
-        <a class="nav-link" href="../webchat_small/index.php">
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === '.php') echo ' active'; ?>" href="../webchat_small/index.php">
           <i class="bi bi-robot me-2"></i>Linha Small
         </a>
       </div>
     <?php endif; ?>
     <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
-      <a class="nav-link" href="../../Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'conversao.php') echo ' active'; ?>" href="../../Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="../../Views/destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'destaque.php') echo ' active'; ?>" href="../../Views/destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="../../Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'escutas.php') echo ' active'; ?>" href="../../Views/escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="../../Views/folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'folga.php') echo ' active'; ?>" href="../../Views/folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="../../Views/incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'incidente.php') echo ' active'; ?>" href="../../Views/incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User' || $cargo === 'Conversor'): ?>
-      <a class="nav-link" href="../../Views/indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'indicacao.php') echo ' active'; ?>" href="../../Views/indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin' || $cargo === 'Viewer' || $cargo === 'User' || $cargo === 'Conversor'): ?>
-      <a class="nav-link" href="../../Views/user.php"><i class="fa-solid fa-users-rectangle me-2"></i>Meu Painel</a>
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'user.php') echo ' active'; ?>" href="../../Views/user.php"><i class="fa-solid fa-users-rectangle me-2"></i>Meu Painel</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-      <a class="nav-link" href="../../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index.php') echo ' active'; ?>" href="../../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
     <?php endif; ?>
     <?php if ($cargo != 'Comercial'): ?>
-      <a class="nav-link" href="../../Views/okr.php">
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'okr.php') echo ' active'; ?>" href="../../Views/okr.php">
         <img src="../../Public/Image/benchmarkbranco.png" width="27" height="27" class="me-1" alt="Benchmark">OKRs
       </a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-      <a class="nav-link" href="../../Views/dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'dashboard.php') echo ' active'; ?>" href="../../Views/dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
-      <a class="nav-link" href="../../Views/treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'treinamento.php') echo ' active'; ?>" href="../../Views/treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-      <a class="nav-link" href="../../Views/usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'usuarios.php') echo ' active'; ?>" href="../../Views/usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
     <?php endif; ?>
   </nav>
 </div>

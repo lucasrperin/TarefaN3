@@ -17,46 +17,46 @@ $cargo = $_SESSION['cargo'] ?? '';
     $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
     if ($userAcessoBot): ?>
       <a class="nav-link<?php if(basename($_SERVER['PHP_SELF']) === 'chatbot.php') echo ' active'; ?>" href="../ChatBot/webchat/index.php">
-        <i class="bi bi-robot me-2"></i>Linha Clipp IA
+        <i class="bi bi-robot me-2"></i>ChatBot
       </a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
-      <a class="nav-link" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'conversao.php') echo ' active'; ?>" href="conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'destaque.php') echo ' active'; ?>" href="destaque.php"><i class="fa-solid fa-ranking-star me-2"></i>Destaques</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'escutas.php') echo ' active'; ?>" href="escutas.php"><i class="fa-solid fa-headphones me-2"></i>Escutas</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'folga.php') echo ' active'; ?>" href="folga.php"><i class="fa-solid fa-umbrella-beach me-2"></i>Folgas</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-        <a class="nav-link" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'incidente.php') echo ' active'; ?>" href="incidente.php"><i class="fa-solid fa-exclamation-triangle me-2"></i>Incidentes</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'User' || $cargo === 'Conversor'): ?>
-      <a class="nav-link" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'indicacao.php') echo ' active'; ?>" href="indicacao.php"><i class="fa-solid fa-hand-holding-dollar me-2"></i>Indicações</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin' || $cargo === 'Viewer' || $cargo === 'User' || $cargo === 'Conversor'): ?>
-      <a class="nav-link" href="user.php"><i class="fa-solid fa-users-rectangle me-2"></i>Meu Painel</a>
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'user.php') echo ' active'; ?>" href="user.php"><i class="fa-solid fa-users-rectangle me-2"></i>Meu Painel</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-      <a class="nav-link" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index.php') echo ' active'; ?>" href="../index.php"><i class="fa-solid fa-layer-group me-2"></i>Nível 3</a>
     <?php endif; ?>
     <?php if ($cargo != 'Comercial'): ?>
-      <a class="nav-link" href="okr.php">
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'okr.php') echo ' active'; ?>" href="okr.php">
         <img src="../Public/Image/benchmarkbranco.png" width="27" height="27" class="me-1" alt="Benchmark">OKRs
       </a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-      <a class="nav-link" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'dashboard.php') echo ' active'; ?>" href="dashboard.php"><i class="fa-solid fa-calculator me-2 ms-1"></i>Totalizadores</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin' || $cargo === 'Comercial' || $cargo === 'Treinamento'): ?>
-      <a class="nav-link" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'treinamento.php') echo ' active'; ?>" href="treinamento.php"><i class="fa-solid fa-calendar-check me-2"></i>Treinamentos</a>
     <?php endif; ?>
     <?php if ($cargo === 'Admin'): ?>
-      <a class="nav-link" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
+      <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'usuarios.php') echo ' active'; ?>" href="usuarios.php"><i class="fa-solid fa-users-gear me-2"></i>Usuários</a>
     <?php endif; ?>
   </nav>
 </div>

@@ -29,18 +29,13 @@
       background: var(--main-bg);
       color: #23262e;
       font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      min-height: 100vh;
-      width: 100%;
+     
+      max-width: 100%;
       font-family: 'Montserrat', sans-serif;
       background-color: #f0f2f5;
       margin: 0;
       padding: 0;
-        
     }
-  html, body {
-    height: 100%;
-    overflow: hidden;
-  }
   .d-flex-wrapper {
     display: flex;
     height: 100%;
@@ -56,7 +51,7 @@
   /* Sidebar */
     .sidebar {
       background: linear-gradient(135deg, #4b79a1, #283e51);
-      min-width: 220px;
+      
       padding: 1.5rem;
       color: #fff;
     }
