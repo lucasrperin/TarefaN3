@@ -524,3 +524,10 @@ CREATE TABLE TB_ANALISES_PROD
  criado_em DATE DEFAULT CURRENT_TIME,
  ult_edicao DATE COMMENT 'Data da ultima edição'
 )
+CREATE TABLE tb_avaliacoes_chatbot (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    nota INT NOT NULL,
+    Linha VARCHAR(50) NOT NULL,
+    data TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
