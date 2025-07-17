@@ -36,7 +36,6 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
   <div class="d-flex-wrapper">
     <?php include __DIR__ . '/../../components/sidebar_bot.php'; ?>
 
-    <!-- Aqui fazemos o “right pane” crescer e ser um flex-column -->
     <div class="w-100 flex-grow-1 d-flex flex-column">
       <div class="header d-flex justify-content-between align-items-center">
         <h3 class="mb-0"><i class="bi bi-robot me-2"></i>Chatbot IA</h3>
@@ -52,8 +51,6 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       </div>
 
       <div class="chat-area access-scroll">
-
-        <!-- BLOCO DE MÉDIAS DAS AVALIAÇÕES (agora dentro da área do chat) -->
         <div id="avaliacoes-medias" class="p-2 mb-2 text-center" style="background:#f4f8fb; border-radius:6px; font-size:15px; border:1px solid #dde4ec;">
           <span><i class="fa fa-star text-warning"></i> Média geral: <b id="media-geral">-</b> <span style="color:#888;" id="total-geral"></span></span>
           &nbsp;|&nbsp;
@@ -62,7 +59,15 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
         <div class="chat-header"><i class="bi bi-robot"></i>Agente Linha Clipp</div>
         <div class="chat-messages" id="msgs"></div>
         <form class="chat-input-row" id="form" autocomplete="off">
-          <input type="text" id="input" class="chat-input" placeholder="Digite sua dúvida ou cole uma imagem..." autocomplete="off" required />
+          <input type="text" id="input" class="chat-input" placeholder="Digite sua dúvida, cole uma imagem ou grave um áudio..." autocomplete="off" required />
+          <input type="file" id="fileUpload" accept="image/*,audio/*" style="display:none;" />
+          <button type="button" class="chat-send-btn btn-upload" title="Enviar arquivo/imagem" onclick="document.getElementById('fileUpload').click();">
+            <i class="fa fa-paperclip"></i>
+          </button>
+          <!-- Botão do microfone -->
+          <button type="button" class="chat-send-btn btn-mic" id="micBtn" title="Gravar áudio">
+            <i class="fa fa-microphone"></i>
+          </button>
           <button type="submit" class="chat-send-btn" aria-label="Enviar">
             <i class="fa fa-paper-plane"></i>
           </button>
@@ -116,9 +121,8 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       document.querySelectorAll('.typing-row').forEach(e => e.remove());
     }
 
-    // NOVO: Função para enviar imagem colada no campo de texto e exibir ela direto no chat
+    // Função para enviar imagem colada/anexada
     async function enviarImagem(file) {
-      // Exibe a imagem no chat ANTES do envio
       const reader = new FileReader();
       reader.onload = function(e) {
         appendMsg('<img src="' + e.target.result + '" style="max-width:220px;max-height:140px;border-radius:8px;box-shadow:0 2px 8px #ccc;" />', 'user');
@@ -155,9 +159,74 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       };
     }
 
-    // --- RESTANTE DO SEU SCRIPT ABAIXO ---
+    // Função para enviar áudio colado/anexado ou gravado
+    async function enviarAudio(file) {
+      const url = URL.createObjectURL(file);
+      appendMsg('<audio controls src="' + url + '" style="max-width:260px;outline:none;"></audio><br><span style="color:#888;font-size:12px;">Transcrevendo áudio...</span>', 'user');
+      showTyping();
 
-    // Controle para múltiplos blocos de avaliação
+      const formData = new FormData();
+      formData.append("audio", file);
+      formData.append("user_id", window.USER_ID);
+
+      try {
+        const resp = await fetch('http://localhost:8000/upload-audio?user_id=' + window.USER_ID, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await resp.json();
+        hideTyping();
+
+        if (data.resposta) {
+          appendMsg(data.resposta, 'bot');
+        } else {
+          appendMsg('Erro: ' + data.erro, 'bot');
+        }
+      } catch (err) {
+        hideTyping();
+        appendMsg('Erro ao enviar áudio: ' + err.message, 'bot');
+      }
+    }
+
+    // --- Gravação de áudio via microfone ---
+    let isRecording = false;
+    let mediaRecorder;
+    let recordedChunks = [];
+
+    const micBtn = document.getElementById('micBtn');
+    micBtn.onclick = async () => {
+      if (!isRecording) {
+        // Iniciar gravação
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          recordedChunks = [];
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) recordedChunks.push(e.data);
+          };
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+            enviarAudio(audioBlob);
+          };
+          mediaRecorder.start();
+          isRecording = true;
+          micBtn.classList.add('recording');
+          micBtn.innerHTML = '<i class="fa fa-stop"></i>';
+          appendMsg('<span style="color:#0c4a6e;"><i class="fa fa-microphone"></i> Gravando... Clique para parar.</span>', 'user');
+        } catch (err) {
+          appendMsg('Não foi possível acessar o microfone: ' + err.message, 'bot');
+        }
+      } else {
+        // Parar gravação
+        mediaRecorder.stop();
+        isRecording = false;
+        micBtn.classList.remove('recording');
+        micBtn.innerHTML = '<i class="fa fa-microphone"></i>';
+      }
+    };
+
+    // --- RESTANTE DO SCRIPT: avaliações, envio de texto, histórico, etc. ---
     let avaliacaoId = 0;
 
     function isFinalizado(texto) {
@@ -206,10 +275,8 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       sessionStorage.setItem('avaliado_' + window.USER_ID, 'true');
       document.getElementById('msgs').appendChild(row);
       document.getElementById('msgs').scrollTop = document.getElementById('msgs').scrollHeight;
-      // Remove só os botões daquele bloco de avaliação
       const botoes = document.getElementById(`avaliacao-botoes-${id}`);
       if (botoes) botoes.innerHTML = '';
-      // Atualiza médias após avaliação
       atualizarMedias();
     }
 
@@ -237,7 +304,6 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
         hideTyping();
 
         if (data.resposta) {
-          // Detecta e limpa a flag <<FINALIZADO>>
           const mostrarAvaliacaoAgora = isFinalizado(data.resposta);
           const respostaLimpa = limparFlagFinalizado(data.resposta);
           appendMsg(respostaLimpa, 'bot');
@@ -255,16 +321,13 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       }
     }
 
-    // Função para buscar e exibir médias das avaliações
     async function atualizarMedias() {
       try {
-        // Média geral
         let resp = await fetch('http://localhost:8000/media-avaliacoes');
         let dados = await resp.json();
         document.getElementById('media-geral').textContent = dados.media ?? '-';
         document.getElementById('total-geral').textContent = dados.total ? `(${dados.total} avaliações)` : '';
 
-        // Média últimos 7 dias
         let resp7 = await fetch('http://localhost:8000/media-avaliacoes?dias=7');
         let dados7 = await resp7.json();
         document.getElementById('media-7dias').textContent = dados7.media ?? '-';
@@ -279,26 +342,20 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       try {
         const resp = await fetch('./history.php');
         if (!resp.ok) throw new Error(await resp.text());
-        const history = await resp.json(); // array cronológico completo
+        const history = await resp.json();
 
-        // 1) Coleta os índices de TODAS as mensagens humanas
         const humanIndices = history
           .map((m, idx) => m.type === 'human' ? idx : -1)
           .filter(idx => idx >= 0);
 
-        // 2) Se tiver mais de 15, define o ponto de corte:
         let startIdx = 0;
         if (humanIndices.length > 15) {
-          // pegar índice da 15ª última mensagem humana
           startIdx = humanIndices[humanIndices.length - 15];
         }
-
-        // 3) A partir desse startIdx até o fim, renderiza tudo:
         for (let i = startIdx; i < history.length; i++) {
           const msg = history[i];
           appendMsg(msg.content, msg.type === 'human' ? 'user' : 'bot');
         }
-
       } catch (err) {
         console.error('Erro ao carregar histórico:', err);
       }
@@ -309,7 +366,6 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
         atualizarMedias();
         setInterval(atualizarMedias, 60 * 1000);
       }).catch(err => {
-        console.error('Falha ao carregar histórico:', err);
         atualizarMedias();
         setInterval(atualizarMedias, 60 * 1000);
       });
@@ -328,7 +384,6 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
         }
       });
 
-      // NOVO: permite colar imagem direto no input do chat
       document.getElementById('input').addEventListener('paste', e => {
         const items = e.clipboardData.items;
         for (const item of items) {
@@ -337,11 +392,32 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
             enviarImagem(file);
             break;
           }
+          if (item.type.indexOf("audio") === 0) {
+            const file = item.getAsFile();
+            enviarAudio(file);
+            break;
+          }
         }
+      });
+
+      document.getElementById('fileUpload').addEventListener('change', function() {
+        const file = this.files[0];
+        if (!file) return;
+        if (file.type.startsWith("image/")) {
+          enviarImagem(file);
+        } else if (file.type.startsWith("audio/")) {
+          enviarAudio(file);
+        } else {
+          appendMsg('Tipo de arquivo não suportado.', 'bot');
+        }
+        this.value = '';
       });
     });
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <style>
+    .btn-mic.recording { background: #c4302b; color: #fff !important; }
+  </style>
 </body>
 </html>
