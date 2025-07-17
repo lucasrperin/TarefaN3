@@ -1,15 +1,15 @@
 <?php
 // history.php — só API de JSON, sem debug nem scripts
 header('Content-Type: application/json; charset=utf-8');
-
 session_start();
+
 // 1) valida sessão
-if (empty($_SESSION['usuario_id'])) {
+if (!isset($_SESSION['usuario_id']) || !is_numeric($_SESSION['usuario_id'])) {
   http_response_code(401);
   echo json_encode(['error'=>'Usuário não autenticado']);
   exit;
 }
-$sessionId = $_SESSION['usuario_id'];
+$userId = (int) $_SESSION['usuario_id'];
 
 // 2) conecta no Postgres (pooler transaction)
 $connStr = sprintf(
@@ -27,7 +27,9 @@ if (!$db) {
   exit;
 }
 
-// 3) busca 15 últimas mensagens
+// 3) busca 15 últimas mensagens DO USUÁRIO
+//    * substitua "session_id" por "user_id" se você criar essa coluna
+// 3) busca 15 últimas mensagens DO USUÁRIO
 $sql = <<<SQL
 WITH last_humans AS (
   SELECT id
@@ -42,21 +44,22 @@ cut AS (
   FROM last_humans
 )
 SELECT message
-FROM public.n8n_chat_histories, cut
+FROM public.n8n_chat_histories, cut    -- <— aqui inclui a CTE "cut"
 WHERE session_id = \$1
   AND id >= cut.min_id
-ORDER BY id ASC
+ORDER BY id ASC;
 SQL;
 
-// Executa com parâmetros: session_id
-$res = pg_query_params($db, $sql, [$sessionId]);
+
+// 4) executa passando o ID da sessão (que aqui é o ID do usuário)
+$res = pg_query_params($db, $sql, [$userId]);
 if (!$res) {
   http_response_code(500);
   echo json_encode(['error'=>pg_last_error($db)]);
   exit;
 }
 
-// 4) Continua como antes: monta $history e devolve em JSON
+// 5) monta e devolve JSON puro
 $rows = pg_fetch_all_columns($res, 0);
 $history = [];
 foreach ($rows as $json) {
