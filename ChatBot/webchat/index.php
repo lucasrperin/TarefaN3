@@ -116,37 +116,46 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       document.querySelectorAll('.typing-row').forEach(e => e.remove());
     }
 
-    // Função para enviar imagem colada no campo de texto
+    // NOVO: Função para enviar imagem colada no campo de texto e exibir ela direto no chat
     async function enviarImagem(file) {
-      appendMsg('[Imagem recebida, extraindo texto...]', 'user');
-      showTyping();
+      // Exibe a imagem no chat ANTES do envio
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        appendMsg('<img src="' + e.target.result + '" style="max-width:220px;max-height:140px;border-radius:8px;box-shadow:0 2px 8px #ccc;" />', 'user');
+        showTyping();
+      };
+      reader.readAsDataURL(file);
 
-      const formData = new FormData();
-      formData.append("imagem", file);
-      formData.append("user_id", window.USER_ID);
+      reader.onloadend = async function() {
+        const formData = new FormData();
+        formData.append("imagem", file);
+        formData.append("user_id", window.USER_ID);
 
-      try {
-        const resp = await fetch('http://localhost:8000/upload-imagem?user_id=' + window.USER_ID, {
-          method: 'POST',
-          body: formData
-        });
+        try {
+          const resp = await fetch('http://localhost:8000/upload-imagem?user_id=' + window.USER_ID, {
+            method: 'POST',
+            body: formData
+          });
 
-        const data = await resp.json();
-        hideTyping();
+          const data = await resp.json();
+          hideTyping();
 
-        if (data.resposta) {
-          const mostrarAvaliacaoAgora = data.resposta.includes("<<FINALIZADO>>");
-          const respostaLimpa = data.resposta.replace("<<FINALIZADO>>", "").trim();
-          appendMsg(respostaLimpa, 'bot');
-          if (mostrarAvaliacaoAgora) mostrarAvaliacao();
-        } else {
-          appendMsg('Erro: ' + data.erro, 'bot');
+          if (data.resposta) {
+            const mostrarAvaliacaoAgora = data.resposta.includes("<<FINALIZADO>>");
+            const respostaLimpa = data.resposta.replace("<<FINALIZADO>>", "").trim();
+            appendMsg(respostaLimpa, 'bot');
+            if (mostrarAvaliacaoAgora) mostrarAvaliacao();
+          } else {
+            appendMsg('Erro: ' + data.erro, 'bot');
+          }
+        } catch (err) {
+          hideTyping();
+          appendMsg('Erro ao enviar imagem: ' + err.message, 'bot');
         }
-      } catch (err) {
-        hideTyping();
-        appendMsg('Erro ao enviar imagem: ' + err.message, 'bot');
-      }
+      };
     }
+
+    // --- RESTANTE DO SEU SCRIPT ABAIXO ---
 
     // Controle para múltiplos blocos de avaliação
     let avaliacaoId = 0;
