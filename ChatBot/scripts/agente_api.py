@@ -1,11 +1,13 @@
 from fastapi import FastAPI, Request, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from mysql.connector import Error
+from fastapi import HTTPException
 import re
 import uvicorn
 import httpx
 import json
 import mysql.connector
-from mysql.connector import Error
+
 
 app = FastAPI()
 
@@ -108,65 +110,50 @@ async def consultar(request: Request):
 # ENVIO DE IMAGEM BINÁRIO (multipart/form-data)
 @app.post("/upload-imagem")
 async def upload_imagem(imagem: UploadFile = File(...), user_id: str = Query(...)):
+    # carrega binário…
+    conteudo = await imagem.read()
+    files = {
+        "data": (imagem.filename, conteudo, imagem.content_type),
+        "user_id": (None, user_id),
+    }
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            N8N_WEBHOOK_URL,
+            files=files,
+            timeout=90
+        )
+
+    if resp.status_code == 413:
+        return JSONResponse(
+            status_code=413,
+            content={"erro": "Arquivo muito grande. Reduza o tamanho da imagem e tente novamente."}
+        )
+
+    if resp.status_code != 200:
+        return JSONResponse(
+            status_code=resp.status_code,
+            content={"erro": f"Erro ao consultar n8n: {resp.status_code}. Detalhe: {resp.text[:200]}"}
+        )
+
+    # 3) parse e devolve resultado
+    text = resp.text
+    if not text.strip():
+        return {"erro": "Sistema indisponível. Tente novamente em instantes."}
+
     try:
-        conteudo = await imagem.read()
-
-        # Monta payload multipart para o n8n
-        files = {
-            "data": (imagem.filename, conteudo, imagem.content_type),
-            "user_id": (None, user_id)
-        }
-
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                N8N_WEBHOOK_URL,
-                files=files,
-                timeout=90
-            )
-
-        text = resp.text
-
-        if resp.status_code != 200:
-            return {
-                "erro": (
-                    f"Erro ao consultar n8n: {resp.status_code}. "
-                    f"Detalhe: {text[:200]}"
-                )
-            }
-
-        if not text.strip():
-            return {"erro": "O sistema estava inativo ou ocorreu uma falha de conexão. Aguarde e tente novamente."}
-
-        try:
-            resposta_n8n = resp.json()
-        except Exception as e:
-            return {
-                "erro": (
-                    "A resposta do n8n não é JSON válido. "
-                    f"Conteúdo: '{text[:200]}'. Erro: {str(e)}"
-                )
-            }
-
-        output = None
-        if isinstance(resposta_n8n, list) and len(resposta_n8n) > 0:
-            item = resposta_n8n[0]
-            output = item.get("response", {}).get("body", {}).get("output")
-        elif isinstance(resposta_n8n, dict) and "output" in resposta_n8n:
-            output = resposta_n8n["output"]
-
-        if output:
-            output = linkify(output)
-            return {"resposta": output}
-
+        resposta_n8n = resp.json()
+    except Exception as e:
         return {
             "erro": (
-                "Formato inesperado da resposta do n8n: "
-                f"{json.dumps(resposta_n8n, ensure_ascii=False)[:500]}"
+                "Resposta do n8n não é JSON válido. "
+                f"Conteúdo: '{text[:200]}'. Erro: {e}"
             )
         }
 
-    except Exception as e:
-        return {"erro": f"Erro ao processar imagem: {str(e)}"}
+    # … resto do seu parsing de `output` …
+    return {"resposta": linkify(output)}
+
 
 # NOVO: ENVIO DE ÁUDIO BINÁRIO (multipart/form-data)
 @app.post("/upload-audio")
