@@ -168,6 +168,68 @@ async def upload_imagem(imagem: UploadFile = File(...), user_id: str = Query(...
     except Exception as e:
         return {"erro": f"Erro ao processar imagem: {str(e)}"}
 
+# NOVO: ENVIO DE ÁUDIO BINÁRIO (multipart/form-data)
+@app.post("/upload-audio")
+async def upload_audio(audio: UploadFile = File(...), user_id: str = Query(...)):
+    try:
+        conteudo = await audio.read()
+
+        files = {
+            "data": (audio.filename, conteudo, audio.content_type),
+            "user_id": (None, user_id)
+        }
+
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                N8N_WEBHOOK_URL,
+                files=files,
+                timeout=90
+            )
+
+        text = resp.text
+
+        if resp.status_code != 200:
+            return {
+                "erro": (
+                    f"Erro ao consultar n8n: {resp.status_code}. "
+                    f"Detalhe: {text[:200]}"
+                )
+            }
+
+        if not text.strip():
+            return {"erro": "O sistema estava inativo ou ocorreu uma falha de conexão. Aguarde e tente novamente."}
+
+        try:
+            resposta_n8n = resp.json()
+        except Exception as e:
+            return {
+                "erro": (
+                    "A resposta do n8n não é JSON válido. "
+                    f"Conteúdo: '{text[:200]}'. Erro: {str(e)}"
+                )
+            }
+
+        output = None
+        if isinstance(resposta_n8n, list) and len(resposta_n8n) > 0:
+            item = resposta_n8n[0]
+            output = item.get("response", {}).get("body", {}).get("output")
+        elif isinstance(resposta_n8n, dict) and "output" in resposta_n8n:
+            output = resposta_n8n["output"]
+
+        if output:
+            output = linkify(output)
+            return {"resposta": output}
+
+        return {
+            "erro": (
+                "Formato inesperado da resposta do n8n: "
+                f"{json.dumps(resposta_n8n, ensure_ascii=False)[:500]}"
+            )
+        }
+
+    except Exception as e:
+        return {"erro": f"Erro ao processar áudio: {str(e)}"}
+
 @app.post("/avaliacao")
 async def avaliacao(request: Request):
     data = await request.json()
