@@ -1,10 +1,9 @@
-from fastapi import FastAPI, Request, Query
+from fastapi import FastAPI, Request, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 import re
 import uvicorn
 import httpx
 import json
-
 import mysql.connector
 from mysql.connector import Error
 
@@ -21,16 +20,11 @@ app.add_middleware(
 N8N_WEBHOOK_URL = "https://n8n.zucchetti.com.br/webhook/4ccf11a7-8170-48d4-8ee1-ce8355ce1c52"
 
 def linkify(text: str) -> str:
-    """
-    Envolve URLs em <a> com target="_blank" para abrir em nova guia.
-    """
     def _repl(match):
         url = match.group(0)
         return f'<a href="{url}" target="_blank" rel="noopener noreferrer">{url}</a>'
-    # captura http:// ou https:// até espaço ou final de string
     return re.sub(r'(https?://[^\s]+)', _repl, text)
 
-# CONFIGURAÇÃO DO BANCO
 DB_CONFIG = {
     "host": "localhost",
     "user": "root",
@@ -44,7 +38,6 @@ async def consultar(request: Request):
     pergunta = data.get("pergunta")
     user_id = data.get("user_id")
 
-    # Validações básicas
     if not pergunta:
         return {"erro": "Campo 'pergunta' obrigatório."}
     if not user_id:
@@ -61,7 +54,6 @@ async def consultar(request: Request):
                 json=payload,
                 timeout=90
             )
-
             text = resp.text
 
             if resp.status_code != 200:
@@ -90,7 +82,6 @@ async def consultar(request: Request):
                     )
                 }
 
-            # Extrai o campo de saída ("output") do webhook
             output = None
             if isinstance(resposta_n8n, list) and len(resposta_n8n) > 0:
                 item = resposta_n8n[0]
@@ -99,7 +90,6 @@ async def consultar(request: Request):
                 output = resposta_n8n["output"]
 
             if output:
-                # Pós-processa para adicionar target="_blank" aos links
                 output = linkify(output)
                 return {"resposta": output}
 
@@ -114,6 +104,69 @@ async def consultar(request: Request):
         return {"erro": f"Erro de conexão com o n8n: {str(e)}"}
     except Exception as e:
         return {"erro": f"Erro ao tratar resposta do n8n: {str(e)}"}
+
+# ENVIO DE IMAGEM BINÁRIO (multipart/form-data)
+@app.post("/upload-imagem")
+async def upload_imagem(imagem: UploadFile = File(...), user_id: str = Query(...)):
+    try:
+        conteudo = await imagem.read()
+
+        # Monta payload multipart para o n8n
+        files = {
+            "data": (imagem.filename, conteudo, imagem.content_type),
+            "user_id": (None, user_id)
+        }
+
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                N8N_WEBHOOK_URL,
+                files=files,
+                timeout=90
+            )
+
+        text = resp.text
+
+        if resp.status_code != 200:
+            return {
+                "erro": (
+                    f"Erro ao consultar n8n: {resp.status_code}. "
+                    f"Detalhe: {text[:200]}"
+                )
+            }
+
+        if not text.strip():
+            return {"erro": "O sistema estava inativo ou ocorreu uma falha de conexão. Aguarde e tente novamente."}
+
+        try:
+            resposta_n8n = resp.json()
+        except Exception as e:
+            return {
+                "erro": (
+                    "A resposta do n8n não é JSON válido. "
+                    f"Conteúdo: '{text[:200]}'. Erro: {str(e)}"
+                )
+            }
+
+        output = None
+        if isinstance(resposta_n8n, list) and len(resposta_n8n) > 0:
+            item = resposta_n8n[0]
+            output = item.get("response", {}).get("body", {}).get("output")
+        elif isinstance(resposta_n8n, dict) and "output" in resposta_n8n:
+            output = resposta_n8n["output"]
+
+        if output:
+            output = linkify(output)
+            return {"resposta": output}
+
+        return {
+            "erro": (
+                "Formato inesperado da resposta do n8n: "
+                f"{json.dumps(resposta_n8n, ensure_ascii=False)[:500]}"
+            )
+        }
+
+    except Exception as e:
+        return {"erro": f"Erro ao processar imagem: {str(e)}"}
 
 @app.post("/avaliacao")
 async def avaliacao(request: Request):

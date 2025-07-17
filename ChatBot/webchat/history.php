@@ -32,7 +32,7 @@ $sql = <<<SQL
 WITH last_humans AS (
   SELECT id
   FROM public.n8n_chat_histories
-  WHERE session_id = \$1
+  WHERE session_id = \$sessionId
     AND (message->>'type') = 'human'
   ORDER BY id DESC
   LIMIT 15
@@ -43,7 +43,7 @@ cut AS (
 )
 SELECT message
 FROM public.n8n_chat_histories, cut
-WHERE session_id = \$1
+WHERE session_id = \$sessionId
   AND id >= cut.min_id
 ORDER BY id ASC
 SQL;

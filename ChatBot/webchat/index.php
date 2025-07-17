@@ -32,7 +32,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
     window.USER_ID = <?= json_encode($usuario_id, JSON_NUMERIC_CHECK) ?>;
   </script>
 </head>
-<body >
+<body>
   <div class="d-flex-wrapper">
     <?php include __DIR__ . '/../../components/sidebar_bot.php'; ?>
 
@@ -62,7 +62,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
         <div class="chat-header"><i class="bi bi-robot"></i>Agente Linha Clipp</div>
         <div class="chat-messages" id="msgs"></div>
         <form class="chat-input-row" id="form" autocomplete="off">
-          <input type="text" id="input" class="chat-input" placeholder="Digite sua dúvida..." autocomplete="off" required />
+          <input type="text" id="input" class="chat-input" placeholder="Digite sua dúvida ou cole uma imagem..." autocomplete="off" required />
           <button type="submit" class="chat-send-btn" aria-label="Enviar">
             <i class="fa fa-paper-plane"></i>
           </button>
@@ -114,6 +114,38 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
 
     function hideTyping() {
       document.querySelectorAll('.typing-row').forEach(e => e.remove());
+    }
+
+    // Função para enviar imagem colada no campo de texto
+    async function enviarImagem(file) {
+      appendMsg('[Imagem recebida, extraindo texto...]', 'user');
+      showTyping();
+
+      const formData = new FormData();
+      formData.append("imagem", file);
+      formData.append("user_id", window.USER_ID);
+
+      try {
+        const resp = await fetch('http://localhost:8000/upload-imagem?user_id=' + window.USER_ID, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await resp.json();
+        hideTyping();
+
+        if (data.resposta) {
+          const mostrarAvaliacaoAgora = data.resposta.includes("<<FINALIZADO>>");
+          const respostaLimpa = data.resposta.replace("<<FINALIZADO>>", "").trim();
+          appendMsg(respostaLimpa, 'bot');
+          if (mostrarAvaliacaoAgora) mostrarAvaliacao();
+        } else {
+          appendMsg('Erro: ' + data.erro, 'bot');
+        }
+      } catch (err) {
+        hideTyping();
+        appendMsg('Erro ao enviar imagem: ' + err.message, 'bot');
+      }
     }
 
     // Controle para múltiplos blocos de avaliação
@@ -234,63 +266,71 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       }
     }
 
-  async function loadHistory() {
-  try {
-    const resp = await fetch('./history.php');
-    if (!resp.ok) throw new Error(await resp.text());
-    const history = await resp.json(); // array cronológico completo
+    async function loadHistory() {
+      try {
+        const resp = await fetch('./history.php');
+        if (!resp.ok) throw new Error(await resp.text());
+        const history = await resp.json(); // array cronológico completo
 
-    // 1) Coleta os índices de TODAS as mensagens humanas
-    const humanIndices = history
-      .map((m, idx) => m.type === 'human' ? idx : -1)
-      .filter(idx => idx >= 0);
+        // 1) Coleta os índices de TODAS as mensagens humanas
+        const humanIndices = history
+          .map((m, idx) => m.type === 'human' ? idx : -1)
+          .filter(idx => idx >= 0);
 
-    // 2) Se tiver mais de 15, define o ponto de corte:
-    let startIdx = 0;
-    if (humanIndices.length > 15) {
-      // pegar índice da 15ª última mensagem humana
-      startIdx = humanIndices[humanIndices.length - 15];
+        // 2) Se tiver mais de 15, define o ponto de corte:
+        let startIdx = 0;
+        if (humanIndices.length > 15) {
+          // pegar índice da 15ª última mensagem humana
+          startIdx = humanIndices[humanIndices.length - 15];
+        }
+
+        // 3) A partir desse startIdx até o fim, renderiza tudo:
+        for (let i = startIdx; i < history.length; i++) {
+          const msg = history[i];
+          appendMsg(msg.content, msg.type === 'human' ? 'user' : 'bot');
+        }
+
+      } catch (err) {
+        console.error('Erro ao carregar histórico:', err);
+      }
     }
 
-    // 3) A partir desse startIdx até o fim, renderiza tudo:
-    for (let i = startIdx; i < history.length; i++) {
-      const msg = history[i];
-      appendMsg(msg.content, msg.type === 'human' ? 'user' : 'bot');
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+      loadHistory().then(() => {
+        atualizarMedias();
+        setInterval(atualizarMedias, 60 * 1000);
+      }).catch(err => {
+        console.error('Falha ao carregar histórico:', err);
+        atualizarMedias();
+        setInterval(atualizarMedias, 60 * 1000);
+      });
 
-  } catch (err) {
-    console.error('Erro ao carregar histórico:', err);
-  }
-}
+      document.getElementById('form').onsubmit = e => {
+        e.preventDefault();
+        const txt = document.getElementById('input').value.trim();
+        if (txt) enviar(txt);
+        document.getElementById('input').value = '';
+        document.getElementById('input').focus();
+      };
+      document.getElementById('input').addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          document.getElementById('form').dispatchEvent(new Event('submit'));
+        }
+      });
 
-
-
-
-// 3) Agora o listener só faz uso dessas funções já definidas:
-document.addEventListener('DOMContentLoaded', () => {
-  loadHistory().then(() => {
-    atualizarMedias();
-    setInterval(atualizarMedias, 60 * 1000);
-  }).catch(err => {
-    console.error('Falha ao carregar histórico:', err);
-    atualizarMedias();
-    setInterval(atualizarMedias, 60 * 1000);
-  });
-
-  document.getElementById('form').onsubmit = e => {
-    e.preventDefault();
-    const txt = document.getElementById('input').value.trim();
-    if (txt) enviar(txt);
-    document.getElementById('input').value = '';
-    document.getElementById('input').focus();
-  };
-  document.getElementById('input').addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      document.getElementById('form').dispatchEvent(new Event('submit'));
-    }
-  });
-});
+      // NOVO: permite colar imagem direto no input do chat
+      document.getElementById('input').addEventListener('paste', e => {
+        const items = e.clipboardData.items;
+        for (const item of items) {
+          if (item.type.indexOf("image") === 0) {
+            const file = item.getAsFile();
+            enviarImagem(file);
+            break;
+          }
+        }
+      });
+    });
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
