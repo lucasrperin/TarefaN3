@@ -57,7 +57,14 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
           <span><i class="fa fa-calendar-day text-primary"></i> Média 7 dias: <b id="media-7dias">-</b> <span style="color:#888;" id="total-7dias"></span></span>
         </div>
         <div class="chat-header"><i class="bi bi-robot"></i>Agente Linha Clipp</div>
-        <div class="chat-messages" id="msgs"></div>
+        <div class="chat-messages" id="msgs">
+          <div id="historyLoading" class="text-center my-3">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Carregando...</span>
+            </div>
+            <div>Carregando histórico...</div>
+          </div>
+        </div>
         <form class="chat-input-row" id="form" autocomplete="off">
           <input type="text" id="input" class="chat-input" placeholder="Digite sua dúvida, cole uma imagem ou grave um áudio..." autocomplete="off" required />
           <input type="file" id="fileUpload" accept="image/*,audio/*" style="display:none;" />
@@ -97,6 +104,11 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       const bubble = document.createElement('div');
       bubble.className = 'chat-bubble';
       bubble.innerHTML = who === 'bot' ? marked.parse(text) : text;
+      // — após renderizar, force todos os <a> a abrirem em nova guia —
+      bubble.querySelectorAll('a').forEach(a => {
+        a.setAttribute('target', '_blank');
+        a.setAttribute('rel', 'noopener noreferrer');
+      });
       row.appendChild(avatar);
       row.appendChild(bubble);
       msgs.appendChild(row);
@@ -339,11 +351,19 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
     }
 
     async function loadHistory() {
+      const loading = document.getElementById('historyLoading');
+      // 1) mostra o loading
+      loading.style.display = 'block';
+
       try {
-        const resp = await fetch('./history.php');
+        const resp = await fetch('./history.php', { credentials: 'include' });
         if (!resp.ok) throw new Error(await resp.text());
         const history = await resp.json();
 
+        // 2) remove o loading antes de injetar as mensagens
+        loading.remove();
+
+        // 3) renderiza o histórico existente
         const humanIndices = history
           .map((m, idx) => m.type === 'human' ? idx : -1)
           .filter(idx => idx >= 0);
@@ -357,9 +377,13 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
           appendMsg(msg.content, msg.type === 'human' ? 'user' : 'bot');
         }
       } catch (err) {
+        // 4) em caso de erro, também remove o loading
+        loading.remove();
         console.error('Erro ao carregar histórico:', err);
+        appendMsg('Não foi possível carregar o histórico.', 'bot');
       }
     }
+
 
     document.addEventListener('DOMContentLoaded', () => {
       loadHistory().then(() => {
