@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from mysql.connector import Error
 from fastapi import HTTPException
 import re
@@ -110,13 +111,14 @@ async def consultar(request: Request):
 # ENVIO DE IMAGEM BINÁRIO (multipart/form-data)
 @app.post("/upload-imagem")
 async def upload_imagem(imagem: UploadFile = File(...), user_id: str = Query(...)):
-    # carrega binário…
+    # lê o arquivo
     conteudo = await imagem.read()
     files = {
         "data": (imagem.filename, conteudo, imagem.content_type),
         "user_id": (None, user_id),
     }
 
+    # envia para o n8n
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             N8N_WEBHOOK_URL,
@@ -124,35 +126,52 @@ async def upload_imagem(imagem: UploadFile = File(...), user_id: str = Query(...
             timeout=90
         )
 
+    # 413 do Nginx/n8n → devolve JSON consistente
     if resp.status_code == 413:
         return JSONResponse(
             status_code=413,
             content={"erro": "Arquivo muito grande. Reduza o tamanho da imagem e tente novamente."}
         )
 
+    # outros erros HTTP
     if resp.status_code != 200:
         return JSONResponse(
             status_code=resp.status_code,
             content={"erro": f"Erro ao consultar n8n: {resp.status_code}. Detalhe: {resp.text[:200]}"}
         )
 
-    # 3) parse e devolve resultado
-    text = resp.text
+    text = resp.text or ""
     if not text.strip():
-        return {"erro": "Sistema indisponível. Tente novamente em instantes."}
+        return JSONResponse(
+            status_code=502,
+            content={"erro": "Resposta vazia do serviço. Tente novamente em instantes."}
+        )
 
+    # parse do JSON do n8n
     try:
         resposta_n8n = resp.json()
     except Exception as e:
-        return {
-            "erro": (
-                "Resposta do n8n não é JSON válido. "
-                f"Conteúdo: '{text[:200]}'. Erro: {e}"
-            )
-        }
+        return JSONResponse(
+            status_code=502,
+            content={"erro": f"Resposta do n8n não é JSON válido. Erro: {e}"}
+        )
 
-    # … resto do seu parsing de `output` …
-    return {"resposta": linkify(output)}
+    # extrai o campo "output"
+    output = None
+    if isinstance(resposta_n8n, list) and len(resposta_n8n) > 0:
+        item = resposta_n8n[0]
+        output = item.get("response", {}).get("body", {}).get("output")
+    elif isinstance(resposta_n8n, dict):
+        output = resposta_n8n.get("output")
+
+    # devolve ao front
+    if output:
+        return {"resposta": linkify(output)}
+    else:
+        return JSONResponse(
+            status_code=502,
+            content={"erro": "Formato inesperado na resposta do n8n."}
+        )
 
 
 # NOVO: ENVIO DE ÁUDIO BINÁRIO (multipart/form-data)
