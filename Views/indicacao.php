@@ -77,6 +77,7 @@ if (!isset($_GET['filterColumn'])) {
 
 // 3) Monta cláusula WHERE dinamicamente
 $where = [];
+
 if ($filterColumn === 'periodo') {
   if ($useCycle && $competencia) {
     list($year,$month) = explode('-', $competencia);
@@ -99,19 +100,33 @@ if ($filterColumn === 'usuario' && $usuario) {
     : 'i.user_id';
   $where[] = "$campoUsuario = " . intval($usuario);
 }
+
 if ($filterColumn === 'plugin' && $plugin) {
-  $where[] = "i.plugin_id = "   . intval($plugin);
+  $where[] = "i.plugin_id = " . intval($plugin);
 }
+
 if ($filterColumn === 'status' && $status) {
-  // escapa o valor vindo do GET
   $statusEsc = mysqli_real_escape_string($conn, $status);
-  $where[]   = "i.status = '{$statusEsc}'";
+  $where[] = "i.status = '{$statusEsc}'";
 }
+
 $whereSQL = $where 
   ? ' WHERE ' . implode(' AND ', $where) 
   : '';
 
+
 // 4) Consulta principal de indicações
+$whereTabela = $where; // copia os filtros anteriores
+
+// aplica filtro de acesso apenas para a tabela
+if ($cargo === 'Comercial' && !in_array($usuario_id, [29, 40])) {
+  $whereTabela[] = "i.idConsultor = {$usuario_id}";
+}
+
+$whereSQLTabela = $whereTabela 
+  ? ' WHERE ' . implode(' AND ', $whereTabela) 
+  : '';
+
 $sql = "
   SELECT 
     i.*,
@@ -124,7 +139,7 @@ $sql = "
   FROM TB_INDICACAO i
   JOIN TB_PLUGIN   p ON p.id = i.plugin_id
   JOIN TB_USUARIO  c ON c.id = i.idConsultor
-  $whereSQL
+  $whereSQLTabela
   ORDER BY i.data DESC
 ";
 $resIndic   = mysqli_query($conn, $sql);
