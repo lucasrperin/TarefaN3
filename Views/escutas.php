@@ -37,10 +37,12 @@ $dataFilterCondition = " AND $dataCondition";
 // 1) Analistas (usuários) que possuem escutas registradas
 $sqlAnalistas = "
     SELECT DISTINCT e.user_id, u.nome AS usuario_nome 
-    FROM TB_ESCUTAS e
+    FROM TB_ESCUTAS e    
     JOIN TB_USUARIO u ON e.user_id = u.id 
-    WHERE (u.cargo = 'User' OR u.id IN (17, 18))
-      AND u.id NOT IN (8)
+    JOIN TB_EQUIPE_NIVEL_ANALISTA ena ON u.id = ena.idUsuario
+JOIN TB_NIVEL n ON ena.idNivel = n.id
+    WHERE (u.cargo = 'User' AND (n.descricao = 'Nível 1' OR n.descricao = 'Exclusivo'))
+  AND u.id NOT IN (12,13,14,31,33,37)
       $dataFilterCondition
     ORDER BY u.nome
 ";
@@ -58,8 +60,10 @@ $users = [];
 $sqlUsers = "
     SELECT u.nome
     FROM TB_USUARIO u
-    WHERE (u.cargo = 'User' OR u.id IN (17, 18))
-      AND u.id NOT IN (8)
+    JOIN TB_EQUIPE_NIVEL_ANALISTA ena ON u.id = ena.idUsuario
+    JOIN TB_NIVEL n ON ena.idNivel = n.id
+    WHERE (u.cargo = 'User' AND (n.descricao = 'Nível 1' OR n.descricao = 'Exclusivo'))
+  AND u.id NOT IN (12,13,14,31,33,37)
     ORDER BY u.nome
 ";
 $resUsers = $conn->query($sqlUsers);
@@ -78,11 +82,13 @@ $sqlUsersCad = "
       u.nome,
       (5 - COUNT(e.id)) AS faltantes
     FROM TB_USUARIO u
+    JOIN TB_EQUIPE_NIVEL_ANALISTA ena ON u.id = ena.idUsuario
+    JOIN TB_NIVEL n ON ena.idNivel = n.id
     LEFT JOIN TB_ESCUTAS e 
       ON e.user_id = u.id
       AND ($dataCondition)
-    WHERE (u.cargo = 'User' OR u.id IN (17, 18))
-      AND u.id NOT IN (8)
+    WHERE (u.cargo = 'User' AND (n.descricao = 'Nível 1' OR n.descricao = 'Exclusivo'))
+  AND u.id NOT IN (12,13,14,31,33,37)
     GROUP BY u.id
     HAVING faltantes > 0
     ORDER BY u.nome
@@ -109,18 +115,20 @@ if ($resClassi) {
 // 5) Escutas Faltantes
 $sqlEscutasFaltantes = "
     SELECT 
-      u.nome,
-      COUNT(e.id) AS totalEscutas,
-      (5 - COUNT(e.id)) AS faltantes
-    FROM TB_USUARIO u
-    LEFT JOIN TB_ESCUTAS e 
-      ON e.user_id = u.id
-      AND ($dataCondition)
-    WHERE (u.cargo = 'User' OR u.id IN (17, 18))
-      AND u.id NOT IN (8)
-    GROUP BY u.id
-    ORDER BY u.nome
-";
+  u.nome,
+  COUNT(e.id) AS totalEscutas,
+  (5 - COUNT(e.id)) AS faltantes
+FROM TB_USUARIO u
+JOIN TB_EQUIPE_NIVEL_ANALISTA ena ON u.id = ena.idUsuario
+JOIN TB_NIVEL n ON ena.idNivel = n.id
+LEFT JOIN TB_ESCUTAS e 
+  ON e.user_id = u.id
+  AND ($dataCondition)
+WHERE
+  (u.cargo = 'User' AND (n.descricao = 'Nível 1' OR n.descricao = 'Exclusivo'))
+  AND u.id NOT IN (12,13,14,31,33,37)
+GROUP BY u.id, u.nome
+ORDER BY u.nome";
 $resFaltantes = $conn->query($sqlEscutasFaltantes);
 $escutasFaltantes = [];
 if ($resFaltantes) {
@@ -131,13 +139,24 @@ if ($resFaltantes) {
 
 // 6) Escutas por Supervisor
 $sqlEscutasSupervisor = "
-    SELECT u.nome, COUNT(e.id) AS total
-    FROM TB_USUARIO u
-    JOIN TB_ESCUTAS e ON e.admin_id = u.id
-    WHERE u.cargo = 'Admin'
+    SELECT 
+    u.nome, 
+    COUNT(e.id) AS total
+FROM TB_USUARIO u
+JOIN TB_ESCUTAS e ON e.admin_id = u.id
+JOIN TB_USUARIO u_analista ON e.user_id = u_analista.id
+JOIN TB_EQUIPE_NIVEL_ANALISTA ena ON u_analista.id = ena.idUsuario
+JOIN TB_NIVEL n ON ena.idNivel = n.id
+WHERE 
+    u.cargo = 'Admin'
+    AND (
+          u_analista.cargo = 'User' 
+          AND (n.descricao = 'Nível 1' OR n.descricao = 'Exclusivo')
+        )
+    AND u_analista.id NOT IN (12,13,14,31,33,37)
     $dataFilterCondition
-    GROUP BY u.id
-    ORDER BY u.nome
+GROUP BY u.id, u.nome
+ORDER BY u.nome
 ";
 $resSupervisor = $conn->query($sqlEscutasSupervisor);
 $escutasSupervisor = [];
@@ -152,11 +171,15 @@ $totalAnalistas = count($users);
 $metaGeral = $totalAnalistas * 5;
 $sqlTotalEscutas = "
     SELECT COUNT(e.id) as total 
-    FROM TB_ESCUTAS e
-    JOIN TB_USUARIO u ON e.user_id = u.id
-    WHERE (u.cargo = 'User' OR u.id IN (17, 18))
-      AND u.id NOT IN (8)
-      $dataFilterCondition
+FROM TB_ESCUTAS e
+JOIN TB_USUARIO u ON e.user_id = u.id
+JOIN TB_EQUIPE_NIVEL_ANALISTA ena ON u.id = ena.idUsuario
+JOIN TB_NIVEL n ON ena.idNivel = n.id
+WHERE (
+        (u.cargo = 'User' AND (n.descricao = 'Nível 1' OR n.descricao = 'Exclusivo'))
+      )
+  AND u.id NOT IN (12,13,14,31,33,37)
+  $dataFilterCondition
 ";
 $resTotal = $conn->query($sqlTotalEscutas);
 $totalEscutasRealizadas = 0;
