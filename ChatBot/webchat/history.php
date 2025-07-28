@@ -34,7 +34,7 @@ $sql = <<<SQL
 WITH last_humans AS (
   SELECT id
   FROM public.n8n_chat_histories
-  WHERE (session_id::integer) = \$1
+  WHERE (session_id::numeric) = \$1
     AND (message->>'type') = 'human'
   ORDER BY id DESC
   LIMIT 15
@@ -45,7 +45,7 @@ cut AS (
 )
 SELECT message
 FROM public.n8n_chat_histories, cut    -- <— aqui inclui a CTE "cut"
-WHERE (session_id::integer) = \$1
+WHERE (session_id::numeric) = \$1
   AND id >= cut.min_id
 ORDER BY id ASC;
 SQL;
