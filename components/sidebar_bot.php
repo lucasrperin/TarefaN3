@@ -37,6 +37,9 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
         <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index_small.php') echo ' active'; ?>" href="../webchat_small/index.php">
           <img src="../../Public/Image/smallbranco.png" width="30" height="30" class="ms-0" alt="Benchmark">Linha Small
         </a>
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'config_bot.php') echo ' active'; ?>" href="../webchat/config_bot.php">
+          <i class="fa fa-gear me-2"></i>Configurações
+        </a>
       </div>
     <?php endif; ?>
     <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>

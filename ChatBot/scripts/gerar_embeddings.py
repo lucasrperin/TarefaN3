@@ -47,7 +47,7 @@ for row in tqdm(rows):
     titulo_formatado = f"Artigo {artigo_id} - {titulo}"
     texto = f"{titulo_formatado} {conteudo}" if conteudo else titulo_formatado
     try:
-        emb = gerar_embedding(texto[:8191])
+        emb = gerar_embedding(texto[:8190])
         embeddings[str(artigo_id)] = {
             "titulo": titulo_formatado,
             "conteudo": str(conteudo) if conteudo else "",

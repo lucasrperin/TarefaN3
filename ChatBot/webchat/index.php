@@ -22,7 +22,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
 
   <!-- Seus CSS locais -->
-  <link rel="stylesheet" href="../../ChatBot/webchat/chatbot.css">
+  <link rel="stylesheet" href="../../Public/chatbot.css">
 
   <!-- Parser Markdown -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
