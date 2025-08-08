@@ -1,39 +1,49 @@
 <?php
-set_time_limit(600); // aumenta limite para cada etapa
+set_time_limit(600);
+
+// 1) Conexão DB
+require_once __DIR__ . '/../../Config/Database.php';  // ajusta o caminho se necessário
+
 $etapa = $_GET['etapa'] ?? '';
 
+// caminhos...
 $baseDir = realpath(__DIR__ . '/../../ChatBot');
 $python  = '"C:\\Users\\LucasP\\AppData\\Local\\Programs\\Python\\Python313\\python.exe"';
-
-$embeddingsPath = "$baseDir/embeddings/embeddings.json";
-$backupDir      = "$baseDir/embeddings/backups";
-$gerarScript    = "$baseDir/scripts/gerar_embeddings.py";
-$uploadScript   = "$baseDir/scripts/upload_embeddings.py";
+$embScript   = "$baseDir/scripts/gerar_embeddings.py";
+$backupDir   = "$baseDir/embeddings/backups";
+$embPath     = "$baseDir/embeddings/embeddings.json";
+$uploadScript= "$baseDir/scripts/upload_embeddings.py";
 
 try {
   switch ($etapa) {
     case 'backup':
       if (!file_exists($backupDir)) mkdir($backupDir, 0777, true);
-      $timestamp = date('Ymd_His');
-      $backupFile = "$backupDir/embeddings_backup_$timestamp.json";
-      if (!copy($embeddingsPath, $backupFile)) {
-        throw new Exception("❌ Falha ao copiar arquivo.");
-      }
+      $ts = date('Ymd_His');
+      copy($embPath, "$backupDir/embeddings_backup_$ts.json") ||
+        throw new Exception("❌ Falha no backup");
       echo "✅ Backup realizado.";
       break;
 
     case 'gerar':
-      $cmd = "$python \"$gerarScript\"";
+      // executa geração
+      $cmd = "$python \"$embScript\"";
       exec($cmd . " 2>&1", $out, $ret);
       if ($ret !== 0) throw new Exception("❌ Erro: " . implode("\n", $out));
+
+      // grava data no banco
+      $now = date('Y-m-d H:i:s');
+      $sql = "INSERT INTO TB_EMBEDDINGS (data_geracao) VALUES ('$now')";
+      $conn->query($sql) ||
+        throw new Exception("❌ Erro ao gravar data de geração");
+
       echo "✅ Embeddings gerados.";
       break;
 
     case 'upload':
       $cmd = "$python \"$uploadScript\"";
-      exec($cmd . " 2>&1", $out, $ret);
-      if ($ret !== 0) throw new Exception("❌ Erro: " . implode("\n", $out));
-      echo "✅ Embeddings enviados.";
+      exec($cmd . " 2>&1", $out2, $ret2);
+      if ($ret2 !== 0) throw new Exception("❌ Erro Upload: " . implode("\n", $out2));
+      echo "✅ Upload realizado.";
       break;
 
     default:

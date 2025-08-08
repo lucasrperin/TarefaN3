@@ -1,8 +1,16 @@
 <?php
 require_once __DIR__ . '/../../Includes/auth.php';
-$usuario_nome = $_SESSION['usuario_nome'] ?? '';
-?>
+require_once __DIR__ . '/../../Config/Database.php';
 
+$usuario_nome = $_SESSION['usuario_nome'] ?? '';
+
+// busca última data de geração
+$res = $conn->query("SELECT MAX(data_geracao) AS ultima FROM TB_EMBEDDINGS");
+$row = $res->fetch_assoc();
+$ultima = $row['ultima']
+    ? date('d/m/Y H:i:s', strtotime($row['ultima']))
+    : 'Nunca';
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -17,9 +25,8 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <!-- Seus CSS locais -->
+  <!-- CSS local -->
   <link rel="stylesheet" href="../../Public/config_bot.css">
-
 </head>
 <body data-theme="">
 
@@ -27,7 +34,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
     <?php include __DIR__ . '/../../components/sidebar_bot.php'; ?>
 
     <div class="w-100 flex-grow-1 d-flex flex-column">
-      <!-- header igual ao das outras telas -->
+      <!-- Header -->
       <div class="header d-flex justify-content-between align-items-center p-3 border-bottom">
         <h3 class="mb-0"><i class="bi bi-gear me-2"></i>Configuração do Chatbot</h3>
         <div class="user-info d-flex align-items-center gap-2">
@@ -41,8 +48,9 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
         </div>
       </div>
 
-      <!-- conteúdo principal -->
-      <div class="page-content">
+      <!-- Conteúdo principal -->
+      <div class="page-content p-4">
+        <p><strong>Última geração de embeddings:</strong> <?= htmlspecialchars($ultima) ?></p>
         <button class="btn btn-primary mb-3" id="btnExecutar">
           <i class="fa fa-bolt me-1"></i> Gerar Novos Embeddings
         </button>
@@ -53,7 +61,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
 
   <!-- Scripts -->
   <script>
-    // Theme toggle
+    // alterna tema
     const themeBtn = document.getElementById('themeBtn');
     themeBtn.onclick = () => {
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -61,9 +69,9 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       themeBtn.innerHTML = isDark ? '<i class="fa fa-moon"></i>' : '<i class="fa fa-sun"></i>';
     };
 
-    // Lógica de execução das etapas
-    const logDiv = document.getElementById('log');
+    // execução das etapas
     const btnExec = document.getElementById('btnExecutar');
+    const logDiv = document.getElementById('log');
 
     btnExec.addEventListener('click', async () => {
       const etapas = ['backup', 'gerar', 'upload'];
@@ -77,8 +85,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
           <div id="${id}">
             ⏳ Executando etapa: ${etapa}...
             <span class="spinner-border spinner-border-sm text-primary ms-1"></span>
-          </div>
-        `;
+          </div>`;
         const resp = await fetch('executar_etapas.php?etapa=' + etapa);
         const txt  = await resp.text();
         const container = document.getElementById(id);
