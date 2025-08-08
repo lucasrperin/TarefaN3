@@ -1,39 +1,75 @@
 import os
 import sys
 import re
+import math
 import unicodedata
-import openai
 import json
-import yt_dlp
 from datetime import datetime
+
+import yt_dlp
 from dotenv import load_dotenv
 from pydub import AudioSegment
+import openai
 
+# ===== Setup básico =====
 load_dotenv()
+
+# Garante stdout/stderr em UTF-8 (útil no Windows)
+try:
+    sys.stdout.reconfigure(encoding='utf-8')  # type: ignore[attr-defined]
+    sys.stderr.reconfigure(encoding='utf-8')  # type: ignore[attr-defined]
+except Exception:
+    pass
+
 openai.api_key = os.getenv("OPENAI_API_KEY")
+if not openai.api_key:
+    print("Erro na transcrição: OPENAI_API_KEY não definida no ambiente.")
+    sys.exit(1)
+
 FFMPEG_PATH = os.getenv("FFMPEG_PATH", None)
 
 # Diretório temporário fixo
 TEMP_DIR = os.path.join(os.path.dirname(__file__), "temp")
 os.makedirs(TEMP_DIR, exist_ok=True)
 if not os.access(TEMP_DIR, os.W_OK):
-    raise Exception(f"Sem permissão de escrita em {TEMP_DIR}")
+    print(f"Erro na transcrição: Sem permissão de escrita em {TEMP_DIR}")
+    sys.exit(1)
 
-def baixar_video(link_url):
+# Se houver FFMPEG_PATH, tenta usar no pydub também
+if FFMPEG_PATH:
+    # Pode ser diretório (contendo ffmpeg/ffmpeg.exe) ou caminho direto para o executável
+    if os.path.isdir(FFMPEG_PATH):
+        ffmpeg_exec = os.path.join(FFMPEG_PATH, "ffmpeg.exe" if os.name == "nt" else "ffmpeg")
+    else:
+        ffmpeg_exec = FFMPEG_PATH
+    if os.path.exists(ffmpeg_exec):
+        AudioSegment.converter = ffmpeg_exec  # pydub usa este binário
+
+# ===== Helpers =====
+class _QuietLogger:
+    def debug(self, msg): pass
+    def warning(self, msg): pass
+    def error(self, msg): print(f"yt_dlp error: {msg}")
+
+def baixar_video(link_url: str) -> str:
+    """Baixa o áudio do link e retorna caminho do mp3."""
     output_template = os.path.join(TEMP_DIR, "video_downloaded.%(ext)s")
     ydl_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': output_template,
-        'quiet': True,
-        'noplaylist': True,
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }]
+        "format": "bestaudio/best",
+        "outtmpl": output_template,
+        "quiet": True,
+        "no_warnings": True,
+        "noprogress": True,
+        "noplaylist": True,
+        "logger": _QuietLogger(),
+        "postprocessors": [{
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+            "preferredquality": "192",
+        }],
     }
     if FFMPEG_PATH:
-        ydl_opts['ffmpeg_location'] = FFMPEG_PATH
+        ydl_opts["ffmpeg_location"] = FFMPEG_PATH
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(link_url, download=True)
@@ -45,45 +81,52 @@ def baixar_video(link_url):
             raise Exception("Arquivo de áudio gerado está vazio ou corrompido.")
         return mp3_path
 
-def transcrever_audio_em_partes(caminho_audio, duracao_maxima=600000):
+def transcrever_audio_em_partes(caminho_audio: str, duracao_maxima_ms: int = 10 * 60 * 1000) -> str:
+    """
+    Corta o áudio em partes de até duracao_maxima_ms (default: 10min) e transcreve via Whisper.
+    """
     audio = AudioSegment.from_file(caminho_audio)
-    partes = len(audio) // duracao_maxima + 1
+    total = len(audio)
+    partes = max(1, math.ceil(total / duracao_maxima_ms))
     transcricao_final = ""
-    print("Dividindo áudio em partes...")
 
     for i in range(partes):
-        inicio = i * duracao_maxima
-        fim = min((i + 1) * duracao_maxima, len(audio))
+        inicio = i * duracao_maxima_ms
+        fim = min((i + 1) * duracao_maxima_ms, total)
         parte = audio[inicio:fim]
         parte_path = os.path.join(TEMP_DIR, f"parte_{i}.mp3")
         parte.export(parte_path, format="mp3")
 
-        with open(parte_path, "rb") as f:
-            transcript = openai.audio.transcriptions.create(
-                model="whisper-1",
-                file=f,
-                response_format="text"
-            )
-            transcricao_final += transcript.strip() + "\n"
-
-        os.remove(parte_path)
+        try:
+            with open(parte_path, "rb") as f:
+                transcript = openai.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=f,
+                    response_format="text",
+                )
+                transcricao_final += (transcript.strip() if isinstance(transcript, str) else str(transcript)).strip() + "\n"
+        finally:
+            try:
+                os.remove(parte_path)
+            except Exception:
+                pass
 
     return transcricao_final.strip()
 
-def gerar_embedding(texto):
+def gerar_embedding(texto: str):
+    # Limita o texto para o tamanho suportado pelo modelo escolhido
     if len(texto) > 8190:
         texto = texto[:8190]
-    response = openai.embeddings.create(
+    resp = openai.embeddings.create(
         input=texto,
-        model="text-embedding-ada-002"
+        model="text-embedding-ada-002"  # mantenho para compatibilidade do seu pipeline
     )
-    return response.data[0].embedding
+    return resp.data[0].embedding
 
 def slugify(nome: str) -> str:
     """
     Translitera acentos para ASCII (á->a, ã->a, ç->c, ó->o, etc.),
-    troca sequências inválidas por '_', colapsa múltiplos '_' e remove
-    pontas com '.', '_' e '-'.
+    mantém apenas [A-Za-z0-9._-], colapsa múltiplos '_' e remove pontas com '.', '_' e '-'.
     """
     nome = unicodedata.normalize('NFKD', nome)
     nome = nome.encode('ascii', 'ignore').decode('ascii')
@@ -93,7 +136,7 @@ def slugify(nome: str) -> str:
     nome = nome.strip('._-')
     return nome or "transcricao"
 
-def salvar_json(titulo, texto, embedding, link):
+def salvar_json(titulo: str, texto: str, embedding, link: str | None) -> str:
     dir_saida = os.path.join(os.path.dirname(__file__), "../embeddings/transcricoes")
     os.makedirs(dir_saida, exist_ok=True)
 
@@ -123,8 +166,8 @@ def main():
     titulo_custom = sys.argv[2].strip() if len(sys.argv) >= 3 and sys.argv[2].strip() else "Transcrição de vídeo"
     source_url = arg if (arg.startswith("http://") or arg.startswith("https://")) else ""
     caminho = None
-    print("Iniciando processamento...")
 
+    print("Iniciando processamento...")
     try:
         if source_url:
             print("Baixando vídeo do link...")
@@ -132,7 +175,7 @@ def main():
         else:
             caminho = arg
             if not os.path.exists(caminho):
-                print("Arquivo de vídeo não encontrado.")
+                print("Erro na transcrição: Arquivo de vídeo não encontrado.")
                 sys.exit(1)
 
         print("Transcrevendo conteúdo...")
@@ -144,16 +187,19 @@ def main():
         print("Salvando transcrição...")
         caminho_saida = salvar_json(titulo_custom, texto, emb, source_url)
 
-        print(f"Concluído com sucesso!\nArquivo gerado: {caminho_saida}")
+        # Linha essencial para o PHP capturar
+        print("Concluído com sucesso!")
+        print(f"Arquivo gerado: {caminho_saida}")
     except Exception as e:
         print(f"Erro na transcrição: {e}")
         sys.exit(1)
     finally:
-        if caminho and os.path.exists(caminho) and "temp" in caminho:
-            try:
+        # Limpeza do arquivo baixado, se veio de link e foi salvo em temp
+        try:
+            if source_url and caminho and os.path.exists(caminho) and os.path.dirname(caminho) == TEMP_DIR:
                 os.remove(caminho)
-            except Exception:
-                pass
+        except Exception:
+            pass
 
 if __name__ == "__main__":
     main()
