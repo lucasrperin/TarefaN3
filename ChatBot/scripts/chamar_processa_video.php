@@ -1,68 +1,148 @@
-<?php 
-set_time_limit(600);
+<?php
+// ChatBot/scripts/chamar_processa_video.php
 header('Content-Type: text/plain; charset=utf-8');
 
-// Carrega variáveis do .env
-$dotenv = __DIR__ . '/../../.env';
-if (file_exists($dotenv)) {
-  foreach (file($dotenv) as $line) {
-    if (strpos(trim($line), '=') !== false) {
-      list($key, $value) = explode('=', trim($line), 2);
-      putenv("$key=$value");
-    }
-  }
+// ===== Carrega DB =====
+$baseDir = dirname(__DIR__, 2); // .../TarefaN3
+$dbFile  = $baseDir . '/Config/Database.php';
+if (!file_exists($dbFile)) {
+  http_response_code(500);
+  echo "❌ Config de banco não encontrada em $dbFile";
+  exit;
 }
+require_once $dbFile; // fornece $conn (mysqli)
 
-// Caminho do Python
-$python = '"C:\Users\Guilherme\AppData\Local\Programs\Python\Python312\python.exe"';
-$script = __DIR__ . '/processa_video.py';
+// ===== Validação básica =====
+$titulo  = isset($_POST['titulo']) ? trim($_POST['titulo']) : '';
+$link    = isset($_POST['link'])   ? trim($_POST['link'])   : '';
+$hasFile = isset($_FILES['video']) && $_FILES['video']['error'] === UPLOAD_ERR_OK;
 
-$videoTmp  = $_FILES['video']['tmp_name'] ?? null;
-$videoName = $_FILES['video']['name'] ?? '';
-$link      = $_POST['link'] ?? '';
-
-if (!$videoTmp && !$link) {
+if ($titulo === '') {
   http_response_code(400);
-  echo "❌ Nenhum vídeo ou link recebido.";
+  echo "❌ Informe o título do treinamento.";
+  exit;
+}
+if ((!$hasFile && $link === '') || ($hasFile && $link !== '')) {
+  http_response_code(400);
+  echo "❌ Envie apenas ARQUIVO OU LINK (um dos dois).";
   exit;
 }
 
-if ($link) {
-  $cmd = "$python \"$script\" \"$link\"";
-} else {
-  $uploadDir = __DIR__ . '/temp_uploads';
-  if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-  $dest = $uploadDir . '/' . basename($videoName);
-  if (!move_uploaded_file($videoTmp, $dest)) {
+// ===== Determina origem =====
+$origem = $hasFile ? 'upload' : 'url';
+
+// ===== Monta entrada (arquivo local ou link) =====
+$entrada = '';
+$tmpToDelete = null;
+
+if ($hasFile) {
+  $origName = $_FILES['video']['name'];
+  $tmpPath  = $_FILES['video']['tmp_name'];
+
+  $destDir = __DIR__ . '/temp_uploads';
+  if (!is_dir($destDir)) @mkdir($destDir, 0777, true);
+  if (!is_writable($destDir)) {
     http_response_code(500);
-    echo "❌ Falha ao salvar vídeo enviado.";
+    echo "❌ Sem permissão para escrever em: $destDir";
     exit;
   }
-  $cmd = "$python \"$script\" \"$dest\"";
-}
 
-// Executa o script Python
-exec($cmd . " 2>&1", $output, $ret);
-
-// Exibe saída
-if ($ret !== 0) {
-  http_response_code(500);
-  echo "❌ Erro ao processar vídeo:\n";
-  echo implode("\n", $output);
-  echo "\n\nComando executado: $cmd\n";
+  $safeName = preg_replace('/[^A-Za-z0-9._-]+/', '_', $origName);
+  $destPath = $destDir . DIRECTORY_SEPARATOR . (uniqid('vid_') . '_' . $safeName);
+  if (!move_uploaded_file($tmpPath, $destPath)) {
+    http_response_code(500);
+    echo "❌ Falha ao salvar o arquivo enviado.";
+    exit;
+  }
+  $entrada = $destPath;
+  $tmpToDelete = $destPath;
 } else {
-  echo implode("\n", $output);
+  $entrada = $link;
 }
 
-// Apaga vídeo enviado (se for upload)
-if (isset($dest) && file_exists($dest)) {
-  unlink($dest);
+// ===== Abre registro no histórico (PROCESSANDO) =====
+$now = date('Y-m-d H:i:s');
+$stmt = $conn->prepare("
+  INSERT INTO TB_TREINAMENTOS_BOT (titulo, origem, link, status, data_inicio)
+  VALUES (?, ?, ?, 'PROCESSANDO', ?)
+");
+$stmt->bind_param('ssss', $titulo, $origem, $link, $now);
+if (!$stmt->execute()) {
+  http_response_code(500);
+  echo "❌ Erro ao inserir histórico: " . $stmt->error;
+  exit;
+}
+$treinoId = $stmt->insert_id;
+$stmt->close();
+
+// ===== Executa Python =====
+$python = stripos(PHP_OS_FAMILY, 'Windows') !== false ? 'python' : 'python3';
+$script = __DIR__ . DIRECTORY_SEPARATOR . 'processa_video.py';
+
+if (!file_exists($script)) {
+  // marca erro no histórico
+  $err = "Script não encontrado: $script";
+  $stmt = $conn->prepare("UPDATE TB_TREINAMENTOS_BOT SET status='ERRO', data_fim=NOW(), log=? WHERE id=?");
+  $stmt->bind_param('si', $err, $treinoId);
+  $stmt->execute(); $stmt->close();
+
+  http_response_code(500);
+  echo "❌ $err";
+  exit;
 }
 
-// Limpa arquivos temporários da pasta scripts/temp
-$tempDir = __DIR__ . "/temp";
-if (is_dir($tempDir)) {
-  foreach (glob($tempDir . "/*") as $file) {
-    if (is_file($file)) unlink($file);
+$cmd = $python . ' ' .
+       escapeshellarg($script) . ' ' .
+       escapeshellarg($entrada) . ' ' .
+       escapeshellarg($titulo) . ' 2>&1';
+
+exec($cmd, $outputLines, $ret);
+$fullOut = implode("\n", $outputLines);
+
+// limpeza do arquivo temporário (se houver)
+if ($tmpToDelete && file_exists($tmpToDelete)) {
+  @unlink($tmpToDelete);
+}
+
+// ===== Parse do caminho do JSON gerado (se sucesso) =====
+$arquivoFs = null;
+if ($ret === 0) {
+  if (preg_match('/Arquivo gerado:\s*(.+)\s*$/mi', $fullOut, $m)) {
+    $arquivoFs = trim($m[1]);
   }
 }
+
+// Mapeia caminho FS -> URL pública (supõe estrutura /TarefaN3/ChatBot/embeddings/transcricoes/<nome>.json)
+$arquivoUrl = null;
+if ($arquivoFs && file_exists($arquivoFs)) {
+  $nome = basename($arquivoFs);
+  $arquivoUrl = '/TarefaN3/ChatBot/embeddings/transcricoes/' . $nome;
+}
+
+// ===== Atualiza histórico =====
+if ($ret !== 0) {
+  $status = 'ERRO';
+} else {
+  $status = 'CONCLUIDO';
+}
+$stmt = $conn->prepare("
+  UPDATE TB_TREINAMENTOS_BOT
+     SET status = ?,
+         arquivo_json = ?,
+         data_fim = NOW(),
+         log = ?
+   WHERE id = ?
+");
+$stmt->bind_param('sssi', $status, $arquivoUrl, $fullOut, $treinoId);
+$stmt->execute(); $stmt->close();
+
+// ===== Retorno HTTP =====
+if ($ret !== 0) {
+  http_response_code(500);
+  echo "❌ Erro ao processar o vídeo/link (ID #$treinoId).\n\n$fullOut";
+  exit;
+}
+
+$okMsg = "✅ Treinamento #$treinoId concluído.\n";
+if ($arquivoUrl) $okMsg .= "JSON: " . $arquivoUrl . "\n";
+echo $okMsg . $fullOut;
