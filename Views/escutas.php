@@ -42,7 +42,7 @@ $sqlAnalistas = "
     JOIN TB_EQUIPE_NIVEL_ANALISTA ena ON u.id = ena.idUsuario
 JOIN TB_NIVEL n ON ena.idNivel = n.id
     WHERE (u.cargo = 'User' AND (n.descricao = 'Nível 1' OR n.descricao = 'Exclusivo'))
-  AND u.id NOT IN (12,13,14,31,33,37)
+  AND u.id NOT IN (12,13,14,21,24,27,31,33,37)
       $dataFilterCondition
     ORDER BY u.nome
 ";
@@ -63,7 +63,7 @@ $sqlUsers = "
     JOIN TB_EQUIPE_NIVEL_ANALISTA ena ON u.id = ena.idUsuario
     JOIN TB_NIVEL n ON ena.idNivel = n.id
     WHERE (u.cargo = 'User' AND (n.descricao = 'Nível 1' OR n.descricao = 'Exclusivo'))
-  AND u.id NOT IN (12,13,14,31,33,37)
+  AND u.id NOT IN (12,13,14,21,24,27,31,33,37)
     ORDER BY u.nome
 ";
 $resUsers = $conn->query($sqlUsers);
@@ -88,7 +88,7 @@ $sqlUsersCad = "
       ON e.user_id = u.id
       AND ($dataCondition)
     WHERE (u.cargo = 'User' AND (n.descricao = 'Nível 1' OR n.descricao = 'Exclusivo'))
-  AND u.id NOT IN (12,13,14,31,33,37)
+  AND u.id NOT IN (12,13,14,21,24,27,31,33,37)
     GROUP BY u.id
     HAVING faltantes > 0
     ORDER BY u.nome
@@ -126,7 +126,7 @@ LEFT JOIN TB_ESCUTAS e
   AND ($dataCondition)
 WHERE
   (u.cargo = 'User' AND (n.descricao = 'Nível 1' OR n.descricao = 'Exclusivo'))
-  AND u.id NOT IN (12,13,14,31,33,37)
+  AND u.id NOT IN (12,13,14,21,24,27,31,33,37)
 GROUP BY u.id, u.nome
 ORDER BY u.nome";
 $resFaltantes = $conn->query($sqlEscutasFaltantes);
@@ -153,7 +153,7 @@ WHERE
           u_analista.cargo = 'User' 
           AND (n.descricao = 'Nível 1' OR n.descricao = 'Exclusivo')
         )
-    AND u_analista.id NOT IN (12,13,14,31,33,37)
+    AND u_analista.id NOT IN (12,13,14,21,24,27,31,33,37)
     $dataFilterCondition
 GROUP BY u.id, u.nome
 ORDER BY u.nome
@@ -178,7 +178,7 @@ JOIN TB_NIVEL n ON ena.idNivel = n.id
 WHERE (
         (u.cargo = 'User' AND (n.descricao = 'Nível 1' OR n.descricao = 'Exclusivo'))
       )
-  AND u.id NOT IN (12,13,14,31,33,37)
+  AND u.id NOT IN (12,13,14,21,24,27,31,33,37)
   $dataFilterCondition
 ";
 $resTotal = $conn->query($sqlTotalEscutas);
