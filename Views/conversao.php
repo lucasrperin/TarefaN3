@@ -554,7 +554,7 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
                                 "ClippMEI"   => "ClippMei.png",
                                 "ClippFacil" => "ClippFacil.png",
                                 "Clipp360"   => "Clipp360.png",
-                                "ZetaWeb"    => "ZWeb.png",
+                                "ZWeb"    => "ZWeb.png",
                               ];
                               if (isset($imageMap[$systemName])) {
                                 $imageFilename = $imageMap[$systemName];
@@ -695,7 +695,7 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
           "Small"        => "Small.png",
           "Gdoor"        => "Gdoor.png",
           "Conc"         => "Concorrente.png",
-          "ZetaWeb"      => "ZWeb.png"
+          "ZWeb"         => "ZWeb.png"
       ];
       
       // Determina o arquivo da imagem para o sistema de origem
@@ -826,7 +826,7 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
           "Small"        => "Small.png",
           "Gdoor"        => "Gdoor.png",
           "Conc"         => "Concorrente.png",
-          "ZetaWeb"      => "ZWeb.png"
+          "ZWeb"         => "ZWeb.png"
       ];
       
       // Logo para o sistema de origem
@@ -964,7 +964,7 @@ $resultado_usuarios_dropdown = $conn->query("SELECT * FROM TB_ANALISTA_CONVER an
           "Small"        => "Small.png",
           "Gdoor"        => "Gdoor.png",
           "Conc"         => "Concorrente.png",
-          "ZetaWeb"      => "ZWeb.png"
+          "ZWeb"         => "ZWeb.png"
       ];
       
       if (isset($imageMap[$originSystem])) {

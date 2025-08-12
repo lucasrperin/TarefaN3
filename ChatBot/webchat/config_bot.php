@@ -4,12 +4,19 @@ require_once __DIR__ . '/../../Config/Database.php';
 
 $usuario_nome = $_SESSION['usuario_nome'] ?? '';
 
-// busca última data de geração
-$res = $conn->query("SELECT MAX(data_geracao) AS ultima FROM TB_EMBEDDINGS");
+// busca última data de geração dos artigos
+$res = $conn->query("SELECT MAX(data_geracao) AS ultima FROM TB_EMBEDDINGS where tipo = 'artigos'");
 $row = $res->fetch_assoc();
 $ultima = $row['ultima']
     ? date('d/m/Y H:i:s', strtotime($row['ultima']))
     : 'Nunca';
+
+// busca última data de geração
+$resvideo = $conn->query("SELECT MAX(data_geracao) AS ultima FROM TB_EMBEDDINGS where tipo = 'video'");
+$rowvideo = $resvideo->fetch_assoc();
+$ultimavideo = $rowvideo['ultima']
+    ? date('d/m/Y H:i:s', strtotime($rowvideo['ultima']))
+    : 'Nunca';    
 
 // busca histórico (últimos 50)
 $hist = $conn->query("
@@ -72,6 +79,28 @@ if (isset($_SERVER['HTTP_X_PARTIAL']) && $_SERVER['HTTP_X_PARTIAL'] === 'log') {
   echo $log;
   exit;
 }
+
+// === Helpers para converter caminho de arquivo em URL pública
+function fs_to_url(string $abs): string {
+  $doc = realpath($_SERVER['DOCUMENT_ROOT'] ?? '');
+  $abs = realpath($abs);
+  if (!$doc || !$abs) return '';
+  $doc = rtrim(str_replace('\\','/',$doc),'/');
+  $abs = str_replace('\\','/',$abs);
+  if (strpos($abs,$doc) !== 0) return '';
+  $rel = substr($abs, strlen($doc));
+  return $rel === '' ? '/' : ($rel[0] === '/' ? $rel : '/'.$rel);
+}
+
+// Caminhos absolutos no filesystem
+$execEtapasFs = realpath(__DIR__ . '/../../ChatBot/webchat/executar_etapas.php');
+$chamarProcFs = realpath(__DIR__ . '/../../ChatBot/scripts/video/chamar_processa_video.php');
+
+// Converte FS -> URL pública (a partir do DOCUMENT_ROOT)
+$execEtapasUrl  = fs_to_url($execEtapasFs);
+$chamarProcUrl  = fs_to_url($chamarProcFs);
+
+
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -88,105 +117,12 @@ if (isset($_SERVER['HTTP_X_PARTIAL']) && $_SERVER['HTTP_X_PARTIAL'] === 'log') {
   <!-- CSS local -->
   <link rel="stylesheet" href="../../Public/config_bot.css">
 
-  <!-- Tema novo (sem alterar header/menu) -->
-  <style>
-    :root{
-      --bg-grad: radial-gradient(1200px 600px at 0% 0%, #eef2ff, transparent 60%),
-                 radial-gradient(1000px 500px at 100% 0%, #ecfeff, transparent 55%);
-      --card-bg: #fff;
-      --card-bd: rgba(0,0,0,.06);
-      --shadow: 0 10px 25px rgba(0,0,0,.08);
-      --text-soft: #6b7280;
-      --accent: #4f46e5;
-    }
-    [data-theme="dark"]{
-      --bg-grad: radial-gradient(1200px 600px at 0% 0%, #111827, transparent 60%),
-                 radial-gradient(1000px 500px at 100% 0%, #0b1220, transparent 55%);
-      --card-bg: #0f172a;
-      --card-bd: rgba(255,255,255,.06);
-      --shadow: 0 8px 22px rgba(0,0,0,.55);
-      --text-soft: #9ca3af;
-      --accent: #60a5fa;
-    }
-    body{
-      background:
-        var(--bg-grad),
-        linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.03) 100%);
-      min-height: 100vh;
-    }
-    .section{
-      background: var(--card-bg);
-      border: 1px solid var(--card-bd);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 1.25rem;
-    }
-    .section-title{
-      display:flex; align-items:center; gap:.6rem; margin-bottom:1rem;
-      font-weight: 700;
-    }
-    .section-title .ico{
-      width:36px;height:36px;border-radius:10px;
-      display:grid; place-items:center;
-      background: rgba(79,70,229,.12); color: var(--accent);
-    }
-    .split{
-      display:grid; grid-template-columns: 1fr; gap:1rem;
-    }
-    @media (min-width: 992px){
-      .split{ grid-template-columns: 1fr 1fr; }
-    }
-    .stat{
-      display:flex; align-items:center; justify-content:space-between; gap:1rem;
-      background: linear-gradient(135deg, rgba(79,70,229,.08), rgba(14,165,233,.07));
-      border:1px dashed rgba(79,70,229,.25);
-      padding: .9rem 1rem; border-radius: 14px;
-    }
-    .btn-pill{ border-radius: 999px; }
-    .dropzone{
-      border:1.5px dashed rgba(0,0,0,.25);
-      border-radius:14px;
-      padding:1rem;
-      display:flex; align-items:center; justify-content:center; gap:.75rem;
-      color: var(--text-soft);
-      transition:.15s ease;
-      background: rgba(0,0,0,.02);
-      cursor: pointer;
-      text-align:center;
-    }
-    [data-theme="dark"] .dropzone{ background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.15); }
-    .dropzone.is-dragover{ border-color: var(--accent); background: rgba(79,70,229,.08); color:#111; }
-    .subtle{ color: var(--text-soft); font-size:.925rem; }
-    .chip{
-      display:inline-flex; align-items:center; gap:.5rem;
-      background: rgba(79,70,229,.12); color: var(--accent);
-      border:1px solid rgba(79,70,229,.22); border-radius:999px;
-      padding:.25rem .65rem; font-weight:600;
-    }
-    /* Tabela moderna */
-    .table-modern thead th{
-      position:sticky; top:0; z-index:1; background:rgba(0,0,0,.04); backdrop-filter:saturate(140%) blur(2px);
-    }
-    [data-theme="dark"] .table-modern thead th{ background:rgba(255,255,255,.06); }
-    .row-hover:hover{ background: rgba(79,70,229,.06); }
-    .badge{ border-radius: 999px; font-weight:600; }
-    .badge-success{ background: rgba(16,185,129,.2); color:#065f46; border:1px solid rgba(16,185,129,.35); }
-    .badge-danger{ background: rgba(239,68,68,.2); color:#7f1d1d; border:1px solid rgba(239,68,68,.35); }
-    .badge-warning{ background: rgba(245,158,11,.2); color:#7c2d12; border:1px solid rgba(245,158,11,.35); }
-    .badge-soft-info{ background: rgba(59,130,246,.14); color:#1e3a8a; border:1px solid rgba(59,130,246,.28); }
-    .badge-soft-secondary{ background: rgba(107,114,128,.18); color:#111827; border:1px solid rgba(107,114,128,.28); }
-    .link-muted{ text-decoration: none; }
-    .link-muted:hover{ text-decoration: underline; }
-    /* Overlay forte */
-    body.loading { overflow: hidden; }
-    #busyOverlay{
-      position: fixed; inset: 0; display:none; align-items:center; justify-content:center;
-      background: rgba(0,0,0,.5); z-index: 2147483647;
-    }
-    #busyOverlay.show{ display:flex; }
-  </style>
 </head>
-<body data-theme="">
+<body
+  data-upload-video-emb="<?= htmlspecialchars($execEtapasUrl, ENT_QUOTES, 'UTF-8') ?>"
+  data-chamar-processa-video="<?= htmlspecialchars($chamarProcUrl, ENT_QUOTES, 'UTF-8') ?>"
+  data-theme=""
+>
 
 <div class="d-flex-wrapper">
   <?php include __DIR__ . '/../../components/sidebar_bot.php'; ?>
@@ -208,23 +144,37 @@ if (isset($_SERVER['HTTP_X_PARTIAL']) && $_SERVER['HTTP_X_PARTIAL'] === 'log') {
 
     <!-- Conteúdo principal (novo layout) -->
     <div class="page-content p-4">
-
-      <div class="section mb-4">
-        <div class="section-title">
-          <div class="ico"><i class="fa fa-database"></i></div>
-          <div>Embeddings</div>
+        <div class="section mb-4">
+            <div class="section-title">
+                <div class="ico"><i class="fa fa-database"></i></div>
+                <div>Embeddings Artigos</div>
+            </div>
+            <div class="stat mb-3">
+                <div>
+                    <div class="subtle">Última geração de embeddings</div>
+                    <div class="fs-5 fw-bold"><?= htmlspecialchars($ultima) ?></div>
+                </div>
+                <button class="btn btn-primary btn-pill" id="btnExecutar">
+                    <i class="fa fa-bolt me-1"></i> Gerar Novos Embeddings
+                </button>
+            </div>
+            <div id="log" class="log-box" style="display:none;"></div>
+            <div class="section-title">
+                <div class="ico"><i class="fa fa-database"></i></div>
+                <div>Embeddings Vídeos</div>
+            </div>
+            <div class="stat mb-3">
+                <div>
+                    <div class="subtle">Última geração de embeddings</div>
+                    <div class="fs-5 fw-bold" id="ultimaVideoText"><?= htmlspecialchars($ultimavideo) ?></div>
+                </div>
+                <button type="button" class="btn btn-primary btn-pill" id="btnUploadVideos" title="Publica os embeddings das transcrições no Supabase">
+                    <i class="fa fa-cloud-arrow-up me-1"></i> Publicar Embeddings
+                </button>
+                <div id="uploadVideosStatus" class="alert alert-success py-2 px-3 mt-2 d-none"></div>
+            </div>
+            <div id="logVideos" class="log-box" style="display:none;"></div>
         </div>
-        <div class="stat mb-3">
-          <div>
-            <div class="subtle">Última geração de embeddings</div>
-            <div class="fs-5 fw-bold"><?= htmlspecialchars($ultima) ?></div>
-          </div>
-          <button class="btn btn-primary btn-pill" id="btnExecutar">
-            <i class="fa fa-bolt me-1"></i> Gerar Novos Embeddings
-          </button>
-        </div>
-        <div id="log" class="log-box" style="display:none;"></div>
-      </div>
 
       <div class="split mb-4">
         <div class="section">
@@ -236,7 +186,7 @@ if (isset($_SERVER['HTTP_X_PARTIAL']) && $_SERVER['HTTP_X_PARTIAL'] === 'log') {
           <form id="formTreinamento" enctype="multipart/form-data">
             <div class="mb-3">
               <label for="videoTitle" class="form-label">Título do treinamento</label>
-              <input class="form-control" type="text" name="titulo" id="videoTitle" maxlength="180" placeholder="Ex.: NT GO - DIFAL 2025-08-08" required>
+              <input class="form-control" type="text" name="titulo" id="videoTitle" maxlength="180" placeholder="Escreva aqui..." required>
               <div class="form-text">Será salvo dentro do JSON e também como nome do arquivo.</div>
             </div>
 
@@ -249,17 +199,18 @@ if (isset($_SERVER['HTTP_X_PARTIAL']) && $_SERVER['HTTP_X_PARTIAL'] === 'log') {
             </div>
 
             <div class="mb-3">
-              <label for="videoLink" class="form-label">Ou informe um link de vídeo</label>
-              <input class="form-control" type="url" name="link" id="videoLink" placeholder="https://...">
+                <label for="videoLink" class="form-label">Informe o link de vídeo</label>
+                <input class="form-control" type="url" name="link" id="videoLink" placeholder="https://...">
             </div>
 
             <div class="d-flex align-items-center gap-3">
-              <button type="submit" class="btn btn-success btn-pill">
-                <span class="me-1"><i class="fa fa-brain"></i></span> Transcrever e Treinar
-              </button>
-              <span id="liveHint" class="chip d-none">
-                <span class="spinner-border spinner-border-sm"></span> Processando…
-              </span>
+                <button type="submit" class="btn btn-success btn-pill">
+                    <span class="me-1"><i class="fa fa-brain"></i></span> Transcrever e Treinar
+                </button>
+                <span id="liveHint" class="chip d-none">
+                    <span class="spinner-border spinner-border-sm"></span> Processando…
+                </span>
+                
             </div>
 
             <!-- Barra de progresso -->
@@ -385,217 +336,12 @@ if (isset($_SERVER['HTTP_X_PARTIAL']) && $_SERVER['HTTP_X_PARTIAL'] === 'log') {
 <div id="busyOverlay">
   <div style="text-align:center;color:#fff">
     <div class="spinner-border" role="status" aria-hidden="true"></div>
-    <div style="margin-top:.75rem;font-weight:600">Processando o vídeo… isso pode levar alguns minutos</div>
+    <div style="margin-top:.75rem;font-weight:600">Processando… isso pode levar alguns minutos</div>
   </div>
 </div>
-
-<!-- Bootstrap bundle antes do nosso script -->
+<!-- Bootstrap bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../ChatBot/webchat/js/config_bot.js?v=<?= @filemtime(__DIR__ . '/../../ChatBot/webchat/js/config_bot.js') ?: time() ?>" defer></script>
 
-<!-- Script -->
-<script>
-  // Theme toggle
-  const themeBtn = document.getElementById('themeBtn');
-  themeBtn.onclick = () => {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    document.documentElement.setAttribute('data-theme', isDark ? '' : 'dark');
-    themeBtn.innerHTML = isDark ? '<i class="fa fa-moon"></i>' : '<i class="fa fa-sun"></i>';
-  };
-
-  // Toast helper
-  let toastEl = document.getElementById('appToast');
-  let toast = new bootstrap.Toast(toastEl, { delay: 3000 });
-  function showToast(message, variant='success') {
-    toastEl.className = 'toast align-items-center border-0 text-bg-' + (variant === 'error' ? 'danger' : (variant === 'warn' ? 'warning' : 'success'));
-    document.getElementById('toastMsg').textContent = message;
-    toast.show();
-  }
-
-  // Execução das etapas (embeddings tradicionais)
-  const logDiv = document.getElementById('log');
-  const btnExec = document.getElementById('btnExecutar');
-  btnExec.addEventListener('click', async () => {
-    const etapas = ['backup', 'gerar', 'upload'];
-    logDiv.innerHTML = '';
-    logDiv.style.display = 'block';
-    btnExec.disabled = true;
-
-    for (const etapa of etapas) {
-      const id = 'etapa-' + etapa;
-      logDiv.innerHTML += `
-        <div id="${id}">
-          ⏳ Executando etapa: ${etapa}...
-          <span class="spinner-border spinner-border-sm text-primary ms-1"></span>
-        </div>
-      `;
-      const resp = await fetch('executar_etapas.php?etapa=' + encodeURIComponent(etapa));
-      const txt  = await resp.text();
-      const container = document.getElementById(id);
-
-      if (!resp.ok || txt.startsWith('❌')) {
-        container.innerHTML = `<span style="color:red;">${txt}</span> 🛑`;
-        btnExec.disabled = false;
-        return;
-      }
-      container.innerHTML = `<span style="color:green;">${txt}</span>`;
-    }
-
-    logDiv.innerHTML += "<b style='color:green;'>✅ Processo finalizado com sucesso.</b>";
-    btnExec.disabled = false;
-  });
-
-  // Dropzone (arraste e solte)
-  const dz = document.getElementById('dropzone');
-  const fileInput = document.getElementById('videoFile');
-  dz.addEventListener('click', () => fileInput.click());
-  ;['dragenter','dragover'].forEach(evt => dz.addEventListener(evt, e => {
-    e.preventDefault(); e.stopPropagation(); dz.classList.add('is-dragover');
-  }));
-  ;['dragleave','drop'].forEach(evt => dz.addEventListener(evt, e => {
-    e.preventDefault(); e.stopPropagation(); dz.classList.remove('is-dragover');
-  }));
-  dz.addEventListener('drop', e => {
-    const f = e.dataTransfer.files && e.dataTransfer.files[0];
-    if (f) {
-      fileInput.files = e.dataTransfer.files; // aceita múltiplos, usaremos o primeiro
-      dz.querySelector('span').innerHTML = `<strong>Arquivo selecionado:</strong> ${f.name}`;
-    }
-  });
-  fileInput.addEventListener('change', e => {
-    const f = e.target.files && e.target.files[0];
-    if (f) dz.querySelector('span').innerHTML = `<strong>Arquivo selecionado:</strong> ${f.name}`;
-  });
-
-  // Treinamento com barra de progresso + overlay (interpreta JSON)
-  document.getElementById('formTreinamento').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    const logTreino = document.getElementById('logTreinamento');
-    const progressContainer = document.getElementById('progressBarContainer');
-    const progressBar = document.getElementById('uploadProgressBar');
-    const button = e.target.querySelector('button[type="submit"]');
-    const originalText = button.innerHTML;
-    const overlay = document.getElementById('busyOverlay');
-    const liveHint = document.getElementById('liveHint');
-
-    const file  = document.getElementById('videoFile').files[0];
-    const link  = document.getElementById('videoLink').value.trim();
-    const title = document.getElementById('videoTitle').value.trim();
-
-    if (!title) { alert('Informe um título para o treinamento.'); return; }
-    if (!file && !link) { alert('Envie um arquivo ou informe um link.'); return; }
-    if (file && link) { alert('Informe apenas arquivo OU link.'); return; }
-
-    const formData = new FormData();
-    formData.append('titulo', title);
-    if (file) formData.append('video', file);
-    if (link) formData.append('link', link);
-
-    // Visual: overlay + barra para upload
-    document.body.classList.add('loading');
-    overlay.classList.add('show');
-
-    logTreino.innerHTML = '';
-    logTreino.style.display = 'none';
-    progressBar.style.width = file ? '0%' : '100%';
-    progressBar.className = 'progress-bar bg-primary' + (file ? '' : ' progress-bar-striped progress-bar-animated');
-    progressContainer.style.display = 'block';
-
-    button.disabled = true;
-    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Enviando...';
-
-    const xhr = new XMLHttpRequest();
-    xhr.timeout = 30 * 60 * 1000; // 30 minutos
-
-    xhr.upload.onprogress = function (e) {
-      if (e.lengthComputable && file) {
-        const percent = Math.round((e.loaded / e.total) * 100);
-        progressBar.style.width = percent + '%';
-      }
-    };
-
-    function endUIReset(){
-      document.body.classList.remove('loading');
-      overlay.classList.remove('show');
-      progressContainer.style.display = 'none';
-      button.disabled = false;
-      button.innerHTML = originalText;
-      liveHint.classList.add('d-none');
-    }
-
-    xhr.onload = function () {
-      endUIReset();
-
-      let respJson = null;
-      try { respJson = JSON.parse(xhr.responseText); } catch(e){}
-
-      if (xhr.status === 200 && respJson && respJson.ok) {
-        showToast(respJson.message || 'Treinado com sucesso!', 'success');
-      } else {
-        const msg = (respJson && respJson.message) ? respJson.message : 'Erro ao processar o vídeo.';
-        showToast(msg, 'error');
-        if (respJson && respJson.id) {
-          openLogModal(respJson.id);
-        }
-      }
-      reloadHistorico();
-    };
-
-    xhr.onerror = function () {
-      endUIReset();
-      showToast('Erro de rede ao enviar o vídeo.', 'error');
-      reloadHistorico();
-    };
-
-    xhr.ontimeout = function () {
-      endUIReset();
-      showToast('Tempo excedido. O processamento pode ter continuado no servidor — verifique o histórico.', 'warn');
-      reloadHistorico();
-    };
-
-    xhr.open('POST', '/TarefaN3/ChatBot/scripts/chamar_processa_video.php', true);
-    xhr.send(formData);
-  });
-
-  // Botão atualizar histórico
-  document.getElementById('btnReloadHist').addEventListener('click', reloadHistorico);
-
-  async function reloadHistorico() {
-    try {
-      const resp = await fetch(location.href, { headers: { 'X-Partial': 'historico' }});
-      const html = await resp.text();
-      const tmp = document.createElement('div');
-      tmp.innerHTML = html;
-      const tbody = tmp.querySelector('#histBody');
-      if (tbody) {
-        document.querySelector('#histBody').replaceWith(tbody);
-      } else {
-        location.reload();
-      }
-    } catch {
-      location.reload();
-    }
-  }
-
-  // Ver log (delegação)
-  document.addEventListener('click', function(e){
-    const btn = e.target.closest('.btn-log');
-    if (!btn) return;
-    const id = btn.getAttribute('data-id');
-    if (id) openLogModal(id);
-  });
-
-  async function openLogModal(id) {
-    try {
-      const resp = await fetch(location.href + '?id=' + encodeURIComponent(id), { headers: { 'X-Partial': 'log' }});
-      const txt = await resp.text();
-      document.getElementById('logContent').textContent = txt || '(log vazio)';
-      const modal = new bootstrap.Modal(document.getElementById('logModal'));
-      modal.show();
-    } catch (e) {
-      showToast('Não foi possível carregar o log.', 'error');
-    }
-  }
-</script>
 </body>
 </html>
