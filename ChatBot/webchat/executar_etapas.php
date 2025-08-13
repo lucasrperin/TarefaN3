@@ -9,14 +9,13 @@ ignore_user_abort(true);
 header('Content-Type: text/plain; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
-
 $etapa = $_GET['etapa'] ?? '';
 
 // caminhos base
 $chatbotDir = realpath(__DIR__ . '/..'); // .../ChatBot
 $baseDir    = $chatbotDir;               // manter compatibilidade
 
-// Python do venv (se você usa .venv em ChatBot/)
+// Detecta Python do venv (se você usa .venv em ChatBot/)
 $venvPyWin = $chatbotDir . DIRECTORY_SEPARATOR . '.venv' . DIRECTORY_SEPARATOR . 'Scripts' . DIRECTORY_SEPARATOR . 'python.exe';
 $venvPyNix = $chatbotDir . DIRECTORY_SEPARATOR . '.venv' . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'python';
 if (file_exists($venvPyWin)) {
@@ -28,26 +27,31 @@ if (file_exists($venvPyWin)) {
 }
 putenv('PYTHONIOENCODING=utf-8');
 
-// caminhos dos scripts/arquivos
-$embScript          = $chatbotDir . '/scripts/gerar_embeddings.py';
-$backupDir          = $chatbotDir . '/embeddings/backups';
-$embPath            = $chatbotDir . '/embeddings/embeddings.json';
-$uploadScript       = $chatbotDir . '/scripts/upload_embeddings.py';
+// caminhos dos scripts/arquivos (ARTIGOS)
+$embScript     = $chatbotDir . '/scripts/gerar_embeddings.py';
+$backupDir     = $chatbotDir . '/embeddings/backups';
+$embPath       = $chatbotDir . '/embeddings/embeddings.json';
+$uploadScript  = $chatbotDir . '/scripts/upload_embeddings.py';
 
-// *** vídeos ***
+// *** VÍDEOS ***
 $transDir           = $chatbotDir . '/embeddings/transcricoes';
 $backupVideoDir     = $transDir . '/backup';
 $backupZipPath      = $backupVideoDir . '/transcricoes_backup_' . date('Ymd_His') . '.zip';
 $uploadVideoScript  = $chatbotDir . '/scripts/video/upload_embeddings_video.py';
 
+// *** WEBSITES ***
+$sitesDir           = $chatbotDir . '/embeddings/sites';
+$backupSitesDir     = $sitesDir . '/backup';
+$backupSitesZipPath = $backupSitesDir . '/sites_backup_' . date('Ymd_His') . '.zip';
+$uploadSiteScript   = $chatbotDir . '/scripts/website/upload_embeddings_site.py';
 
-// helper p/ zipar JSONs das transcrições (ignora a própria pasta backup)
+// helper p/ zipar somente arquivos JSON (ignora subpasta "backup")
 function zipTranscricoesJson(string $srcDir, string $destZip, string $excludeDirName = 'backup'): int {
   if (!class_exists('ZipArchive')) {
     throw new Exception("❌ Extensão ZipArchive não habilitada no PHP.");
   }
   if (!is_dir($srcDir)) {
-    throw new Exception("❌ Pasta de transcrições não encontrada: $srcDir");
+    throw new Exception("❌ Pasta não encontrada: $srcDir");
   }
 
   $zip = new ZipArchive();
@@ -91,6 +95,7 @@ function zipTranscricoesJson(string $srcDir, string $destZip, string $excludeDir
 
 try {
   switch ($etapa) {
+    // ========= ARTIGOS =========
     case 'backup':
       if (!file_exists($backupDir)) mkdir($backupDir, 0777, true);
       $ts = date('Ymd_His');
@@ -101,7 +106,7 @@ try {
 
     case 'gerar':
       // executa geração
-      $cmd = "$python \"$embScript\"";
+      $cmd = "$python " . escapeshellarg($embScript);
       exec($cmd . " 2>&1", $out, $ret);
       if ($ret !== 0) throw new Exception("❌ Erro: " . implode("\n", $out));
 
@@ -118,7 +123,7 @@ try {
       break;
 
     case 'upload':
-      $cmd = "$python \"$uploadScript\"";
+      $cmd = "$python " . escapeshellarg($uploadScript);
       exec($cmd . " 2>&1", $out2, $ret2);
       if ($ret2 !== 0) throw new Exception("❌ Erro Upload: " . implode("\n", $out2));
 
@@ -134,6 +139,7 @@ try {
       echo "✅ Upload realizado (artigos).";
       break;
 
+    // ========= VÍDEOS =========
     case 'backup_videos':
       if (!is_dir($transDir)) {
         throw new Exception("❌ Pasta de transcrições não encontrada: $transDir");
@@ -147,12 +153,11 @@ try {
       echo "✅ Backup de vídeos concluído: " . basename($zipPath) . " ({$qtde} JSON).";
       break;
 
-
     case 'upload_video':
       if (!file_exists($uploadVideoScript)) {
         throw new Exception("❌ Script não encontrado: $uploadVideoScript");
       }
-      $cmd = "$python \"$uploadVideoScript\"";
+      $cmd = "$python " . escapeshellarg($uploadVideoScript);
       exec($cmd . " 2>&1", $out3, $ret3);
       if ($ret3 !== 0) throw new Exception("❌ Erro Upload Vídeos: " . implode("\n", $out3));
 
@@ -166,6 +171,38 @@ try {
       $stmt->close();
 
       echo "✅ Upload realizado (vídeos).";
+      break;
+
+    // ========= WEBSITES =========
+    case 'backup_sites':
+      if (!is_dir($sitesDir)) {
+        throw new Exception("❌ Pasta de sites não encontrada: $sitesDir");
+      }
+      if (!is_dir($backupSitesDir) && !mkdir($backupSitesDir, 0777, true)) {
+        throw new Exception("❌ Não foi possível criar a pasta de backup: $backupSitesDir");
+      }
+      $qtde = zipTranscricoesJson($sitesDir, $backupSitesZipPath, 'backup'); // apenas JSON, ignora /backup
+      echo "✅ Backup de sites concluído: " . basename($backupSitesZipPath) . " ({$qtde} JSON).";
+      break;
+
+    case 'upload_site':
+      if (!file_exists($uploadSiteScript)) {
+        throw new Exception("❌ Script não encontrado: $uploadSiteScript");
+      }
+      $cmd = "$python " . escapeshellarg($uploadSiteScript);
+      exec($cmd . " 2>&1", $out4, $ret4);
+      if ($ret4 !== 0) throw new Exception("❌ Erro Upload Sites: " . implode("\n", $out4));
+
+      // grava data + tipo (website)  -> certifique-se de que o ENUM inclui 'website'
+      $now  = date('Y-m-d H:i:s');
+      $tipo = 'website';
+      $stmt = $conn->prepare("INSERT INTO TB_EMBEDDINGS (data_geracao, tipo) VALUES (?, ?)");
+      if (!$stmt) throw new Exception("❌ Erro prepare: ".$conn->error);
+      $stmt->bind_param('ss', $now, $tipo);
+      if (!$stmt->execute()) throw new Exception("❌ Erro ao gravar data do upload de websites");
+      $stmt->close();
+
+      echo "✅ Upload realizado (websites).";
       break;
 
     default:
