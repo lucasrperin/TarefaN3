@@ -727,7 +727,7 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
                         <div class="row mb-1">
                             <div class="col-md-12 mb-2">
                                 <label for="descricao" class="form-label">Descrição</label>
-                                <textarea type="text" class="form-control" id="descricao" name="descricao" maxlength="100" required></textarea>
+                                <textarea type="text" class="form-control" id="descricao" name="descricao" required></textarea>
                             </div>
                         </div>    
                         <div class="row mb-1">
@@ -963,7 +963,7 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
                     <div class="row mb-1">
                         <div class="col-md-12 mb-2">
                             <label for="descricao_editar" class="form-label">Descrição</label>
-                            <textarea class="form-control" id="descricao_editar" name="descricao_editar" maxlength="100" required></textarea>
+                            <textarea class="form-control" id="descricao_editar" name="descricao_editar" required></textarea>
                         </div>
                     </div>
                     <!-- Linha com Nota e Situação -->

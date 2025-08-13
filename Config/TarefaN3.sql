@@ -23,7 +23,7 @@ CREATE TABLE TB_STATUS
 CREATE TABLE TB_ANALISES 
 ( 
  Id INT PRIMARY KEY auto_increment,  
- Descricao varchar(100) NOT NULL,  
+ Descricao TEXT NOT NULL,  
  idSituacao INT,  
  idAtendente INT,  
  idSistema INT,  
@@ -38,7 +38,7 @@ CREATE TABLE TB_ANALISES
  numeroMulti int DEFAULT NULL,
  chkParado char(1),
  Nota tinyint,
- justificativa varchar(255)
+ justificativa TEXT
 ); 
 
 CREATE TABLE TB_USUARIO (

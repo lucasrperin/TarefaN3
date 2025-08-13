@@ -20,12 +20,11 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-
   <!-- Seus CSS locais -->
   <link rel="stylesheet" href="../../Public/chatbot.css">
-
   <!-- Parser Markdown -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="icon" href="../../Public/Image/LogoTituto.png" type="image/png">
 
   <script>
     // Expondo o ID do usuário ao JS
