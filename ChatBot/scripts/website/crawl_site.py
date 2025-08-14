@@ -204,14 +204,51 @@ def embed(text: str):
     )
     return resp.data[0].embedding
 
+def find_existing_json(site_root_dir: str, uid: str) -> str | None:
+    """
+    Procura por <uid>.json dentro de site_root_dir (ex.: embeddings/sites/<site>),
+    ignorando subpastas chamadas 'backup'. Retorna o caminho mais recente se houver.
+    """
+    if not os.path.isdir(site_root_dir):
+        return None
+
+    matches = []
+    for root, dirs, files in os.walk(site_root_dir):
+        # ignora 'backup'
+        dirs[:] = [d for d in dirs if d.lower() != 'backup']
+        target = f"{uid}.json"
+        if target in files:
+            matches.append(os.path.join(root, target))
+
+    if not matches:
+        return None
+
+    # pega o mais recente por mtime
+    return max(matches, key=lambda p: os.path.getmtime(p))
+
+
 def save_json(out_dir: str, title: str, url: str, content: str, embedding):
-    os.makedirs(out_dir, exist_ok=True)
+    """
+    Compatível com chamadas antigas: save_json(out_dir, title, url, content, embedding).
+
+    - Determina o uid a partir da URL.
+    - Define site_root_dir como o PAI de out_dir (ex.: .../sites/<site>).
+    - Se já existir <uid>.json em QUALQUER subpasta de site_root_dir (exceto 'backup'),
+      sobrescreve lá. Senão, grava em out_dir/<uid>.json.
+    """
     uid = make_uid_from_url(url)
-    base = slugify(title)[:120] or "Pagina"
-    fn = os.path.join(out_dir, f"{base}.json")
-    if os.path.exists(fn):
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        fn = os.path.join(out_dir, f"{base}_{ts}.json")
+
+    # site_root_dir é o pai de out_dir (../sites/<site>)
+    site_root_dir = os.path.dirname(os.path.abspath(out_dir))
+    existing_path = find_existing_json(site_root_dir, uid)
+
+    if existing_path:
+        fn = existing_path
+        os.makedirs(os.path.dirname(fn), exist_ok=True)
+    else:
+        os.makedirs(out_dir, exist_ok=True)
+        fn = os.path.join(out_dir, f"{uid}.json")
+
     payload = {
         "uid": uid,
         "titulo": title,
@@ -219,9 +256,12 @@ def save_json(out_dir: str, title: str, url: str, content: str, embedding):
         "embedding": embedding,
         "link": url
     }
+
+    existed = os.path.exists(fn)
     with open(fn, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False)
-    print(f"[JSON] {fn}")
+
+    print(f"[JSON] {fn}" + (" (substituído)" if existed else ""))
 
 def main():
     if len(sys.argv) < 2:
@@ -241,7 +281,10 @@ def main():
     start_root  = path_root(parsed.path)
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_dir = os.path.join(OUT_BASE, slugify(start_host), run_id)
+    # diretório RAIZ do site (sem backup)
+    site_root_dir = os.path.join(OUT_BASE, slugify(start_host))
+    # diretório do batch atual (mantém a sua organização por data)
+    out_dir = os.path.join(site_root_dir, run_id)
     print(f"Coletando a partir de: {start_url}")
     print(f"Max páginas: {max_pages} | Mesmo domínio: {same_domain} | Usar sitemap: {use_sitemap}")
     print(f"Saída: {out_dir}")

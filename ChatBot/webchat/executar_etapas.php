@@ -4,6 +4,8 @@ set_time_limit(600);
 // 1) Conexão DB
 require_once __DIR__ . '/../../Config/Database.php';  // ajusta o caminho se necessário
 
+date_default_timezone_set('America/Sao_Paulo');
+
 ignore_user_abort(true);
 @set_time_limit(0);
 header('Content-Type: text/plain; charset=utf-8');

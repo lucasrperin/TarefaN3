@@ -2,6 +2,8 @@
 require_once __DIR__ . '/../../Includes/auth.php';
 require_once __DIR__ . '/../../Config/Database.php';
 
+date_default_timezone_set('America/Sao_Paulo');
+
 $usuario_nome = $_SESSION['usuario_nome'] ?? '';
 
 // busca última de ARTIGOS
@@ -233,9 +235,6 @@ $excluirJsonSiteUrl  = fs_to_url($excluirJsonSiteFs);
                     <button type="submit" class="btn btn-success btn-pill">
                       <span class="me-1"><i class="fa fa-brain"></i></span> Transcrever e Treinar
                     </button>
-                    <span id="liveHint" class="chip d-none">
-                      <span class="spinner-border spinner-border-sm"></span> Processando…
-                    </span>
                   </div>
 
                   <div class="progress mt-3" id="progressBarContainer" style="display: none;">
@@ -302,9 +301,6 @@ $excluirJsonSiteUrl  = fs_to_url($excluirJsonSiteFs);
                     <button type="submit" class="btn btn-success btn-pill">
                       <span class="me-1"><i class="fa fa-brain"></i></span> Coletar & Treinar
                     </button>
-                    <span id="liveHintSite" class="chip d-none">
-                      <span class="spinner-border spinner-border-sm"></span> Processando…
-                    </span>
                   </div>
 
                   <div id="logTreinamentoSite" class="log-box mt-3" style="display:none;"></div>

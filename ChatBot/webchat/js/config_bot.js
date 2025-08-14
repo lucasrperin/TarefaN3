@@ -88,7 +88,7 @@
     const statusEl = $('#uploadVideosStatus');
     const ultimaEl = $('#ultimaVideoText');
     const overlay  = $('#busyOverlay');
-    const originalHtml = '<i class="fa fa-cloud-arrow-up me-1"></i> Publicar Embeddings';
+    const originalHtml = '<i class="fa fa-cloud-arrow-up me-1"></i> Publicar';
 
     function setBtn(html, variant, disabled) {
       b.className = 'btn btn-' + variant + ' btn-pill';
@@ -136,7 +136,7 @@
     const statusEl = $('#uploadSitesStatus');
     const ultimaEl = $('#ultimaWebsiteText');
     const overlay  = $('#busyOverlay');
-    const originalHtml = '<i class="fa fa-cloud-arrow-up me-1"></i> Publicar Embeddings';
+    const originalHtml = '<i class="fa fa-cloud-arrow-up me-1"></i> Publicar';
 
     function setBtn(html, variant, disabled) {
       b.className = 'btn btn-' + variant + ' btn-pill';
