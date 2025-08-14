@@ -45,7 +45,65 @@ $backupSitesDir     = $sitesDir . '/backup';
 $backupSitesZipPath = $backupSitesDir . '/sites_backup_' . date('Ymd_His') . '.zip';
 $uploadSiteScript   = $chatbotDir . '/scripts/website/upload_embeddings_site.py';
 
-// helper p/ zipar somente arquivos JSON (ignora subpasta "backup")
+/**
+ * Compacta TODO o conteúdo da pasta $srcDir (arquivos de qualquer extensão),
+ * preservando a estrutura de subpastas, EXCETO qualquer caminho que contenha
+ * "/$excludeDirName/" (por padrão "backup").
+ *
+ * Retorna a quantidade de ARQUIVOS adicionados.
+ */
+function zipFolderExcluding(string $srcDir, string $destZip, string $excludeDirName = 'backup'): int {
+  if (!class_exists('ZipArchive')) {
+    throw new Exception("❌ Extensão ZipArchive não habilitada no PHP.");
+  }
+  if (!is_dir($srcDir)) {
+    throw new Exception("❌ Pasta não encontrada: $srcDir");
+  }
+
+  $zip = new ZipArchive();
+  if ($zip->open($destZip, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== TRUE) {
+    throw new Exception("❌ Não foi possível criar o arquivo ZIP: $destZip");
+  }
+
+  $srcReal = realpath($srcDir);
+  $count = 0;
+
+  $it = new RecursiveIteratorIterator(
+    new RecursiveDirectoryIterator($srcDir, FilesystemIterator::SKIP_DOTS),
+    RecursiveIteratorIterator::SELF_FIRST
+  );
+
+  foreach ($it as $file) {
+    /** @var SplFileInfo $file */
+    $path = $file->getPathname();
+
+    // pula itens dentro de /backup/
+    if (stripos($path, DIRECTORY_SEPARATOR . $excludeDirName . DIRECTORY_SEPARATOR) !== false) {
+      continue;
+    }
+
+    if ($file->isFile()) {
+      // caminho relativo dentro do zip (preserva subpastas)
+      $rel = ltrim(str_replace($srcReal, '', realpath($path)), DIRECTORY_SEPARATOR);
+      $zip->addFile($path, $rel);
+      $count++;
+    }
+  }
+
+  $zip->close();
+
+  if ($count === 0) {
+    // se preferir não considerar erro, troque para apenas retornar 0
+    throw new Exception("❌ Nenhum arquivo encontrado em $srcDir para compactar.");
+  }
+
+  return $count;
+}
+
+/**
+ * Versão anterior (somente JSON). Mantida porque é usada em outros cases.
+ * Retorna a quantidade de JSONs adicionados.
+ */
 function zipTranscricoesJson(string $srcDir, string $destZip, string $excludeDirName = 'backup'): int {
   if (!class_exists('ZipArchive')) {
     throw new Exception("❌ Extensão ZipArchive não habilitada no PHP.");
@@ -86,7 +144,6 @@ function zipTranscricoesJson(string $srcDir, string $destZip, string $excludeDir
   $zip->close();
 
   if ($count === 0) {
-    // se preferir não considerar erro, troque para apenas retornar 0
     throw new Exception("❌ Nenhum arquivo .json encontrado em $srcDir para compactar.");
   }
 
@@ -97,11 +154,20 @@ try {
   switch ($etapa) {
     // ========= ARTIGOS =========
     case 'backup':
-      if (!file_exists($backupDir)) mkdir($backupDir, 0777, true);
+      if (!file_exists($backupDir)) {
+        if (!mkdir($backupDir, 0777, true)) {
+          throw new Exception("❌ Não foi possível criar a pasta de backup: $backupDir");
+        }
+      }
       $ts = date('Ymd_His');
-      copy($embPath, "$backupDir/embeddings_backup_$ts.json") ||
-        throw new Exception("❌ Falha no backup");
-      echo "✅ Backup realizado.";
+      $dest = "$backupDir/embeddings_backup_$ts.json";
+      if (!file_exists($embPath)) {
+        throw new Exception("❌ Arquivo não encontrado: $embPath");
+      }
+      if (!copy($embPath, $dest)) {
+        throw new Exception("❌ Falha no backup para $dest");
+      }
+      echo "✅ Backup realizado em " . basename($dest) . ".";
       break;
 
     case 'gerar':
@@ -181,11 +247,25 @@ try {
       if (!is_dir($backupSitesDir) && !mkdir($backupSitesDir, 0777, true)) {
         throw new Exception("❌ Não foi possível criar a pasta de backup: $backupSitesDir");
       }
-      $qtde = zipTranscricoesJson($sitesDir, $backupSitesZipPath, 'backup'); // apenas JSON, ignora /backup
-      echo "✅ Backup de sites concluído: " . basename($backupSitesZipPath) . " ({$qtde} JSON).";
+      $ts = date('Ymd_His');
+      $zipPath = $backupSitesDir . "/sites_backup_{$ts}.zip";
+      $qtde = zipFolderExcluding($sitesDir, $zipPath, 'backup'); // tudo exceto /backup
+      echo "✅ Backup de sites concluído: " . basename($zipPath) . " ({$qtde} arquivos).";
       break;
 
     case 'upload_site':
+      if (!is_dir($sitesDir)) {
+        throw new Exception("❌ Pasta de sites não encontrada: $sitesDir");
+      }
+      if (!is_dir($backupSitesDir) && !mkdir($backupSitesDir, 0777, true)) {
+        throw new Exception("❌ Não foi possível criar a pasta de backup: $backupSitesDir");
+      }
+      // 1) BACKUP COMPLETO (tudo exceto /backup)
+      $ts = date('Ymd_His');
+      $zipPath = $backupSitesDir . "/sites_backup_{$ts}.zip";
+      $qtde = zipFolderExcluding($sitesDir, $zipPath, 'backup');
+
+      // 2) UPLOAD (executa script Python)
       if (!file_exists($uploadSiteScript)) {
         throw new Exception("❌ Script não encontrado: $uploadSiteScript");
       }
@@ -193,7 +273,7 @@ try {
       exec($cmd . " 2>&1", $out4, $ret4);
       if ($ret4 !== 0) throw new Exception("❌ Erro Upload Sites: " . implode("\n", $out4));
 
-      // grava data + tipo (website)  -> certifique-se de que o ENUM inclui 'website'
+      // 3) REGISTRO da execução (TB_EMBEDDINGS.tipo = 'website')
       $now  = date('Y-m-d H:i:s');
       $tipo = 'website';
       $stmt = $conn->prepare("INSERT INTO TB_EMBEDDINGS (data_geracao, tipo) VALUES (?, ?)");
@@ -202,7 +282,7 @@ try {
       if (!$stmt->execute()) throw new Exception("❌ Erro ao gravar data do upload de websites");
       $stmt->close();
 
-      echo "✅ Upload realizado (websites).";
+      echo "✅ Backup criado (" . basename($zipPath) . ", {$qtde} arquivos) e Upload realizado (websites).";
       break;
 
     default:
