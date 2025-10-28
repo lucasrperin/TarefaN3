@@ -1,4 +1,9 @@
 <?php
+// Start session as early as possible to avoid "headers already sent" issues
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require 'Config/Database.php';
 require_once __DIR__ . '/Includes/auth.php';
 

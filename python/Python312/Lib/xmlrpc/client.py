@@ -1511,7 +1511,7 @@ if __name__ == "__main__":
     # simple test program (from the XML-RPC specification)
 
     # local server, available from Lib/xmlrpc/server.py
-    server = ServerProxy("http://localhost:8000")
+    server = ServerProxy("http://192.168.0.201:3310")
 
     try:
         print(server.currentTime.getCurrentTime())

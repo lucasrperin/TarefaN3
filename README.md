@@ -58,7 +58,7 @@ Este documento descreve como preparar e executar o projeto localmente em Windows
 
 		 uvicorn agente_api:app --reload --host 0.0.0.0 --port 8000
 
-	 O frontend (`ChatBot/webchat/index.php`) faz pedidos para `http://localhost:8000` — portanto este serviço deve estar ativo.
+	 O frontend (`ChatBot/webchat/index.php`) faz pedidos para `http://192.168.0.201:3310` — portanto este serviço deve estar ativo.
 
 5) Gerar embeddings (opcional)
 
@@ -100,7 +100,7 @@ Passos:
 4. Acesse:
 
 	- Frontend PHP: http://localhost:8080/
-	- ChatBot API: http://localhost:8000/
+	- ChatBot API: http://192.168.0.201:3310/
 
 Logs úteis:
 

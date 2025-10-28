@@ -147,7 +147,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
         formData.append("user_id", window.USER_ID);
 
         try {
-          const resp = await fetch('http://localhost:8000/upload-imagem?user_id=' + window.USER_ID, {
+          const resp = await fetch('http://192.168.0.201:3310/upload-imagem?user_id=' + window.USER_ID, {
             method: 'POST',
             body: formData
           });
@@ -181,7 +181,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       formData.append("user_id", window.USER_ID);
 
       try {
-        const resp = await fetch('http://localhost:8000/upload-audio?user_id=' + window.USER_ID, {
+  const resp = await fetch('http://192.168.0.201:3310/upload-audio?user_id=' + window.USER_ID, {
           method: 'POST',
           body: formData
         });
@@ -269,7 +269,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
     }
 
     async function enviarAvaliacao(nota, id) {
-      await fetch('http://localhost:8000/avaliacao', {
+  await fetch('http://192.168.0.201:3310/avaliacao', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -305,7 +305,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       const payload = { pergunta, user_id };
 
       try {
-        const resp = await fetch('http://localhost:8000/consultar', {
+  const resp = await fetch('http://192.168.0.201:3310/consultar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -334,12 +334,12 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
 
     async function atualizarMedias() {
       try {
-        let resp = await fetch('http://localhost:8000/media-avaliacoes');
+  let resp = await fetch('http://192.168.0.201:3310/media-avaliacoes');
         let dados = await resp.json();
         document.getElementById('media-geral').textContent = dados.media ?? '-';
         document.getElementById('total-geral').textContent = dados.total ? `(${dados.total} avaliações)` : '';
 
-        let resp7 = await fetch('http://localhost:8000/media-avaliacoes?dias=7');
+  let resp7 = await fetch('http://192.168.0.201:3310/media-avaliacoes?dias=7');
         let dados7 = await resp7.json();
         document.getElementById('media-7dias').textContent = dados7.media ?? '-';
         document.getElementById('total-7dias').textContent = dados7.total ? `(${dados7.total} avaliações)` : '';

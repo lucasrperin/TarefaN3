@@ -22,7 +22,7 @@ services:
       - DB_PASS=${MYSQL_ROOT_PASSWORD:-root}
       - DB_NAME=${MYSQL_DATABASE:-TarefaN3}
     ports:
-      - "8080:80"
+      - "3320:80"
     volumes:
       - ./:/var/www/html:delegated
     depends_on:
@@ -33,7 +33,7 @@ services:
       context: ./ChatBot
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "3310:3310"
     environment:
       - DB_HOST=db
       - DB_USER=${DB_USER:-root}

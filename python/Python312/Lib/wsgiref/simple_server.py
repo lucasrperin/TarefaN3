@@ -161,5 +161,5 @@ if __name__ == '__main__':
         sa = httpd.socket.getsockname()
         print("Serving HTTP on", sa[0], "port", sa[1], "...")
         import webbrowser
-        webbrowser.open('http://localhost:8000/xyz?abc')
+        webbrowser.open('http://192.168.0.201:3310/xyz?abc')
         httpd.handle_request()  # serve one request, then exit

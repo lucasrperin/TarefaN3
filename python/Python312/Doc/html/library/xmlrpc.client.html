@@ -432,7 +432,7 @@ for closing the underlying transport.</p>
 <p>The client code for the preceding server:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xmlrpc.client</span>
 
-<span class="k">with</span> <span class="n">xmlrpc</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">ServerProxy</span><span class="p">(</span><span class="s2">&quot;http://localhost:8000/&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">proxy</span><span class="p">:</span>
+<span class="k">with</span> <span class="n">xmlrpc</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">ServerProxy</span><span class="p">(</span><span class="s2">&quot;http://192.168.0.201:3310/&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">proxy</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;3 is even: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">proxy</span><span class="o">.</span><span class="n">is_even</span><span class="p">(</span><span class="mi">3</span><span class="p">)))</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;100 is even: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">proxy</span><span class="o">.</span><span class="n">is_even</span><span class="p">(</span><span class="mi">100</span><span class="p">)))</span>
 </pre></div>
@@ -483,7 +483,7 @@ and <code class="xref py py-meth docutils literal notranslate"><span class="pre"
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xmlrpc.client</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 
-<span class="n">proxy</span> <span class="o">=</span> <span class="n">xmlrpc</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">ServerProxy</span><span class="p">(</span><span class="s2">&quot;http://localhost:8000/&quot;</span><span class="p">)</span>
+<span class="n">proxy</span> <span class="o">=</span> <span class="n">xmlrpc</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">ServerProxy</span><span class="p">(</span><span class="s2">&quot;http://192.168.0.201:3310/&quot;</span><span class="p">)</span>
 
 <span class="n">today</span> <span class="o">=</span> <span class="n">proxy</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
 <span class="c1"># convert the ISO8601 string to a datetime object</span>
@@ -548,7 +548,7 @@ XMLRPC:</p>
 <p>The client gets the image and saves it to a file:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xmlrpc.client</span>
 
-<span class="n">proxy</span> <span class="o">=</span> <span class="n">xmlrpc</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">ServerProxy</span><span class="p">(</span><span class="s2">&quot;http://localhost:8000/&quot;</span><span class="p">)</span>
+<span class="n">proxy</span> <span class="o">=</span> <span class="n">xmlrpc</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">ServerProxy</span><span class="p">(</span><span class="s2">&quot;http://192.168.0.201:3310/&quot;</span><span class="p">)</span>
 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;fetched_python_logo.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
     <span class="n">handle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">proxy</span><span class="o">.</span><span class="n">python_logo</span><span class="p">()</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
 </pre></div>
@@ -594,7 +594,7 @@ returning a complex type object.  The server code:</p>
 <p>The client code for the preceding server:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xmlrpc.client</span>
 
-<span class="n">proxy</span> <span class="o">=</span> <span class="n">xmlrpc</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">ServerProxy</span><span class="p">(</span><span class="s2">&quot;http://localhost:8000/&quot;</span><span class="p">)</span>
+<span class="n">proxy</span> <span class="o">=</span> <span class="n">xmlrpc</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">ServerProxy</span><span class="p">(</span><span class="s2">&quot;http://192.168.0.201:3310/&quot;</span><span class="p">)</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="n">proxy</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
 <span class="k">except</span> <span class="n">xmlrpc</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">Fault</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
@@ -702,7 +702,7 @@ results.</p>
 <p>The client code for the preceding server:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xmlrpc.client</span>
 
-<span class="n">proxy</span> <span class="o">=</span> <span class="n">xmlrpc</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">ServerProxy</span><span class="p">(</span><span class="s2">&quot;http://localhost:8000/&quot;</span><span class="p">)</span>
+<span class="n">proxy</span> <span class="o">=</span> <span class="n">xmlrpc</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">ServerProxy</span><span class="p">(</span><span class="s2">&quot;http://192.168.0.201:3310/&quot;</span><span class="p">)</span>
 <span class="n">multicall</span> <span class="o">=</span> <span class="n">xmlrpc</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">MultiCall</span><span class="p">(</span><span class="n">proxy</span><span class="p">)</span>
 <span class="n">multicall</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="n">multicall</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
@@ -751,7 +751,7 @@ applies only to date/time values.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># simple test program (from the XML-RPC specification)</span>
 <span class="kn">from</span> <span class="nn">xmlrpc.client</span> <span class="kn">import</span> <span class="n">ServerProxy</span><span class="p">,</span> <span class="n">Error</span>
 
-<span class="c1"># server = ServerProxy(&quot;http://localhost:8000&quot;) # local server</span>
+<span class="c1"># server = ServerProxy(&quot;http://192.168.0.201:3310&quot;) # local server</span>
 <span class="k">with</span> <span class="n">ServerProxy</span><span class="p">(</span><span class="s2">&quot;http://betty.userland.com&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">proxy</span><span class="p">:</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="n">proxy</span><span class="p">)</span>

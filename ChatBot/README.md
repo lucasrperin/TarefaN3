@@ -32,10 +32,10 @@ Como executar (Windows PowerShell)
 
 5) Testar endpoints
 
-	- Health: http://localhost:8000/
+	- Health: http://192.168.0.201:3310/
 	- Consultar (exemplo):
 
-	  curl -X POST http://localhost:8000/consultar -H "Content-Type: application/json" -d '{"pergunta":"Olá","user_id":1}'
+	  curl -X POST http://192.168.0.201:3310/consultar -H "Content-Type: application/json" -d '{"pergunta":"Olá","user_id":1}'
 
 Gerar embeddings (scripts)
 
@@ -44,7 +44,7 @@ Gerar embeddings (scripts)
 
 Observações
 
-- O frontend `webchat/index.php` faz requisições para `http://localhost:8000`. Se mudar a porta, atualize o front ou um proxy reverso.
+- O frontend `webchat/index.php` faz requisições para `http://192.168.0.201:3310`. Se mudar a porta, atualize o front ou um proxy reverso.
 - Os scripts Python assumem diferentes bancos (MySQL para avaliações e PostgreSQL para artigos/embeddings). Adapte conforme sua instalação.
 
 Se quiser, posso criar um `docker-compose.yml` que sobe MySQL + PHP (Apache) + Python para facilitar testes locais.
