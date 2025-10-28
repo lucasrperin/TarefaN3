@@ -58,8 +58,8 @@ INSERT INTO `TB_USUARIO` (`Id`, `Nome`, `Email`, `Senha`, `Cargo`) VALUES (2, 'G
 INSERT INTO `TB_USUARIO` (`Id`, `Nome`, `Email`, `Senha`, `Cargo`) VALUES (3, 'Gabriel Battistella', 'gabriel.battistella@zucchetti.com', '1234', 'Admin');
 INSERT INTO `TB_USUARIO` (`Id`, `Nome`, `Email`, `Senha`, `Cargo`) VALUES (4, 'Bernardo Rachadel', 'bernardo.rachadel@zucchetti.com', '1234', 'Admin');
 INSERT INTO `TB_USUARIO` (`Id`, `Nome`, `Email`, `Senha`, `Cargo`) VALUES (5, 'Douglas da Silva', 'douglas.silva@zucchetti.com', '1234', 'Admin');
-INSERT INTO `TB_USUARIO` (`Id`, `Nome`, `Email`, `Senha`, `Cargo`) VALUES (6, 'Vagner Wilske', 'vagner.wilske@zucchetti.com', '1234', 'Viewer');
-INSERT INTO `TB_USUARIO` (`Id`, `Nome`, `Email`, `Senha`, `Cargo`) VALUES (7, 'Germano Santos', 'germano.santos@zucchetti.com', '1234', 'Viewer');
+INSERT INTO `TB_USUARIO` (`Id`, `Nome`, `Email`, `Senha`, `Cargo`) VALUES (6, 'Vagner Wilske', 'vagner.wilske@zucchetti.com', '1234', 'Produto');
+INSERT INTO `TB_USUARIO` (`Id`, `Nome`, `Email`, `Senha`, `Cargo`) VALUES (7, 'Germano Santos', 'germano.santos@zucchetti.com', '1234', 'Produto');
 INSERT INTO `TB_USUARIO` (`Id`, `Nome`, `Email`, `Senha`, `Cargo`) VALUES (8, 'Leandro Haefliger', 'leandro.haefliger@zucchetti.com', '1234', 'User');
 INSERT INTO `TB_USUARIO` (`Id`, `Nome`, `Email`, `Senha`, `Cargo`) VALUES (9, 'Wesley Zamarchi', 'wesley.zamarchi@zucchetti.com', '1234', 'User');
 INSERT INTO `TB_USUARIO` (`Id`, `Nome`, `Email`, `Senha`, `Cargo`) VALUES (10, 'Lucas Rossatto', 'lucas.rossato@zucchetti.com', '1234', 'User');
@@ -115,6 +115,7 @@ INSERT INTO TB_STATUS (Descricao) VALUES ('Aguardando');
 INSERT INTO TB_SITUACAO (Descricao) VALUES ('Analise N3');
 INSERT INTO TB_SITUACAO (Descricao) VALUES ('Auxilio Suporte/Vendas');
 INSERT INTO TB_SITUACAO (Descricao) VALUES ('Ficha Criada');
+INSERT INTO TB_SITUACAO (Descricao) VALUES ('Analise Setor Produto');
 
 
 -- Criação do controle de Conversão

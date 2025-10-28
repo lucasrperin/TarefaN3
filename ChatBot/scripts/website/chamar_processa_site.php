@@ -193,37 +193,6 @@ if (is_resource($proc)) {
   $status = ($ret === 0) ? 'CONCLUIDO' : 'ERRO';
   $arquivo_json = '';
 
-  // Compacta diretório de saída (em pasta pública dentro do projeto)
-  if ($status === 'CONCLUIDO' && $saidaDir && is_dir($saidaDir) && class_exists('ZipArchive')) {
-    $zipBase = __DIR__ . '/../../../embeddings/zips';
-    if (!is_dir($zipBase)) @mkdir($zipBase, 0777, true);
-    $zipBase = realpath($zipBase);
-    if ($zipBase) {
-      $zipName = $zipBase . DIRECTORY_SEPARATOR . "treino_site_{$jobId}.zip";
-      $zip = new ZipArchive();
-      if ($zip->open($zipName, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
-        $it = new RecursiveIteratorIterator(
-          new RecursiveDirectoryIterator($saidaDir, FilesystemIterator::SKIP_DOTS),
-          RecursiveIteratorIterator::SELF_FIRST
-        );
-        foreach ($it as $path) {
-          $rel = substr($path, strlen($saidaDir) + 1);
-          if (is_dir($path)) $zip->addEmptyDir($rel); else $zip->addFile($path, $rel);
-        }
-        $zip->close();
-
-        // URL pública
-        $arquivo_json = fs_to_url($zipName);
-        if (!$arquivo_json) $arquivo_json = $zipName;
-        $zipPublicUrl = $arquivo_json;
-
-        $log .= "\nArquivo compactado: $zipName\n";
-      } else {
-        $log .= "\n[WARN] Falha ao criar ZIP do diretório de saída.\n";
-      }
-    }
-  }
-
   // Monta lista de arquivos JSON gerados (para o front renderizar com preview/exclusão)
   $files = [];
   if ($status === 'CONCLUIDO' && $saidaDir && is_dir($saidaDir)) {

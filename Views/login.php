@@ -1,6 +1,6 @@
 <?php
-require '../Config/Database.php';
 session_start();
+require '../Config/Database.php';
 
 // —————— 2.1 Auto-login via cookie ——————
 if (!isset($_SESSION['usuario_id']) && !empty($_COOKIE['remember_me'])) {

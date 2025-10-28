@@ -29,9 +29,9 @@ def linkify(text: str) -> str:
     return re.sub(r'(https?://[^\s]+)', _repl, text)
 
 DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "",
+    "host": "172.18.1.30",
+    "user": "suporte",
+    "password": "GCj$zd5L$O",
     "database": "TarefaN3"
 }
 
@@ -248,7 +248,7 @@ async def avaliacao(request: Request):
         conn = mysql.connector.connect(**DB_CONFIG)
         cur = conn.cursor()
         cur.execute(
-            "INSERT INTO tb_avaliacoes_chatbot (user_id, nota, Linha) VALUES (%s, %s, %s)",
+            "INSERT INTO TB_AVALIACOES_CHATBOT (user_id, nota, Linha) VALUES (%s, %s, %s)",
             (user_id, nota, "Clipp")
         )
         conn.commit()
@@ -266,13 +266,13 @@ def media_avaliacoes(dias: int = Query(default=0, description="Filtrar pelos úl
         if dias > 0:
             cur.execute("""
                 SELECT ROUND(AVG(nota),2) AS media, COUNT(*) AS total
-                FROM tb_avaliacoes_chatbot
+                FROM TB_AVALIACOES_CHATBOT
                 WHERE Linha = %s AND data >= CURDATE() - INTERVAL %s DAY
             """, ("Clipp", dias))
         else:
             cur.execute("""
                 SELECT ROUND(AVG(nota),2) AS media, COUNT(*) AS total
-                FROM tb_avaliacoes_chatbot
+                FROM TB_AVALIACOES_CHATBOT
                 WHERE Linha = %s
             """, ("Clipp",))
         row = cur.fetchone()

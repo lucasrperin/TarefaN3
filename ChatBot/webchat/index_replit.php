@@ -147,7 +147,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
         formData.append("user_id", window.USER_ID);
 
         try {
-          const resp = await fetch('http://localhost:8000/upload-imagem?user_id=' + window.USER_ID, {
+          const resp = await fetch('https://5da299e8-bf43-4887-bd5d-c9c8adac0fab-00-1fumu2gr59rko.kirk.replit.dev/upload-imagem?user_id=' + window.USER_ID, {
             method: 'POST',
             body: formData
           });
@@ -181,7 +181,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       formData.append("user_id", window.USER_ID);
 
       try {
-        const resp = await fetch('http://localhost:8000/upload-audio?user_id=' + window.USER_ID, {
+        const resp = await fetch('https://5da299e8-bf43-4887-bd5d-c9c8adac0fab-00-1fumu2gr59rko.kirk.replit.dev/upload-audio?user_id=' + window.USER_ID, {
           method: 'POST',
           body: formData
         });
@@ -269,7 +269,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
     }
 
     async function enviarAvaliacao(nota, id) {
-      await fetch('http://localhost:8000/avaliacao', {
+      await fetch('https://5da299e8-bf43-4887-bd5d-c9c8adac0fab-00-1fumu2gr59rko.kirk.replit.dev/avaliacao', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -305,9 +305,12 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       const payload = { pergunta, user_id };
 
       try {
-        const resp = await fetch('http://localhost:8000/consultar', {
+        const resp = await fetch('https://5da299e8-bf43-4887-bd5d-c9c8adac0fab-00-1fumu2gr59rko.kirk.replit.dev/consultar', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Authorization': 'Bearer dev-api-key-change-in-production',
+            'Content-Type': 'application/json'
+          },
           body: JSON.stringify(payload)
         });
         if (!resp.ok) throw new Error('Status ' + resp.status);
@@ -334,12 +337,12 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
 
     async function atualizarMedias() {
       try {
-        let resp = await fetch('http://localhost:8000/media-avaliacoes');
+        let resp = await fetch('https://5da299e8-bf43-4887-bd5d-c9c8adac0fab-00-1fumu2gr59rko.kirk.replit.dev/media-avaliacoes');
         let dados = await resp.json();
         document.getElementById('media-geral').textContent = dados.media ?? '-';
         document.getElementById('total-geral').textContent = dados.total ? `(${dados.total} avaliações)` : '';
 
-        let resp7 = await fetch('http://localhost:8000/media-avaliacoes?dias=7');
+        let resp7 = await fetch('https://5da299e8-bf43-4887-bd5d-c9c8adac0fab-00-1fumu2gr59rko.kirk.replit.dev/media-avaliacoes?dias=7');
         let dados7 = await resp7.json();
         document.getElementById('media-7dias').textContent = dados7.media ?? '-';
         document.getElementById('total-7dias').textContent = dados7.total ? `(${dados7.total} avaliações)` : '';
