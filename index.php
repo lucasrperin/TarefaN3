@@ -159,8 +159,8 @@ $currentYear = date("Y");
 
 // Processamento consolidado
 foreach ($allRows as $row) {
-    $situacao = trim($row['Situacao']);
-    $parado = trim($row['Parado']);
+    $situacao = trim(strval($row['Situacao'] ?? ''));
+    $parado = trim(strval($row['Parado'] ?? ''));
     $sis = $row['Sistema'];
 
     if ($situacao === "Ficha Criada") {
@@ -752,7 +752,7 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
                                 <select class="form-select" id="situacao" name="situacao" required onchange="verificarSituacao(); verificarSituacao2();">
                                     <option value="">Selecione</option>
                                     <?php
-                                    $querySituacao = "SELECT Id, Descricao FROM TB_SITUACAO";
+                                    $querySituacao = "SELECT Id, Descricao FROM TB_SITUACAO ";
                                     $resultSituacao = $conn->query($querySituacao);
                                     while ($rowS = $resultSituacao->fetch_assoc()) {
                                         echo "<option value='" . $rowS['Id'] . "'>" . $rowS['Descricao'] . "</option>";
@@ -923,7 +923,7 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
                                 <select class="form-select" id="status" name="status" required>
                                     <option value="">Selecione</option>
                                     <?php
-                                    $queryStatus = "SELECT Id, Descricao FROM TB_STATUS";
+                                    $queryStatus = "SELECT Id, Descricao FROM TB_STATUS ORDER BY Descricao DESC";
                                     $resultStatus = $conn->query($queryStatus);
                                     while ($rowSt = $resultStatus->fetch_assoc()) {
                                         echo "<option value='" . $rowSt['Id'] . "'>" . $rowSt['Descricao'] . "</option>";

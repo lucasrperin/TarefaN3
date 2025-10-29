@@ -21,7 +21,7 @@ $query = "SELECT
           LEFT JOIN TB_EQUIPE_NIVEL_ANALISTA ena ON ena.idUsuario = u.Id
           LEFT JOIN TB_EQUIPE c ON ena.idEquipe = c.id
           LEFT JOIN TB_NIVEL n ON ena.idNivel = n.id
-          GROUP BY u.Id
+          GROUP BY u.Id, u.Nome, u.Email, ena.idEquipe, u.Cargo
           ORDER BY u.Nome ASC";
 $result = mysqli_query($conn, $query);
 
