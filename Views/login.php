@@ -45,9 +45,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $stmt->execute();
     $res = $stmt->get_result();
 
+    //Extrai senha hash
+    $stmt_senha = $conn->prepare("SELECT Senha FROM TB_USUARIO WHERE Email = ?");
+    $stmt_senha->bind_param("s", $email);
+    $stmt_senha->execute();
+    $res_senha = $stmt_senha->get_result();
+
     if ($usuario = $res->fetch_assoc()) {
         // senha em texto simples
-        if ($senha === $usuario['Senha']) {
+         if (password_verify($senha, $usuario['Senha'])) {
+        //if ($senha === $usuario['Senha']) {
             $_SESSION['usuario_id']   = $usuario['Id'];
             $_SESSION['usuario_nome'] = $usuario['Nome'];
             $_SESSION['cargo']        = $usuario['Cargo'];

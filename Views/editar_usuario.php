@@ -8,6 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email    = mysqli_real_escape_string($conn, $_POST['Email']);
     $cargo    = mysqli_real_escape_string($conn, $_POST['Cargo']);
     $senha    = isset($_POST['Senha']) ? mysqli_real_escape_string($conn, $_POST['Senha']) : '';
+    $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
     $idEquipe = intval($_POST['idEquipe']);
     
     // Recebe os níveis como array (checklist)
@@ -27,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Atualiza os dados do usuário; atualiza a senha somente se preenchida
     if (!empty($senha)) {
         $sqlUsuario = "UPDATE TB_USUARIO 
-                       SET Nome = '$nome', Email = '$email', Senha = '$senha', Cargo = '$cargo'
+                       SET Nome = '$nome', Email = '$email', Senha = '$senha_hash', Cargo = '$cargo'
                        WHERE Id = $id";
     } else {
         $sqlUsuario = "UPDATE TB_USUARIO 

@@ -8,6 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $nome     = mysqli_real_escape_string($conn, $_POST['Nome']);
     $email    = mysqli_real_escape_string($conn, $_POST['Email']);
     $senha    = mysqli_real_escape_string($conn, $_POST['Senha']);
+    $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
     $cargo    = mysqli_real_escape_string($conn, $_POST['Cargo']); // Campo Cargo
     $idEquipe = intval($_POST['idEquipe']);
     // Agora esperamos que idNivel seja enviado como um array (suporte a múltiplos níveis)
@@ -26,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Insere o usuário na TB_USUARIO
     $sqlUsuario = "INSERT INTO TB_USUARIO (Nome, Email, Senha, Cargo) 
-                   VALUES ('$nome', '$email', '$senha', '$cargo')";
+                   VALUES ('$nome', '$email', '$senha_hash', '$cargo')";
     
     if (mysqli_query($conn, $sqlUsuario)) {
         $lastId = mysqli_insert_id($conn);
