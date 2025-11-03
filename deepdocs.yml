@@ -1,7 +1,6 @@
 target:
   - url: "ChatBot/"
   - url: "components/"
-  - url: "Config/"
   - url: "Includes/"
   - url: "Public/"
   - url: "Views/"
