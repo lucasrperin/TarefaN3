@@ -1,50 +1,70 @@
-IA / ChatBot - Instruções
+# Microserviço ChatBot (Python/FastAPI)
 
-Este diretório contém um microserviço Python (FastAPI) que atende o frontend PHP localizado em `ChatBot/webchat`.
+Este diretório contém o microserviço Python que fornece endpoints REST para o módulo de ChatBot.
 
-O serviço expõe endpoints importantes:
-- POST /consultar -> recebe JSON { pergunta, user_id } e repassa para um webhook n8n
-- POST /upload-imagem -> recebe multipart/form-data com imagem e user_id e encaminha ao n8n
-- POST /upload-audio -> recebe multipart/form-data com áudio e user_id e encaminha ao n8n
-- POST /avaliacao -> salva nota de avaliação no MySQL
-- GET  /media-avaliacoes -> retorna média e total de avaliações
+## Endpoints disponíveis
 
-Como executar (Windows PowerShell)
+- POST `/consultar`       
+  Recebe JSON com `{ pergunta: string, user_id: int }` e encaminha ao webhook n8n.
 
-1) Criar e ativar ambiente virtual
+- POST `/upload-imagem`   
+  Envia imagem via `multipart/form-data` ({ `data`: arquivo, `user_id`: valor }) para o webhook.
 
-	cd ChatBot
-	python -m venv .venv
-	.\.venv\Scripts\Activate.ps1
+- POST `/upload-audio`    
+  Envia áudio via `multipart/form-data` ({ `data`: arquivo, `user_id`: valor }) para o webhook.
 
-2) Instalar dependências
+- POST `/avaliacao`       
+  Salva nota de avaliação (chatbot) no MySQL: `{ user_id: int, nota: int }`.
 
-	pip install -r requirements.txt
+- GET  `/media-avaliacoes`
+  Retorna JSON `{ media: float, total: int }` com estatísticas de avaliações.
 
-3) Ajustar configurações
+- GET `/` (healthcheck)  
+  Retorna `{ status: "ok" }` para verificar se o serviço está ativo.
 
-	- Abra `agente_api.py` e verifique `DB_CONFIG` (host, user, password, database).
-	- Atualize `N8N_WEBHOOK_URL` para apontar ao seu webhook n8n se necessário.
+## Pré-requisitos
 
-4) Rodar o serviço
+- Python 3.10+
+- Recomenda-se criar e ativar um ambiente virtual (`venv`).
 
-	uvicorn agente_api:app --reload --host 0.0.0.0 --port 8000
+## Instruções de instalação (Windows PowerShell)
 
-5) Testar endpoints
+1. Abra o PowerShell na pasta `ChatBot` e crie/ative o venv:
 
-	- Health: http://192.168.0.201:3310/
-	- Consultar (exemplo):
+   ```powershell
+   python -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   ```
 
-	  curl -X POST http://192.168.0.201:3310/consultar -H "Content-Type: application/json" -d '{"pergunta":"Olá","user_id":1}'
+2. Instale as dependências:
 
-Gerar embeddings (scripts)
+   ```powershell
+   pip install -r requirements.txt
+   ```
 
-- `scripts/gerar_embeddings.py` lê artigos de um PostgreSQL e gera `ChatBot/embeddings/embeddings.json` usando a API da OpenAI.
-- Defina as variáveis de ambiente em um `.env` (ex.: OPENAI_API_KEY, PG_HOST, PG_USER, PG_PASS, PG_DB) ou exporte-as no PowerShell antes de executar.
+3. Ajuste variáveis de ambiente (opcional, via `.env`):
 
-Observações
+   - `N8N_WEBHOOK_URL`  
+   - Configurações de banco (`DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME`)
 
-- O frontend `webchat/index.php` faz requisições para `http://192.168.0.201:3310`. Se mudar a porta, atualize o front ou um proxy reverso.
-- Os scripts Python assumem diferentes bancos (MySQL para avaliações e PostgreSQL para artigos/embeddings). Adapte conforme sua instalação.
+4. Execute o servidor:
 
-Se quiser, posso criar um `docker-compose.yml` que sobe MySQL + PHP (Apache) + Python para facilitar testes locais.
+   ```powershell
+   uvicorn agente_api:app --reload --host 0.0.0.0 --port 8000
+   ```
+
+## Como usar
+
+O frontend (ex.: `ChatBot/webchat/index.php`) deve apontar para este microserviço no endereço `http://<host>:8000`.
+
+Exemplo de requisição `curl`:
+```bash
+curl -X POST http://localhost:8000/consultar \
+     -H "Content-Type: application/json" \
+     -d '{"pergunta":"Olá","user_id":1}'
+```
+
+## Observações
+
+- Para geração de *embeddings* ou outras tarefas auxiliares, veja os scripts em `scripts/`.
+- Certifique-se de que o webhook n8n esteja configurado em `agente_api.py`.
