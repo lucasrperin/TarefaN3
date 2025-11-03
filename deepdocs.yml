@@ -1,0 +1,11 @@
+target:
+  - url: "ChatBot/"
+  - url: "components/"
+  - url: "Config/"
+  - url: "Includes/"
+  - url: "Public/"
+  - url: "Views/"
+
+include:  []
+
+reinit: "a-random-string"
