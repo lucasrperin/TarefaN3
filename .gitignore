@@ -78,3 +78,28 @@ yarn-error.log*
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Additional cache, temp and editor files
+.cache/
+tmp/
+temp/
+*.tmp
+*.bak
+*~
+*.swp
+.sass-cache/
+
+# Python packaging/cache
+Pipfile.lock
+__pypackages__/
+
+# PHP / tool caches
+.phpunit.result.cache
+
+# Local storage / uploads / runtime caches
+storage/
+uploads/
+
+# Build artifacts (if any)
+build/
+dist/
