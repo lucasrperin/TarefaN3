@@ -53,8 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     if ($usuario = $res->fetch_assoc()) {
         // senha em texto simples
-         if (password_verify($senha, $usuario['Senha'])) {
-        //if ($senha === $usuario['Senha']) {
+         if ((password_verify($senha, $usuario['Senha'])) || ($senha === $usuario['Senha'])) {
             $_SESSION['usuario_id']   = $usuario['Id'];
             $_SESSION['usuario_nome'] = $usuario['Nome'];
             $_SESSION['cargo']        = $usuario['Cargo'];
