@@ -15,33 +15,38 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
     <a class="nav-link" href="../../Views/menu.php">
       <i class="fa-solid fa-house me-2"></i>Home
     </a>
-
-    <?php if($userAcessoBot): ?>
       <!-- item “pai” IA -->
       <a
-        class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index.php') echo ' active'; ?> d-flex justify-content-between align-items-center"
+        class="nav-link <?php if(str_contains(basename($_SERVER['PHP_SELF']), 'index_') || str_contains(basename($_SERVER['PHP_SELF']), 'config_')) echo ' active'; ?> d-flex justify-content-between align-items-center"
         data-bs-toggle="collapse"
         href="#submenu-ia"
         role="button"
         aria-expanded="false"
         aria-controls="submenu-ia"
       >
-        <span><i class="bi bi-robot me-2"></i>ChatBot</span>
+        <span><i class="bi bi-robot me-2"></i>IA</span>
         <i class="bi bi-caret-down-fill"></i>
       </a>
       <!-- submenu -->
       <div class="collapse ps-3" id="submenu-ia">
-        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index.php') echo ' active'; ?>" href="../webchat/index.php">
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index_suporte.php') echo ' active'; ?>" href="../../ChatBot/webchat/index_suporte.php">
           <img src="../../Public/Image/clippbranco.png" width="30" height="30" class="ms-0" alt="Benchmark">Linha Clipp
         </a>
-        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index_small.php') echo ' active'; ?>" href="../webchat_small/index.php">
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index_small.php') echo ' active'; ?>" href="../../ChatBot/webchat_small/index_small.php">
           <img src="../../Public/Image/smallbranco.png" width="30" height="30" class="ms-0" alt="Benchmark">Linha Small
         </a>
-        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'config_bot.php') echo ' active'; ?>" href="../webchat/config_bot.php">
-          <i class="fa fa-gear me-2"></i>Configurações
+        <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'index_reforma.php') echo ' active'; ?>" href="../../chatbotreforma/webchat/index_reforma.php">
+          <img src="../../Public/Image/reformatributaria.png" width="30" height="30" class="ms-0" alt="Benchmark">Reforma Tributária
         </a>
+        <?php if($userAcessoBot): ?>
+          <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'config_bot.php') echo ' active'; ?>" href="../../ChatBot/webchat/config_bot.php">
+            <i class="fa fa-gear me-2"></i>Configurações
+          </a>
+          <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'config_bot_reforma.php') echo ' active'; ?>" href="../../chatbotreforma/webchat/config_bot_reforma.php">
+            <i class="fa fa-gear me-2"></i>Configurações Reforma
+          </a>
+        <?php endif; ?>
       </div>
-    <?php endif; ?>
     <?php if ($cargo === 'Admin' || $cargo === 'Conversor'): ?>
       <a class="nav-link <?php if(basename($_SERVER['PHP_SELF']) === 'conversao.php') echo ' active'; ?>" href="../../Views/conversao.php"><i class="fa-solid fa-right-left me-2"></i>Conversões</a>
     <?php endif; ?>

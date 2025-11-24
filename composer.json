@@ -4,13 +4,14 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Guilherme\\TarefaN3\\": "src/"
+            "Guilherme\\TarefaN3\\": "ChatBot/"
         }
     },
     "minimum-stability": "stable",
     "require": {
         "twilio/sdk": "^8.5",
         "google/apiclient": "2.13",
-        "guzzlehttp/guzzle": "7.5"
+        "guzzlehttp/guzzle": "7.5",
+        "vlucas/phpdotenv": "^5.6"
     }
 }

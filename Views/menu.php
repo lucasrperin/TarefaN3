@@ -78,16 +78,14 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
   <main class="container menu-container mt-5">
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4">
       <!-- C: Chatbot -->
-      <?php if ($userAcessoBot): ?>
         <div class="col">
-          <div class="menu-card" onclick="location.href='../ChatBot/webchat/index.php';">
+          <div class="menu-card" onclick="location.href='../ChatBot/webchat/index_suporte.php';">
             <div class="menu-icon">
               <i class="fa-solid bi bi-robot"></i>
             </div>
             <h5 class="menu-title">ChatBot</h5>
           </div>
         </div>
-      <?php endif; ?>
 
       <!-- C: Conversões -->
       <?php if($cargo==='Admin' || $cargo==='Conversor' || $cargo==='Viewer'): ?>

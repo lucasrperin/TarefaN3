@@ -552,3 +552,23 @@ CREATE TABLE IF NOT EXISTS TB_TREINAMENTOS_BOT (
   INDEX idx_treinamentos_data (data_inicio),
   INDEX idx_treinamentos_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS TB_EMBEDDINGS_REFORMA (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  data_geracao DATETIME NOT NULL,
+  tipo ENUM('artigos','video') NOT NULL DEFAULT
+) 
+
+CREATE TABLE IF NOT EXISTS TB_TREINAMENTOS_BOT_REFORMA (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  titulo        VARCHAR(255) NOT NULL,
+  origem        ENUM('upload','url') NOT NULL,
+  link          TEXT NULL,
+  arquivo_json  TEXT NULL,
+  status        ENUM('PROCESSANDO','CONCLUIDO','ERRO') NOT NULL DEFAULT 'PROCESSANDO',
+  data_inicio   DATETIME NOT NULL,
+  data_fim      DATETIME NULL,
+  log           MEDIUMTEXT NULL,
+  INDEX idx_treinamentos_data (data_inicio),
+  INDEX idx_treinamentos_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

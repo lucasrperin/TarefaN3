@@ -116,20 +116,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Login - Painel Zucchetti</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-        rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../Public/login.css">
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap"
-        rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <link rel="icon" href="../Public/Image/LogoTituto.png" type="image/png">
 </head>
 <body>
   <div class="login-wrapper">
     <div class="login-card">
-      <img src="../Public/Image/zucchetti_blue.png"
-           class="light-logo" width="150" alt="Zucchetti Logo">
+      <img src="../Public/Image/zucchetti_blue.png" class="light-logo" width="150" alt="Zucchetti Logo">
 
       <?php if (isset($erro)): ?>
         <div class="alert alert-danger"><?= $erro ?></div>
@@ -138,19 +134,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <form method="POST" action="">
         <div class="mb-3">
           <label for="email" class="form-label">Email</label>
-          <input type="email" name="email" id="email"
-                 class="form-control" placeholder="Seu email" required>
+          <input type="email" name="email" id="email" class="form-control" placeholder="Seu email" required>
         </div>
 
         <div class="mb-3">
           <label for="senha" class="form-label">Senha</label>
-          <input type="password" name="senha" id="senha"
-                 class="form-control" placeholder="Sua senha" required>
+          <input type="password" name="senha" id="senha" class="form-control" placeholder="Sua senha" required>
         </div>
 
         <div class="mb-3 form-check">
-          <input type="checkbox" name="remember" id="remember"
-                 class="form-check-input">
+          <input type="checkbox" name="remember" id="remember" class="form-check-input">
           <label for="remember" class="form-check-label">
             Lembrar-me
           </label>

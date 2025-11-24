@@ -1,7 +1,29 @@
 <?php
 // history.php — só API de JSON, sem debug nem scripts
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 header('Content-Type: application/json; charset=utf-8');
 session_start();
+
+require __DIR__ . '/../../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__)); 
+$dotenv->load();
+
+$dbHost = $_ENV['PG_HOST_HISTORY'];
+$dbPort = $_ENV['PG_PORT_HISTORY'];
+$dbName = $_ENV['PG_DATABASE_HISTORY'];
+$dbUser = $_ENV['PG_USER_HISTORY'];
+$dbPass = $_ENV['PG_PASSWORD_HISTORY'];
+
+/* 0) diagnóstico rápido em produção (log, não echo) */
+function jfail(int $code, string $msg) {
+  http_response_code($code);
+  echo json_encode(['error' => $msg], JSON_UNESCAPED_UNICODE);
+  exit;
+}
 
 // 1) valida sessão
 if (!isset($_SESSION['usuario_id']) || !is_numeric($_SESSION['usuario_id'])) {
@@ -9,16 +31,24 @@ if (!isset($_SESSION['usuario_id']) || !is_numeric($_SESSION['usuario_id'])) {
   echo json_encode(['error'=>'Usuário não autenticado']);
   exit;
 }
+
+/* Opcional: garanta string limpa do ID */
+$userId = trim((string)$_SESSION['usuario_id']);
+if ($userId === '') {
+  jfail(401, 'Sessão inválida');
+}
+
+/* 2) garante extensão pgsql */
+if (!function_exists('pg_connect')) {
+  jfail(500, 'Extensão pgsql não está habilitada no PHP (pg_connect ausente)');
+}
+
 $userId = (int) $_SESSION['usuario_id'];
 
 // 2) conecta no Postgres (pooler transaction)
 $connStr = sprintf(
   "host=%s port=%s dbname=%s user=%s password=%s options='-c pool_mode=transaction'",
-  'aws-0-sa-east-1.pooler.supabase.com',
-  '6543',
-  'postgres',
-  'postgres.lyfueqcjqsznblxlaoej',
-  'ZucchettiIA@1'
+  $dbHost, $dbPort, $dbName, $dbUser, $dbPass
 );
 $db = pg_connect($connStr);
 if (!$db) {
@@ -27,8 +57,6 @@ if (!$db) {
   exit;
 }
 
-// 3) busca 15 últimas mensagens DO USUÁRIO
-//    * substitua "session_id" por "user_id" se você criar essa coluna
 // 3) busca 15 últimas mensagens DO USUÁRIO
 $sql = <<<SQL
 WITH last_humans AS (
@@ -44,7 +72,7 @@ cut AS (
   FROM last_humans
 )
 SELECT message
-FROM public.n8n_chat_histories, cut    -- <— aqui inclui a CTE "cut"
+FROM public.n8n_chat_histories, cut   
 WHERE (session_id::numeric) = \$1
   AND id >= cut.min_id
 ORDER BY id ASC;
