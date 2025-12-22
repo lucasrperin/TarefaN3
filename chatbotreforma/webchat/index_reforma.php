@@ -277,7 +277,7 @@ $usuario_nome = $_SESSION['usuario_nome'] ?? '';
       const payload = { pergunta, user_id };
 
       try {
-  const resp = await fetch('https://apibotprojeton0.clipp.com.br/consultar-reforma', {
+  const resp = await fetch('https://apibotprojeton0.clipp.com.br/consultarreforma', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)

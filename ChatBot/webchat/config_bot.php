@@ -21,6 +21,11 @@ $resweb = $conn->query("SELECT MAX(data_geracao) AS ultima FROM TB_EMBEDDINGS WH
 $rowweb = $resweb->fetch_assoc();
 $ultimaweb = $rowweb['ultima'] ? date('d/m/Y H:i:s', strtotime($rowweb['ultima'])) : 'Nunca';
 
+// busca última do FAQ
+$resfaq = $conn->query("SELECT MAX(data_geracao) AS ultima FROM TB_EMBEDDINGS WHERE tipo = 'faq'");
+$rowfaq = $resfaq->fetch_assoc();
+$ultimafaq = $rowfaq['ultima'] ? date('d/m/Y H:i:s', strtotime($rowfaq['ultima'])) : 'Nunca';
+
 // histórico (últimos 50)
 $hist = $conn->query("
   SELECT id, titulo, origem, link, arquivo_json, status, data_inicio, data_fim
@@ -197,6 +202,19 @@ $excluirJsonSiteUrl  = fs_to_url($excluirJsonSiteFs);
             </button>
           </div>
           <div id="uploadSitesStatus" class="alert alert-success py-2 px-3 mt-2 d-none"></div>
+        </div>
+
+        <!-- Faq -->
+        <div class="qcard">
+          <div class="q-ico"><i class="fa fa-database"></i></div>
+          <div class="q-title">Embeddings FAQ</div>
+          <div class="q-sub mb-3">Última geração: <strong><?= htmlspecialchars($ultimafaq) ?></strong></div>
+          <div class="q-cta d-flex align-items-center gap-2">
+            <button class="btn btn-primary btn-pill" id="btnExecutarFaq" title="Backup → Gerar → Upload">
+              <i class="fa fa-bolt me-1"></i> Gerar & Publicar
+            </button>
+          </div>
+          <div id="logFaq" class="log-box mt-3" style="display:none;"></div>
         </div>
         <div id="logSites" class="log-box" style="display:none;"></div>
       </div>

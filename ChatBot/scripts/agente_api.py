@@ -49,6 +49,13 @@ DB_CONFIG = {
     "database": MYSQL_DATABASE
 }
 
+@app.get("/debug_routes")
+def debug_routes():
+    return [
+        {"path": r.path, "methods": list(r.methods)}
+        for r in app.routes
+    ]
+
 @app.post("/consultar")
 async def consultar(request: Request):
     data = await request.json()
@@ -122,8 +129,8 @@ async def consultar(request: Request):
     except Exception as e:
         return {"erro": f"Erro ao tratar resposta do n8n: {str(e)}"}
     
-@app.post("/consultar-reforma")
-async def consultar(request: Request):
+@app.post("/consultarreforma")
+async def consultar_reforma(request: Request):
     data = await request.json()
     pergunta = data.get("pergunta")
     user_id = data.get("user_id")
@@ -262,7 +269,7 @@ async def upload_imagem(imagem: UploadFile = File(...), user_id: str = Query(...
     
 # ENVIO DE IMAGEM BINÁRIO (multipart/form-data) - Agente Reforma
 @app.post("/upload-imagem-reforma")
-async def upload_imagem(imagem: UploadFile = File(...), user_id: str = Query(...)):
+async def upload_imagem_reforma(imagem: UploadFile = File(...), user_id: str = Query(...)):
     # lê o arquivo
     conteudo = await imagem.read()
     files = {
@@ -389,7 +396,7 @@ async def upload_audio(audio: UploadFile = File(...), user_id: str = Query(...))
     
 # NOVO: ENVIO DE ÁUDIO BINÁRIO (multipart/form-data) - Agente Reforma
 @app.post("/upload-audio-reforma")
-async def upload_audio(audio: UploadFile = File(...), user_id: str = Query(...)):
+async def upload_audio_reforma(audio: UploadFile = File(...), user_id: str = Query(...)):
     try:
         conteudo = await audio.read()
 

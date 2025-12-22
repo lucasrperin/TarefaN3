@@ -5,6 +5,8 @@ import re
 import math
 import unicodedata
 import json
+import openai
+from openai import OpenAI
 from datetime import datetime
 
 # ==== stdout/stderr UTF-8 (Windows/Apache) ====
@@ -19,6 +21,21 @@ from dotenv import load_dotenv, find_dotenv
 # Garante que o .env seja encontrado mesmo se o CWD variar
 load_dotenv(find_dotenv())
 
+# 1) Garante que exista um PATH (básico de Linux)
+if "PATH" not in os.environ:
+    os.environ["PATH"] = "/usr/local/bin:/usr/bin:/bin"
+
+# 2) Aponta explicitamente pro ffmpeg (ajuste se estiver em outro caminho)
+os.environ["FFMPEG_BINARY"] = "/usr/bin/ffmpeg"
+
+from pydub import AudioSegment
+from pydub.utils import which
+
+print("FFmpeg usado pelo pydub:", which("ffmpeg"))
+
+# ==== Importar o FFMPEG para acessar o arquivo de áudio ====
+FFMPEG_PATH = os.getenv("FFMPEG_PATH")
+
 # ==== Dependências externas ====
 # yt_dlp só é necessário para LINK; upload de arquivo funciona sem ele
 # (lazy import feito dentro da função baixar_video)
@@ -28,21 +45,20 @@ except ModuleNotFoundError:
     print("Erro: pydub não encontrado. Instale no venv: .venv\\Scripts\\python.exe -m pip install pydub")
     sys.exit(1)
 
-import openai
-
 # ====== OPENAI KEY ======
 openai.api_key = os.getenv("OPENAI_API_KEY")
 if not openai.api_key:
     print("Erro na transcrição: OPENAI_API_KEY não definida no ambiente.")
     sys.exit(1)
 
+client = OpenAI(  # se OPENAI_API_KEY estiver no .env / variável de ambiente, pode deixar vazio
+    api_key=os.getenv("OPENAI_API_KEY")
+)
+
 # ====== Caminhos base ======
 SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))               # .../ChatBot/scripts/video
 CHATBOT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, os.pardir, os.pardir))  # .../ChatBot
 TRANS_DIR   = os.path.join(CHATBOT_DIR, "embeddings", "transcricoes")  # .../ChatBot/embeddings/transcricoes
-
-# ====== FFMPEG ======
-FFMPEG_PATH_RAW = os.getenv("FFMPEG_PATH", "").strip()
 
 def _configure_ffmpeg(path_hint: str):
     """
@@ -84,7 +100,7 @@ def _configure_ffmpeg(path_hint: str):
     if not prob or not os.path.exists(prob):
         print("Aviso: ffprobe não encontrado. Coloque o ffprobe na mesma pasta e/ou ajuste FFMPEG_PATH.")
 
-_configure_ffmpeg(FFMPEG_PATH_RAW)
+_configure_ffmpeg(FFMPEG_PATH)
 
 # ===== Diretório temporário =====
 TEMP_DIR = os.path.join(SCRIPT_DIR, "temp")
@@ -123,8 +139,8 @@ def baixar_video(link_url: str) -> str:
     }
 
     # Se soubermos a pasta do ffmpeg, indique para o yt_dlp também
-    if FFMPEG_PATH_RAW:
-        ydl_opts["ffmpeg_location"] = FFMPEG_PATH_RAW
+    if FFMPEG_PATH:
+        ydl_opts["ffmpeg_location"] = FFMPEG_PATH
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(link_url, download=True)
@@ -155,7 +171,7 @@ def transcrever_audio_em_partes(caminho_audio: str, duracao_maxima_ms: int = 10 
 
         try:
             with open(parte_path, "rb") as f:
-                transcript = openai.audio.transcriptions.create(
+                transcript = client.audio.transcriptions.create(
                     model="whisper-1",
                     file=f,
                     response_format="text",

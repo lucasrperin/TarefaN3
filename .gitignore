@@ -64,6 +64,7 @@ yarn-error.log*
 /ChatBot/embeddings/
 /ChatBot/.venv/
 /python/
+/python/Python312/
 
 # IDE specific
 .idea

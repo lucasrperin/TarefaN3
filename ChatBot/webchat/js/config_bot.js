@@ -81,6 +81,53 @@
     });
   }
 
+  // ---------- FAQ: backup->gerar->upload ----------
+  const logDivFaq = $('#logFaq');
+  const btnExecFaq = $('#btnExecutarFaq');
+  if (btnExecFaq && logDivFaq) {
+    btnExecFaq.addEventListener('click', async () => {
+      const etapas = ['backup_faq', 'gerar_faq', 'upload_faq'];
+      logDivFaq.innerHTML = '';
+      logDivFaq.style.display = 'block';
+      btnExecFaq.disabled = true;
+
+      for (const etapa of etapas) {
+        const id = 'etapa-' + etapa;
+        logDivFaq.insertAdjacentHTML(
+          'beforeend',
+          `<div id="${id}">
+             ⏳ Executando etapa: ${etapa}...
+             <span class="spinner-border spinner-border-sm text-primary ms-1"></span>
+           </div>`
+        );
+
+        let txt = '';
+        let ok  = false;
+        try {
+          const resp = await fetch(`${execBase}?etapa=${encodeURIComponent(etapa)}`, { cache: 'no-store' });
+          txt = await resp.text();
+          ok = resp.ok && !txt.startsWith('❌');
+        } catch (e) {
+          txt = '❌ Erro de rede.';
+        }
+
+        const container = document.getElementById(id);
+        if (!ok) {
+          container.innerHTML = `<span style="color:red;">${txt}</span> 🛑`;
+          btnExecFaq.disabled = false;
+          return;
+        }
+        container.innerHTML = `<span style="color:green;">${txt}</span>`;
+      }
+
+      logDivFaq.insertAdjacentHTML(
+        'beforeend',
+        "<b style='color:green;'>✅ Processo finalizado com sucesso.</b>"
+      );
+      btnExecFaq.disabled = false;
+    });
+  }
+
   // ---------- VÍDEOS: Publicar embeddings ----------
   const btnUploadVideos = $('#btnUploadVideos');
   if (btnUploadVideos) {

@@ -1,5 +1,5 @@
 <?php
-set_time_limit(600);
+set_time_limit(10000);
 
 // 1) Conexão DB
 require_once __DIR__ . '/../../Config/Database.php';  // ajusta o caminho se necessário
@@ -15,18 +15,24 @@ $etapa = $_GET['etapa'] ?? '';
 
 // caminhos base
 $chatbotDir = realpath(__DIR__ . '/..'); // .../ChatBot
-$baseDir    = $chatbotDir;               // manter compatibilidade
+$baseDir    = $chatbotDir;
 
-// Detecta Python do venv (se você usa .venv em ChatBot/)
+$isWindows = stripos(PHP_OS_FAMILY ?? php_uname('s'), 'Windows') !== false;
+
 $venvPyWin = $chatbotDir . DIRECTORY_SEPARATOR . '.venv' . DIRECTORY_SEPARATOR . 'Scripts' . DIRECTORY_SEPARATOR . 'python.exe';
 $venvPyNix = $chatbotDir . DIRECTORY_SEPARATOR . '.venv' . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'python';
-if (file_exists($venvPyWin)) {
-  $python = '"' . $venvPyWin . '"';
-} elseif (file_exists($venvPyNix)) {
-  $python = escapeshellarg($venvPyNix);
+
+if ($isWindows && file_exists($venvPyWin)) {
+    // Ambiente Windows + venv com Scripts/python.exe
+    $python = '"' . $venvPyWin . '"';
+} elseif (!$isWindows && file_exists($venvPyNix)) {
+    // Ambiente Linux + venv com bin/python
+    $python = escapeshellarg($venvPyNix);
 } else {
-  $python = stripos(PHP_OS_FAMILY ?? php_uname('s'), 'Windows') !== false ? 'python' : 'python3';
+    // Fallback: usa python global
+    $python = $isWindows ? 'python' : 'python3';
 }
+
 putenv('PYTHONIOENCODING=utf-8');
 
 // caminhos dos scripts/arquivos (ARTIGOS)
@@ -46,6 +52,12 @@ $sitesDir           = $chatbotDir . '/embeddings/sites';
 $backupSitesDir     = $sitesDir . '/backup';
 $backupSitesZipPath = $backupSitesDir . '/sites_backup_' . date('Ymd_His') . '.zip';
 $uploadSiteScript   = $chatbotDir . '/scripts/website/upload_embeddings_site.py';
+
+// *** FAQ ***
+$embFaqScript     = $chatbotDir . '/scripts/faq/gerar_embeddings_faq.py';
+$backupFaqDir     = $chatbotDir . '/embeddings/faq/backups';
+$embFaqPath       = $chatbotDir . '/embeddings/faq/embeddings_faq.json';
+$uploadFaqScript  = $chatbotDir . '/scripts/faq/upload_embeddings_faq.py';
 
 /**
  * Compacta TODO o conteúdo da pasta $srcDir (arquivos de qualquer extensão),
@@ -285,6 +297,59 @@ try {
       $stmt->close();
 
       echo "✅ Backup criado (" . basename($zipPath) . ", {$qtde} arquivos) e Upload realizado (websites).";
+      break;
+
+    // ========= FAQ =========
+    case 'backup_faq':
+      if (!file_exists($backupFaqDir)) {
+        if (!mkdir($backupFaqDir, 0777, true)) {
+          throw new Exception("❌ Não foi possível criar a pasta de backup: $backupFaqDir");
+        }
+      }
+      $ts = date('Ymd_His');
+      $dest = "$backupFaqDir/embeddings_faq_backup_$ts.json";
+      if (!file_exists($embFaqPath)) {
+        throw new Exception("❌ Arquivo não encontrado teste: $embFaqPath");
+      }
+      if (!copy($embFaqPath, $dest)) {
+        throw new Exception("❌ Falha no backup para $dest");
+      }
+      echo "✅ Backup realizado em " . basename($dest) . ".";
+      break;
+
+    case 'gerar_faq':
+      // executa geração
+      $cmd = "$python " . escapeshellarg($embFaqScript);
+      exec($cmd . " 2>&1", $out, $ret);
+      if ($ret !== 0) throw new Exception("❌ Erro: " . implode("\n", $out));
+
+      // grava data + tipo (faq)
+      $now  = date('Y-m-d H:i:s');
+      $tipo = 'faq';
+      $stmt = $conn->prepare("INSERT INTO TB_EMBEDDINGS (data_geracao, tipo) VALUES (?, ?)");
+      if (!$stmt) throw new Exception("❌ Erro prepare: ".$conn->error);
+      $stmt->bind_param('ss', $now, $tipo);
+      if (!$stmt->execute()) throw new Exception("❌ Erro ao gravar data de geração");
+      $stmt->close();
+
+      echo "✅ Embeddings gerados (FAQ).";
+      break;
+
+    case 'upload_faq':
+      $cmd = "$python " . escapeshellarg($uploadFaqScript);
+      exec($cmd . " 2>&1", $out2, $ret2);
+      if ($ret2 !== 0) throw new Exception("❌ Erro Upload: " . implode("\n", $out2));
+
+      // grava data + tipo (faq)
+      $now  = date('Y-m-d H:i:s');
+      $tipo = 'faq';
+      $stmt = $conn->prepare("INSERT INTO TB_EMBEDDINGS (data_geracao, tipo) VALUES (?, ?)");
+      if (!$stmt) throw new Exception("❌ Erro prepare: ".$conn->error);
+      $stmt->bind_param('ss', $now, $tipo);
+      if (!$stmt->execute()) throw new Exception("❌ Erro ao gravar data do upload");
+      $stmt->close();
+
+      echo "✅ Upload realizado (FAQ).";
       break;
 
     default:

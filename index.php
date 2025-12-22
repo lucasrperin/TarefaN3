@@ -840,7 +840,7 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
                                 <select class="form-select" id="atendente" name="atendente" required>
                                     <option value="">Selecione</option>
                                     <?php
-                                    $queryAtendente = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo in ('User', 'Conversor', 'Treinamento', 'Viewer') ORDER BY Nome ASC";
+                                    $queryAtendente = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo in ('User', 'Conversor', 'Treinamento', 'Viewer') or Id = 7 ORDER BY Nome ASC";
                                     $resultAtendente = $conn->query($queryAtendente);
                                     while ($rowA = $resultAtendente->fetch_assoc()) {
                                         echo "<option value='" . $rowA['Id'] . "'>" . $rowA['Nome'] . "</option>";
@@ -990,7 +990,7 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
                             <select class="form-select" id="atendente_editar" name="atendente_editar" required>
                                 <option value="">Selecione</option>
                                 <?php
-                                $queryAtendente2 = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo in ('User', 'Conversor', 'Treinamento', 'Viewer') ORDER BY Nome ASC";
+                                $queryAtendente2 = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo in ('User', 'Conversor', 'Treinamento', 'Viewer') or Id = 7 ORDER BY Nome ASC";
                                 $resultAtendente2 = $conn->query($queryAtendente2);
                                 while ($rowA2 = $resultAtendente2->fetch_assoc()) {
                                 echo "<option value='" . $rowA2['Id'] . "'>" . $rowA2['Nome'] . "</option>";

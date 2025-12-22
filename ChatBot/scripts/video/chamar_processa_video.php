@@ -2,9 +2,12 @@
 // Agora em: ChatBot/scripts/video/chamar_processa_video.php
 declare(strict_types=1);
 
-header('Content-Type: application/json; charset=utf-8');
+date_default_timezone_set('America/Sao_Paulo');
+
 ignore_user_abort(true);
 @set_time_limit(0);
+header('Content-Type: text/plain; charset=utf-8');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
 // ===== Caminhos base =====
 // Antes: dirname(__DIR__, 2) (quando ficava em ChatBot/scripts)
@@ -88,19 +91,24 @@ $stmt->close();
 
 // ===== Executa Python =====
 // Diretório do ChatBot (suba 2 níveis a partir de .../scripts/video)
-$chatbotDir = dirname(__DIR__, 2);
+$chatbotDir = realpath(__DIR__ . '/../..'); 
+
+$isWindows = stripos(PHP_OS_FAMILY ?? php_uname('s'), 'Windows') !== false;
+
 
 // Detecta o Python do .venv (Windows/Linux)
 $venvPyWin = $chatbotDir . DIRECTORY_SEPARATOR . '.venv' . DIRECTORY_SEPARATOR . 'Scripts' . DIRECTORY_SEPARATOR . 'python.exe';
 $venvPyNix = $chatbotDir . DIRECTORY_SEPARATOR . '.venv' . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'python';
 
-if (file_exists($venvPyWin)) {
-  $python = '"' . $venvPyWin . '"';
-} elseif (file_exists($venvPyNix)) {
-  $python = escapeshellarg($venvPyNix);
+if ($isWindows && file_exists($venvPyWin)) {
+    // Ambiente Windows + venv com Scripts/python.exe
+    $python = '"' . $venvPyWin . '"';
+} elseif (!$isWindows && file_exists($venvPyNix)) {
+    // Ambiente Linux + venv com bin/python
+    $python = escapeshellarg($venvPyNix);
 } else {
-  // fallback (evite usar, mas deixa como plano B)
-  $python = stripos(PHP_OS_FAMILY ?? php_uname('s'), 'Windows') !== false ? 'python' : 'python3';
+    // Fallback: usa python global
+    $python = $isWindows ? 'python' : 'python3';
 }
 
 putenv('PYTHONIOENCODING=utf-8');
