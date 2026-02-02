@@ -168,7 +168,7 @@ $excluirJsonSiteUrl  = fs_to_url($excluirJsonSiteFs);
         <div class="qcard">
           <div class="q-ico"><i class="fa fa-database"></i></div>
           <div class="q-title">Embeddings Artigos</div>
-          <div class="q-sub mb-3">Última geração: <strong><?= htmlspecialchars($ultima) ?></strong></div>
+          <div class="q-sub mb-3">Última sincronização: <strong><?= htmlspecialchars($ultima) ?></strong></div>
           <div class="q-cta d-flex align-items-center gap-2">
             <button class="btn btn-primary btn-pill" id="btnExecutar" title="Backup → Gerar → Upload">
               <i class="fa fa-bolt me-1"></i> Gerar & Publicar
@@ -208,7 +208,7 @@ $excluirJsonSiteUrl  = fs_to_url($excluirJsonSiteFs);
         <div class="qcard">
           <div class="q-ico"><i class="fa fa-database"></i></div>
           <div class="q-title">Embeddings FAQ</div>
-          <div class="q-sub mb-3">Última geração: <strong><?= htmlspecialchars($ultimafaq) ?></strong></div>
+          <div class="q-sub mb-3">Última sincronização: <strong><?= htmlspecialchars($ultimafaq) ?></strong></div>
           <div class="q-cta d-flex align-items-center gap-2">
             <button class="btn btn-primary btn-pill" id="btnExecutarFaq" title="Backup → Gerar → Upload">
               <i class="fa fa-bolt me-1"></i> Gerar & Publicar

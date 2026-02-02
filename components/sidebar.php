@@ -8,7 +8,7 @@ $idsLiberados = [6, 17, 24, 48];
 $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
 ?>
 <div class="sidebar sidebar-scroll">
-  <a class="light-logo" href="dashboard.php">
+  <a class="light-logo" href="#">
     <img src="../Public/Image/zucchetti_blue.png" width="150" alt="Logo Zucchetti">
   </a>
   <nav class="nav flex-column">

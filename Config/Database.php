@@ -2,9 +2,9 @@
 // Config/Database.php - read DB configuration from environment (works in Docker)
 // Defaults use 127.0.0.1 to force TCP (avoid unix socket when MySQL is remote)
 
-$host = getenv('DB_HOST') ?: getenv('MYSQL_HOST') ?: '127.0.0.1';
-$user = getenv('DB_USER') ?: getenv('MYSQL_USER') ?: 'root';
-$pass = getenv('DB_PASS') ?: getenv('DB_PASSWORD') ?: getenv('MYSQL_ROOT_PASSWORD') ?: '';
+$host = getenv('DB_HOST') ?: getenv('MYSQL_HOST') ?: '172.18.1.30';
+$user = getenv('DB_USER') ?: getenv('MYSQL_USER') ?: 'suporte';
+$pass = getenv('DB_PASS') ?: getenv('DB_PASSWORD') ?: getenv('MYSQL_ROOT_PASSWORD') ?: 'GCj$zd5L$O';
 $db   = getenv('DB_NAME') ?: getenv('MYSQL_DATABASE') ?: 'TarefaN3';
 
 // If host explicitly set to 'localhost' but we don't have a socket, prefer TCP

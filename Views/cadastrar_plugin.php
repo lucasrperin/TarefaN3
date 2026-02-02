@@ -21,6 +21,7 @@ if (!isset($_POST['nome'])) {
 }
 
 $nome = mysqli_real_escape_string($conn, trim($_POST['nome']));
+$nome = strip_tags($nome); // remove HTML
 if (empty($nome)) {
     echo json_encode(array("message" => "Nome do plugin não informado."));
     exit();

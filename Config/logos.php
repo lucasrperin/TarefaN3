@@ -10,6 +10,7 @@ return [
     'Service MEI'                                    => 'Public/Image/ClippService.png',
     'Clipp Facil'                                    => 'Public/Image/ClippFacil.png',
     'Clipp 360'                                      => 'Public/Image/Clipp360.png',
+    'Clipp360'                                      => 'Public/Image/Clipp360.png',
     'Mercado Livre'                                  => 'Public/Image/MercadoLivre.png',
     'Clipp PRO'                                      => 'Public/Image/ClippPro.png',
     'ClippPro'                                       => 'Public/Image/ClippPro.png',

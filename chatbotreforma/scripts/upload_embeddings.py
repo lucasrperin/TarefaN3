@@ -6,10 +6,10 @@ from dotenv import load_dotenv
 # Carrega variáveis de ambiente do arquivo .env
 load_dotenv()
 SUPABASE_REFORMA_URL             = os.getenv("SUPABASE_REFORMA_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_REFORMA_SERVICE_ROLE_KEY = os.getenv("SUPABASE_REFORMA_SERVICE_ROLE_KEY")
 
 # Inicializa cliente Supabase
-supabase: Client = create_client(SUPABASE_REFORMA_URL, SUPABASE_SERVICE_ROLE_KEY)
+supabase: Client = create_client(SUPABASE_REFORMA_URL, SUPABASE_REFORMA_SERVICE_ROLE_KEY)
 
 # Caminho para o arquivo embeddings.json
 embeddings_file = os.path.join(os.path.dirname(__file__), "../embeddings/embeddings.json")

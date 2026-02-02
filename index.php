@@ -840,7 +840,7 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
                                 <select class="form-select" id="atendente" name="atendente" required>
                                     <option value="">Selecione</option>
                                     <?php
-                                    $queryAtendente = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo in ('User', 'Conversor', 'Treinamento', 'Viewer') or Id = 7 ORDER BY Nome ASC";
+                                    $queryAtendente = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo in ('User', 'Conversor', 'Treinamento', 'Viewer') or Id in (7, 24) ORDER BY Nome ASC";
                                     $resultAtendente = $conn->query($queryAtendente);
                                     while ($rowA = $resultAtendente->fetch_assoc()) {
                                         echo "<option value='" . $rowA['Id'] . "'>" . $rowA['Nome'] . "</option>";
@@ -967,7 +967,7 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
                     <div class="row mb-3"> 
                         <div>
                             <label for="just_nota_editar" class="form-label">Justificativa Nota</label>
-                            <textarea name="just_nota_editar" id="just_nota_editar" class="form-control" maxlength="255" rows="2"></textarea>
+                            <textarea name="just_nota_editar" id="just_nota_editar" class="form-control" rows="2"></textarea>
                         </div>
                     </div>
                     <!-- Linha com Sistema e Atendente -->
@@ -990,7 +990,7 @@ $userAcessoBot = ($cargo === 'Admin') || in_array($usuario_id, $idsLiberados);
                             <select class="form-select" id="atendente_editar" name="atendente_editar" required>
                                 <option value="">Selecione</option>
                                 <?php
-                                $queryAtendente2 = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo in ('User', 'Conversor', 'Treinamento', 'Viewer') or Id = 7 ORDER BY Nome ASC";
+                                $queryAtendente2 = "SELECT Id, Nome FROM TB_USUARIO WHERE Cargo in ('User', 'Conversor', 'Treinamento', 'Viewer') or Id in (7, 24) ORDER BY Nome ASC";
                                 $resultAtendente2 = $conn->query($queryAtendente2);
                                 while ($rowA2 = $resultAtendente2->fetch_assoc()) {
                                 echo "<option value='" . $rowA2['Id'] . "'>" . $rowA2['Nome'] . "</option>";

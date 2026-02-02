@@ -14,11 +14,11 @@ if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
 # Inicializa cliente Supabase
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-# === Caminho para o JSON: ChatBot/embeddings/embeddings_fac.json ===
-base_dir = os.path.dirname(os.path.abspath(__file__))        # ChatBot/fac
-embeddings_file = os.path.join(base_dir, "..", "embeddings", "embeddings_fac.json")
+# === Caminho para o JSON: ChatBot/embeddings/faq/embeddings_faq.json ===
+base_dir = os.path.dirname(os.path.abspath(__file__))        # ChatBot/scripts/faq
+embeddings_file = os.path.join(base_dir, "..", "..", "embeddings", "faq", "embeddings_faq.json")
 
-# 1) Carrega o novo embeddings_fac.json
+# 1) Carrega o novo embeddings_faq.json
 try:
     with open(embeddings_file, encoding="utf-8") as f:
         embeddings = json.load(f)

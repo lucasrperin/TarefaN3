@@ -28,7 +28,7 @@ cur = conn.cursor()
 # QUERY AJUSTADA
 cur.execute("""
     SELECT id, titulo, conteudo FROM public.artigos
-    WHERE interno = 'false'
+    WHERE interno = 'false' and titulo like('%Reforma%')
     ORDER BY id ASC
 """)
 rows = cur.fetchall()

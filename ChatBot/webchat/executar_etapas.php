@@ -189,16 +189,6 @@ try {
       $cmd = "$python " . escapeshellarg($embScript);
       exec($cmd . " 2>&1", $out, $ret);
       if ($ret !== 0) throw new Exception("❌ Erro: " . implode("\n", $out));
-
-      // grava data + tipo (artigos)
-      $now  = date('Y-m-d H:i:s');
-      $tipo = 'artigos';
-      $stmt = $conn->prepare("INSERT INTO TB_EMBEDDINGS (data_geracao, tipo) VALUES (?, ?)");
-      if (!$stmt) throw new Exception("❌ Erro prepare: ".$conn->error);
-      $stmt->bind_param('ss', $now, $tipo);
-      if (!$stmt->execute()) throw new Exception("❌ Erro ao gravar data de geração");
-      $stmt->close();
-
       echo "✅ Embeddings gerados (artigos).";
       break;
 
@@ -309,7 +299,7 @@ try {
       $ts = date('Ymd_His');
       $dest = "$backupFaqDir/embeddings_faq_backup_$ts.json";
       if (!file_exists($embFaqPath)) {
-        throw new Exception("❌ Arquivo não encontrado teste: $embFaqPath");
+        throw new Exception("❌ Arquivo não encontrado: $embFaqPath");
       }
       if (!copy($embFaqPath, $dest)) {
         throw new Exception("❌ Falha no backup para $dest");
@@ -320,26 +310,15 @@ try {
     case 'gerar_faq':
       // executa geração
       $cmd = "$python " . escapeshellarg($embFaqScript);
-      exec($cmd . " 2>&1", $out, $ret);
-      if ($ret !== 0) throw new Exception("❌ Erro: " . implode("\n", $out));
-
-      // grava data + tipo (faq)
-      $now  = date('Y-m-d H:i:s');
-      $tipo = 'faq';
-      $stmt = $conn->prepare("INSERT INTO TB_EMBEDDINGS (data_geracao, tipo) VALUES (?, ?)");
-      if (!$stmt) throw new Exception("❌ Erro prepare: ".$conn->error);
-      $stmt->bind_param('ss', $now, $tipo);
-      if (!$stmt->execute()) throw new Exception("❌ Erro ao gravar data de geração");
-      $stmt->close();
-
+      exec($cmd . " 2>&1", $out5, $ret5);
+      if ($ret5 !== 0) throw new Exception("❌ Erro: " . implode("\n", $out5));
       echo "✅ Embeddings gerados (FAQ).";
       break;
 
     case 'upload_faq':
       $cmd = "$python " . escapeshellarg($uploadFaqScript);
-      exec($cmd . " 2>&1", $out2, $ret2);
-      if ($ret2 !== 0) throw new Exception("❌ Erro Upload: " . implode("\n", $out2));
-
+      exec($cmd . " 2>&1", $out6, $ret6);
+      if ($ret6 !== 0) throw new Exception("❌ Erro Upload: " . implode("\n", $out6));
       // grava data + tipo (faq)
       $now  = date('Y-m-d H:i:s');
       $tipo = 'faq';
@@ -348,7 +327,6 @@ try {
       $stmt->bind_param('ss', $now, $tipo);
       if (!$stmt->execute()) throw new Exception("❌ Erro ao gravar data do upload");
       $stmt->close();
-
       echo "✅ Upload realizado (FAQ).";
       break;
 

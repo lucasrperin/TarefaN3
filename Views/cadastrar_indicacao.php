@@ -15,11 +15,15 @@ $plugin_id   = mysqli_real_escape_string($conn, $_POST['plugin_id']);
 $data        = mysqli_real_escape_string($conn, $_POST['data']);   // formato esperado: YYYY-MM-DD
 $cnpj        = mysqli_real_escape_string($conn, $_POST['cnpj']);
 $serial      = mysqli_real_escape_string($conn, $_POST['serial']);
+$serial      = strip_tags($serial); // remove HTML
 $contato     = mysqli_real_escape_string($conn, $_POST['contato']);
+$contato     = strip_tags($contato); // remove HTML
 $fone        = mysqli_real_escape_string($conn, $_POST['fone']);
+$fone    = strip_tags($fone); // remove HTML
 $observacao  = isset($_POST['observacao'])
     ? mysqli_real_escape_string($conn, $_POST['observacao'])
     : '';
+$observacao  = strip_tags($observacao); // remove HTML
 $revenda = isset($_POST['revenda']) ? 1 : 0;
 
 // Define o status e o consultor fixos

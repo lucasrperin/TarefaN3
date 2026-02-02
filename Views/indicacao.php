@@ -119,7 +119,7 @@ $whereSQL = $where
 $whereTabela = $where; // copia os filtros anteriores
 
 // aplica filtro de acesso apenas para a tabela
-if ($cargo === 'Comercial' && !in_array($usuario_id, [29, 40])) {
+if ($cargo === 'Comercial' && !in_array($usuario_id, [29, 56])) {
   $whereTabela[] = "i.idConsultor = {$usuario_id}";
 }
 
@@ -443,93 +443,89 @@ $dadosTreinJson = json_encode($dadosTrein);
                 <div class="tab-content flex-grow-1">
 
                   <!-- Ranking com tabela e progress bars -->
-<div class="tab-pane fade show active mt-1" id="v-pane-ranking">
-  <?php 
-    // 1) Escolhe o array e o campo para calcular o máximo
-    if ($cargo === 'Comercial') {
-      $dados   = $rankingConsult;
-      // rankingConsult só tem 'total_faturado_consult'
-      $valores = array_map(fn($r) => (float)$r['total_faturado_consult'], $dados);
-    } else {
-      $dados   = $ranking;
-      // ranking tem 'total_indicacoes_faturadas'
-      $valores = array_map(fn($r) => (int)$r['total_indicacoes_faturadas'], $dados);
-    }
-    $max = !empty($valores) ? max($valores) : 1;
-  ?>
-  <div class="table-responsive ranking-scroll">
-    <table class="table table-striped align-middle mb-0">
-      <thead>
-        <tr>
-          <th>Posição</th>
-          <th>Usuário</th>
-          <?php if ($cargo === 'Comercial'): ?>
-            <th class="text-end">Valor Faturado</th>
-          <?php else: ?>
-            <th class="text-end">Indicações</th>
-            <th class="text-end">Faturadas</th>
-            <th class="text-end">Valor Faturado</th>
-          <?php endif; ?>
-          <th style="width:40%">Progresso</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($dados as $k => $r):
-          // 2) Extrai métricas e calcula % da barra
-          if ($cargo === 'Comercial') {
-            $valor       = (float)$r['total_faturado_consult'];
-            $percent     = $max > 0 ? round($valor / $max * 100) : 0;
-          } else {
-            $totalGen    = (int)   $r['total_indicacoes'];
-            $totalFat    = (int)   $r['total_indicacoes_faturadas'];
-            $valor       = (float) $r['total_valor_faturado'];
-            $percent     = $max > 0 ? round($totalFat / $max * 100) : 0;
-          }
-        ?>
-        <tr>
-          <!-- Posição: 🥇, 🥈, 🥉 ou “4º”, “5º”,… -->
-          <td><?= ['🥇','🥈','🥉'][$k] ?? ($k+1).'º' ?></td>
+                  <div class="tab-pane fade show active mt-1" id="v-pane-ranking">
+                    <?php 
+                      // 1) Escolhe o array e o campo para calcular o máximo
+                      if ($cargo === 'Comercial') {
+                        $dados   = $rankingConsult;
+                        // rankingConsult só tem 'total_faturado_consult'
+                        $valores = array_map(fn($r) => (float)$r['total_faturado_consult'], $dados);
+                      } else {
+                        $dados   = $ranking;
+                        // ranking tem 'total_indicacoes_faturadas'
+                        $valores = array_map(fn($r) => (int)$r['total_indicacoes_faturadas'], $dados);
+                      }
+                      $max = !empty($valores) ? max($valores) : 1;
+                    ?>
+                    <div class="table-responsive ranking-scroll">
+                      <table class="table table-striped align-middle mb-0">
+                        <thead>
+                          <tr>
+                            <th>Posição</th>
+                            <th>Usuário</th>
+                            <?php if ($cargo === 'Comercial'): ?>
+                              <th class="text-end">Valor Faturado</th>
+                            <?php else: ?>
+                              <th class="text-end">Indicações</th>
+                              <th class="text-end">Faturadas</th>
+                              <th class="text-end">Valor Faturado</th>
+                            <?php endif; ?>
+                            <th style="width:40%">Progresso</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <?php foreach ($dados as $k => $r):
+                            // 2) Extrai métricas e calcula % da barra
+                            if ($cargo === 'Comercial') {
+                              $valor       = (float)$r['total_faturado_consult'];
+                              $percent     = $max > 0 ? round($valor / $max * 100) : 0;
+                            } else {
+                              $totalGen    = (int)   $r['total_indicacoes'];
+                              $totalFat    = (int)   $r['total_indicacoes_faturadas'];
+                              $valor       = (float) $r['total_valor_faturado'];
+                              $percent     = $max > 0 ? round($totalFat / $max * 100) : 0;
+                            }
+                          ?>
+                          <tr>
+                            <!-- Posição: 🥇, 🥈, 🥉 ou “4º”, “5º”,… -->
+                            <td><?= ['🥇','🥈','🥉'][$k] ?? ($k+1).'º' ?></td>
 
-          <!-- Nome do usuário -->
-          <td><?= htmlspecialchars($r['usuario_nome']) ?></td>
+                            <!-- Nome do usuário -->
+                            <td><?= htmlspecialchars($r['usuario_nome']) ?></td>
 
-          <?php if ($cargo === 'Comercial'): ?>
-            <!-- Só exibe o valor faturado -->
-            <td class="text-end">
-              R$ <?= number_format($valor, 2, ',', '.') ?>
-            </td>
-          <?php else: ?>
-            <!-- Exibe indicações, faturadas e valor -->
-            <td class="text-center"><?= $totalGen ?></td>
-            <td class="text-center"><?= $totalFat ?></td>
-            <td class="text-end">
-              R$ <?= number_format($valor, 2, ',', '.') ?>
-            </td>
-          <?php endif; ?>
+                            <?php if ($cargo === 'Comercial'): ?>
+                              <!-- Só exibe o valor faturado -->
+                              <td class="text-end">
+                                R$ <?= number_format($valor, 2, ',', '.') ?>
+                              </td>
+                            <?php else: ?>
+                              <!-- Exibe indicações, faturadas e valor -->
+                              <td class="text-center"><?= $totalGen ?></td>
+                              <td class="text-center"><?= $totalFat ?></td>
+                              <td class="text-end">
+                                R$ <?= number_format($valor, 2, ',', '.') ?>
+                              </td>
+                            <?php endif; ?>
 
-          <!-- Barra de progresso -->
-          <td>
-            <div class="progress" style="height: .75rem;">
-              <div 
-                class="progress-bar" 
-                role="progressbar" 
-                style="width: <?= $percent ?>%" 
-                aria-valuenow="<?= $percent ?>" 
-                aria-valuemin="0" 
-                aria-valuemax="100"
-              ></div>
-            </div>
-          </td>
-        </tr>
-        <?php endforeach; ?>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-
-
-
+                            <!-- Barra de progresso -->
+                            <td>
+                              <div class="progress" style="height: .75rem;">
+                                <div 
+                                  class="progress-bar" 
+                                  role="progressbar" 
+                                  style="width: <?= $percent ?>%" 
+                                  aria-valuenow="<?= $percent ?>" 
+                                  aria-valuemin="0" 
+                                  aria-valuemax="100"
+                                ></div>
+                              </div>
+                            </td>
+                          </tr>
+                          <?php endforeach; ?>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                   <!-- Plugins em Masonry (fundo claro) -->
                   <div class="table-scroll tab-pane fade" id="v-pane-plugins">
                     <div class="masonry-section">
@@ -551,37 +547,37 @@ $dadosTreinJson = json_encode($dadosTrein);
                   </div>
 
                   <!-- Geral como cards -->
-<div class="tab-pane fade mt-4" id="v-pane-geral">
-  <div class="row row-cols-1 row-cols-md-3 g-4 p-2">
-    <div class="col">
-      <div class="card general-card text-center">
-        <div class="card-body">
-          <i class="fa-solid fa-coins fa-2x mb-2"></i>
-          <h6 class="card-subtitle mb-1">Total Acumulado</h6>
-          <p class="card-text h5">R$ <?=number_format($totalGeral,2,',','.')?></p>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card general-card text-center">
-        <div class="card-body">
-          <i class="fa-solid fa-chalkboard-user fa-2x mb-2 text-success"></i>
-          <h6 class="card-subtitle mb-1">Treinamentos</h6>
-          <p class="card-text h5">R$ <?=number_format($totalTreinamentos,2,',','.')?></p>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card general-card text-center">
-        <div class="card-body">
-          <i class="fa-solid fa-handshake fa-2x mb-2 text-warning"></i>
-          <h6 class="card-subtitle mb-1">Indicações</h6>
-          <p class="card-text h5">R$ <?=number_format($totalFaturamento,2,',','.')?></p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+                  <div class="tab-pane fade mt-4" id="v-pane-geral">
+                    <div class="row row-cols-1 row-cols-md-3 g-4 p-2">
+                      <div class="col">
+                        <div class="card general-card text-center">
+                          <div class="card-body">
+                            <i class="fa-solid fa-coins fa-2x mb-2"></i>
+                            <h6 class="card-subtitle mb-1">Total Acumulado</h6>
+                            <p class="card-text h5">R$ <?=number_format($totalGeral,2,',','.')?></p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col">
+                        <div class="card general-card text-center">
+                          <div class="card-body">
+                            <i class="fa-solid fa-chalkboard-user fa-2x mb-2 text-success"></i>
+                            <h6 class="card-subtitle mb-1">Treinamentos</h6>
+                            <p class="card-text h5">R$ <?=number_format($totalTreinamentos,2,',','.')?></p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col">
+                        <div class="card general-card text-center">
+                          <div class="card-body">
+                            <i class="fa-solid fa-handshake fa-2x mb-2 text-warning"></i>
+                            <h6 class="card-subtitle mb-1">Indicações</h6>
+                            <p class="card-text h5">R$ <?=number_format($totalFaturamento,2,',','.')?></p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
                   <!-- Mensal -->
                   <div class="tab-pane fade" id="v-pane-mensal">
@@ -678,16 +674,16 @@ $dadosTreinJson = json_encode($dadosTrein);
                               data-plugin_id="<?= $i['plugin_id'] ?>"
                               data-data="<?= date('Y-m-d', strtotime($i['data'])) ?>"
                               data-data_faturamento="<?= !empty($i['data_faturamento']) ? date('Y-m-d', strtotime($i['data_faturamento'])) : '' ?>"
-                              data-cnpj="<?= htmlspecialchars($i['cnpj'], ENT_QUOTES) ?>"
-                              data-serial="<?= htmlspecialchars($i['serial'], ENT_QUOTES) ?>"
-                              data-contato="<?= htmlspecialchars($i['contato'], ENT_QUOTES) ?>"
-                              data-fone="<?= htmlspecialchars($i['fone'],    ENT_QUOTES) ?>"
+                              data-cnpj="<?= htmlspecialchars($i['cnpj'],  ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
+                              data-serial="<?= htmlspecialchars($i['serial'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
+                              data-contato="<?= htmlspecialchars($i['contato'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
+                              data-fone="<?= htmlspecialchars($i['fone'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
                               data-idconsultor="<?= $i['idConsultor'] ?>"
                               data-status="<?= $i['status'] ?>"
                               data-vlr_total="<?= $i['vlr_total']   ?? '' ?>"
                               data-n_venda="<?= $i['n_venda']      ?? '' ?>"
-                              data-observacao="<?= $i['observacao']      ?? '' ?>"
-                              data-revenda="<?= $i['revenda'] ?>"
+                              data-observacao="<?= htmlspecialchars($i['observacao'] ?? '' , ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"
+                              data-revenda="<?= $i['revenda']?>"
                               title="Editar"
                             >
                               <i class="fa-solid fa-pen-to-square"></i>
@@ -731,7 +727,7 @@ $dadosTreinJson = json_encode($dadosTrein);
                               <div class="col-6 col-md-3 d-flex align-items-center gap-1">
                                 <i class="fa-solid fa-key text-secondary"></i>
                                 <span class="fw-semibold small text-muted">Serial:</span>
-                                <span class="small"><?= $i['serial']; ?></span>
+                                <span class="small"><?= htmlspecialchars($i['serial']); ?></span>
                               </div>
 
                               <div class="col-6 col-md-3 d-flex align-items-center gap-1">
@@ -744,7 +740,7 @@ $dadosTreinJson = json_encode($dadosTrein);
                                 <i class="fa-solid fa-phone text-warning"></i>
                                 <span class="fw-semibold small text-muted">Fone:</span>
                                 <?php
-                                    $foneDig = preg_replace('/\D/','', $i['fone']);   // só dígitos
+                                    $foneDig = preg_replace('/\D/','', htmlspecialchars($i['fone']));   // só dígitos
                                     if (strlen($foneDig) === 10)     $foneDig = '55'.$foneDig; // acrescenta +55 se faltar
                                     elseif (strlen($foneDig) === 11) $foneDig = '55'.$foneDig;
                                   ?>
@@ -752,7 +748,7 @@ $dadosTreinJson = json_encode($dadosTrein);
                                     target="_blank" class="text-decoration-none"
                                     title="Enviar mensagem por WhatsApp">
                                     <i class="fa-brands fa-whatsapp text-success"></i>
-                                    <?= $i['fone']; ?>
+                                    <?= htmlspecialchars($i['fone']); ?>
                                   </a>
                               </div>
                               <!-- Campo Revenda -->
@@ -884,7 +880,7 @@ $dadosTreinJson = json_encode($dadosTrein);
                         $resPlugins = mysqli_query($conn, $sqlPlugins);
                         while($plugin = mysqli_fetch_assoc($resPlugins)):
                       ?>
-                        <option value="<?php echo $plugin['id']; ?>"><?php echo $plugin['nome']; ?></option>
+                        <option value="<?php echo $plugin['id']; ?>"><?php echo htmlspecialchars($plugin['nome']); ?></option>
                       <?php endwhile; ?>
                     </select>
                     <?php if (
